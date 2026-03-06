@@ -301,6 +301,13 @@ def chunk_list(items: List[Any], batch_size: int) -> List[List[Any]]:
     return [items[i : i + batch_size] for i in range(0, len(items), batch_size)]
 
 
+def build_repeated_user_prompt(query: str) -> str:
+    base = _norm_text(query)
+    if not base:
+        return ""
+    return f"{base}\n\nLet me repeat that:\n{base}"
+
+
 def call_filter(
     client: BltClient,
     all_requirements: List[Dict[str, str]],
@@ -513,13 +520,14 @@ def call_filter(
     )
     if retry_note:
         user_prompt += f"\n\nRetry correction note:\n{retry_note}"
+    repeated_user_prompt = build_repeated_user_prompt(user_prompt)
 
     resp = client.chat(
         messages=[
             {"role": "system", "content": system_prompt},
             {
                 "role": "user",
-                "content": user_prompt
+                "content": repeated_user_prompt
                 + "\n\nOutput must be strict JSON only, no markdown, no fences, no extra text.",
             },
         ],

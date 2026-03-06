@@ -72,6 +72,45 @@ class LlmRefineRecoveryTest(unittest.TestCase):
         self.assertIn((("p-1",), 1), calls)
         self.assertIn((("p-2",), 1), calls)
 
+    def test_call_filter_repeats_user_prompt_with_separator(self):
+        captured = {}
+
+        class FakeClient:
+            model = "gemini-3-flash-preview-nothinking"
+
+            def chat(self, messages, response_format):
+                captured["messages"] = messages
+                captured["response_format"] = response_format
+                return {
+                    "content": (
+                        '{"results":[{"id":"p-1","matched_requirement_index":1,'
+                        '"evidence_en":"ok","evidence_cn":"相关","tldr_en":"ok","tldr_cn":"相关","score":8}]}'
+                    )
+                }
+
+        out = self.mod.call_filter(
+            client=FakeClient(),
+            all_requirements=[
+                {
+                    "id": "req-1",
+                    "query": "symbolic regression methods",
+                    "tag": "query:sr",
+                    "kind": "direct",
+                    "description_en": "Find papers relevant to symbolic regression methods",
+                }
+            ],
+            docs=[{"id": "p-1", "content": "Title: A\nAbstract: B"}],
+            debug_dir="",
+            debug_tag="prompt_test",
+        )
+
+        self.assertEqual(out[0]["id"], "p-1")
+        user_content = captured["messages"][1]["content"]
+        self.assertIn("Let me repeat that:", user_content)
+        self.assertEqual(user_content.count("User requirements list:"), 2)
+        self.assertEqual(user_content.count("Papers:"), 2)
+        self.assertTrue(user_content.rstrip().endswith("Output must be strict JSON only, no markdown, no fences, no extra text."))
+
 
 if __name__ == "__main__":
     unittest.main()
