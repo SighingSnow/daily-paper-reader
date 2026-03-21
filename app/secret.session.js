@@ -678,7 +678,7 @@
             验证 DashScope API Key
           </button>
           <div id="secret-setup-plato-status" style="min-height:18px; font-size:12px; color:#999; margin-bottom:8px;">
-            将通过 <code>/v1/chat/completions</code> 接口验证可用性。
+            DashScope API 不支持浏览器跨域调用，仅校验 Key 格式（<code>sk-</code> 开头）。
           </div>
 
           <div style="font-weight:500; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
@@ -790,7 +790,7 @@
         }
       });
 
-      platoVerifyBtn.addEventListener('click', async () => {
+      platoVerifyBtn.addEventListener('click', () => {
         const key = platoInput.value.trim();
         if (!key) {
           platoStatusEl.textContent = '请先输入 DashScope API Key。';
@@ -798,46 +798,18 @@
           platoOk = false;
           return;
         }
-        platoVerifyBtn.disabled = true;
-        platoStatusEl.textContent = '正在验证 DashScope API Key...';
-        platoStatusEl.style.color = '#666';
-        try {
-          // 使用 /v1/chat/completions 发送一个轻量请求来验证 API Key 有效性。
-          // 注意：/v1/models 端点在 coding.dashscope 上不存在（返回 404 且无 CORS 头），
-          // 浏览器会因缺少 CORS 头而直接报 "Failed to fetch"。
-          const resp = await fetch(
-            'https://coding.dashscope.aliyuncs.com/v1/chat/completions',
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${key}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'glm-5',
-                messages: [{ role: 'user', content: 'hi' }],
-                max_tokens: 1,
-              }),
-            },
-          );
-          if (!resp.ok) {
-            const body = await resp.json().catch(() => ({}));
-            const errCode = (body && body.error && body.error.code) || '';
-            // invalid_api_key 表示 Key 无效；其它错误（如模型不存在）说明 Key 本身是合法的
-            if (errCode === 'invalid_api_key') {
-              throw new Error('API Key 无效或已过期');
-            }
-          }
-          platoStatusEl.textContent = '✅ 验证成功';
-          platoStatusEl.style.color = '#28a745';
-          platoOk = true;
-        } catch (e) {
-          platoStatusEl.textContent = `❌ 验证失败：${e.message || e}`;
+        // DashScope API（coding.dashscope.aliyuncs.com）不支持浏览器 CORS，
+        // 无法在前端直接调用任何端点进行验证。因此仅做格式校验，
+        // 实际有效性将在 GitHub Actions 后端流水线中验证。
+        if (!/^sk-.{8,}$/.test(key)) {
+          platoStatusEl.textContent = '❌ API Key 格式不正确，应以 sk- 开头且长度不少于 11 位。';
           platoStatusEl.style.color = '#c00';
           platoOk = false;
-        } finally {
-          platoVerifyBtn.disabled = false;
+          return;
         }
+        platoStatusEl.textContent = '✅ 格式校验通过（实际可用性将在后台首次运行时验证）';
+        platoStatusEl.style.color = '#28a745';
+        platoOk = true;
       });
 
       genBtn.addEventListener('click', async () => {
