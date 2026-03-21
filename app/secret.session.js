@@ -678,7 +678,7 @@
             验证 DashScope API Key
           </button>
           <div id="secret-setup-plato-status" style="min-height:18px; font-size:12px; color:#999; margin-bottom:8px;">
-            将通过 <code>/v1/models</code> 接口验证可用性。
+            将通过 <code>/v1/chat/completions</code> 接口验证可用性。
           </div>
 
           <div style="font-weight:500; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
@@ -802,17 +802,31 @@
         platoStatusEl.textContent = '正在验证 DashScope API Key...';
         platoStatusEl.style.color = '#666';
         try {
+          // 使用 /v1/chat/completions 发送一个轻量请求来验证 API Key 有效性。
+          // 注意：/v1/models 端点在 coding.dashscope 上不存在（返回 404 且无 CORS 头），
+          // 浏览器会因缺少 CORS 头而直接报 "Failed to fetch"。
           const resp = await fetch(
-            'https://coding.dashscope.aliyuncs.com/v1/models',
+            'https://coding.dashscope.aliyuncs.com/v1/chat/completions',
             {
-              method: 'GET',
+              method: 'POST',
               headers: {
                 Authorization: `Bearer ${key}`,
+                'Content-Type': 'application/json',
               },
+              body: JSON.stringify({
+                model: 'glm-5',
+                messages: [{ role: 'user', content: 'hi' }],
+                max_tokens: 1,
+              }),
             },
           );
           if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
+            const body = await resp.json().catch(() => ({}));
+            const errCode = (body && body.error && body.error.code) || '';
+            // invalid_api_key 表示 Key 无效；其它错误（如模型不存在）说明 Key 本身是合法的
+            if (errCode === 'invalid_api_key') {
+              throw new Error('API Key 无效或已过期');
+            }
           }
           platoStatusEl.textContent = '✅ 验证成功';
           platoStatusEl.style.color = '#28a745';
