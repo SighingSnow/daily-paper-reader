@@ -539,15 +539,12 @@ def main() -> None:
     )
     if trace_ids:
         print_trace_retrieval("RRF", rrf_path, trace_ids)
-    run_step(
-        "Step 3 - Rerank",
-        [python, os.path.join(SRC_DIR, "3.rank_papers.py")],
-    )
-    if trace_ids:
-        print_trace_retrieval("RERANK", rerank_path, trace_ids)
+    # Step 3 (Rerank) skipped — rerank requires a dedicated reranker model/endpoint.
+    # Feed RRF output directly to Step 4 (LLM refine) via --input.
     run_step(
         "Step 4 - LLM refine",
-        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py")],
+        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py"),
+         "--input", rrf_path],
     )
     if trace_ids:
         print_trace_llm("LLM", llm_path, trace_ids)

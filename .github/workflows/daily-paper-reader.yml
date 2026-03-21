@@ -31,9 +31,10 @@ jobs:
     timeout-minutes: 120
     env:
       BLT_API_KEY: ${{ secrets.BLT_API_KEY }}
-      BLT_REWRITE_MODEL: gemini-3-flash-preview
-      BLT_RERANK_MODEL: qwen3-reranker-4b
-      BLT_FILTER_MODEL: gemini-3-flash-preview-nothinking
+      LLM_PRIMARY_BASE_URL: "https://coding.dashscope.aliyuncs.com/v1"
+      BLT_API_BASE: "https://coding.dashscope.aliyuncs.com/v1"
+      BLT_REWRITE_MODEL: glm-5
+      BLT_FILTER_MODEL: glm-5
       DPR_EMBED_API_TIMEOUT: "60"
       PYTHONUNBUFFERED: "1"
 
