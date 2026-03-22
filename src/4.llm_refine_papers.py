@@ -791,6 +791,76 @@ def _filter_batch(
     )
 
 
+def _score_to_stars(score: float) -> int:
+    """与 3.rank_papers.py 中的 score_to_stars 保持一致。"""
+    if score >= 0.9:
+        return 5
+    if score >= 0.5:
+        return 4
+    if score >= 0.1:
+        return 3
+    if score >= 0.01:
+        return 2
+    return 1
+
+
+def _synthesize_ranked_from_sim_scores(queries: List[Dict[str, Any]]) -> None:
+    """当 Step 3 (rerank) 被跳过时，从 sim_scores 合成 ranked 列表。
+
+    遍历每条 query，如果已有 ranked 且非空则跳过；
+    否则从 sim_scores 中按 score 降序排列，做 min-max 归一化，
+    计算 star_rating，生成与 Step 3 相同格式的 ranked 列表。
+    """
+    synthesized = 0
+    for q in queries:
+        ranked = q.get("ranked")
+        if isinstance(ranked, list) and ranked:
+            continue  # 已有 ranked，不覆盖
+        sim_scores = q.get("sim_scores")
+        if not isinstance(sim_scores, dict) or not sim_scores:
+            continue
+        # 按 score 降序排列
+        sorted_items = sorted(
+            sim_scores.items(),
+            key=lambda x: (x[1].get("score", 0) if isinstance(x[1], dict) else float(x[1])),
+            reverse=True,
+        )
+        # 提取分数做 min-max 归一化
+        scores = []
+        for pid, meta in sorted_items:
+            if isinstance(meta, dict):
+                scores.append(meta.get("score", 0.0))
+            elif isinstance(meta, (int, float)):
+                scores.append(float(meta))
+            else:
+                scores.append(0.0)
+        min_s = min(scores) if scores else 0.0
+        max_s = max(scores) if scores else 0.0
+        denom = (max_s - min_s) if max_s > min_s else 1.0
+
+        ranked_list: List[Dict[str, Any]] = []
+        for rank_idx, ((pid, meta), raw_score) in enumerate(
+            zip(sorted_items, scores), start=1
+        ):
+            norm_score = (raw_score - min_s) / denom
+            ranked_list.append(
+                {
+                    "paper_id": pid,
+                    "score": raw_score,
+                    "norm_score": round(norm_score, 6),
+                    "rank": rank_idx,
+                    "star_rating": _score_to_stars(norm_score),
+                }
+            )
+        q["ranked"] = ranked_list
+        synthesized += 1
+    if synthesized:
+        log(
+            f"[INFO] Step 3 (rerank) 被跳过，已从 sim_scores 合成 ranked 列表"
+            f"（{synthesized} 条 query）。"
+        )
+
+
 def process_file(
     input_path: str,
     output_path: str,
@@ -831,6 +901,11 @@ def process_file(
         f"min_star={min_star}, batch_size={batch_size}, max_chars={max_chars}, "
         f"concurrency={filter_concurrency}"
     )
+
+    # ── 当 Step 3 (rerank) 被跳过时，queries 只有 sim_scores 而没有 ranked ──
+    # 自动从 sim_scores 合成 ranked 列表并计算 star_rating，
+    # 使得后续的 candidate gate 能正常工作。
+    _synthesize_ranked_from_sim_scores(queries)
 
     candidate_ids: List[str] = []
     for q in queries:
