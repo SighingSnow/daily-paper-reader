@@ -673,9 +673,9 @@ window.SubscriptionsSmartQuery = (function () {
         pushUnique(`${src}/chat/completions`);
       };
 
-      expandEndpoint('https://hk-api.gptbest.vip');
-      expandEndpoint('https://api.bltcy.ai');
-
+      // 仅使用用户在密钥配置中设置的 baseUrl，不再硬编码第三方网关地址。
+      // 旧代码曾在此处硬编码 hk-api.gptbest.vip 和 api.bltcy.ai，
+      // 但它们与用户自己的 API Key（如 DashScope）不兼容，且会触发 CORS 错误。
       const raw = normalizeText(llm.baseUrl);
       if (!raw) {
         return out;
@@ -1689,7 +1689,6 @@ window.SubscriptionsSmartQuery = (function () {
     const hasKeywords = hasKeywordSection && modalState.keywords.some((item) => !isDraftSlot(item));
     const hasIntentQueries =
       hasIntentSection && modalState.intent_queries.some((item) => !isDraftSlot(item));
-    const hasCandidates = hasKeywords || hasIntentQueries;
     const isFirstRound = !(Array.isArray(modalState.requestHistory) && modalState.requestHistory.length);
     const actionLabel = isFirstRound ? '生成候选' : '新增候选';
     const tipSection = isFirstRound
@@ -1734,6 +1733,17 @@ window.SubscriptionsSmartQuery = (function () {
         ${tipSection}
         <div class="dpr-chat-result-content">${mixedHtml || emptyBlock}</div>
       </div>
+      <div class="dpr-modal-actions-inline dpr-modal-add-inline">
+        <input id="dpr-chat-add-kw-text" type="text" placeholder="手动新增关键词（召回词）" value="" />
+        <input id="dpr-chat-add-kw-query" type="text" placeholder="对应语义 Query 改写" value="" />
+        <input id="dpr-chat-add-kw-logic" type="text" placeholder="中文直译（可选）" value="" />
+        <button class="arxiv-tool-btn" data-action="chat-add-kw">加入关键词</button>
+      </div>
+      <div class="dpr-modal-actions-inline dpr-modal-add-inline">
+        <input id="dpr-chat-add-intent-text" type="text" placeholder="手动新增意图 Query" value="" />
+        <input id="dpr-chat-add-intent-cn" type="text" placeholder="中文直译（可选）" value="" />
+        <button class="arxiv-tool-btn" data-action="chat-add-intent">加入意图</button>
+      </div>
       <div class="dpr-modal-actions dpr-chat-action-area">
         <div class="dpr-chat-row">
           <label class="dpr-chat-label dpr-chat-inline-desc">
@@ -1762,7 +1772,7 @@ window.SubscriptionsSmartQuery = (function () {
           <span class="dpr-chat-label-text">中文描述</span>
           <input id="dpr-chat-required-desc" type="text" placeholder="请填写描述" value="${escapeHtml(modalState.inputDesc || '')}" />
         </label>
-        <button class="arxiv-tool-btn" data-action="apply-chat" style="background:#2e7d32;color:#fff;" ${hasCandidates ? '' : 'disabled'}>
+        <button class="arxiv-tool-btn" data-action="apply-chat" style="background:#2e7d32;color:#fff;">
           保存查询
         </button>
       </div>
@@ -2056,6 +2066,64 @@ window.SubscriptionsSmartQuery = (function () {
     if (modalState && modalState.type === 'chat') {
       if (action === 'chat-send') {
         askChatOnce();
+        return;
+      }
+      if (action === 'chat-add-kw') {
+        const kwText = normalizeText(document.getElementById('dpr-chat-add-kw-text')?.value || '');
+        const query = normalizeText(document.getElementById('dpr-chat-add-kw-query')?.value || '');
+        const logic = normalizeText(document.getElementById('dpr-chat-add-kw-logic')?.value || '');
+        if (!kwText) {
+          setMessage('请输入要新增的关键词。', '#c00');
+          return;
+        }
+        if (!Array.isArray(modalState.keywords)) modalState.keywords = [];
+        const existed = modalState.keywords.some(
+          (x) => normalizeText(x.keyword || x.text || '').toLowerCase() === kwText.toLowerCase(),
+        );
+        if (existed) {
+          setMessage('该关键词已在候选中。', '#c00');
+          return;
+        }
+        if (!canSelectMoreCandidates(modalState.keywords, true, 'keyword')) {
+          setMessage(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
+          return;
+        }
+        modalState.keywords.push({
+          keyword: kwText,
+          keyword_cn: logic,
+          query: query || kwText,
+          _selected: true,
+        });
+        renderChatModal();
+        setMessage('已加入自定义关键词候选。', '#666');
+        return;
+      }
+      if (action === 'chat-add-intent') {
+        const intentText = normalizeText(document.getElementById('dpr-chat-add-intent-text')?.value || '');
+        const intentCn = normalizeText(document.getElementById('dpr-chat-add-intent-cn')?.value || '');
+        if (!intentText) {
+          setMessage('请输入要新增的意图 Query。', '#c00');
+          return;
+        }
+        if (!Array.isArray(modalState.intent_queries)) modalState.intent_queries = [];
+        const existed = modalState.intent_queries.some(
+          (x) => normalizeText(x.query || '').toLowerCase() === intentText.toLowerCase(),
+        );
+        if (existed) {
+          setMessage('该意图 Query 已在候选中。', '#c00');
+          return;
+        }
+        if (!canSelectMoreCandidates(modalState.intent_queries, true, 'intent')) {
+          setMessage(`意图 Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+          return;
+        }
+        modalState.intent_queries.push({
+          query: intentText,
+          query_cn: intentCn,
+          _selected: true,
+        });
+        renderChatModal();
+        setMessage('已加入自定义意图 Query。', '#666');
         return;
       }
       if (action === 'apply-chat') {
