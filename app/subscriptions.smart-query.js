@@ -1065,7 +1065,8 @@ window.SubscriptionsSmartQuery = (function () {
 
     const primaryValue = normalizeText(slot[meta.primary]);
     if (!primaryValue) {
-      setMessage(`请先填写${meta.primaryPlaceholder || '英文'}。`, '#c00');
+      const statusFn = (state && state.type === 'chat') ? setChatStatus : (state && state.type === 'add') ? setAddStatus : setMessage;
+      statusFn(`请先填写${meta.primaryPlaceholder || '英文'}。`, '#c00');
       return false;
     }
 
@@ -1087,7 +1088,8 @@ window.SubscriptionsSmartQuery = (function () {
     const created = buildDraftItemFromSlot(realKind, slot);
     if (!created) return false;
     if (!canSelectMoreCandidates(list, true, realKind)) {
-      setMessage(`${getKindLabel(realKind)} 最多只能选择 ${getSelectionLimit(realKind)} 条。`, '#c00');
+      const statusFn = (state && state.type === 'chat') ? setChatStatus : (state && state.type === 'add') ? setAddStatus : setMessage;
+      statusFn(`${getKindLabel(realKind)} 最多只能选择 ${getSelectionLimit(realKind)} 条。`, '#c00');
       return false;
     }
     const next = list.slice();
@@ -1619,7 +1621,15 @@ window.SubscriptionsSmartQuery = (function () {
         </label>
         <button class="arxiv-tool-btn" data-action="apply-add" style="background:#2e7d32;color:#fff;">保存查询</button>
       </div>
+      <div id="dpr-add-inline-status" class="dpr-chat-inline-status"></div>
     `;
+  };
+
+  const setAddStatus = (text, color) => {
+    const el = modalPanel?.querySelector('#dpr-add-inline-status');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = color || '#666';
   };
 
   const applyAddModal = () => {
@@ -1628,7 +1638,7 @@ window.SubscriptionsSmartQuery = (function () {
     const nextDesc = normalizeText(document.getElementById('dpr-add-profile-desc')?.value || '');
 
     if (!nextTag || !nextDesc) {
-      setMessage('标签和描述不能为空。', '#c00');
+      setAddStatus('标签和描述不能为空。', '#c00');
       return;
     }
 
@@ -1639,7 +1649,7 @@ window.SubscriptionsSmartQuery = (function () {
     const selectedIntentQueries = getSelectedItemsForSave(modalState.intent_queries || []);
     const validationError = validateProfileSelection(selectedKeywords, selectedIntentQueries);
     if (validationError) {
-      setMessage(validationError, '#c00');
+      setAddStatus(validationError, '#c00');
       return;
     }
     const isEditMode = !!(modalState && modalState.editProfileId);
@@ -1661,7 +1671,7 @@ window.SubscriptionsSmartQuery = (function () {
         });
 
     if (!ok) {
-      setMessage('请至少选择 1 条关键词和 1 条意图Query。', '#c00');
+      setAddStatus('请至少选择 1 条关键词和 1 条意图Query。', '#c00');
       return;
     }
 
@@ -1807,15 +1817,15 @@ window.SubscriptionsSmartQuery = (function () {
     const tag = normalizeText(document.getElementById('dpr-chat-tag-input')?.value || modalState.inputTag || '');
 
     if (!tag) {
-      setMessage('请先填写标签。', '#c00');
+      setChatStatus('请先填写标签。', '#c00');
       return;
     }
     if (!desc) {
-      setMessage('请先填写中文描述。', '#c00');
+      setChatStatus('请先填写中文描述。', '#c00');
       return;
     }
     if (validationError) {
-      setMessage(validationError, '#c00');
+      setChatStatus(validationError, '#c00');
       return;
     }
     modalState.inputTag = tag;
@@ -1837,7 +1847,7 @@ window.SubscriptionsSmartQuery = (function () {
     }
 
     if (!hasSelection) {
-      setMessage(hasItems ? '应用失败，请重试。' : '请至少勾选 1 条关键词和 1 条意图Query 后再应用。', '#c00');
+      setChatStatus(hasItems ? '应用失败，请重试。' : '请至少勾选 1 条关键词和 1 条意图Query 后再应用。', '#c00');
       return;
     }
     if (typeof reloadAll === 'function') reloadAll();
@@ -2000,7 +2010,7 @@ window.SubscriptionsSmartQuery = (function () {
         ) {
           const nextSelected = !modalState.keywords[idx]._selected;
           if (!canSelectMoreCandidates(modalState.keywords, nextSelected, 'keyword')) {
-            setMessage(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
+            setAddStatus(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
             return;
           }
           modalState.keywords[idx]._selected = nextSelected;
@@ -2017,7 +2027,7 @@ window.SubscriptionsSmartQuery = (function () {
         ) {
           const nextSelected = !modalState.intent_queries[idx]._selected;
           if (!canSelectMoreCandidates(modalState.intent_queries, nextSelected, 'intent')) {
-            setMessage(`意图Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+            setAddStatus(`意图Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
             return;
           }
           modalState.intent_queries[idx]._selected = nextSelected;
@@ -2030,18 +2040,18 @@ window.SubscriptionsSmartQuery = (function () {
         const query = normalizeText(document.getElementById('dpr-add-kw-query')?.value || '');
         const logic = normalizeText(document.getElementById('dpr-add-kw-logic')?.value || '');
         if (!kwText) {
-          setMessage('请输入要新增的关键词。', '#c00');
+          setAddStatus('请输入要新增的关键词。', '#c00');
           return;
         }
         const existed = (modalState.keywords || []).some(
           (x) => normalizeText(x.keyword || x.text || '').toLowerCase() === kwText.toLowerCase(),
         );
         if (existed) {
-          setMessage('该关键词已在候选中。', '#c00');
+          setAddStatus('该关键词已在候选中。', '#c00');
           return;
         }
         if (!canSelectMoreCandidates(modalState.keywords, true, 'keyword')) {
-          setMessage(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
+          setAddStatus(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
           return;
         }
         modalState.keywords.push({
@@ -2054,7 +2064,7 @@ window.SubscriptionsSmartQuery = (function () {
         modalState.customKeywordLogic = '';
         modalState.customQuery = '';
         renderAddModal();
-        setMessage('已加入自定义关键词候选。', '#666');
+        setAddStatus('已加入自定义关键词候选。', '#666');
         return;
       }
       if (action === 'apply-add') {
@@ -2073,7 +2083,7 @@ window.SubscriptionsSmartQuery = (function () {
         const query = normalizeText(document.getElementById('dpr-chat-add-kw-query')?.value || '');
         const logic = normalizeText(document.getElementById('dpr-chat-add-kw-logic')?.value || '');
         if (!kwText) {
-          setMessage('请输入要新增的关键词。', '#c00');
+          setChatStatus('请输入要新增的关键词。', '#c00');
           return;
         }
         if (!Array.isArray(modalState.keywords)) modalState.keywords = [];
@@ -2081,11 +2091,11 @@ window.SubscriptionsSmartQuery = (function () {
           (x) => normalizeText(x.keyword || x.text || '').toLowerCase() === kwText.toLowerCase(),
         );
         if (existed) {
-          setMessage('该关键词已在候选中。', '#c00');
+          setChatStatus('该关键词已在候选中。', '#c00');
           return;
         }
         if (!canSelectMoreCandidates(modalState.keywords, true, 'keyword')) {
-          setMessage(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
+          setChatStatus(`关键词最多只能选择 ${MAX_KEYWORDS_PER_PROFILE} 条。`, '#c00');
           return;
         }
         modalState.keywords.push({
@@ -2095,14 +2105,14 @@ window.SubscriptionsSmartQuery = (function () {
           _selected: true,
         });
         renderChatModal();
-        setMessage('已加入自定义关键词候选。', '#666');
+        setChatStatus('已加入自定义关键词候选。', '#666');
         return;
       }
       if (action === 'chat-add-intent') {
         const intentText = normalizeText(document.getElementById('dpr-chat-add-intent-text')?.value || '');
         const intentCn = normalizeText(document.getElementById('dpr-chat-add-intent-cn')?.value || '');
         if (!intentText) {
-          setMessage('请输入要新增的意图 Query。', '#c00');
+          setChatStatus('请输入要新增的意图 Query。', '#c00');
           return;
         }
         if (!Array.isArray(modalState.intent_queries)) modalState.intent_queries = [];
@@ -2110,11 +2120,11 @@ window.SubscriptionsSmartQuery = (function () {
           (x) => normalizeText(x.query || '').toLowerCase() === intentText.toLowerCase(),
         );
         if (existed) {
-          setMessage('该意图 Query 已在候选中。', '#c00');
+          setChatStatus('该意图 Query 已在候选中。', '#c00');
           return;
         }
         if (!canSelectMoreCandidates(modalState.intent_queries, true, 'intent')) {
-          setMessage(`意图 Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+          setChatStatus(`意图 Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
           return;
         }
         modalState.intent_queries.push({
@@ -2123,7 +2133,7 @@ window.SubscriptionsSmartQuery = (function () {
           _selected: true,
         });
         renderChatModal();
-        setMessage('已加入自定义意图 Query。', '#666');
+        setChatStatus('已加入自定义意图 Query。', '#666');
         return;
       }
       if (action === 'apply-chat') {
@@ -2157,7 +2167,7 @@ window.SubscriptionsSmartQuery = (function () {
       if (card) {
         card.classList.remove('selected');
       }
-      setMessage(`${getKindLabel(kind)} 最多只能选择 ${getSelectionLimit(kind)} 条。`, '#c00');
+      setChatStatus(`${getKindLabel(kind)} 最多只能选择 ${getSelectionLimit(kind)} 条。`, '#c00');
       return;
     }
     if (card) {
