@@ -1,0 +1,264 @@
+Title: Probe-then-Plan: Environment-Aware Planning for Industrial E-commerce Search
+
+URL Source: https://arxiv.org/pdf/2603.15262v1
+
+Published Time: Tue, 17 Mar 2026 06:29:04 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# Probe-then-Plan: Environment-Aware Planning for Industrial E-commerce Search 
+
+## Mengxiang Chen ∗
+
+chenmengxiang9@jd.com JD.com Beijing, China 
+
+## Zhouwei Zhai 
+
+zhaizhouwei1@jd.com JD.com Beijing, China 
+
+## Jin Li 
+
+lijin.257@jd.com JD.com Beijing, China 
+
+## Abstract 
+
+Modern e-commerce search is evolving from simple keyword match-ing to resolving complex user intents. While large language models (LLMs) offer powerful reasoning capabilities, existing LLM-based search paradigms suffer from a fundamental blindness-latency dilemma: query rewriting methods are agnostic to retrieval tool ca-pabilities and real-time inventory states, resulting in invalid plans; conversely, deep search agent approaches initially plan without en-vironment awareness, then rely on iterative tool calls and reflection to perceive and correct failures, leading to seconds of latency, in-compatible with the sub-second budget for the planning module in industrial e-commerce search. To resolve this conflict, we propose Environment-Aware Search Planning (EASP), a novel paradigm that reformulates search planning as a dynamic reasoning process grounded in environmental reality. EASP introduces a Probe-then-Plan mechanism: a lightweight Retrieval Probe first exposes the retrieval snapshot, enabling the Planner to diagnose execution gaps and generate grounded search plans. Our methodology unfolds in three stages: (1) Offline Data Synthesis: The Teacher Agent synthe-sizes diverse, execution-validated plans by diagnosing the retrieval environment exposed by the Retrieval Probe. (2) Planner Training and Alignment: The Planner is initialized via supervised fine-tuning (SFT) on the offline dataset to internalize the Teacher’s diagnostic capabilities, followed by alignment with business outcomes (con-version rate) through reinforcement learning. (3) Adaptive Online Serving: A complexity-aware routing mechanism selectively ac-tivates the planning pipeline only for complex queries, ensuring optimal resource allocation. Extensive offline evaluations and on-line A/B testing on JD.com demonstrate that EASP significantly improves relevant recall and achieves substantial lifts in UCVR and GMV. EASP has been successfully deployed in JD.com’s AI-Search system. 
+
+## CCS Concepts 
+
+• Computing methodologies → Natural language process-ing ; • Applied computing → Online shopping ; • Information systems → Information retrieval . 
+
+> ∗The corresponding author. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> Conference acronym ’XX, Woodstock, NY
+> ©2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+## Keywords 
+
+E-commerce Search, Search Planning, Large Language Models 
+
+ACM Reference Format: 
+
+Mengxiang Chen, Zhouwei Zhai, and Jin Li. 2018. Probe-then-Plan: Environment-Aware Planning for Industrial E-commerce Search. In Proceedings of Make sure to enter the correct conference title from your rights confirmation email (Conference acronym ’XX). ACM, New York, NY, USA, 5 pages. https://doi. org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+Modern e-commerce search is evolving from fulfilling explicit queries to resolving complex exploration scenarios with implicit constraints (e.g., “bottoms match green shirts”, “all-day comfort heels for the office”). Traditional term matching[2, 4, 16] and embedding-based retrieval[ 6, 9 , 10 , 12 ] often fail to decompose such intents, caus-ing recall deficiencies or semantic drift. While LLMs[ 1 , 5, 19 ] of-fer strong reasoning capabilities, existing solutions suffer from a fundamental blindness-latency dilemma: generative rewriting methods[ 3, 13 , 14 ] operate blindly without perceiving initial query retrieval outcomes, producing redundant or infeasible queries; con-versely, ReAct[ 21 ]-style deep search agents[ 7, 8, 11 , 15 , 18 ] first generate plans without environment awareness, then depend on iterative tool calls and reflection to perceive and correct failures, which incurs seconds of latency, making them impractical for real-time industrial deployment where planning must complete within hundreds of milliseconds. Distinct from open-domain deep search tasks that necessitate multi-hop reasoning, complex e-commerce queries typically op-erate within a more bounded semantic space. We observe that a single diagnostic reflection on initial retrieval results is sufficient to formulate an effective search plan for most complex e-commerce queries. Motivated by this observation, we propose Environment-Aware Search Planning (EASP), a paradigm that reformulates query plan-ning as a grounded, single-step reasoning process. EASP introduces a Probe-then-Plan mechanism: a lightweight Retrieval Probe first exposes a snapshot of the retrieval environment, enabling the Plan-ner to diagnose execution gaps (e.g., entity drift, attribute misalign-ment) and generate grounded search plan in one go. Online A/B testing on JD.com live traffic shows that EASP achieves statistically significant lifts in UCVR (+0.89%, p<0.05) and GMV (+0.57%, p<0.05), with end-to-end planner latency under 20ms at p75 (dominated by simple queries that bypass the planning pipeline) and under 700ms at p99 (cost of complex queries that trigger full planning) — well within industrial deployment constraints. Based on these results, EASP has been fully deployed in JD.com’s AI-Search system.  
+
+> arXiv:2603.15262v1 [cs.AI] 16 Mar 2026 Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Chen et al.
+
+Figure 1: The training and serving workflow of EASP 
+
+In summary, our contributions are threefold: (1) an e-commerce search planning paradigm that grounds single-step planning in retrieval reality via Probe-then-Plan; (2) a training framework that enables a lightweight planner to acquire diagnostic capabilities from a teacher through supervised fine-tuning and align with business objectives via reinforcement learning; (3) a deployable industrial architecture that balances latency and effect through complexity-aware routing. 
+
+## 2 Methodology 
+
+The overall architecture of our proposed framework is illustrated in Figure 1. 
+
+## 2.1 Problem Formulation 
+
+We formulate the search planning task as a decision-making pro-cess within a dynamic retrieval environment. Let E denote the e-commerce search engine environment, which contains the com-plete product inventory and retrieval logic. Given a user query 𝑞 ,the true state of E is partially observable. To initiate the planning process, a Retrieval Probe is called to interact with E, yielding an initial observation Oinit = Probe (E , 𝑞 ).This observation serves as a snapshot of the retrieval reality relative to 𝑞 . The planner functions as an agent policy 𝜋 𝜃 , parameterized by 𝜃 , which maps the perceptual context (𝑞, Oinit ) to an optimal search plan P:
+
+P ∼ 𝜋 𝜃 (·| 𝑞, Oinit ) (1) where P = {𝑎 1, . . . , 𝑎 𝑁 } is a sequence of parallel search actions (e.g., rewriting, filtering). The objective is to find a policy 𝜋 ∗ that maximizes the expected utility of the final outcome given the environmental constraints: 
+
+𝜋 ∗ = arg max 
+
+> 𝜋
+
+EP∼ 𝜋 (· | 𝑞, Oinit )
+
+ER∼E ( P ) [𝑈 (R , 𝑞 )]  (2) where E (P) denotes the execution of the plan in the environment 
+
+E to obtain results R, and 𝑈 (·) is the utility function. 
+
+## 2.2 Stage 1: Offline Data Synthesis via Teacher Agent 
+
+The Teacher Agent, based on a SOTA LLM, takes the original query 
+
+𝑞 and its retrieval snapshot Oinit from the Retrieval Probe , then ana-lyzes the environment to diagnose retrieval failures and determine whether and how the query should be refined. 
+
+Retrieval Probe. Built upon the online search system, this mod-ule retains only core retrieval and relevance-matching capabilities, omitting computationally expensive components optimized for con-version. In our JD.com implementation, this design reduces tp99 latency by approximately 75%, yet the retrieved items sufficiently reflect the underlying item distribution and expose the system’s retrieval boundaries for diagnostic purposes. 
+
+2.2.1 Perceptual Diagnosis. The Teacher assesses the retrieval state by analyzing Oinit in conjunction with 𝑞 , categorizing it into one of three mutually exclusive states: 
+
+• Effective State: Oinit exhibits high relevance with sufficient coverage; no refinement is needed. 
+
+• Recall Failure: Oinit contains few or zero results. The agent distinguishes two subcases: 
+
+– Query Noise: The query contains elements that obstruct matching, including conversational fillers, marketing fluff, or lexical errors. 
+
+– Inventory Void: The query expresses a valid intent, but no matching items exist in the catalog. 
+
+• Precision Failure: Oinit returns abundant results but with low precision. The agent further diagnoses the root cause along two dimensions: Probe-then-Plan: Environment-Aware Planning for Industrial E-commerce Search Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+Table 1: EASP Diagnosis-Planning Matrix with illustrative examples. 
+
+State Diagnosis Strategy Transformation Flow (𝑞 Perception in (𝑞, 𝑂 𝑖𝑛𝑖𝑡 )
+
+−−−−−−−−−−−−−−− → P )
+
+Effective State: High relevance Preservation 𝑞 : “iPhone 17 Pro” Top results highly relevant 
+
+−−−−−−−−−−−−−−−− → P : {“iPhone 17 Pro”} 
+
+Recall Failure Gap: Query Noise Sanitization 𝑞 : “laptttop wth 32G” Typo & unit ‘32G’ unmatched 
+
+−−−−−−−−−−−−−−−−−− → P : {“laptop 32GB RAM”} 
+
+State: Inventory Void No Refinement 𝑞 : “brand X water” Valid intent but 0 items found 
+
+−−−−−−−−−−−−−−−−−− → P : HALT 
+
+Precision Failure 
+
+Bias: Entity drift Concretization 
+
+𝑞 : “bottoms match green shirt” Results dominated by ‘shirts’ 
+
+−−−−−−−−−−−−−−−−−− → P : {“khakis ”, “jeans”} 
+
+Bias: Granularity mismatch 𝑞 : “camping” Results cluttered w/ accessories 
+
+−−−−−−−−−−−−−−−−−−− → P : {“tent”, “sleeping bag”} 
+
+Gap: Attribute misalignment 𝑞 : “high shrimp snack” Items show shrimp ratio: 10%, 60% 
+
+−−−−−−−−−−−−−−−−−−−−− → P : {“60% ratio shrimp snack”} 
+
+Gap: Scenario misalignment 𝑞 : “bird watching camera” Mixed telephoto and wide-angle results 
+
+−−−−−−−−−−−−−−−−−−−−−−−− → P : {“telephoto camera”}  
+
+> Note: Bias issues stem from retriever limitations; Gap issues stem from user-catalog vocabulary mismatch.
+
+– Bias Perception (Systematic Errors): Problems arising from the retriever’s inherent limitations, including entity drift 
+
+(misinterpreting the head entity), granularity mismatch 
+
+(retrieving peripheral items instead of core categories), and negation failures .
+
+– Gap Perception (Semantic Misalignment): Problems arising from the mismatch between user language and catalog vocabulary, including attribute misalignment (vague descriptors vs. concrete specifications) and scenario mis-alignment (usage scenarios vs. technical product attributes). 
+
+2.2.2 Adaptive Planning. Guided by this diagnosis, Teacher Agent selects an optimized execution path (detailed in Table 1): 
+
+• Path A: Preservation (Effective State). When retrieval is already effective, the agent preserves the original query to avoid over-optimization. 
+
+• Path B: Sanitization (Recall Failure). For recall failures caused by query noise, the agent performs query sanitiza-tion —removing non-informative elements and correcting lexical errors while preserving core intent. If an inventory void is detected, refinement is halted. 
+
+• Path C: Concretization (Precision Failure). For precision failures, the agent performs intent concretization , leverag-ing the LLM’s reasoning and world knowledge to transform vague or misaligned queries into precise, retrievable forms: 
+
+– For bias issues: re-anchoring drifted entities, focusing on core categories, or handling negated constraints. 
+
+– For gap issues: mapping vague attributes to concrete spec-ifications or translating usage scenarios to technical prod-uct attributes. 
+
+Diversity & Validation. To ensure the student planner learns a diverse policy space, we employ stochastic decoding during Teacher plan generation. For each (𝑞, Oinit ), we sample multiple trajectories with temperature 𝜏 > 0, capturing the natural variability in valid reformulation strategies. All sampled plans are validated against the retrieval environment; only those yielding successful outcomes are retained. This yields a diverse set Dsft of execution-validated triples 
+
+(𝑞, Oinit , P) , exposing the Student to multiple viable behaviors for the same perceptual state. 
+
+## 2.3 Stage 2: Planner Training and Business Alignment 
+
+2.3.1 Policy Initialization via Supervised Fine-Tuning. The Planner, based on a lightweight LLM, is fine-tuned on Teacher’s diverse plan dataset Dsft using standard next-token prediction. This enables the model to internalize diagnostic reasoning patterns from offline demonstrations. 
+
+2.3.2 Business Value Alignment via Reinforcement Learning. We employ Group Relative Policy Optimization (GRPO)[ 17 ] to align the Planner with business outcomes. For a given input context, the Planner samples 𝐺 plans {𝑃 1, . . . , 𝑃 𝐺 }.To compute the reward, each plan 𝑃 𝑖 is executed against the online search engine to retrieve the Top-𝐾 items, denoted as the set 
+
+D𝑃 𝑖 = {𝑑 1, . . . , 𝑑 𝐾 }. The reward 𝑅 (𝑃 𝑖 ) is defined as the average pre-dicted conversion of these retrieved items, calculated using online production models: 
+
+𝑅 (𝑃 𝑖 ) = 1
+
+𝐾 ∑︁ 𝑑 𝑗 ∈ D 𝑃 𝑖 
+
+I(𝜙 rel (𝑞, 𝑑 𝑗 ) ≥ 𝜏 )
+
+| {z }
+
+> Hard Relevance Gate
+
+· 𝜙 cvr (𝑞, 𝑑 𝑗 )
+
+| {z }
+
+> Predicted CVR
+
+(3) Where: 
+
+• 𝜙 rel and 𝜙 cvr are the existing Online Relevance and Conver-sion Prediction models, respectively. 
+
+• I(·) is a binary indicator function acting as a Hard Relevance Gate . If the raw relevance score is below the threshold 𝜏 , the item’s contribution is zeroed out (Reward=0). This strictly penalizes the planner for retrieving high-priced but irrele-vant items, ensuring that conversion is grounded in semantic accuracy. 
+
+## 2.4 Stage 3: Adaptive Online Serving via Dynamic Query Routing 
+
+Instead of uniformly processing all requests, we introduce a Complexity-Aware Router (an even smaller language model compared with Planner) to selectively activate the EASP pipeline: 
+
+• Fast Path: Queries targeting specific products (e.g., "iPhone 17") bypass the planner entirely. This ensures nearly zero additional latency for the majority ( ∼80%) of traffic. Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Chen et al. 
+
+• Complex Path: Only complex queries trigger EASP. 
+
+## 3 Experiments 3.1 Experimental Setup 
+
+Dataset Construction. We constructed our datasets from JD online search logs using a difficulty-aware strategy: (1) SFT Dataset : Real-world traffic is heavy-tailed (80% simple, 20% complex). We up-sampled complex queries and down-sampled simple queries (keeping 10% for regularization) to build a 100k query sample corpus and instructed the Teacher Agent to generate initial SFT dataset. (2) GRPO Subset : For the computationally expensive RL align-ment, we selected top 5k queries targeting high-frequency queries with high reward standard deviations. 
+
+Implementation Details. The Teacher Agent uses DeepSeek-R1[ 5 ], and the Planner uses Qwen3-4B[ 20 ]. The query complex-ity router uses Qwen3-0.6B[ 20 ]. SFT was performed for 2 epochs. GRPO used a group size of 𝐺 = 8 on 8 NVIDIA H800 GPUs. 
+
+## 3.2 Offline Evaluation 
+
+Test Set. We constructed a test set of 10k complex queries sampled from historical logs. 
+
+Metrics. 
+
+• REL@30 : Number of relevant items in Top-30 candidates. 
+
+• HR@30 : Hitrate@30, which measures whether the finally purchased item appears in the top-30 retrieved candidates. To evaluate intent fulfillment, the ground truth includes pur-chases made through cross-channel interactions (e.g., recom-mendation feeds) or subsequent query reformulations within the same session, while maintaining the same underlying intent (same core product and brand). 
+
+Baselines. We compare EASP against 3 baselines: 
+
+• Blind Rewriter : An industry standard rewriter [ 3 , 14 ] using the same backbone (Qwen3-4B) and training (SFT+GRPO) as EASP, but conditioned solely on query 𝑞 without the retrieval snapshot Oinit , to ablate the environment-aware component. 
+
+• w/o RL : The same Qwen3-4B student trained on SFT dataset only. This isolates the impact of GRPO alignment. 
+
+• ReAct Agent : A standard multi-turn agent (based on DeepSeek-R1) with online tool access, representing the upper bound of reasoning, but with unacceptable latency in real online platform. 
+
+Result Analysis. As shown in Table 2, EASP achieves the opti-mal balance between performance and efficiency, outperforming baselines across key metrics while maintaining millisecond latency: 
+
+Value of Environment Awareness. Comparing EASP with the Blind Rewriter isolates the contribution of the Retrieval Probe. Re-moving probe access degrades all metrics: REL@30 drops from 23.3 to 20.7, HR@30 drops from 31% to 28.6%. These results validate that environment-aware planning is critical for retrieval effectiveness. 
+
+Value of Business Alignment. The w/o RL ablation achieves comparable REL@30 (23.0 vs. 23.3) to EASP, yet its HR@30 lags (29.5% vs 31.0%).This gap confirms that explicit alignment with conversion objectives via GRPO is essential for bridging relevance and business value. 
+
+Comparison with ReAct. While ReAct achieves the highest REL@30 (24.1), its gain over EASP is marginal (+0.8 pp). More impor-tantly, ReAct’s lower HR@30 (30.2% vs. 31.0%) reveals that general semantic relevance does not fully capture JD-specific conversion efficiency—a gap EASP bridges through business-aligned optimiza-tion. Crucially, ReAct incurs multi-second latency, whereas EASP maintains millisecond-level efficiency—the only solution delivering both high accuracy and real-time performance. 
+
+Table 2: Offline Evaluation Result 
+
+Method REL@30 HR@30 (%) Latency 
+
+Blind Rewriter 20.7 28.6 low (ms level) w/o RL 23.0 29.5 low (ms level) ReAct Agent 24.1 30.2 high (s level) 
+
+EASP(ours) 23.3 31.0 low (ms level) 
+
+## 3.3 Online A/B Testing 
+
+We conducted a two-week online A/B experiment on JD.com’s AI-Search portal, exposing EASP to 10% of live traffic. Compared to the production baseline (a Qwen3-4B planner trained with SFT and RL, but without environment probing), EASP achieved statistically significant gains. On overall traffic (intent-to-treat), EASP lifted UCVR by 0.89% (p < 0.05) and GMV by 0.57% (p < 0.05). Among requests that actually triggered the new model (the complex path), UCVR increased by 
+
+4.10% and GMV by 2.59% .Regarding latency impact, the end-to-end planner latency reaches 
+
+20ms at p75 for fast-path traffic and stays under 700ms at p99 for complex queries, well within acceptable bounds given the conver-sion and revenue gains Based on these results, EASP has been fully deployed in JD.com’s AI-Search system. 
+
+## 4 Conclusion and Future Work 
+
+We propose EASP to resolve the "Blindness-Latency" dilemma in e-commerce search. The "Probe-then-Plan" mechanism grounds LLM reasoning in real-time retrieval snapshots, with GRPO alignment optimizing conversion and complexity-aware routing enabling effi-cient deployment. Online A/B testing on JD.com confirms signifi-cant UCVR and GMV lifts, demonstrating industrial viability. Future work will extend EASP to incorporate user behavioral signals for personalized planning, adapting strategies based on individual preferences and interaction history. 
+
+## Presenter Biography 
+
+Mengxiang Chen is a Senior Algorithm Engineer at JD.com, where he leads the development of agentic search systems and domain-specific LLMs for e-commerce. He holds a Master’s degree from Shanghai Jiao Tong University. His research interests include LLM post-training, alignment, and intelligent information retrieval. Probe-then-Plan: Environment-Aware Planning for Industrial E-commerce Search Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+## References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Floren-cia Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. 2023. GPT-4 Technical Report. arXiv preprint arXiv:2303.08774 (2023). [2] Akiko Aizawa. 2003. An information-theoretic perspective of tf–idf measures. 
+
+Information Processing & Management 39, 1 (2003), 45–65. [3] Aijun Dai, Zhenyu Zhu, Haiqing Hu, Guoyu Tang, Lin Liu, and Sulong Xu. 2024. Enhancing E-Commerce Query Rewriting: A Large Language Model Approach with Domain-Specific Pre-Training and Reinforcement Learning. In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management .4439–4445. [4] Scott Deerwester, Susan T Dumais, George W Furnas, Thomas K Landauer, and Richard Harshman. 1990. Indexing by latent semantic analysis. Journal of the American society for information science 41, 6 (1990), 391–407. [5] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruiyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al . 2025. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025). [6] Yunzhong He, Yuxin Tian, Mengjiao MJ Wang, Feier Chen, Licheng Yu, Mao-long Tang, Congcong Chen, N. Zhang, Bin Kuang, and Arul T. Prakash. 2023. Que2Engage: Embedding-based Retrieval for Relevant and Engaging Products at Facebook Marketplace. Companion Proceedings of the ACM Web Conference 2023 
+
+(2023). https://api.semanticscholar.org/CorpusID:257078916 [7] Chen Hu, Haikuo Du, Heng Wang, Lin Lin, Mingrui Chen, Peng Liu, Ruihang Miao, Tianchi Yue, Wang You, Wei Ji, et al . 2025. Step-DeepResearch Technical Report. arXiv preprint arXiv:2512.20491 (2025). [8] Bowen Jin, Hansi Zeng, Zhenrui Yue, Jinsung Yoon, Sercan Arik, Dong Wang, Hamed Zamani, and Jiawei Han. 2025. Search-r1: Training llms to reason and leverage search engines with reinforcement learning. arXiv preprint arXiv:2503.09516 (2025). [9] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick SH Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense Passage Retrieval for Open-Domain Question Answering.. In EMNLP (1) . 6769–6781. [10] Akshay Kekuda, Yuyang Zhang, and Arun Udayashankar. 2024. Embedding based retrieval for long tail search queries in ecommerce. Proceedings of the 18th ACM Conference on Recommender Systems (2024). [11] Kuan Li, Zhongwang Zhang, Huifeng Yin, Liwen Zhang, Litu Ou, Jialong Wu, Wenbiao Yin, Baixuan Li, Zhengwei Tao, Xinyu Wang, et al . 2025. WebSailor: Nav-igating Super-human Reasoning for Web Agent. arXiv preprint arXiv:2507.02592 
+
+(2025). [12] Sen Li, Fuyu Lv, Taiwei Jin, Guli Lin, Keping Yang, Xiaoyi Zeng, Xiao-Ming Wu, and Qianli Ma. 2021. Embedding-based Product Retrieval in Taobao Search. 
+
+Proceedings of the 27th ACM SIGKDD Conference on Knowledge Discovery & Data Mining (2021). [13] Duy A Nguyen, Rishi Kesav Mohan, Shimeng Yang, Pritom Saha Akash, and Kevin Chen-Chuan Chang. 2025. Minielm: A lightweight and adaptive query rewriting framework for e-commerce search optimization. In Findings of the Association for Computational Linguistics: ACL 2025 . 6952–6964. [14] Wenjun Peng, Guiyang Li, Yue Jiang, Zilong Wang, Dan Ou, Xiaoyi Zeng, Derong Xu, Tong Xu, and Enhong Chen. 2024. Large language model based long-tail query rewriting in taobao search. In Companion Proceedings of the ACM Web Conference 2024 . 20–28. [15] Changle Qu, Sunhao Dai, Xiaochi Wei, Hengyi Cai, Shuaiqiang Wang, Dawei Yin, Jun Xu, and Ji-Rong Wen. 2025. Tool learning with large language models: A survey. Frontiers of Computer Science 19, 8 (2025), 198343. [16] Stephen Robertson, Hugo Zaragoza, et al . 2009. The probabilistic relevance framework: BM25 and beyond. Foundations and Trends ® in Information Retrieval 
+
+3, 4 (2009), 333–389. [17] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Yang Wu, et al . 2024. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 (2024). [18] Tongyi DeepResearch Team, Baixuan Li, Bo Zhang, Dingchu Zhang, Fei Huang, Guangyu Li, Guoxin Chen, Huifeng Yin, Jialong Wu, Jingren Zhou, et al . 2025. Tongyi DeepResearch Technical Report. arXiv preprint arXiv:2510.24701 (2025). [19] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yas-mine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhos-ale, et al . 2023. Llama 2: Open Foundation and Fine-Tuned Chat Models. arXiv preprint arXiv:2307.09288 (2023). [20] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al . 2025. Qwen3 technical report. arXiv preprint arXiv:2505.09388 (2025). [21] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. 2022. React: Synergizing reasoning and acting in language models. In The eleventh international conference on learning representations .

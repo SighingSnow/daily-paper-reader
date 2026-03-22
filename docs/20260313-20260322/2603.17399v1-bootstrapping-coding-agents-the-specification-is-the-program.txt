@@ -1,0 +1,120 @@
+Title: Bootstrapping Coding Agents: The Specification Is the Program
+
+URL Source: https://arxiv.org/pdf/2603.17399v1
+
+Published Time: Thu, 19 Mar 2026 00:50:22 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Bootstrapping Coding Agents: The Specification Is the Program 
+
+Martin Monperrus ∗
+
+## Abstract 
+
+A coding agent can bootstrap itself. Starting from a 926-word specification and a first implementation produced by an existing agent (Claude Code), a newly generated agent re-implements the same specification correctly from scratch. This reproduces, in the domain of AI coding agents, the classical bootstrap sequence known from compiler construction, and instantiates the meta-circular property known from Lisp. The result carries a practical implication: the specification, not the implementation, is the stable artifact of record. Improving an agent means improving its specification; the implementation is, in principle, regenerable at any time. 
+
+## 1 Introduction 
+
+Coding agents are programs that accept natural-language task descriptions and produce or modify source code. Teams now deploy them to write tests, perform refactoring, and implement features from natural language task descriptions and requirements [5, 6]. Compiler writers discovered decades ago that a new language implementation passes a meaningful milestone when it can compile itself. This property, called self-hosting , is not merely a curiosity: it validates that the implementation is expressive enough to describe its own behavior. A self-hosting compiler is also a fixed point of the compilation process: it reproduces itself under its own translation. The same milestone has now been reached for AI coding agents. Given only a natural-language specification, a coding agent can implement itself. This article describes the experiment, draws the analogy to classical results in computer science, and examines the implications for software engineering practice. 
+
+## 2 The Bootstrapping Experiment 
+
+The experiment consists of three steps, each building on the previous one. All artifacts are publicly available in the meta-circular repository [8]. 
+
+2.1 Step 1: Specification 
+
+A large language model (LLM) was prompted to write a specification for a coding agent: a program that receives a task description in natural language and produces or modifies source code to perform the task. The resulting document defines the agent’s interface, its expected behavior, and the constraints it must respect. The specification is 926 words long and is available at the repository listed in the references [ 8]. It covers three areas: the agent’s interface (command-line arguments, environment variables, and API interaction), its behavioral constraints (how it handles multi-turn conversations, tool use, and error conditions), and the tool loop (the cycle of receiving a task, calling 
+
+> ∗
+
+M. Monperrus is with KTH Royal Institute of Technology, Stockholm, Sweden. E-mail: monperrus@kth.se Preprint.         
+
+> arXiv:2603.17399v1 [cs.SE] 18 Mar 2026 Specification s(926 words): A coding agent is a loop of LLM calls and tool executions...
+> Claude Code agent 0agent 1
+> implements implements
+> |=s|=s
+> Bootstrap
+
+Figure 1: The coding-agent bootstrap sequence. Claude Code implements agent 0 from the specifi-cation; agent 0 then bootstraps agent 1 from the same specification. Dashed arrows show where the specification is consumed. Both implementations satisfy s, denoted |= s.tools, observing results, and producing output). The document is intentionally compact: at 926 words, it can be read and audited by a single engineer in under five minutes. 
+
+2.2 Step 2: First Implementation 
+
+Claude Code with Sonnet 4.6 [ 1 ], an existing coding agent, was given the specification and asked to implement it. The prompt was minimal: 
+
+> implement the spec in a single python file
+
+The result is a working Python program ( agent.py ) that satisfies the specification. No manual edits were required. The program accepts a task description as a command-line argument and uses a language model API to produce or modify source code: 
+
+> $ python agent.py usage: agent.py [-h] [--model MODEL] [--base-url BASE_URL] [--api-key API_KEY] [--max-turns MAX_TURNS] [--cwd CWD] [task]
+
+2.3 Step 3: Self-Implementation 
+
+The newly generated agent was given the same specification and asked to implement it again, using the same prompt as Step 2. It succeeded. The agent implemented itself: 
+
+> $ python agent.py \ "implement the spec in a single python file"
+
+The output is a new agent.py that satisfies the same specification. Both the first-generation and second-generation programs were verified manually against the specification (Fig. 1). 
+
+## 3 Meta-Circularity 
+
+The term meta-circular comes from the Lisp tradition. In 1960, McCarthy presented a Lisp interpreter written in Lisp itself [ 7]. The interpreter is called meta-circular because the language in which it is written is the same language it interprets. The implementation and the object of interpretation are drawn from the same formalism. The first practical self-hosting Lisp compiler was implemented by Hart and Levin at MIT in 1962 [ 4], two years after McCarthy’s theoretical definition. Their work established the bootstrap sequence that compiler writers would follow for decades: define the language formally, implement it in another host, then use that implementation to compile itself. More recently, Courant et al. reproduced the bootstrap for OCaml using the Camlboot project, demonstrating that a minimal, auditable compiler can found its full industrial counterpart [ 3]. This creates a clear lineage between the meta-circularity definition (McCarthy 1960), to the coding-agent bootstrap (2026). 2Compiler C0 C1 C1 ≡ C0     
+
+> self-compile
+> Agent agent 0agent 1agent 1≡agent 0
+> self-impl.
+
+Figure 2: Structural analogy between the classical compiler bootstrap (top) and the coding-agent bootstrap (bottom). The first self-generated artifact is equivalent to the first-generation one. The coding-agent experiment follows the same pattern. The agent generated in Step 2 is, in this terminology, a meta-circular agent: it is an implementation of “coding-agent behavior” produced by a system that itself exhibits “coding-agent behavior.” When the Step-2 agent reproduces itself in Step 3, it demonstrates meta-circularity in the operational sense. The agent is a fixed point of its own implementation procedure. To recap, let F be the function that maps a specification and a coding agent to an implementation satisfying that specification. Let s be the coding-agent specification. Then: 
+
+agent 0 = F (s, Claude Code ) (1) 
+
+agent 1 = F (s, agent 0) (2) This is illustrated in Figure 1. This is the coding-agent analogue of a self-hosting compiler: the first generation is sufficient for the second generation to be indistinguishable from it under the specification. The specification, not the bootstrap tool, is the stable artifact. 
+
+## 4 Implications 
+
+4.1 Specification as the Focus of Correctness 
+
+If a specification is sufficient to generate an agent, and the agent is sufficient to regenerate itself from the same specification, then the specification is the true focus of correctness. Improving the agent means improving the specification. The implementation is, in principle, disposable and regenerable at any time. This reframes code review. Rather than auditing every line of an auto-generated implementation, reviewers should audit the specification from which the implementation is derived [ 9]. Errors in the specification propagate to every generation of the implementation or to every generation in different programming languages. An industrial-scale instance of this pattern is described by Lopopolo et al. [ 6 ]: a team of three to seven engineers built a million-line codebase using Codex over five months, with zero manually written lines of code. The team treats their structured docs/ directory as the reference system, not the code itself. The codebase is regenerable; the specification is the stable artifact. This mirrors, at industrial scale, the implication derived from the bootstrap experiment. This result aligns with the emerging practice of Spec-Driven Development [ 10 ], which treats the specification as the primary engineering artifact and generated code as a build product. The practical consequences are concrete. In version control, the specification belongs on the main branch and is subject to the full review workflow; generated implementation files may be treated as build artifacts, reconstructed on demand rather than tracked commit-by-commit. In team workflows, specification review replaces code review as the primary quality gate. An engineer who can evaluate whether a specification correctly and completely describes the intended behavior provides more durable value than one who audits lines of generated code that may be regenerated wholesale by the next model update. 
+
+4.2 Good Specifications for AI Coding 
+
+The bootstrap result raises a practical question: what properties must a specification have to serve as the stable artifact of record? 3Size and auditability. The 926-word specification used here is small enough to read in a single sitting. A useful budget: keep the specification under 1,500 words, or under 15 minutes of reading time. If a section requires cross-referencing another section to be understood, split or restructure. 
+
+Behavioral completeness. The specification must describe every capability the agent exercises. A practical checklist: for each tool call, API interaction, and error condition in the generated code, ask “is this behavior described in the specification?” Any “no” is a gap. Write the specification first and treat undescribed behavior as intentionally undefined. 
+
+Convergence across implementations. A good specification is unambiguous enough that two indepen-dent implementations converge on the same observable behavior. Heuristic: give the specification to two different engineers (or two independent LLMs [ 11 ]) and check whether the results agree on externally visible behavior such as command-line interface and output format. This is the N-version programming principle applied to specification validation [ 2]: divergence between independently produced implementations reveals ambiguity that must be resolved in the specification. 
+
+Abstraction level. A specification should describe what the agent does, not how . If a sentence names a data structure, a library, or a language feature, it is probably too low-level. Sentences that name only inputs, outputs, and conditions are at the right level and will remain stable across model generations. 
+
+4.3 Trusting trust & AI Coding 
+
+Thompson’s 1984 Turing Award lecture showed that a trojan horse in a compiler binary can repro-duce itself through every subsequent compilation without appearing in any source file [ 13 ]. The coding-agent bootstrap introduces an analogous structure. A compromise in the model weights, the API endpoint, or the execution environment can propagate silently through every generated implementation. Like a compiler binary, model weights are opaque and are updated out-of-band by a third party. The practical response is to treat each layer as a versioned, auditable dependency. Pin the model version used for generation, run generation in a controlled CI environment whose executions are fully logged, record the full trajectories. The specification remains the only artifact that a human engineer can read and audit directly; everything downstream of it is a build product that should be reproducible from a fixed, declared set of inputs. 
+
+## 5 Limitations 
+
+The bootstrap experiment demonstrates a property; it does not resolve all questions about the technique’s generality. 
+
+Complexity scaling. The 926-word specification is simple. Whether the technique scales to specifi-cations of 10,000 or 100,000 words is an open question. The Attractor case (34,900 words) provides evidence that longer specifications remain tractable, but verification difficulty grows: the test suite must cover a larger behavioral surface, and the specification itself may harbor internal inconsistencies that only manifest in complex interactions. 
+
+Model dependency. The bootstrap succeeds only with recent state-of-the-art models. Earlier or smaller models generate either syntactically invalid or behaviorally incorrect implementations. The bootsrapping technique requires a model capable of faithfully executing a natural-language specification; this capability is not guaranteed to be stable or universal across model families and has only been reached recently. 
+
+## 6 Related Work 
+
+The Attractor project by StrongDM [ 12 ] applies the same idea principle at a larger scale. Attractor’s specification is approximately 34,900 words; the specification used in the present experiment is 926 words, roughly 38 times shorter. The smaller scale makes the present repository more suitable for learning and for reproducing the bootstrap property from scratch. A notable feature of the Attractor repository is that it publishes only the specification, treating the implementation as a regenerable artifact. Our accompaniying open-science repository also includes the generated agent code to serve both as scientific evidence and learning material. 47 Conclusion 
+
+A coding agent can bootstrap itself. Starting from a natural-language specification and a first implementation produced by an existing agent, a newly generated agent re-implements the same specification correctly. The first self-generated implementation satisfies the same specification as the first-generation implementation, verified by manual inspection. This result reproduces, in the domain of AI coding agents, the classical bootstrap sequence from compiler construction, and instantiates the meta-circular property from Lisp. The practical implication is a shift in the focus of engineering effort: the specification is the artifact of record, and the implementation is regenerable on demand. 
+
+## Acknowledgment 
+
+The author thanks StrongDM for the Attractor project, the participants of the Bellairs 2026 Workshop on Continuous Software Engineering, and the Anthropic AI coding team. Generative AI has been used to edit this article. 
+
+## Author biography 
+
+Martin Monperrus is Professor of Software Technology at KTH Royal Institute of Technology and IEEE Fellow. He has been working on AI coding since his 2009 paper on machine learning for code completion (ACM SigSoft Impact Award 2024). 
+
+## References 
+
+[1] Anthropic. Claude code. https://claude.ai/code , 2025. [2] Algirdas Avizienis. The N-version approach to fault-tolerant software. IEEE Transactions on Software Engineering , 11(12):1491–1501, 1985. [3] Nathanaël Courant, Justus Decken, Simon Castellan, and Gabriel Scherer. Debootstrapping without archeology: Stacked implementations in camlboot. In Proceedings of the ACM on Programming Languages , volume 6, pages 1–29, 2022. [4] Timothy P. Hart and Mike Levin. The new compiler. Technical Report AIM-39, Massachusetts Institute of Technology, 1962. [5] Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. SWE-bench: Can language models resolve real-world GitHub issues? In 
+
+Proceedings of the International Conference on Learning Representations (ICLR) , 2024. [6] Ryan Lopopolo. Harness engineering: leveraging Codex in an agent-first world. OpenAI Engineering Blog, https://openai.com/index/harness-engineering/ , February 2026. [7] John McCarthy. Recursive functions of symbolic expressions and their computation by machine, Part I. Communications of the ACM , 3(4):184–195, 1960. [8] Martin Monperrus. The meta-circular coding agent. https://github.com/ASSERT-KTH/ meta-circular , 2026. [9] Addy Osmani. Code review in the age of AI. Elevate (Substack), https://addyo.substack. com/p/code-review-in-the-age-of-ai , January 2026. [10] Richard Piskala. Spec-driven development: From code to contract in the age of AI coding assistants. arXiv preprint, 2026. [11] Javier Ron, Diogo Gaspar, Javier Cabrera-Arteaga, Benoit Baudry, and Martin Monperrus. Galápagos: Automated N-version programming with LLMs. ACM Transactions on Software Engineering and Methodology , 2024. 5[12] StrongDM. Attractor. https://github.com/strongdm/attractor , 2026. [13] Ken Thompson. Reflections on trusting trust. Communications of the ACM , 27(8):761–763, 1984. 6

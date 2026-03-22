@@ -1,0 +1,175 @@
+Title: LegacyTranslate: LLM-based Multi-Agent Method for Legacy Code Translation
+
+URL Source: https://arxiv.org/pdf/2603.14054v1
+
+Published Time: Tue, 17 Mar 2026 01:23:29 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# LegacyTranslate: LLM-based Multi-Agent Method for Legacy Code Translation 
+
+# Zahra Moti 
+
+Radboud University Nijmegen, The Netherlands zahra.moti@ru.nl 
+
+# Heydar Soudani 
+
+Radboud University Nijmegen, The Netherlands heydar.soudani@ru.nl 
+
+# Jonck van der Kogel 
+
+ING Amsterdam, The Netherlands jonck.van.der.kogel@ing.com 
+
+## Abstract 
+
+Modernizing large legacy systems remains a major challenge in en-terprise environments, particularly when migration must preserve domain-specific logic while conforming to internal architectural frameworks and shared APIs. Direct application of Large Language Models (LLMs) for code translation often produces syntactically valid outputs that fail to compile or integrate within existing pro-duction frameworks, limiting their practical adoption in real-world modernization efforts. In this paper, we propose LegacyTranslate, a multi-agent framework for API-aware code translation, devel-oped and evaluated in the context of an ongoing modernization effort at a financial institution migrating approximately 2.5 million lines of PL/SQL to Java. The core idea is to use specialized LLM-based agents, each addressing a different aspect of the translation challenge. Specifically, LegacyTranslate consists of three agents: Initial Translation Agent produces an initial Java translation us-ing retrieved in-context examples; API Grounding Agent aligns the code with existing APIs by retrieving relevant entries from an API knowledge base; and Refinement Agent iteratively refines the output using compiler feedback and API suggestions to improve correctness. Our experiments show that each agent contributes to better translation quality. The Initial Translation Agent alone achieves 45.6% compilable outputs and 30.9% test-pass rate. With API Grounding Agent and Refinement Agent, compilation improves by an additional 8% and test-pass accuracy increases by 3%. These results highlight that without explicit API grounding, generated code rarely compiles in production frameworks; that retrieval qual-ity directly affects functional correctness; and that model capacity plays a decisive role in handling framework-level constraints. These observations provide actionable guidance for teams considering LLM-assisted legacy migration. 
+
+ACM Reference Format: 
+
+Zahra Moti, Heydar Soudani, and Jonck van der Kogel. 2018. LegacyTrans-late: LLM-based Multi-Agent Method for Legacy Code Translation. In Pro-ceedings of Make sure to enter the correct conference title from your rights confirmation email (Conference acronym ’XX). ACM, New York, NY, USA, 5 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. 
+
+Conference acronym ’XX, Woodstock, NY 
+
+© 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX Example Retriever   
+
+> Task definition
+> Similar pairs
+> Source code LLM
+> Initial java code </>
+> Unit test
+> Code repo analysis API knowledge base
+> Relevant APIs LLM
+> Task definition
+> Relevant APIs
+> Initial code Execution error
+> Refined Java code </>
+> a
+> c
+> d
+> b
+> PL/SQL </>
+> (PL/SQL, Java)
+> LLM
+> Reference set
+> Test sample
+
+Figure 1: Overview of LegacyTranslate for PL/SQL →Java translation. (a) Initial Translation Agent takes a test sam-ple and reference set and generates an initial code using in-context examples retrieval. (b) The code is evaluated us-ing unit tests. (c) API Grounding Agent shortlists relevant APIs from a knowledge base. (d) Refinement Agent iteratively corrects the code using API details and execution feedback. Solid lines = standard flow; dotted = executed only on failure. 
+
+## 1 Introduction 
+
+Modernizing large legacy systems remains a pressing concern for many enterprises that continue to depend on applications written decades ago in languages such as PL/SQL or COBOL [ 4]. As exper-tise in these technologies declines and architectural requirements evolve, organizations are increasingly seeking to migrate legacy codebases to modern platforms such as Java [ 7 , 9]. The system stud-ied in this paper is a large-scale legacy application at a European financial institution, comprising approximately 2.5 million lines of PL/SQL code. It lacks consistent documentation and is currently being migrated to a modern Java-based architecture that relies on shared libraries and internal APIs, with which all translated code must comply. Although recent advances in automated and LLM-based code translation have shown promising results [ 7 , 14 ], apply-ing these techniques in real-world modernization settings remains challenging. Most existing evaluations of code translation focus on widely used language pairs, such as Python and C++, where abundant training data and mature tooling are available [ 15 , 16 ]. In contrast, enterprise modernization often involves niche legacy languages and domain-specific frameworks with limited public benchmarks [ 9]. Moreover, prior work typically evaluates trans-lation at the function level, whereas industrial migration requires transforming modules that interact with internal libraries, shared APIs, and architectural conventions [ 2, 14 ]. These dependencies in-troduce constraints that are rarely captured in benchmark settings. In earlier work, Solovyeva et al. [ 9] conducted a feasibility study investigating the use of LLMs for translating PL/SQL to Java within a similar modernization context. That study demonstrated that  
+
+> arXiv:2603.14054v1 [cs.SE] 14 Mar 2026 Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Moti et al.
+
+LLMs, guided by customized prompting strategies, can produce syntactically accurate translations with a degree of functional cor-rectness. However, it was limited to 10 code pairs, did not account for the API and framework-level constraints of the target architec-ture, and had restricted access to unit tests for validation. These limitations left open whether LLM-based translation could pro-duce outputs that compile and pass tests within the production framework at a larger scale. In this paper, we present LegacyTranslate, a multi-agent frame-work for API-aware legacy code translation that addresses these gaps. Rather than relying on a single LLM prompt, LegacyTranslate decomposes the translation task into three coordinated stages: 1) Initial Translation Agent, which performs the first-stage transla-tion from the legacy language to the modern target language. This initial pass produces a draft version of the code that may still re-quire refinement and API awareness, which are handled by the subsequent agents. This agent is implemented using an in-context examples retriever that retrieves semantically similar code pairs to guide the LLM in the translation task. 2) API Grounding Agent, which shortlists relevant APIs from the API knowledge base to ensure alignment with company-specific libraries. 3) Refinement Agent, which iteratively corrects the code using compiler/test feed-back and the selected APIs, producing a more compliant and exe-cutable translation. Although we focus on translating PL/SQL to Java in this paper, the proposed approach is generalizable to other language-migration scenarios, which we leave for future work. The full pipeline achieves 52.9% compilation and 33.8% test-pass rates. Initial Translation Agent alone reaches 45.6% compilation and 30.9% test-pass, with API Grounding Agent and Refinement Agent con-tributing further gains. A central finding is that without explicit API grounding, virtually no generated code compiles within the target framework — highlighting the gap between syntactically valid LLM output and production-ready code. We also observe that transla-tion quality varies substantially with both the LLM and retriever capacity. The main contributions of this paper are: (1) We propose LegacyTranslate, a multi-agent code translation framework designed to translate legacy PL/SQL code into mod-ern Java while incorporating company-specific APIs. (2) We demonstrate that each agent consistently contributes to improving translation quality, highlighting the effectiveness of multi-agent architectures in real-world code translation. (3) We evaluate the performance of LegacyTranslate using various LLMs and retrievers, underscoring the importance of model selection for achieving high translation performance. 
+
+## 2 Related work 
+
+Code Translation. Most prior work on code translation has fo-cused on popular language pairs such as Java, Python, and C++, primarily targeting small, self-contained code units — typically functions or method-level snippets. Zhu et al. [ 16 ] proposed a mul-tilingual pre-training approach that improves code translation by jointly training on code in multiple languages. Roziere et al. [ 7]introduced an unsupervised neural approach that learns to translate code between languages without parallel data using cross-lingual embeddings and denoising objectives. Szafraniec et al. [ 10 ] pro-posed using compiler intermediate representations to guide code translation, enabling models to better preserve program semantics across languages. More recently, UniTrans [ 14 ] generates target-specific unit tests from source code and uses these tests to guide and verify the translation. However, such successes remain con-fined mainly to small code units and do not generalize to the class-or framework-level migrations faced in enterprise modernization. Other studies confirm this gap. G-TransEval [ 6] categorizes transla-tion tasks by complexity and finds that while models handle simple token- or syntax-level translations well, they struggle with more complex, framework- or algorithm-level tasks [ 13 ]. Deng et al . [3] tackles project-specific code completion by retrieving from internal API knowledge, demonstrating the importance of API awareness, though their focus is on code completion task. 
+
+Legacy Code Modernization in Industry. While academic bench-marks focus on function-level translation between popular lan-guages, industrial modernization involves migrating large code-bases written in niche languages under real architectural con-straints. Hans et al. [ 4] and Solovyeva et al. [ 9] are among the few works addressing legacy translation in industrial settings, focusing on translating COBOL and PL/SQL to Java translation, respectively. 
+
+Multi-Agent Collaboration. Multi-agent systems enable groups of intelligent agents to coordinate and solve complex tasks at scale, shifting from isolated models toward collaboration-centric approaches [ 11 ]. Recently, TransAgent [ 15 ] introduced multiple agent roles — including a code generator, syntax checker, and se-mantic analyzer — to iteratively refine translated code. However, it operates only on short snippets and does not address the framework-dependent needs of real modernization tasks, such as alignment with internal APIs and shared libraries. A clear gap remains in defining a multi-agent approach tailored for translating legacy code to modern code in an API-aware, enterprise setting. 
+
+## 3 Methodology 
+
+We propose an LLM-based multi-agent framework, LegacyTrans-late, to accelerate the migration of a legacy PL/SQL codebase into a modern Java-based architecture. The source code is a large, un-documented, and database-centric framework in which business logic is embedded directly within SQL code. As part of an ongoing modernization effort, engineers have already initiated the migra-tion by designing a new architecture with well-defined interfaces and APIs that govern how new modules should be implemented. Building on this foundation, our approach leverages LLMs to trans-late PL/SQL code into Java while ensuring that the generated code conforms to the existing architectural and API constraints. Figure 1 shows an overview of LegacyTranslate. Starting from a PL/SQL code unit, the method produces a Java implementation that aligns with the existing architecture and APIs through three agents: Initial Translation Agent, API Grounding Agent, and Refinement Agent. Each agent builds on the output and feedback of the previous one, progressively improving translation quality and compliance. As shown in Figure 1 (a), the process begins with the Initial Translation Agent. Given a PL/SQL test sample, it generates the initial Java code using retrieval-augmented prompting. An Example Retriever identifies semantically similar PL/SQL →Java pairs from a reference set and incorporates them into the LLM prompt as few-shot demonstrations, alongside the task definition and the LegacyTranslate: LLM-based Multi-Agent Method for Legacy Code Translation Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+Table 1: Performance of API-aware code translation. The results indicate the effectiveness of each agent. Method Structural Validity (%) Compilation Rate (%) Test Pass Rate (%) 
+
+LLM-only 42.6 0.0 0.0 LLM+Rand. Examples 98.5 1.5 0.0 
+
+LegacyTranslate 100 52.9 33.8 
+
+- w/o API & Refine 98.5 45.6 30.9 source code to be translated. The LLM then produces an initial Java draft, which is evaluated for compilation success and test-case correctness (Figure 1b). If the code fails to compile or pass tests, the process advances to the API Grounding Agent (Figure 1c). This agent identifies the APIs that are likely missing or misused in the generated code. To this end, the LLM is instructed to select relevant APIs from a curated knowledge base. The resulting shortlisted APIs are then passed to the Refinement Agent to guide the next correction step. Finally, the Refinement Agent (Figure 1d) iteratively improves the code through a correction loop. Using the relevant APIs from the previous step, together with compiler errors and unit-test feedback, the agent re-prompts the LLM to generate an improved code. This process repeats until the code compiles successfully, passes all associated test cases, or reaches a predefined termination criterion. We next describe each agent in detail. 
+
+## 3.1 Initial Translation Agent 
+
+LegacyTranslate begins with an initial translation generated by Initial Translation Agent. The term “initial” emphasizes that this agent’s primary role is to introduce the translation task from the legacy language to the new one. Initial Translation Agent is imple-mented using in-context examples retrieval. Specifically, we lever-age a reference set of aligned PL/SQL →Java pairs as exemplars and retrieve relevant examples to teach the agent how to perform the translation. Formally, given a reference set 𝐷 = {( 𝑠 𝑛 , 𝑗 𝑛 )} 𝑁 𝑛 =1 and a test PL/SQL query 𝑠 𝑡 , a retriever model R is used to obtain 𝐷 𝑘 , the top-𝑘 semantically similar translation pairs from 𝐷 :
+
+𝐷 𝑘 = R ( 𝐷, 𝑠 𝑡 ),
+
+where 𝑘 indicates the number of exemplars provided. After retrieval, an LLM uses the retrieved exemplars to generate the Java transla-tion. Formally, the LLM 𝜋 𝜃 with parameters 𝜃 instructed by 𝐷 𝑘 and 
+
+𝑠 𝑡 , the model produces the Java translation 𝑗 𝑡 :
+
+𝑗 𝑡 ← 𝜋 𝜃 (𝐷 𝑘 , 𝑠 𝑡 ).
+
+## 3.2 API Grounding Agent 
+
+Cases where the initial translation fails to compile can be improved by leveraging compiler feedback and API-level adaptation. API Grounding Agent is responsible for providing relevant APIs. We construct a curated API knowledge base from the project’s archi-tected Java libraries—specifically the shared APIs and interfaces that define how new Java components should be implemented in the modernized framework. Given such a repository, we run a static analysis that traverses Java source files and extracts each API’s key attributes: its class, signature (name, parameters, return type), body, and file location. We then generate brief descriptions for these en-tries using an LLM. Using this knowledge base—along with the initial generated code and the test feedback—API Grounding Agent prompts an LLM to shortlist the APIs most likely needed to fix the errors in the initial code. Formally, given the API knowledge base 
+
+𝐴 , the Java translation 𝑗 𝑡 , and the compiler error messages 𝐸 𝑡 , the LLM 𝜋 𝜃 is prompted to produce a shortlist of relevant APIs 𝐴 𝑡 :
+
+𝐴 𝑡 ← 𝜋 𝜃 (𝐴, 𝐸 𝑡 , 𝑗 𝑡 ).
+
+The length of the shortlist is determined by the LLM 𝜋 𝜃 , based on the content of 𝑗 𝑡 .
+
+## 3.3 Refinement Agent 
+
+Compiler errors are effective signals for improving code transla-tions [ 1 ]. Thus, Refinement Agent is designed to perform iterative code refinement using compiler error messages together with the shortlisted APIs. Formally, at each iteration, the agent compiles the currently generated code 𝑗 𝑡 𝑚 and collects the resulting error messages 𝐸 𝑡 𝑚 . The LLM 𝜋 𝜃 is then prompted with 𝑗 𝑡 𝑚 , the short-listed APIs 𝐴 𝑡 , and the error feedback 𝐸 𝑡 𝑚 to generate an improved translation 𝑗 𝑡 𝑚 +1:
+
+𝑗 𝑚 +1 
+
+> 𝑡
+
+← 𝜋 𝜃 (𝐴 𝑡 , 𝐸 𝑡 𝑚 , 𝑗 𝑡 𝑚 ) ; 𝑚 = 0, . . . , 𝑀 𝑡 .
+
+Here, 𝑗 𝑡 0 is the output of Initial Translation Agent, 𝑗 𝑡 , and 𝐸 𝑡 0 is 𝐸 𝑡 .The refinement loop continues until the code compiles successfully or until no additional test cases pass after a refinement step. Thus, the value of 𝑀 𝑡 is not predefined and varies for each test sample. 
+
+## 4 Experimental Setup 
+
+Models : As the backbone LLM, we use Qwen2.5-Coder-14B [5], an instruction-tuned model optimized for code-related tasks. For re-trieval, we employ SFR-Mistral [8], a dense retriever with 4096 em-bedding vector size, following prior work on retrieval-augmented code generation [ 12 ]. We set the number of retrieved exemplars to 𝑘 = 3, which provides the best trade-off between relevance and prompt length. In API Grounding Agent, for generating de-scriptions during the construction of the API Knowledge Base, we use Claude 3.7 Sonnet . All experiments are conducted on a single NVIDIA A100 GPU with 40 GB of memory, requiring approximately 
+
+∼5 GPU hours in total. 
+
+Evaluation Metrics : We evaluate the generated Java code using three standard metrics: Structural Validity (SV) , Compilation Rate (CR) , and Test Pass Rate (TPR) . SV measures whether the output forms a valid Abstract Syntax Tree. CR indicates whether the code compiles when executed in our unit-test environment. TPR reflects functional correctness, measured as the proportion of tests passed by each compiled output. To assess the example retrieval quality, we report NDCG@3 , MRR@3 (Mean Reciprocal Rank), and Recall@3 .NDCG@3 measures overall ranking quality, MRR@3 evaluates how early the first relevant example appears, and Recall@3 indicates whether any relevant example is retrieved within the top 3. 
+
+Baselines : We compare LegacyTranslate with two baselines. In 
+
+LLM-only , the model directly translates the test sample without example pairs or API information. In LLM+Random Examples , three randomly selected PL/SQL-to-Java pairs are included as in-context examples, matching the number of retrieved examples used by Lega-cyTranslate. We do not include the prompting strategy of Solovyeva et al. [9] as a baseline, as their prompts are not publicly available. Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Moti et al. NDCG@3 MRR@3 Recall@3 
+
+> 40
+> 60
+> 80
+> 100
+> GIST-large (1024)
+> BGE-large (1024)
+> Codesage-small (768)
+> SFR-Mistral (4096)
+
+Figure 2: Performance of different retrieval models on re-trieving examples in Initial Translation Agent. 
+
+Dataset : We evaluate our method on an internally curated dataset of 68 aligned PL/SQL →Java pairs, representative of the module types found across the legacy codebase. Each PL/SQL snippet was manually migrated by engineers, providing a ground-truth Java reference. The PL/SQL code ranges from 65 to 292 lines (mean 101.7 lines of code). Each sample includes multiple unit tests written by engineers and executed within the actual production framework. These tests validate the generated code at multiple levels, including structural validity, successful compilation within the framework, API conformance, and functional correctness. We also maintain a separate reference set of 68 aligned pairs used by the example retriever to provide in-context examples, as well as an API knowl-edge base containing 80 entries extracted from the shared Java libraries of the target architecture (see Section 3.2). To the best of our knowledge, no public benchmark currently supports realistic PL/SQL →Java translation or API-dependent migration. Our evalu-ation relies on real production code from an active modernization project, providing a realistic assessment. 
+
+Prompts : We follow Solovyeva et al . [9] to design the input prompt. Specifically, the prompt consists of three key components: (1) a description of the target Java architecture, including its shared in-terfaces; (2) retrieved examples of PL/SQL–to–Java translation pairs; and (3) the PL/SQL code snippet serves as the input for translation. 
+
+## 5 Results 
+
+RQ1 : How does LegacyTranslate perform on the API-aware PL/SQL →Java translation? Table 1 reports the performance of LegacyTranslate compared with other baselines. When directly prompting the LLM to perform translation ( LLM-only baseline), none of the samples compile or pass the test cases. This is because the target framework requires code to extend specific base classes and use internal APIs; without any examples or architectural guid-ance, the LLM generates generic Java that is syntactically valid but fails to compile within the production environment. Adding a few random examples to the input prompt (LLM+Random Ex-amples baseline) substantially increases SV from 42.6% to 98.5%, indicating that even unrelated examples help the LLM produce more structurally consistent outputs. However, the CR only increases marginally, from 0.0% to 1.5%, showing that random examples do not help the model to learn the patterns. In contrast, LegacyTrans-late improves API-aware code translation by a large margin. The SV reaches 100%, and, more importantly, the CR and TPR rise to 52.9% and 33.8%, respectively, showing the effectiveness of our multi-agent system. We also evaluate the output of Initial Trans-lation Agent alone reported in the “ w/o API & Refine ” row. This shows the contribution of each agent individually: using only Initial 
+
+Table 2: Performance of Initial Translation Agent with dif-ferent LLMs.                  
+
+> Method Structural Validity (%) Compilation Rate (%) Test Pass Rate (%) Generation Time (s)
+> Qwen2.5-14B 98.6 45.58 30.88 32.26 CodeLlama-13B 8.83 0.0 0.0 40.26 Qwen2.5-7B 7.36 0.0 0.0 19.27 CodeGemma-7B 0.0 0.0 0.0 6.50
+
+Translation Agent already improves CR and TPR to 45.6% and 30.9%, and adding API Grounding Agent and Refinement Agent leads to further gains. A second refinement round yielded an additional 3% improvement before convergence, suggesting that further gains may require stronger models or deeper architectural knowledge. Overall, these results show that our multi-agent approach effec-tively enables API-aware translation from a legacy language to a modern one, demonstrating its practical feasibility. 
+
+RQ2 : How does the choice of retriever and LLM affect Lega-cyTranslate performance? To assess the impact of retriever and LLM selection, we focus on Initial Translation Agent, which in-cludes both retrieval and LLM models. Figure 2 presents the example-retrieval performance of different retrievers. The embedding dimen-sion is indicated next to each model name; among them, SFR-Mistral 
+
+has the largest embedding size (4096). It achieves the highest re-trieval performance, substantially outperforming all other candi-dates. This finding aligns with prior work [ 12 ], which showed that high-dimensional dense retrievers provide more semantically aligned examples for code-related tasks. After fixing SFR-Mistral 
+
+as the retriever, we evaluated several LLMs for code translation, with results reported in Table 2. Qwen2.5-14B delivers the best per-formance, consistently producing compilable, test-passing code with moderate latency ( 32s per sample). Smaller models such as 
+
+Qwen2.5-7B , CodeLlama-13B , and CodeGemma-7B frequently fail to generate valid or compilable outputs. These models lack sufficient capacity to handle the long, context-heavy prompts required by the task, resulting in structurally invalid or non-compilable outputs. Overall, translation quality scales with model capacity: larger, code-specialized LLMs yield higher correctness and better framework alignment, though at the cost of longer generation time. 
+
+## 6 Conclusions and Future Work 
+
+This paper introduces a novel code translation method for API-aware translation from the legacy language PL/SQL to the modern language Java—a highly practical and in-demand task in industry. LegacyTranslate is a multi-agent framework consisting of three agents: Initial Translation Agent generates the initial translation, API Grounding Agent aligns it with existing APIs, and Refinement Agent refines it using compiler feedback. Our results show that LegacyTranslate is effective, generating 52.9% compilable code and demonstrating the feasibility of modernizing legacy systems. How-ever, API-aware legacy translation remains limited by the lack of public datasets or fine-tuned models, which we encourage future work to tackle. Moreover, our multi-agent framework can be ex-tended to other languages and enriched with additional agents. LegacyTranslate: LLM-based Multi-Agent Method for Legacy Code Translation Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+## References 
+
+[1] Zhangqian Bi, Yao Wan, Zheng Wang, Hongyu Zhang, Batu Guan, Fangxin Lu, Zili Zhang, Yulei Sui, Hai Jin, and Xuanhua Shi. 2024. Iterative Refinement of Project-Level Code Context for Precise Code Generation with Compiler Feedback. In Findings of the Association for Computational Linguistics, ACL . 2336–2353. [2] Tianyou Chang, Shizhan Chen, Guodong Fan, and Zhiyong Feng. 2023. RTCoder: An approach based on retrieve-template for automatic code generation. In 29th International Conference on Parallel and Distributed Systems (ICPADS) . 428–434. [3] Le Deng, Xiaoxia Ren, Chao Ni, Ming Liang, David Lo, and Zhongxin Liu. 2025. Enhancing Project-Specific Code Completion by Inferring Internal API Informa-tion. IEEE Trans. Software Eng. (2025), 2566–2582. [4] Sandeep Hans, Atul Kumar, Toshiaki Yasue, Kouichi Ono, Saravanan Krishnan, Devika Sondhi, Fumiko Satoh, Gerald Mitchell, Sachin Kumar, and Diptikalyan Saha. 2025. Automated Testing of COBOL to Java Transformation. In Proceed-ings of the 33rd ACM International Conference on the Foundations of Software Engineering, FSE . ACM, 227–237. [5] Binyuan Hui, Jian Yang, Zeyu Cui, Jiaxi Yang, Dayiheng Liu, Lei Zhang, Tianyu Liu, Jiajun Zhang, Bowen Yu, Kai Dang, et al . 2024. Qwen2. 5-Coder Technical Report. arXiv preprint arXiv:2409.12186 (2024). [6] Mingsheng Jiao, Tingrui Yu, Xuan Li, Guanjie Qiu, Xiaodong Gu, and Beijun Shen. 2023. On the Evaluation of Neural Code Translation: Taxonomy and Benchmark. In 38th IEEE/ACM International Conference on Automated Software Engineering, ASE . 1529–1541. [7] Marie-Anne Lachaux, Baptiste Roziere, Lowik Chanussot, and Guillaume Lample. 2020. Unsupervised translation of programming languages. arXiv preprint arXiv:2006.03511 (2020). [8] Rui Meng, Ye Liu, Shafiq Rayhan Joty, Caiming Xiong, Yingbo Zhou, and Semih Yavuz. 2024. SFR-Embedding-Mistral:Enhance Text Retrieval with Transfer Learning. Salesforce AI Research Blog. https://www.salesforce.com/blog/sfr-embedding/ [9] Lola Solovyeva, Eduardo Carneiro Oliveira, Shiyu Fan, Alper Tuncay, Shamil Gareev, and Andrea Capiluppi. 2025. Leveraging LLMs for Automated Translation of Legacy Code: A Case Study on PL/SQL to Java Transformation. In Proceedings of the 29th International Conference on Evaluation and Assessment in Software Engineering, EASE 2025, Istanbul, Turkey, June 17-20, 2025 . ACM, 809–813. [10] Marc Szafraniec, Baptiste Roziere, Hugh Leather, Francois Charton, Patrick La-batut, and Gabriel Synnaeve. 2022. Code translation with compiler representa-tions. arXiv preprint arXiv:2207.03578 (2022). [11] Khanh-Tung Tran, Dung Dao, Minh-Duong Nguyen, Quoc-Viet Pham, Barry O’Sullivan, and Hoang D. Nguyen. 2025. Multi-Agent Collaboration Mechanisms: A Survey of LLMs. CoRR abs/2501.06322 (2025). [12] Zora Z. Wang, Akari Asai, Xinyan V. Yu, Frank F. Xu, Yiqing Xie, Graham Neu-big, and Daniel Fried. 2024. CodeRAG-Bench: Can Retrieval Augment Code Generation? (2024). [13] Pengyu Xue, Linhao Wu, Chengyi Wang, Xiang Li, Zhen Yang, Ruikai Jin, Yuxiang Zhang, Jia Li, Yifei Pei, Shen, et al . 2024. Escalating LLM-based code translation benchmarking into the class-level era. arXiv e-prints (2024), arXiv–2411. [14] Zhen Yang, Fang Liu, Zhongxing Yu, Jacky Wai Keung, Jia Li, Shuo Liu, Yifan Hong, Xiaoxue Ma, Zhi Jin, and Ge Li. 2024. Exploring and unleashing the power of large language models in automated code translation. Proceedings of the ACM on Software Engineering FSE (2024), 1585–1608. [15] Zhiqiang Yuan, Weitong Chen, Hanlin Wang, Kai Yu, Xin Peng, and Yiling Lou. 2024. Transagent: An llm-based multi-agent system for code translation. arXiv preprint arXiv:2409.19894 (2024). [16] Ming Zhu, Karthik Suresh, and Chandan K Reddy. 2022. Multilingual code snippets training for program translation. In Proceedings of the AAAI conference on artificial intelligence . 11783–11790.

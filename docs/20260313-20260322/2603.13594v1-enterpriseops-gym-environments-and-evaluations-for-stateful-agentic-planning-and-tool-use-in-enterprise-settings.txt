@@ -1,0 +1,1195 @@
+Title: EnterpriseOps-Gym: Environments and Evaluations for Stateful Agentic Planning and Tool Use in Enterprise Settings
+
+URL Source: https://arxiv.org/pdf/2603.13594v1
+
+Published Time: Tue, 17 Mar 2026 00:58:43 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# ENTERPRISE OPS -G YM : Environments and Evaluations for Stateful Agentic Planning and Tool Use in Enterprise Settings 
+
+Shiva Krishna Reddy Malay * 1 Shravan Nayak * 1 2 3 Jishnu Nair 1 Sagar Davasam 1 Aman Tiwari 1
+
+Sathwik Tejaswi 1 Sridhar Krishna Nemala 1 Srinivas Sunkara 1 Sai Rajeswar 1 2 3 
+
+## Abstract 
+
+Large language models are shifting from passive information providers to active agents intended for complex workflows. However, their deploy-ment as reliable AI workers in enterprise is stalled by benchmarks that fail to capture the intrica-cies of professional environments, specifically, the need for long-horizon planning amidst persis-tent state changes and strict access protocols. In this work, we introduce E NTERPRISE OPS -G YM ,a benchmark designed to evaluate agentic plan-ning in realistic enterprise settings. Specifically, ENTERPRISE OPS -G YM features a containerized sandbox with 164 database tables and 512 func-tional tools to mimic real-world search friction. Within this environment, agents are evaluated on 1,150 expert-curated tasks across eight mission-critical verticals (including Customer Service, HR, and IT). Our evaluation of 14 frontier models reveals critical limitations in state-of-the-art mod-els: the top-performing Claude Opus 4.5 achieves only 37.4% success. Further analysis shows that providing oracle human plans improves perfor-mance by 14–35 percentage points, pinpointing strategic reasoning as the primary bottleneck. Ad-ditionally, agents frequently fail to refuse infea-sible tasks (best model achieves 53.9%), leading to unintended and potentially harmful side effects. Our findings underscore that current agents are not yet ready for autonomous enterprise deploy-ment. More broadly, E NTERPRISE OPS -G YM pro-vides a concrete testbed to advance the robustness of agentic planning in professional workflows. 
+
+https://enterpriseops-gym.github.io 
+
+> *
+
+Equal contribution 1ServiceNow Research 2Mila - Quebec AI Institute 3Universit ´e de Montr ´eal. Correspondence to: Shiva Kr-ishna Reddy Malay <shivakrishnareddy.ma@servicenow.com >.$0.005 $0.01 $0.02 $0.05 $0.1 $0.2 $0.4 
+
+> Cost per Task ($)
+> 15
+> 20
+> 25
+> 30
+> 35
+> 40
+> Performance (%)
+> Claude Opus 4.5
+> GPT-5.2 (High)
+> Claude Sonnet 4.5
+> GPT-5
+> GPT-5.2 (Low)
+> Gemini-3-Flash
+> Gemini-3-Pro
+> Gemini-2.5-Pro
+> GPT-5-Mini
+> GPT-OSS-120B (High)
+> DeepSeek V3.2 (High)
+> Kimi K2
+> Qwen3-235B (Inst.)
+> Qwen3-30B (Think)
+> Open Source
+> Closed Source
+> Pareto Frontier
+
+Figure 1. Performance–cost tradeoff for agentic tool use on ENTERPRISE OPS -G YM We plot task success rate against esti-mated cost per task for both closed-source and open-source mod-els. Open-source models incur lower cost but achieve consistently lower success rates. While higher-cost models offer modest perfor-mance gains, they remain far below reliable task completion. 
+
+## 1. Introduction 
+
+LLMs today are most commonly deployed as conversational assistants, answering questions, drafting emails, and sum-marizing documents (OpenAI, 2025; Anthropic, 2025b). But a far more consequential capability is rapidly emerg-ing, namely LLMs as autonomous agents that act on behalf of users (Xu et al., 2024). Consider an agent that, from a single instruction, searches the web for real-time inventory data, identifies the best product, and executes the purchase, all without further input. Recent advances in planning and tool use have made the vision of an AI worker increasingly plausible: autonomous agents handling professional work-flows from software engineering (Jimenez et al., 2024) and data analysis (Drouin et al., 2024) to sales operations and enterprise administration (Huang et al., 2025a;b). Yet to function effectively in real-world professional deployments, such agents must do more than follow instructions. They must (1) maintain state coherently across long sequences of interleaved tool calls, (2) execute multi-step plans spanning dozens of actions, and (3) strictly adhere to the access con-trol policies and procedural rules that govern the workplace. 1
+
+> arXiv:2603.13594v1 [cs.AI] 13 Mar 2026
+
+ENTERPRISE OPS -G YM Extensive Enterprise Focus  
+
+> 1150 tasks across 8 core domains
+> High- Qualit y Data
+> SME- authored task constraints,
+> policies and ground- truth plans.
+> Live Sandbox Environment
+> Fully interactive, Dockerized
+> environment.
+
+Tested Skills Key Features 
+
+> Policy & Constraint Adherence
+> Respecting strict access policies.
+> Multi- Step Agentic Planning
+> Resolving long- horizon tasks with
+> strict state dependencies.
+> State- Driven Tool Calling
+> Choosing, parameterising the right API
+
+EnterpriseOps- Gym 
+
+> Cross- Domain Orchestration
+> navigating multiple domains and tools
+> while maintaining context.
+> Robust Eval
+> Outcome- based SQL state verification
+
+Data Creation Process    
+
+> Domain & Sandbox
+> Setup
+> 1
+> Scenario Design Author Ground Truth
+> Plans
+> Outcome Based Verif ication
+> of ground- truth plans
+> Qualit y Assurance
+> Expert Review & Consistency
+> 23
+> 45
+
+User Request and Policy          
+
+> Check case CS- 0000644 (Windows Server
+> 2022). Attach the correct KB article if missing,
+> then email a solution proposal to the customer.
+> System Policy: used_as rule for KB attachments
+> ?Automated search ?"suggested"
+> ?Found useful after resolution? "resolution"
+> ?Otherwise ? "applied"
+> Hidden Task: Figure out email from case record
+
+Agent Execution  Verif ication                    
+
+> ?search_cases (number =" CS- 0000644" )
+> ?f ind_case_know ledge_linkages (case_id =644)
+> ?retrieve_know ledge (product_id =1, state =" published" )
+> ?Unable to send email, missing email identif ier
+> ?link_case_know ledge (case_id = ..., used_as =" resolution" )
+> Policy: automated retrieve_knowledge call ? must use " suggested"
+> Env
+> Oracle: case.contact_id ? find_contacts ? list_users ? email
+> [ FAIL] Link Case Know ledge
+> [ FAIL] Send Notif ication
+> >SELECT COUNT(* ) AS result FROM case_know ledge \
+> WHERE case_id = 64 4 \
+> AND know ledge_id = 1 \
+> AND used_as = ' suggested' ;
+> >SELECT COUNT(* ) AS result FROM notif ications \
+> WHERE case_id = 64 4 \
+> AND know ledge_id = 1 \
+> AND t y pe = ' solution_proposal' \
+> AND email = ' roby n.jacobs@jonesandreyans.com' ;
+> Email
+> Users
+> Case
+> KB
+
+Figure 2. Overview of E NTERPRISE OPS -G YM : A benchmark for stateful agentic planning and tool use. (Top-left) E NTERPRISE OPS -GYM spans eight enterprise domains and evaluates multi-step agentic planning, policy adherence, state-driven tool calling and cross domain orchestration in a reproducible sandbox. (Top-right) Domain experts create sandox and author realistic single- and cross-domain tasks, execute ground-truth trajectories, and write outcome-based verification logic with multi-stage quality assurance along with a human written oracle plan for completing the task. (Bottom) Given a task and constraints (as system level policies), agents interact with the environment and execute tools. They are evaluated by final-state verifiers that check goal completion, policy compliance, and side effects. In the above example the agent fails to adhere to system policy for linking case knowledge which mandates setting a parameter to “suggested” when a knowledge base is automatically discovered . Furthermore, the agent fails to properly send an email notification due to an unresolved identifier for the given case. 
+
+These requirements are especially relevant within the enter-prise domains. Here, agents do not merely retrieve infor-mation; they directly modify live databases, trigger down-stream workflows, and affect real users. Actions are state-ful and often irreversible, errors propagate silently across interconnected systems, and strict organizational policies constrain every step. Figure 2 shows one such example task, where the interplay of the user task and the nuanced system policy constraints demands more than surface-level instruction following. The agent must not only execute a multi-step workflow — searching a case, retrieving a KB article, and notifying the customer — but also respect a three-tiered policy governing how KB articles are tagged, and independently resolve a hidden piece of information (the customer’s email) by chaining through multiple tools. Equally important, agents must also know when to stop. Blindly attempting a policy-violating task corrupts system state, posing a direct safety risk in production environments. Despite the urgency of this challenge, existing benchmarks fall short of capturing it. General tool-use evaluations (Li et al., 2023; Qin et al., 2024; Chen et al., 2025) treat tool calls as atomic and stateless, measuring accuracy on short sequences without state dependencies or cross-system coordination. Enterprise-focused benchmarks have emerged (Drouin et al., 2024; Boisvert et al., 2024; Huang et al., 2025a;b; Jha et al., 2025; Vishwakarma et al., 2025) to address challenges in professional environments. While they make important contributions, they are typically confined to a single vendor ecosystem (e.g., Salesforce or ServiceNow alone), with shallow environments of fewer than 25 database tables, under 50 tools, short task horizons, and limited policy constraints governing agent behavior (see Table 1). To bridge this gap, we introduce ENTERPRISE OPS -G YM ,a benchmark designed to evaluate agentic planning within a high-fidelity enterprise simulation. ENTERPRISE OPS -GYM spans eight interconnected ecosystems, ranging from general productivity tools like Calendar, Drive, Teams and Email to mission-critical business functions like Human Resource (HR), IT Service Management (ITSM), Customer Service Management (CSM), unified by a Hybrid cate-gory demanding coordinated cross-domain execution. The benchmark comprises 1,150 expert-authored tasks across these domains, including 30 infeasible scenarios that test whether agents correctly refuse unsatisfiable requests with-2ENTERPRISE OPS -G YM 
+
+out leaving side effects on the system. Tasks are verified by hand-written SQL scripts that check goal completion, state integrity, policy compliance, and unintended side ef-fects. E NTERPRISE OPS -G YM runs on a fully interactive, containerized environment hosting 164 relational database tables and 512 functional tools, with expert trajectories av-eraging 9 steps and reaching up to 34. Together, this scale is designed to stress-test the core challenges of enterprise automation: long-horizon planning, cross-system state man-agement, and policy-constrained execution. Our evaluation of 14 frontier models reveals a significant gap between current agentic capabilities and enterprise re-quirements. We find that performance is strongly shaped by domain complexity. Models fare best on collaboration tasks, with top models reaching 51–52% on Email, Teams, and Drive, but drop sharply on policy-governed domains such as ITSM (28.5%) and cross-domain Hybrid tasks (30.7%). These are precisely the domains where constraint-aware reasoning is unavoidable. The best overall model, Claude Opus 4.5, achieves only 37.4%, with open-source models lagging further behind. Infeasibility detection is a criti-cal weak point, with even the best model refusing policy-violating tasks cleanly only 53.9% of the time. Test-time compute scaling helps but is not a universal remedy, with some workflows plateauing early or showing limited im-provements regardless of thinking budget. Importantly, we identify strategic planning and not tool use as the primary bottleneck. Adding distractor tools has negligible impact, while providing human-authored plans improves models by 14–35 percentage points. More complex multi-agent orches-tration does not close this gap either; decomposing tasks into subtasks can even regress performance due to strong sequential state dependencies. Together, these results under-score that current agents are not yet ready for autonomous enterprise deployment. Overall, our contributions are as follows: • We introduce E NTERPRISE OPS -G YM , a benchmark of 1,150 expert-curated tasks across eight enterprise domains with outcome-based verification enforcing goal completion, state integrity, policy compliance, and side-effect checks, including 30 infeasible tasks designed to evaluate safe refusal behavior. • We develop a fully interactive, containerized enterprise environment with 164 relational database tables and 512 functional tools, an order of magnitude more com-plex than prior enterprise benchmarks. • We evaluate 14 frontier models, uncovering and an-alyzing systematic failure patterns across planning, state management, and policy compliance, and provide actionable insights to build more reliable enterprise agents. We also release E NTERPRISE OPS -G YM to the community to advance research in stateful agentic planning and enterprise tool use. 
+
+## 2. Related Works 
+
+LLM agent benchmarks broadly fall into three thematic groups: general-purpose tool-use and API evaluation, en-terprise platform simulation, and agentic planning and computer-use. Table 1 summarizes how EnterpriseOps-Gym compares across key dimensions. 
+
+API and Tool-Use Benchmarks Early benchmarking ef-forts focused on testing agents’ ability to call APIs and chain tools in general, open-domain settings. ToolLLM (Qin et al., 2024) establishes large-scale evaluation across over 16,000 real-world web APIs, while API-Bank (Li et al., 2023) provides a smaller, runnable system for assessing planning and retrieval across 73 tools. ACEBench (Chen et al., 2025) scales this further with 4,538 tools and dy-namic multi-turn evaluation, and τ -bench (Yao et al., 2024) and τ 2-bench (Barres et al., 2025) introduce user simu-lation and refusal robustness as evaluation axes. These benchmarks make important contributions to measuring tool-calling accuracy but remain anchored to general web-oriented or open-domain APIs. They do not model the multi-system, policy-constrained, stateful tool ecosystems that characterize enterprise environments, which is the set-ting E NTERPRISE OPS -G YM specifically targets. 
+
+Enterprise Benchmarks A second class of benchmarks targets enterprise platforms directly. Single-platform envi-ronments restrict scope to one vendor: WorkArena (Drouin et al., 2024) and WorkArena++ (Boisvert et al., 2024) evalu-ate compositional task completion within ServiceNow, CR-MArena (Huang et al., 2025a) and CRMArena-Pro (Huang et al., 2025b) focus on Salesforce specific workflows, and ITBench (Jha et al., 2025) targets IT incident resolution. Multi-domain efforts broaden the scope but with different emphases: TheAgentCompany (Xu et al., 2024) simulates a startup software company requiring agents to interact via web browser, bash terminal, and code execution, a paradigm fundamentally different from the structured tool-calling API setting of E NTERPRISE OPS -G YM ; WorkBench (Styles et al., 2024) covers office productivity tools; and Enter-priseBench (Vishwakarma et al., 2025) evaluates function-calling on sandboxed enterprise data. Across these bench-marks, relational database complexity is consistently limited to fewer than 25 tables, and tasks are either confined to a single vendor ecosystem or lack expert-authored grounding or explicit evaluation of refusal behavior. E NTERPRISE OPS -GYM addresses these limitations by spanning eight en-terprise domains across both operational systems (CSM, ITSM, HR) and collaboration services (Email, Calendar, Teams, Drive), with 164 database tables with high con-3ENTERPRISE OPS -G YM                                                                                                                                                        
+
+> Benchmark Focus Num. Num. Num. Avg. DB Avg. Refusal Human Task Human Domains Tasks Tools Steps Tables FK Ability? Curation? Plans?
+> General Tool Use
+> API-Bank (Li et al., 2023) Tool-use 8314 73 300✗✓✗
+> ACEBench (Chen et al., 2025) Tool-use 82000 4538 200✓✓✗
+> τ-bench (Yao et al., 2024) User Interaction 2165 28 —30.7 ✓✓✗
+> τ2-bench (Barres et al., 2025) User Interaction 3279 56 —9—✓✗✗
+> Enterprise Specific
+> WorkArena (Drouin et al., 2024) ServiceNow 733 30 10 70.9 ✗✗✗
+> WorkArena++ (Boisvert et al., 2024) ServiceNow 7682 ( †341) 30 30-50 7—✓✗✗
+> ITBench (Jha et al., 2025) IT 394 10 ———✗✓✗
+> WorkBench (Styles et al., 2024) Workplace 5690 ( †69) 26 250✗✓✗
+> TheAgentCompany (Xu et al., 2024) Startup 7175 ——00✗✓✗
+> CRMArena (Huang et al., 2025a) Salesforce 11170 ( †9) 27 —16 1.3 ✗✓✗
+> CRMArena-Pro (Huang et al., 2025b) Salesforce 38560 ( †19) ——25 —✓✓✗
+> EnterpriseBench (Vishwakarma et al., 2025) Enterprise 5500 46 317 1.2 ✓✗✗
+> ENTERPRISE OPS -G YM (Ours) Enterprise 81150 512 9∗164 1.7 ✓✓✓
+
+Table 1. Comparison with existing agentic benchmarks. DB Tables reports the number of unique database tables in the environment; 
+
+Avg. FK measures average foreign keys per table, indicating relational density and the complexity of inter-table dependencies agents must navigate. — denotes values not reported in the original work. ∗Avg. Steps reflects ideal human-authored execution trajectories; model trajectories may require significantly more steps. Human Plans refer to step-by-step natural language plans written by experts to complete the task. †Parenthetical values indicate the number of unique task templates. 
+
+nectivity, 512 tools, 1,150 expert-curated tasks including policy-constrained infeasible scenarios. 
+
+Agentic Planning and Computer-Use Planning is a core capability for autonomous agents, and several benchmarks have studied it across diverse general-purpose settings. User-Bench (Qian et al., 2025) evaluates agents on multi-turn travel planning tasks where simulated users express prefer-ences incrementally and implicitly, requiring proactive in-tent elicitation. Gaia2 (Froger et al., 2025) evaluates agents in an asynchronous simulated mobile environment, testing search, execution, temporal reasoning, adaptability, ambi-guity handling, and multi-agent collaboration. VitaBench (He et al., 2025) evaluates agents on complex multi-turn tasks drawn from real-world services like food delivery, in-store dining, and online travel using a simulated user with dynamic preferences. A parallel line of work focuses on computer-use agents: OSWorld (Xie et al., 2024), Win-dowsAgentArena (Bonatti et al., 2025), WebArena (Zhou et al., 2024) and UI-Vision (Nayak et al., 2025) bench-mark agents on desktop and web GUIs requiring com-plex sequential decision-making. While these settings de-mand sophisticated planning, they operate in everyday sce-narios or computing environments rather than the policy-governed, multi-system contexts of enterprise environments. ENTERPRISE OPS -G YM shares the emphasis on extended planning horizons but is uniquely positioned at the intersec-tion of planning depth and enterprise domain fidelity. 
+
+## 3. E NTERPRISE OPS -G YM 
+
+In this section, we describe the design and construction of ENTERPRISE OPS -G YM , covering domain selection, sand-box environment, task formulation in Section 3.1, and 
+
+Figure 3. Task distribution across eight E NTERPRISE OPS -G YM 
+
+domains. 
+
+dataset statistics in Section 3.2. 
+
+3.1. EnterpriseOps-GymConstruction Selecting domains. We selected domains based on three principles, in consultation with SMEs who have hands-on experience in enterprise software: (i) relevance to real-world industry verticals, (ii) diversity in policy complexity and data sensitivity, and (iii) availability of domain experts to author and validate authentic tasks. This led us to two complementary groups of domains. The first group— Customer Service Management (CSM) , Hu-man Resources (HR) , and Information Technology Service Management (ITSM) —represents the operational backbone of enterprise organizations. These domains are present in virtually every industry vertical and are characterized by 4ENTERPRISE OPS -G YM 
+
+strict process compliance, access control policies, and high-stakes workflows where errors have tangible consequences. CSM involves managing the full lifecycle of support tickets and service agreements; HR handles sensitive employee data under strict privacy and procedural rules; and ITSM covers backend IT operations including incident manage-ment and system configuration. Their policy-heavy nature and realistic complexity make them ideal for stress-testing constraint-aware planning. The second group— Email , Calendar , Teams , and Drive —encompasses the universal collaboration tools used daily across all enterprise organizations. Agents must be profi-cient in these to function as effective AI workers. While individually simpler, these domains require sophisticated orchestration: Email handles complex mailbox workflows, 
+
+Calendar manages time and resource access policies, Teams 
+
+administers collaborative workspaces, and Drive governs file system integrity and security. Finally, Hybrid mandates cross-domain orchestration across these fragmented tools, requiring agents to maintain context and data integrity while switching between systems. To-gether, the eight domains span the full enterprise workflow spectrum, from internal operations to customer-facing pro-cesses to collaboration infrastructure, enabling evaluation of both specialized and general-purpose agentic capabilities. Refer to Appendix B for more details on each domain. 
+
+Sandbox Environment and Data Generation. We part-nered with a professional data annotation firm (Turing 1) to assemble a team of over 160 contributors, including soft-ware engineers for building environments and Subject Mat-ter Experts (SMEs) for technical domains like CSM, ITSM, and HR (refer to Section A.1). To provide a reproducible and realistic evaluation ground, we developed a containerized docker sandbox hosting domain-specific databases, APIs, and the tool execution layer. This environment mirrors enter-prise constraints without exposing proprietary infrastructure. For each domain, we created a realistic database schema and populated it with seed data and tools to access and manipulate data. The underlying data is designed with a strong real-world perspective by SMEs. Guided by official product documentation and SME insights, we model realis-tic table structures, constraints and tools based on industry standard database schemas. Starting from a fixed seed of data and tools, annotators extend the environment with new tables, schemas, and records as each task demands. Refer to Section A.4 for more details on the environment. 
+
+Task Construction Pipeline. The task creation process follows a rigorous pipeline designed to ensure high complex-ity and faithfulness to real-world workflows. In Scenario 
+
+> 1https://www.turing.com
+
+Design , annotators craft challenging, multi-step scenarios based on specific complexity thresholds across dimensions including tool invocation counts, verification conditions, and state dependencies (action ordering is crucial to suc-cess), access constraints (e.g. “ only team owners can create private channels ”) and other policy conflicts (where user request conflicts with system policies). We constrain tasks to have a unique final state, though multiple valid paths may exist to reach it. In addition, we design a subset of 30 infea-sible tasks where completion is intentionally impossible due to insufficient tool availability, explicit policy violations, or resource unavailability. For each task, annotators also up-date the sandbox environment with any additional necessary tables and tools. We follow this with Ground Truth Execu-tion and Plan Authoring , where for each task, annotators provide a detailed step-by-step plan and manually execute it within the sandbox to capture a gold-standard trajectory, documenting each call with parameters, responses and exe-cution rationale. Annotators also author a natural language reasoning plan that explicitly grounds each action in system constraints, user request, and available tools. Plans refer-ence policies from the system prompt, explaining ordering dependencies thus fully grounding the task in the provided context. Refer to Section A.2 for more details. We enforce Outcome-based Verification , where annotators author executable SQL verification scripts that check the final state of the environment upon task completion. This ensures that we evaluate agents on outcomes rather than rigid action sequences, allowing for alternative valid so-lution paths. The evaluation includes checks for required conditions ( is the goal achieved? ), integrity constraints ( are foreign key constraints respected? ), permission compliance (did the agent avoid unauthorized actions? ) and other side effects. Finally, we conduct multiple rounds of Quality Assurance , where reviewer annotators (including authors) assess task feasibility given the initial state and the available tools, instruction clarity and completeness without external dependencies or domain knowledge, verification script cor-rectness and coverage, as well as the fluency and coherence of the ground truth plan, instructions and verification scripts. Refer to Section A.3 for more details on verification. 
+
+3.2. Dataset Statistics Task Statistics. EnterpriseOps-Gymevaluates agents across 1,150 tasks designed to mimic the depth of real-world enterprise operations, including 30 infeasible tasks that test whether agents correctly refuse unsatisfiable requests. The action space is extensive and diverse, comprising 512 unique tools across domains, with domain-specific toolsets ranging from 37 (Calendar) to 93 (ITSM). Expert human trajectories average 9.15 steps, with planning horizons varying consid-erably across domains, ranging from 6.2 steps on average in Email to 12.1 in CSM, and reaching up to 34 steps in HR 5ENTERPRISE OPS -G YM 
+
+(see Figure 7). Beyond length, our tasks are dense with con-straints: on average, a task mandates satisfying 5.3 distinct verification conditions, with the most intricate scenarios requiring the resolution of 44 conditions. 
+
+Environment Statistics. Our sandbox environment mod-els a highly interconnected data ecosystem comprising 164 unique database tables across the eight domains. On av-erage, each task interacts with a sub-graph of 24.9 tables, reaching up to 73 in Hybrid scenarios. This means agents must reason over a large, partially-observable data graph to execute each task correctly. Each task operates over an average of 3,443 database rows, scaling to over 10,000 in data-heavy domains like CSM. To quantify relational com-plexity, we measure the average number of Foreign Keys (FK) per table. We observe a high degree of dependency, with average FKs ranging from 1.1 in Calendar to 2.4 in HR (mean ≈ 1.7), exceeding the relational density of prior benchmarks (see Table 1). Higher FK density means agents must resolve more inter-table dependencies when construct-ing valid tool arguments, making referential integrity a key challenge. We provide more details in Section A.4. 
+
+## 4. Experiments 
+
+4.1. Baselines 
+
+We evaluate a diverse set of baselines covering closed-source frontier models, open-source reasoning and non reasoning models. All agents are evaluated under a unified interface with identical task instructions, tool definitions, sandbox environments, and evaluation protocols. Unless stated oth-erwise, agents operate in an oracle -tool setting where we assume a perfect retriever supplies the agent with the right set of tools. This focuses the evaluation purely on planning and execution, without the need for explicit tool discovery. Additionally, we conduct ablations by increasing the num-ber of available tools to analyze how tool set size impacts performance. We use a standard ReAct-style reasoning and tool-execution loop which has been shown to be effective in agentic settings (Yao et al., 2022). The closed-source set in-cludes Claude 4.5 (Anthropic, 2025b;a) variants (Opus and Sonnet), GPT (OpenAI, 2025) variants (5.2 High, 5.2 Low, 5, and 5-Mini), and Gemini (Gemini Team, 2025) variants (3-Pro, 3-Flash, and 2.5-Pro), while the open-source set in-cludes Kimi-K2-Thinking (K-Team, 2025), DeepSeek-V3.2 (DeepSeek-AI, 2024), GPT-OSS-120B (Medium) (OpenAI et al., 2025), and Qwen3 (Yang et al., 2025) variants (235B Inst., 30B Think, and 4B Think). 
+
+4.2. Evaluation Metrics 
+
+We evaluate models using pass@1 task completion rate, where a model receives a score of 1 only when it success-fully completes all task requirements while satisfying all specified constraints. Task completion is verified by exe-cuting SQL-based verifiers hand-written by subject matter experts (SMEs) during the benchmark curation process. We report the average of pass@1 across three runs (to reduce variance) as our primary metric because it captures end-to-end task success. While we also measure verifier-level suc-cess rates (see Table 6), which provide fine-grained insight into the average number of successful verification checks, this metric can be misleading: agents may pass verifiers for trivial trajectory segments (e.g., initial setup steps) while failing on core task logic, system compliance requirements, or side-effect checks. Pass@1 therefore provides a more accurate assessment of real-world agent utility. 
+
+4.3. Results How do models perform across different domains? 
+
+Overall, Claude Opus 4.5 achieves the best average task completion (37.4%) and is particularly strong across several workflows, leading on Email (51.9%), Calendar (43.2%), HR (32.1%), and Hybrid (30.7%). Gemini-3-Flash emerges as the second-best model overall (31.9%) and tops ITSM (28.5%), a service and operations management workflow. Claude Sonnet 4.5 (30.9%) remains strong on collaboration and document-centric workflows, leading on Teams (51.0%) and Drive (52.1%). GPT-5 shows more domain-specific peaks, topping CSM (36.4%). Open-source models still lag behind the closed-source systems overall. The strongest open-source model, DeepSeek-V3.2 (High), reaches a 24.5% average, narrowly ahead of GPT-OSS-120B (High) at 23.7%. They particularly struggle on service, policy, and people-facing domains such as CSM, ITSM, and HR. Qwen3-30B (Think) performs surprisingly well for its size, outperforming its larger instruct variant and attaining a highly competitive Email score (51.9%, tied for best). Fi-nally, ITSM and Hybrid cross-domain workflows are the hardest settings (best: 28.5% and 30.7% respectively), high-lighting that service operations and cross-domain coordina-tion remain the key bottlenecks for all model families. 
+
+How does adding extra tools affect performance? We assessed robustness to tool overload by conducting ablations with Claude Sonnet 4.5, chosen for its strong overall per-formance and cost-effectiveness. We augmented the oracle toolset with extra distractor tools (+5, +10, and +15). To make this setting particularly challenging and representa-tive of realistic retrieval errors, we asked Claude to retrieve the distractor tools that appeared most relevant to the task. Surprisingly, performance remained remarkably stable. The average completion rates actually increased slightly by an average of ∼1.0% (+0.07% for +5, +2.35% for +10, and +0.64% for +15 tools). The only other notable variation was an average 4–9% increase in output tokens. This suggests that the model utilizes the additional token budget to care-6ENTERPRISE OPS -G YM                                                                                                                                                                           
+
+> Model Teams CSM Email ITSM Calendar HR Drive Hybrid Infeas. Avg.
+> Closed Source Models
+> Claude Opus 4.5 (Anthropic, 2025b) 50.0 34.2 51.9 23.8 43.2 32.1 49.5 30.7 50.0 37.4
+> Gemini-3-Flash (Gemini Team, 2025) 47.3 35.0 44.3 28.5 30.5 12.6 49.7 24.2 38.5 31.9 GPT-5.2 (High) (OpenAI, 2025) 31.0 34.8 51.0 21.7 38.5 25.0 40.0 22.2 50.0 31.8 Claude Sonnet 4.5 (Anthropic, 2025b) 51.0 16.7 51.3 17.6 34.6 21.6 52.1 28.1 46.2 30.9 GPT-5 (OpenAI, 2025) 26.3 36.4 49.0 18.9 41.3 17.9 34.0 23.5 50.5 29.8 Gemini-3-Pro (Gemini Team, 2025) 43.0 27.7 33.6 22.2 28.8 12.5 46.7 22.9 50.0 28.0 GPT-5.2 (Low) (OpenAI, 2025) 25.0 21.2 43.3 6.7 28.9 13.0 26.7 20.9 53.9 21.9 GPT-5-Mini (OpenAI, 2025) 25.7 15.8 47.4 8.9 28.8 10.7 23.8 22.5 47.4 21.3 Gemini-2.5-Pro (Gemini Team, 2025) 39.3 11.6 31.1 13.9 12.5 4.9 27.0 19.6 34.7 18.2
+> Open Source Models
+> DeepSeek-V3.2 (High) (DeepSeek-AI, 2024) 37.0 14.1 47.1 16.1 21.2 16.3 35.2 22.9 53.8 24.5 GPT-OSS-120B (High) (OpenAI et al., 2025) 32.0 16.3 42.3 6.1 35.6 16.3 41.0 19.6 50.0 23.7 DeepSeek-V3.2 (Medium) (DeepSeek-AI, 2024) 35.7 15.4 45.8 9.6 21.5 15.0 27.6 22.9 40.0 22.3 Kimi-K2-Thinking (K-Team, 2025) 30.0 7.1 51.0 12.2 15.4 8.2 39.6 15.7 30.5 19.5 Qwen3-30B (Think) (Yang et al., 2025) 22.0 5.4 51.9 6.7 18.3 7.6 25.7 15.7 36.8 16.8 Qwen3-235B (Inst.) (Yang et al., 2025) 28.0 4.7 38.1 9.3 15.7 7.8 23.8 17.7 30.5 16.1 Qwen3-4B (Think) (Yang et al., 2025) 24.0 3.8 38.4 5.6 5.8 7.1 21.9 15.8 31.6 13.7
+
+Table 2. Overall task completion performance on E NTERPRISE OPS -G YM . We report the percentage of tasks successfully completed by each model in oracle tool mode, broken down by domain. A task is considered successful only if all outcome verification checks pass. 
+
+fully filter and select the appropriate tools. Such robustness likely stems from the extensive tool-use training inherent in these LLMs. Consequently, our findings indicate that the primary bottleneck for these agents is not tool discovery, but rather task planning and adherence to system policies. 
+
+Which model offers the best cost–performance tradeoff? 
+
+Which model offers the best cost–performance trade-off de-pends on whether the priority is absolute quality or quality per dollar. As shown by the Pareto frontier in Figure 1, Gemini-3-Flash provides the strongest practical trade-off among closed-source models. It achieves 31.9% perfor-mance at 0.03 USD per task, delivering a higher success rate than more expensive models like GPT-5 (29.8% at 0.16 USD) and Claude Sonnet 4.5 (30.9% at 0.26 USD) at a fraction of the cost (80–90% less). Within the open-source ecosystem, DeepSeek-V3.2 (High) emerges as the Pareto-dominant option, achieving 24.5% performance at just 0.014 USD closely followed by GPT-OSS-120B (High) (23.7% at 0.015 USD), making these the best open-source value over-all. Qwen3-235B (Inst.) remains the cheapest overall option (0.007 USD) but comes with a significant performance floor of 16.1%. Given that success rates across the board remain below 40%, these systems are not yet reliable enough for autonomous deployment without human oversight. For the highest absolute reliability, Claude Opus 4.5 remains the premier choice (37.4%), though it requires a steep premium of 0.36 USD per task. 
+
+How well do models refuse infeasible tasks? We curate 30 infeasible tasks across the 8 domains to evaluate whether models appropriately abstain from unsatisfiable requests. Each task has an average of 10 verification checks to ensure there are no side effects on the system. Tasks are impos-sible through three primary mechanisms: insufficient tool availability, explicit policy violations (e.g. scheduling con-flicts, data access rules etc) and resource unavailability (e.g. inactive users, system in migration mode etc). Moreover, tasks employ compound constraints averaging 3 to 4 per request, necessitating that models evaluate multiple inter-secting conditions to identify task feasibility. As seen in Table 2, GPT-5.2 (Low) and DeepSeek-V3.2 (High) per-form the best (53.9% and 53.8% respectively) in abstaining from the task while leaving no side effects on the system, followed closely by GPT-5 (50.5%) and a cluster of models including Claude Opus 4.5, Gemini-3-Pro, and GPT-OSS-120B (High) at 50.0%. However, the absolute scores of all the models remain well below safe applicability for produc-tion systems. 
+
+How does performance scale with task horizon? To understand how model capabilities degrade with task com-plexity, we stratify tasks by their expected horizon length, which is proportional to the number of tool execution steps in the human created execution trajectories. As illustrated in Figure 4, performance across all models exhibits a consistent decay as the task horizon increases, reflecting the cumulative difficulty of maintaining reasoning integrity over multi-step sequences. The closed-source group, led by Claude Opus 4.5, demonstrates greater resilience, maintaining a perfor-mance lead even as the group mean drops from approxi-mately 35% at 4 steps to under 20% by step 16. In contrast, the open-source cohort shows a much steeper decline, with models like Kimi K2 and GPT OSS 120B converging to-ward a success rate near 10% at the maximum horizon. This near-universal trend suggests that while current models can 7ENTERPRISE OPS -G YM 4 6 8 10 12 14 16   
+
+> Horizon Length (steps)
+> 0
+> 10
+> 20
+> 30
+> 40
+> pass@1 (%)
+> -15.7%
+> (x=4 16)
+> -19.2%
+> (x=4 16)
+> Closed-source mean ± 1 SE
+> Open-weight mean ± 1 SE
+> Claude Opus 4.5
+> Claude Sonnet 4.5
+> GPT-5.2 (High)
+> GPT-5.2 (Low)
+> Gemini 3 Pro
+> Gemini 3 Flash
+> Kimi K2
+> Qwen3 235B Instruct
+> Qwen3 30B Think
+> Qwen3 4B Think
+> GPT OSS 120B
+
+Figure 4. Performance degrades consistently with planning horizon. Pass@1 accuracy for closed-source (solid) and open-weight (dashed) models across horizon lengths 4–16. Thick lines show the group mean ±1 SE. We observe monotonic degradation of performance for both sets, while open model performance falls more sharply with horizon length. 
+
+navigate short-to-medium sequences, the rapid accumula-tion of errors in long-horizon tasks remains a critical barrier to autonomous reliability in production environments. 
+
+How does thinking budget affect performance? We evaluated the impact of test-time compute by varying the thinking budget ( low, medium, high ) for the GPT-OSS-120B model (OpenAI et al., 2025). Increasing the thinking budget yields substantial improvements in task completion across al-most all domains (see Figure 5). Operating at a low thinking budget causes the model to struggle severely, achieving near-zero accuracy on complex service and people-facing do-mains such as CSM (1.1%), ITSM (1.1%), and HR (0.0%). Scaling to a high budget unlocks significant capabilities, driving dramatic absolute gains in Drive ( 8.6 → 41 .0%), Calendar ( 8.7 → 35 .6%), and Teams ( 4.0 → 32 .0%). This strong dependence on test-time compute underscores that ENTERPRISE OPS -G YM tasks require complex reasoning and planning to execute. However, we also observe that performance scaling is not universally monotonic; for in-stance, performance on Email peaks at the medium budget (45.2%) before receding slightly, and ITSM plateaus early (1.1 → 6.1% → 6.1% ). This suggests that simply allo-cating more thinking tokens cannot universally overcome fundamental capability bottlenecks in certain workflows. 
+
+4.4. Further Analysis 
+
+Model Plan CSM ITSM HR 
+
+Kimi-K2 CP 19 .6 ↑12.5% 18 .1 ↑5.9% 17 .2 ↑9.0% 
+
+HP 42 .2 ↑35.1% 29 .1 ↑16.9% 34 .5 ↑26.3% 
+
+Qwen3-30B CP 15 .2 ↑9.8% 11 .7 ↑5.0% 17 .9 ↑10.3% 
+
+HP 33 .9 ↑28.5% 20 .9 ↑14.2% 33 .2 ↑25.6% 
+
+Qwen3-4B CP 16 .8 ↑13.0% 12 .2 ↑6.6% 19 .6 ↑12.5% 
+
+HP 37 .16 ↑33.4% 23 .3 ↑17.7% 36 .4 ↑29.3% 
+
+Table 3. Plan-Conditioned Execution Baseline. Comparison of performance with Claude Plans (CP) vs. Human Plans (HP). Green values indicate % improvement over the ReAct baseline from Table 2. 
+
+The results above show that performance degrades sharply with horizon length and that models struggle most with planning rather than execution. To understand this further, we run a series of controlled ablations that both decouple planning from execution and build increasingly complex multi-agent systems to test whether distributing cognitive load across specialized agents can recover performance that a single monolithic agent cannot achieve. 
+
+Automated planning improves weaker models consis-tently. We introduce a planner-executor baseline in which a dedicated planner agent, instantiated with Claude Sonnet 4.5, one of our best peforming model, generates a high-level plan reasoning over user intent, policy constraints, and potential side effects. A separate executor then car-ries out tool execution using the same ReAct loop as the single-agent baseline. We evaluate three weaker models (Kimi-K2, Qwen-30B, and Qwen-4B) on the three most challenging domains (CSM, ITSM, and HR). As shown in Table 3, performance improves consistently across all models and domains with gains of 6-13% confirming that planning quality is a meaningful bottleneck even when the executor model is fixed. 
+
+Human-authored plans reveal a substantially higher ceil-ing. To bound what better planning could achieve, we give the same executor models human-authored reference plans and ask them to carry out the corresponding tool execution, fully decoupling planning from execution. The gains are considerably larger than those from automated planning: 14-35 percentage points across models and domains, roughly doubling the improvements seen from Claude-generated plans. Notably, Qwen3-4B with human-authored plans (and Claude plans) is competitive with or outperforms larger models under the same condition. This suggests that when strategic reasoning is externalized, the primary remaining challenge is faithful instruction-following and precise tool invocation, both capabilities in which modern LLMs exhibit broad competence regardless of scale. This may also in-dicate that larger models, having stronger internal priors, are more prone to deviating from a provided plan, while 8ENTERPRISE OPS -G YM Low Med High                 
+
+> 0
+> 10
+> 20
+> 30
+> 40
+> Overall Accuracy
+> 4.0
+> 25.0
+> 32.0
+> Teams
+> Low Med High
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 1.1
+> 6.5
+> 16.3
+> CSM
+> Low Med High
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 25.0
+> 45.2 42.3
+> Email
+> Low Med High
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> 1.1
+> 6.1 6.1
+> ITSM
+> Low Med High
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 8.7
+> 24.0
+> 35.6
+> Calendar
+> Low Med High
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 0.0
+> 9.2
+> 16.3
+> HR
+> Low Med High
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 8.6
+> 29.5
+> 41.0
+> Drive
+> Thinking Budget
+> Low Medium High
+
+Figure 5. Impact of thinking budget on performance Histograms show the performance numbers with thinking budget with GPT-OSS-120B model (OpenAI et al., 2025) across domains. The results show that the model with low thinking budget performing poorly with performance steadily increasing with thinking budget. Baseline 
+
+> (ReAct)
+> Planner +
+> Executor
+> Planner + Decompose
+> + SubTask Executor
+> Oracle Human
+> Plan + Executor
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> Score (%)
+> 16.7
+> 27.4
+> 16.2
+> 55.7
+> 17.6
+> 22.2
+> 20.0
+> 33.3
+> 21.6
+> 30.4
+> 18.5
+> 56.5
+> CSM
+> ITSM
+> HR
+
+Figure 6. Impact of agentic orchestration on performance His-tograms show the performance numbers with various multi-agentic architectures using Claude-Sonnet-4.5. The baseline is the simple ReAct loop described in Section 4.1. Planner+Executor architec-ture first prompts the model for a detailed plan, and performs a Re-Act loop conditioned on the plan. Planner+Decompose+Subtask Executor additionally does a task decomposition and calls sub-agents in a ReAct loop for each subtask. Finally, Oracle Human Plan + Executor performs a ReAct execution loop conditioned on a human written plan. 
+
+smaller models tend to follow step-by-step instructions more literally—an advantage when those instructions are optimal. However, gap between the human plans and LLM plans indicates that current LLMs fall well short of human-level strategic reasoning on these tasks. 
+
+More complex orchestration does not close this gap. We evaluate two MAS configurations for Claude Sonnet 4.5: a Planner+Executor system that conditions ReAct on an auto-generated plan, and a Planner+Decompose+Subtask Executor system that additionally decomposes tasks and invokes a separate subagent per subtask. We evaluate these systems against the ReAct executor baseline with and with-out human authored plans. As shown in Figure 6, the Plan-ner+Executor setup consistently outperforms the ReAct baseline, yielding absolute gains of 10.7% in CSM and 8.8% in HR. However, the decomposition architecture is less ro-bust. While it provides a minor lift in ITSM, it regresses in both CSM and HR, even falling below the base ReAct performance in CSM (16.2% vs. 16.7%). This is consistent with E NTERPRISE OPS -G YM tasks having strong sequential state dependencies that decomposition disrupts. Ultimately, the substantial remaining gap between automated systems and ReAct with human plans suggests that progress requires advances in constraint-aware plan generation rather than architectural complexity alone. 
+
+Failure Modes We performed a manual qualitative anal-ysis of samples where models made partial progress but ultimately failed to complete the task. We observe several recurring failure patterns. Models frequently invoke tools that create database objects without first querying the neces-sary prerequisites, producing dangling records with broken foreign-key links (Missing Prerequisite Lookup) . For ex-ample, in a task requiring the creation of an HR topic under a specific category, the model skips retrieving available cat-egories and inserts an orphaned record. Models also fail to trigger the follow-up actions mandated by system poli-cies when certain state transitions occur (Cascading State Propagation) . Further failure modes include passing unver-ified identifiers to tool calls instead of resolving the correct IDs through prior tool interactions (Incorrect ID Resolu-tion) , and prematurely declaring task completion before all required steps have been executed (Premature Comple-tion Hallucination) . To futher systematically categorize these errors, we use an LLM (Claude Sonnet 4.5 (Anthropic, 2025c)) to tag the final-state SQL verifiers into three types based on their expert-written descriptions: i) Task Comple-tion verifiers check whether the primary user objective was achieved; ii) Integrity Constraints verifiers check that the system remains in a consistent state with valid foreign-key relationships; and iii) Permission and Process Compliance 
+
+verifiers check adherence to system policies governing per-missions and procedural rules. Verifier pass rates for these 9ENTERPRISE OPS -G YM 
+
+categories are reported in Table 7. Models struggle most with Permission and Process Compliance —a particularly critical gap for real-world deployment, where policy vio-lations can cause cascading system failures and introduce serious security vulnerabilities. Refer to Appendix C for examples of model failures. 
+
+## 5. Discussion and Conclusion 
+
+We introduced E NTERPRISE OPS -G YM , a benchmark and sandboxed evaluation platform spanning 1,150 expert-curated tasks across eight enterprise productivity domains, with 512 tools and SQL-based verifiers authored by subject matter experts. Our experiments surface several findings that we believe have broad implications for the development of enterprise-grade LLM agents. 
+
+Current agents are far from enterprise-ready. Even under oracle tool access—the most favorable possible re-trieval setting—the best model achieves only 37.4% task success, and performance degrades monotonically with hori-zon length and cross-domain coupling. Critically, failure modes are not random: our qualitative and quantitative anal-ysis shows that agents struggle most with Permission and Process Compliance (e.g., policy adherence, cascading state transitions) rather than with basic task completion. Further-more, even frontier models refuse infeasible tasks reliably only about half the time (best: 53.9%), falling well short of the robustness required for unsupervised deployment. These results indicate that the gap to enterprise reliability will not be closed by scaling model capacity alone. 
+
+Planning is the dominant bottleneck, not tool execution. 
+
+Our plan-conditioned ablations demonstrate that human-authored plans yield 14–35 percentage point gains across models and domains which is far larger than gains from automated planning or more complex multi-agent orchestra-tion. Strikingly, Qwen3-4B conditioned on human plans is competitive with much larger models under the same condi-tion, suggesting that once strategic reasoning is externalized, even small models can execute faithfully. This dissociation between planning and execution ability implies that the core challenge is constraint-aware plan generation, not tool in-vocation proficiency. Consistent with this, distractor tools do not meaningfully hurt performance further confirming that tool retrieval is not the binding constraint. Advances in long-horizon, policy-aware planning are therefore the highest-leverage direction for improving agent performance on E NTERPRISE OPS -G YM .
+
+Thinking budget matters, but has domain-specific ceil-ings. Increasing test-time compute yields substantial gains in most domains, but scaling is not universally monotonic: some domains plateau early, suggesting that additional rea-soning tokens cannot compensate for fundamental gaps in domain knowledge or policy understanding. Future work should investigate how to allocate test-time compute more adaptively, and whether targeted training on constraint-heavy domains can raise these ceilings. 
+
+Future directions. Our results motivate three concrete research priorities. First, constraint-aware plan genera-tion : methods that explicitly reason over policy constraints, side-effect dependencies, and prerequisite structures before committing to action sequences. Second, long-horizon state management : mechanisms for maintaining coherent world state over many tool calls, such as episodic memory or struc-tured state representations, to prevent the error accumulation we observe with increasing horizon length. Third, safe re-fusal and escalation : agents must reliably detect infeasible or policy-violating requests and abstain cleanly, a capability that remains weak across all evaluated systems today. We will release ENTERPRISE OPS -G YM , its sandbox environment, and evaluation tooling to support open, community-driven research. The sandbox is modular and extensible, allowing new domains, tools, and workflows to be added as enterprise practices evolve. By grounding agent evaluation in realistic, constraint-rich enterprise work-flows, E NTERPRISE OPS -G YM aims to shift the field’s focus toward the planning, safety, and policy-compliance capabili-ties that truly determine whether an LLM agent is deploy-able as a reliable AI worker .
+
+## 6. Acknowledgments 
+
+We gratefully acknowledge Turing as our data curation part-ner for this project. We extend special thanks to Ankit Jasuja, Aakash Chavan, Harshil Parekh, Anuj Jain, Igor Vidal, Rahul Bora, and Sudarshan Sivaraman from Turing, whose instrumental contributions to sandbox engineering and sample generation upheld the highest standards of qual-ity throughout. We also thank the more than 160 data con-tributors and engineers who painstakingly authored bench-mark samples under specific guidance and iterative feedback from the authors — their dedication was indispensable to the scale and fidelity of this benchmark. This work further benefited from the meticulous quality assurance oversight provided by the linguistics team at ServiceNow, particularly Racheal Hansen, Tiffany Do, and Nidhi Kumari. We also thank Rabiul Awal for his helpful feedback on an early draft of this paper. Finally, we gratefully acknowledge Patrice Bechard and Vikas Yadav at ServiceNow for their valuable feedback throughout the development of this work. 
+
+## References 
+
+Anthropic. Introducing claude opus 4.5, November 2025a. URL https://www.anthropic.com/ news/claude-opus-4-5 .10 ENTERPRISE OPS -G YM 
+
+Anthropic. Introducing claude sonnet 4.5, September 2025b. URL https://www.anthropic.com/ news/claude-sonnet-4-5 .Anthropic. Introducing claude opus 4.5, 2025c. Barres, V., Dong, H., Ray, S., Si, X., and Narasimhan, K. 
+
+τ 2-bench: Evaluating conversational agents in a dual-control environment, 2025. URL https://arxiv. org/abs/2506.07982 .Boisvert, L., Thakkar, M., Gasse, M., Caccia, M., Chezelles, T. L. S. D., Cappart, Q., Chapados, N., Lacoste, A., and Drouin, A. Workarena++: Towards composi-tional planning and reasoning-based common knowledge work tasks, 2024. URL https://arxiv.org/abs/ 2407.05291 .Bonatti, R., Zhao, D., Bonacci, F., Dupont, D., Abdali, S., Li, Y., Lu, Y., Wagle, J., Koishida, K., Bucker, A., Jang, L. K., and Hui, Z. Windows agent arena: Evaluating multi-modal OS agents at scale. In Forty-second International Conference on Machine Learning , 2025. URL https: //openreview.net/forum?id=W9s817KqYf .Chen, C., Hao, X., Liu, W., Huang, X., Zeng, X., Yu, S., Li, D., Wang, S., Gan, W., Huang, Y., Liu, W., Wang, X., Lian, D., Yin, B., Wang, Y., and Liu, W. Acebench: Who wins the match point in tool usage?, 2025. URL 
+
+https://arxiv.org/abs/2501.12851 .DeepSeek-AI. Deepseek-v3 technical report, 2024. URL 
+
+https://arxiv.org/abs/2412.19437 .Drouin, A., Gasse, M., Caccia, M., Laradji, I. H., Verme, M. D., Marty, T., Boisvert, L., Thakkar, M., Cappart, Q., Vazquez, D., Chapados, N., and Lacoste, A. Workarena: How capable are web agents at solving common knowl-edge work tasks?, 2024. Froger, R., Andrews, P., Bettini, M., Budhiraja, A., Cabral, R. S., Do, V., Garreau, E., Gaya, J.-B., Lauren c¸ on, H., Lecanu, M., Malkan, K., Mekala, D., M ´enard, P., Bertran, G. M.-T., Piterbarg, U., Plekhanov, M., Rita, M., Rusakov, A., Vorotilov, V., Wang, M., Yu, I., Ben-halloum, A., Mialon, G., and Scialom, T. Are: Scal-ing up agent environments and evaluations, 2025. URL 
+
+https://arxiv.org/abs/2509.17158 .Gemini Team. Gemini 2.5: Pushing the frontier with ad-vanced reasoning, multimodality, long context, and next generation agentic capabilities, 2025. URL https: //arxiv.org/abs/2507.06261 .He, W., Sun, Y., Hao, H., Hao, X., Xia, Z., Gu, Q., Han, C., Zhao, D., Su, H., Zhang, K., Gao, M., Su, X., Cai, X., Cai, X., Yang, Y., and Zhao, Y. Vitabench: Benchmarking llm agents with versatile interactive tasks in real-world ap-plications, 2025. URL https://arxiv.org/abs/ 2509.26490 .Huang, K.-H., Prabhakar, A., Dhawan, S., Mao, Y., Wang, H., Savarese, S., Xiong, C., Laban, P., and Wu, C.-S. Cr-marena: Understanding the capacity of llm agents to per-form professional crm tasks in realistic environments. In 
+
+Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , 2025a. Huang, K.-H., Prabhakar, A., Thorat, O., Agarwal, D., Choubey, P. K., Mao, Y., Savarese, S., Xiong, C., and Wu, C.-S. Crmarena-pro: Holistic assessment of llm agents across diverse business scenarios and interactions. arXiv preprint arXiv:2505.18878 , 2025b. Jha, S., Arora, R., Watanabe, Y., Yanagawa, T., Chen, Y., Clark, J., Bhavya, B., Verma, M., Kumar, H., Kitahara, H., Zheutlin, N., Takano, S., Pathak, D., George, F., Wu, X., Turkkan, B. O., Vanloo, G., Nidd, M., Dai, T., Chat-terjee, O., Gupta, P., Samanta, S., Aggarwal, P., Lee, R., Murali, P., wook Ahn, J., Kar, D., Rahane, A., Fonseca, C., Paradkar, A., Deng, Y., Moogi, P., Mohapatra, P., Abe, N., Narayanaswami, C., Xu, T., Varshney, L. R., Mahindru, R., Sailer, A., Shwartz, L., Sow, D., Fuller, N. C. M., and Puri, R. Itbench: Evaluating ai agents across diverse real-world it automation tasks, 2025. URL 
+
+https://arxiv.org/abs/2502.05352 .Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O., and Narasimhan, K. R. SWE-bench: Can language models resolve real-world github issues? In The Twelfth International Conference on Learning Representations ,2024. URL https://openreview.net/forum? id=VTF8yNQM66 .K-Team. Kimi k2: Open agentic intelligence, 2025. URL 
+
+https://arxiv.org/abs/2507.20534 .Li, M., Zhao, Y., Yu, B., Song, F., Li, H., Yu, H., Li, Z., Huang, F., and Li, Y. API-bank: A comprehensive bench-mark for tool-augmented LLMs. In Bouamor, H., Pino, J., and Bali, K. (eds.), Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing ,pp. 3102–3116, Singapore, December 2023. Association for Computational Linguistics. doi: 10.18653/v1/2023. emnlp-main.187. URL https://aclanthology. org/2023.emnlp-main.187/ .Nayak, S., Jian, X., Lin, K. Q., Rodriguez, J. A., Kalsi, M., Awal, R., Chapados, N., ¨Ozsu, M. T., Agrawal, A., Vazquez, D., Pal, C., Taslakian, P., Gella, S., and 11 ENTERPRISE OPS -G YM 
+
+Rajeswar, S. Ui-vision: A desktop-centric gui bench-mark for visual perception and interaction, 2025. URL 
+
+https://arxiv.org/abs/2503.15661 .OpenAI. Introducing gpt-5, August 2025. URL https:// openai.com/index/introducing-gpt-5/ .OpenAI, :, Agarwal, S., Ahmad, L., Ai, J., Altman, S., Ap-plebaum, A., Arbus, E., Arora, R. K., Bai, Y., Baker, B., Bao, H., Barak, B., Bennett, A., Bertao, T., Brett, N., Brevdo, E., Brockman, G., Bubeck, S., Chang, C., Chen, K., Chen, M., Cheung, E., Clark, A., Cook, D., Dukhan, M., Dvorak, C., Fives, K., Fomenko, V., Garipov, T., Georgiev, K., Glaese, M., Gogineni, T., Goucher, A., Gross, L., Guzman, K. G., Hallman, J., Hehir, J., Hei-decke, J., Helyar, A., Hu, H., Huet, R., Huh, J., Jain, S., Johnson, Z., Koch, C., Kofman, I., Kundel, D., Kwon, J., Kyrylov, V., Le, E. Y., Leclerc, G., Lennon, J. P., Lessans, S., Lezcano-Casado, M., Li, Y., Li, Z., Lin, J., Liss, J., Lily, Liu, Liu, J., Lu, K., Lu, C., Martinovic, Z., McCallum, L., McGrath, J., McKinney, S., McLaughlin, A., Mei, S., Mostovoy, S., Mu, T., Myles, G., Neitz, A., Nichol, A., Pachocki, J., Paino, A., Palmie, D., Pantu-liano, A., Parascandolo, G., Park, J., Pathak, L., Paz, C., Peran, L., Pimenov, D., Pokrass, M., Proehl, E., Qiu, H., Raila, G., Raso, F., Ren, H., Richardson, K., Robinson, D., Rotsted, B., Salman, H., Sanjeev, S., Schwarzer, M., Sculley, D., Sikchi, H., Simon, K., Singhal, K., Song, Y., Stuckey, D., Sun, Z., Tillet, P., Toizer, S., Tsimpourlas, F., Vyas, N., Wallace, E., Wang, X., Wang, M., Watkins, O., Weil, K., Wendling, A., Whinnery, K., Whitney, C., Wong, H., Yang, L., Yang, Y., Yasunaga, M., Ying, K., Zaremba, W., Zhan, W., Zhang, C., Zhang, B., Zhang, E., and Zhao, S. gpt-oss-120b & gpt-oss-20b model card, 2025. URL 
+
+https://arxiv.org/abs/2508.10925 .Qian, C., Liu, Z., Prabhakar, A., Liu, Z., Zhang, J., Chen, H., Ji, H., Yao, W., Heinecke, S., Savarese, S., Xiong, C., and Wang, H. Userbench: An interactive gym environment for user-centric agents, 2025. URL https://arxiv. org/abs/2507.22034 .Qin, Y., Liang, S., Ye, Y., Zhu, K., Yan, L., Lu, Y., Lin, Y., Cong, X., Tang, X., Qian, B., Zhao, S., Hong, L., Tian, R., Xie, R., Zhou, J., Gerstein, M., dahai li, Liu, Z., and Sun, M. ToolLLM: Facilitating large language models to master 16000+ real-world APIs. In The Twelfth International Conference on Learning Representations ,2024. URL https://openreview.net/forum? id=dHng2O0Jjr .Styles, O., Miller, S., Cerda-Mardini, P., Guha, T., Sanchez, V., and Vidgen, B. Workbench: a benchmark dataset for agents in a realistic workplace setting, 2024. URL 
+
+https://arxiv.org/abs/2405.00823 .Vishwakarma, H., Agarwal, A., Patil, O., Devaguptapu, C., and Chandran, M. Can llms help you at work? a sandbox for evaluating llm agents in enterprise envi-ronments, 2025. URL https://arxiv.org/abs/ 2510.27287 .Xie, T. et al. Osworld: Benchmarking multimodal agents for open-ended tasks in real computer environments. arXiv preprint arXiv:2404.07972 , 2024. Xu, F. F., Song, Y., Li, B., Tang, Y., Jain, K., Bao, M., Wang, Z. Z., Zhou, X., Guo, Z., Cao, M., Yang, M., Lu, H. Y., Martin, A., Su, Z., Maben, L., Mehta, R., Chi, W., Jang, L., Xie, Y., Zhou, S., and Neubig, G. Theagent-company: Benchmarking llm agents on consequential real world tasks, 2024. URL https://arxiv.org/ abs/2412.14161 .Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., Zheng, C., Liu, D., Zhou, F., Huang, F., Hu, F., Ge, H., Wei, H., Lin, H., Tang, J., Yang, J., Tu, J., Zhang, J., Yang, J., Yang, J., Zhou, J., Zhou, J., Lin, J., Dang, K., Bao, K., Yang, K., Yu, L., Deng, L., Li, M., Xue, M., Li, M., Zhang, P., Wang, P., Zhu, Q., Men, R., Gao, R., Liu, S., Luo, S., Li, T., Tang, T., Yin, W., Ren, X., Wang, X., Zhang, X., Ren, X., Fan, Y., Su, Y., Zhang, Y., Zhang, Y., Wan, Y., Liu, Y., Wang, Z., Cui, Z., Zhang, Z., Zhou, Z., and Qiu, Z. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., and Cao, Y. React: Synergizing reasoning and acting in language models. arXiv preprint arXiv:2210.03629 ,2022. Yao, S., Shinn, N., Razavi, P., and Narasimhan, K. τ -bench: A benchmark for tool-agent-user interaction in real-world domains, 2024. URL https://arxiv.org/abs/ 2406.12045 .Zhou, S., Xu, F. F., Zhu, H., Zhou, X., Lo, R., Sridhar, A., Cheng, X., Ou, T., Bisk, Y., Fried, D., Alon, U., and Neubig, G. Webarena: A realistic web environment for building autonomous agents, 2024. URL https: //arxiv.org/abs/2307.13854 .12 ENTERPRISE OPS -G YM 
+
+# Appendix 
+
+# Table of Contents 
+
+Page A. Data Collection and Human Annotation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 A.1 Demographics and Recruitment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 A.2 Annotation Process . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 A.3 Quality Assurance and Verification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 A.4 Sandbox Environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 
+
+B. Task Categories and Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 B.1 Calendar . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 B.2 Customer Service Management (CSM) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 B.3 Drive . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 B.4 Email . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21 B.5 Human Resources (HR) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22 B.6 IT Service Management (ITSM) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23 B.7 Teams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 B.8 Hybrid . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25 
+
+C. Rollout examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 
+
+D. Additional Analysis and ResultsRollout examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30 
+
+E. Impact Statement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30 13 ENTERPRISE OPS -G YM 
+
+## A. Data Collection and Human Annotation 
+
+A.1. Demographics and Recruitment 
+
+We partnered with a professional data annotation vendor (Turing 2) specializing in data curation for AI applications. The annotation team was structured as a multi-tiered workforce consisting of annotators, quality assurance reviewers, and team leads. The contributors were distributed around major geo locations including Asia, North America, Latin America and Africa, with an age range of 22-37 years. All data contributors held bachelor’s degrees in Engineering, Computer Science, or related disciplines and possessed prior experience in data labeling and UI research. Recruitment selection prioritized strong proficiency in technical writing, English, and computer science fundamentals, along with expertise in prompt engineering. To ensure high domain realism, the team also included Subject Matter Experts (SMEs) for technical domains such as ITSM and CSM, as well as software engineers responsible for building the sandbox environments. On average, each domain was supported by 20 annotators and 6 reviewers, totaling over 160 contributors. The data collection campaign spanned approximately four months, beginning with a one-month pilot phase. During this pilot period, we collaborated closely with the vendor’s team to conduct detailed reviews and provide extensive feedback, enabling contributors to refine their understanding of the task requirements. All contributors were fairly compensated. The creation of each task, including scenario design, verification, and quality assurance, cost approximately 100 USD. 
+
+A.2. Annotation Process 
+
+The data generation pipeline began with contributors being assigned to specific domains and taxonomies. They were supported by a simulated environment that included domain-specific databases and a set of available functions. Annotators and reviewers utilized an internally developed tool to streamline the process. To ensure a diverse range of difficulty, contributors were given specific complexity thresholds based on the number of required tools and verification steps used to complete a task. A higher number of tools and verifiers directly correlated with higher task complexity. Annotators leveraged their domain-specific expertise to design complex scenarios and problems within their assigned taxonomies, while internal tooling captured their action trajectories. 
+
+A.3. Quality Assurance and Verification 
+
+Verification was rigorous, multi-layered, and designed to retain only the most challenging tasks. Upon completion of a trajectory and its verification scripts, we employed a preliminary filtration and verification stage using state-of-the-art LLMs, specifically GPT-5, Gemini, and Claude. We executed draft tasks against these models and analyzed the resulting trajectories to identify failure modes such as incorrect task definitions leading to unintended paths, missing tools, invalid database entries, or access control conflicts. Additionally, this automated stress-testing flagged overly simple reasoning paths and issues with groundedness. These insights enabled annotators to refine task definitions, database states, and tool availability, while simultaneously discarding trivial tasks. This iterative process naturally drove the creation of more well-defined and complex scenarios. Following this automated phase, tasks underwent human verification, where reviewers evaluated each entry for grammatical accuracy, tool usage logic, natural language fluency, and execution correctness. Detailed quality rubrics were employed to standardize assessments of trajectory quality, prompt clarity, and verifier robustness. This rigorous pipeline ensured that only high-quality, complex tasks were retained in the final benchmark. 
+
+A.4. Sandbox Environment 
+
+The seed data for EnterpriseOps-Gym is generated with a strong real-world perspective with the help of domain SMEs. For each domain, we studied publicly available official API documentation, data models, and usage examples from relevant enterprise systems to understand: • Typical entity structures and relationships • Field semantics and data constraints • Expected API behavior and response patterns 
+
+> 2https://www.turing.com
+
+14 ENTERPRISE OPS -G YM 
+
+Guided by this research and the domain expertise of our SMEs, we modeled realistic behavior and constraints for each table and field. Our primary objective was to ensure structural realism and behavioral fidelity while remaining platform-agnostic, avoiding reliance on any specific vendor’s proprietary dataset. Furthermore, engineers and SMEs conducted rigorous testing to verify database consistency, ensuring the absence of missing elements or logical contradictions. The seed data varies significantly between database files for every task. While certain individual field values (e.g., names or email patterns) may occasionally repeat, each dataset represents a distinct high-level use case. The overall data composition, relationships, and scenarios are intentionally unique rather than simple surgical variations of the same seed. Furthermore, as annotators vetted and designed new tasks, the databases were dynamically expanded with additional tables and entries to meet evolving scenario requirements. This iterative enrichment yielded a highly complex data ecosystem comprising 164 unique tables with a dense interconnectivity (mean foreign key degree of 1.7), ensuring a rich and realistic state space for agentic planning. 
+
+Environment Setup. We provide the complete evaluation environment as a fully containerized Docker setup, hosting both the domain-specific database infrastructure and the tool execution layer. To ensure reproducibility and isolation, a fresh database instance is initialized for each task run, preventing state leakage or side effects from prior executions. The containerized architecture abstracts the complexity of tool invocation and response handling, providing a consistent interface for agents. This design also simplifies verification, as the environment state can be deterministically queried. Given the rich schema of 164 interconnected tables, the environment is highly extensible; researchers can straightforwardly define new tasks that reflect complex enterprise use cases. We will release these containers, along with a comprehensive guide on adding new tasks and verification scripts, to facilitate further research. 
+
+## B. Task Categories and Complete Examples 
+
+This section details the eight distinct domains within the benchmark, outlining their unique operational environments, some required reasoning skills, and task examples. 
+
+B.1. Calendar 
+
+The Calendar category represents a complex administrative environment where the agent manages time, access, and resources with high precision. It goes beyond simple meeting bookings, requiring the agent to act as a system administrator who restructures entire calendar ecosystems and enforces compliance policies. This involves granular management of access control lists for users and groups, setting up programmatic listeners for security audits, and handling metadata for resources like conference rooms. The reasoning required for these tasks is often sequential and conditional, where the agent must evaluate complex predicates before acting. For instance, it might need to check if a calendar exists or verify an attendee’s status before making changes. This demands strong temporal reasoning to handle timezone conversions and recurrence rules, as well as the ability to enforce policies by translating high-level intents into low-level actions. Agents must handle instructions like “If the event duration is 60 minutes, set color to Green; otherwise, set to Red” or fuzzy requests such as finding “events containing ’sprint’ in the title.” 
+
+Calender Example Task 
+
+System Prompt: 
+
+You are a Google Calendar automation agent with full administrative permissions to manage users, meetings, recordings, and messages. Operate in a safe and fully authorized environment — you do not need to ask for confirmation or permission before taking action. When identifiers such as names or IDs are missing, perform exactly one lookup per entity type, verify that you are reusing correct values from previous responses, and proceed using the retrieved data. Never assume or fabricate IDs, responses, or outcomes — rely solely on verified API results. Complete each task in a single, logical, and efficient execution flow. 
+
+User Prompt: I need to schedule a series of cross-functional planning meetings for our product launch. Please begin by checking the free/busy information for the Project Management calendar on November 17th, 2025, specifically between 9:00 AM and 6:00 PM in the America/New York timezone. I need to schedule a recurring 
+
+15 ENTERPRISE OPS -G YM 
+
+planning session in the same timezone, but only if a continuous 2-hour block is available. Start by examining the first 2-hour window beginning at 9:00 AM; if that slot is occupied, move forward in consecutive 2-hour increments until you find the first block that is completely free. Once that initial availability is identified, use that exact 2-hour window to create a weekly recurring event titled ’Product Launch Planning’ with a golden yellow background color from the available colors, ensuring the recurrence spans a total of four meetings. Include Alice (alice.manager@techcorp.com), Bob (bob.smith@techcorp.com), Carol (carol.white@techcorp.com), and Dave (dave.brown@techcorp.com) as attendees, and configure two reminders for each session: one set an hour before via email, and another fifteen-minute pop-up reminder before the meeting begins. After scheduling the series, create a secondary calendar named ’Product Launch Tasks’, using the description ’Track all deliverables and milestones for Q1 2025 product launch’ and ensure the calendar is created under the America/New York timezone with a unique olive green color. As soon as this calendar is created, add it to the calendar list with an email reminder configured for 35 minutes before events, along with an email notification triggered whenever a new event is created. Following this setup, assign Bob writer-level access through an ACL rule so he can manage updates directly. To complete the workflow, establish a calendar watch webhook for this newly created calendar using the endpoint at https://api.techcorp.com/webhooks/calendar/alice-launch, set the channel identifier to ’CALENDARS-WATCH-ALICE-LAUNCH’, and configure the watch to remain active for the next 37 days. 
+
+Oracle Tools: get calendar list , query freebusy , get colors , create event ,
+
+create calendar , add calendar to list , insert acl rule , watch events 
+
+B.2. Customer Service Management (CSM) 
+
+This category simulates the high-stakes workflow of a B2B technical support center, where the agent acts as a Technical Support Operations Specialist. The role involves orchestrating the entire lifecycle of customer issues, from intake to resolution, while strictly adhering to business logic such as Service Level Agreements (SLAs), which refers to a formal commitment between a service provider and a customer regarding the expected level of service and entitlement verification. The agent must verify if a customer pays for the requested support, manage installations of physical or virtual assets, and handle the state transitions of support cases. Tasks range from ‘ ‘Register these 5 new servers with these serials... and add the ’Gold Support’ package” to handling SLA breaches where an agent must “Escalate to ’Critical’, assign to the Escalation Manager, and draft an apology email.” 
+
+Success in this domain requires a blend of entity resolution and strict policy compliance. Agents must identify the correct assets from vague descriptions (e.g., “The server ending in 9300” ) and strictly follow business rules, such as prioritizing VIP accounts regardless of minor issue severity. The tasks often involve multi-step orchestration, like onboarding new agents and reassigning cases. For example, “Transfer her high-priority cases to Bob, her low-priority ones to the Queue, and deactivate her profile” . This demands a deep understanding of organizational hierarchy and the ability to diagnose root causes to route issues to the correct teams. 
+
+CSM Example Task 
+
+System Prompt: CSM Agent Policy: 
+
+You are a Customer Service Management assistant. Your goal is to assist users in the Customer Service Management lifecycle by helping them register cases, validate entitlements, manage customer assets, raise escalations, attach relevant knowledge, close cases, and in other related processes effectively. You should always act based on confirmed user context, ing record relationships, and database integrity best practices. Avoid actions that assume data, do not provide enough context, or seem to be in violation of this policy. 
+
+General Instructions 
+
+By default, you should assume the roles and responsibilities of an admin to complete a particular request. If a user request violates policy, do not act on it. Perform one operation at a time. Do not provide knowledge or procedures not in the system. Do not ask for any information or confirmation from the user, if you cannot proceed ahead provide the reason for that before pausing. 
+
+Roles & Responsibilities 
+
+16 ENTERPRISE OPS -G YM 
+
+Administrator : Has full access across all tables. Can create, update, and deactivate: Users, user groups, and group memberships. Accounts, contacts, locations, and entitlements. Products, installed products, SLAs, contracts, and knowledge. Manages assignment rules, workflows, and escalations. 
+
+Agent : Frontline support representative handling customer cases. Read-only access to all records (accounts, contacts, products, contracts, entitlements). Can: Create and update customer cases, interactions, and case work notes. Associate knowledge articles with cases. View entitlements and SLAs linked to accounts and cases. Update case assignment, state, and resolution. Cannot modify user, group, or membership data. 
+
+Manager : Supervises agents and case queues. Has agent privileges plus: Can reassign cases across groups and users. Can escalate cases and override case prioritization. Monitors SLA compliance, case trends, and escalations. Can approve exceptions (e.g., entitlement overrides or escalations). May contribute to knowledge management as reviewers. 
+
+Customer (Portal User) : End user accessing the customer portal. Can: View and update their own profile. Create new cases and track the status of their submitted cases. Search and view knowledge articles (based on visibility: internal/external). Participate in community forums (if enabled). Initiate interactions (chat, email, web, etc.). Limited to their own account’s data (cannot see other accounts/customers). Cannot access internal system data (users, groups, SLAs, contracts of other customers). 
+
+Core Operations Registering a Customer Case: Begin by identifying the reporting contact and verifying association with an account. Collect necessary inputs: Issue description ( short description ), Product or installed product involved, Contact channel ( channel ), Priority (if not provided → default = moderate), Default state = new. Verify the product or installed product belongs to the customer’s account. 
+
+Assigning a Case: A case may be assigned to: An assignment group ( assignment group id ), or A user (assigned to ) within that group. Agents must: Be active, and Be members of the assigned group. Assign-ment constraints: assigned to must reference a user with role agent or manager and (if used) member of 
+
+assignment group id .
+
+Working on a Case: Agents may: Update cause, resolution notes, or other internal fields. Change state (new →
+
+in progress, in progress → pending/resolved). Attach a missing product or installed product. Link relevant knowledge articles. Important: Cases cannot be closed directly. They must first be moved to resolved, then to closed. If a case is invalid, it may be canceled. 
+
+Case Lifecycle Management: Valid state transitions: new → in progress / pending / resolved; in progress →
+
+pending / resolved; pending → in progress / resolved; resolved → closed / new; canceled. At each step: Validate acting user’s relationship to the case. Capture timestamps ( sys updated on , closed on where applicable). Prevent premature closure without resolution. 
+
+Entitlement Validation: Before applying entitlement: Check it is active and within contract valid-ity. Product-specific entitlements must match the case product (unless entitlement is account-wide). 
+
+max cases per month = 0 means unlimited; otherwise enforce limits. If entitlement is invalid → in-form the user. 
+
+Installed Product Management: Installed products must: Be active / in use. Belong to the reporting account. Do not attach items in retired / repair status to new cases. Ensure installed product’s product matches the case product. 
+
+Linking Knowledge Articles: When linking knowledge: Articles must be in state = published. Visibility rules apply: internal = agents only, external = customers can view. Link articles to cases via case knowledge 
+
+(usage = suggested, applied, resolution). Ownership is tracked via owner id .
+
+Escalations: Escalations may be raised when: SLA breach risk exists, or Customer explicitly requests escalation, or High business risk/impact. Steps: Record escalation = true on case. Capture escalation reason . Ensure justification is logged in case notes. There is no separate escalation record. Escalation is tracked within the case. 
+
+Product Handling: Products must: Be present in product table, In lifecycle state = active. Installed products must match the product and account context. 
+
+17 ENTERPRISE OPS -G YM 
+
+Security: Users may only view or update cases they own, are assigned to, or are in the assigned group. Do not disclose personal data or case details outside these permissions. 
+
+Validation, Error Handling & Logging: Always validate existence and integrity of: Users, accounts, contacts, products, entitlements, and cases. State transitions follow lifecycle rules. All actions must: Update 
+
+sys updated on . Capture timestamps (e.g., closed on for case closure). 
+
+Service Levels & Timelines: Case handling Response and resolution timelines are determined by the entitlements (entitlement table) linked to the customer account and product. Applicable SLAs ( sla definition 
+
+and case sla tables) set the exact targets for response or resolution, and may vary by case priority, support level, and coverage hours. SLA pause behavior: Obey sla definition.pause on pending ; when case state is pending, pause applicable SLAs. If no entitlement or SLA is associated with the account/product, no service level commitments are in scope. 
+
+Predefined Lists (Enumerations) : Only the following values are allowed for these fields: • Users & Groups : user.role : admin, agent, manager, customer; user group.type : support, backoffice, field, vendor • Geography : location.city : new york, london, mumbai, tokyo, sydney; location.country : usa, uk, india, japan, australia • Accounts & Contacts : account.account type : customer, partner, internal • Products & Installed Base : product.category : software, hardware, service; 
+
+product.lifecycle state : active, retired; installed product.status : in use, in stock, repair, retired • Contracts, Entitlements, SLAs : contract.contract type : support, warranty, subscription; 
+
+contract.status : active, suspended, expired; entitlement.support level : standard, premium, enterprise; entitlement.coverage hours : h8x5, h12x6, h24x7; sla definition.metric : re-sponse, resolution; sla definition.applies to priority : critical, high, moderate, low • Case Management : customer case.channel : web, email, phone, chat, social, alert, community; 
+
+customer case.priority : critical, high, moderate, low; customer case.state : new, in progress, pending, resolved, closed, canceled; customer case.escalation reason : urgency, vip, impact, breach risk, customer request • Interactions & Knowledge : interaction.channel : web, email, phone, chat, social, alert, com-munity; knowledge.state : draft, published, retired; knowledge.visibility : internal, external; 
+
+case knowledge.used as : suggested, applied, resolution. Enforcement: reject any value outside the list with INVALID ENUM VALUE .
+
+Knowledge Related Policies : When a new case is created and is asked to be investigated, then a knowledge base search should be performed. For all cases the entitlement for the product should be verified and should be actively running. If no relevant knowledge is found and case is being closed, a new knowledge article should be created to capture the findings and resolution steps. If a knowledge article is created, it should be linked to the case for future reference. When new case moves to work in progress appropriate SLA should be aligned to it. Used as for knowledge base to case: When the knowledge is found through automated search it should be linked as suggested. If the knowledge is found to be useful to resolve the case or is being created after case resolution it should have used as type to resolution in linking. In other cases if knowledge is linked it should as applied. If knowledge article is found then it should be used to assist in the next set of actions. 
+
+Free form text policies : (For texts like short description of cases, title of knowledge, escalation reason and content/body of knowledge) Character limits: 30–120 chars. Case Short Description: It can be something like: ”Product: ” + Product name + ”, Issue: is not working as expected.” KB title: Issue Resolution related to , step-by-step guide. KB content/body: This kind of issues are tackled by Assignment Group: , Assigned to: . Steps to resolve the issue: , Suggested Priority: . Escalation reason: The case could not be completed on time/exceeds the time limit or has priority beyond the defined list of priorities. 
+
+18 ENTERPRISE OPS -G YM 
+
+User Prompt: For Globex, we’re consolidating support and tidying up records. Make our Sydney HQ site name consistent (’Globex HQ - Sydney’) and update the plot to 114B. The London app server with serial P47-622334-4396 is at the repair center reflect that, and push its warranty by 1.5 years to align with our extended coverage. Move that server’s coverage under our active enterprise support and switch it to 24x7 premium. Also, extend our active support contract by six months. Please handle it end-to-end and keep everything aligned to existing Globex records. 
+
+Oracle Tools: find account , find location , update location ,
+
+find installed product by serial , update installed product details ,
+
+find entitlements , update entitlement , find contracts , update contract 
+
+B.3. Drive 
+
+The Drive category places the agent in the role of a Digital Asset Manager or Information Architect, responsible for the structural integrity and security of corporate file systems. Unlike simple file storage, this environment focuses on governance, requiring the enforcement of nuanced access control policies, management of document versions, and adherence to regulatory compliance. The agent handles permission inheritance, manages lifecycle metadata for retention policies, and ensures that all actions leave an audit trail for compliance purposes. Agents effectively operating here demonstrate strong set theory logic and graph traversal skills. They must perform operations like “Remove all external users EXCEPT partner.com,” and navigate complex folder hierarchies to reorganize content. The work requires constructing precise search queries from natural language intents, such as identifying “large old videos” using filters like ” mimeType contains ’video’ AND size > 100MB ”. It also requires managing the state of files across versions, all while understanding the implications of permissions and the ”source of truth” in a mutable file system. 
+
+Drive Example Task 
+
+System Prompt: Drive Management Assistant Policy Role: Drive Management Assistant 
+
+Mandate: Secure and accurate management of user content, permissions, and organization within Google Drive and Shared Drives. You must operate exclusively based on confirmed user permissions , existing file states , and database integrity rules derived from the Drive V5 API architecture. Any action that assumes data, violates access rights, or exceeds operational limits is strictly prohibited. 
+
+1. General Operational Instructions 
+
+• Policy Enforcement: Do not act on any request that violates a restriction within this document. Refuse the command and state the specific policy reason. • Atomic Operations: Perform one distinct, validated operation at a time . Do not chain dependent actions if the failure of a single step risks data corruption or security violations. • Data Scope: Do not disclose metadata or content of files that are outside the current user’s access scope. Do not provide information about deleted or non-existent files. • No Unsolicited Confirmation: If an operation cannot be completed due to missing data or policy restriction, state the reason and pause. Do not request further information or confirmation unless the request is ambiguous (e.g., multiple files match the query). • Destructive Actions: For irreversible operations (permanent deletion, permission revocation), you must explicitly confirm the consequence of the action before proceeding. 
+
+2. Roles and Access Control (Permissions Model) 
+
+Drive operates on a granular permissions model. You must verify the user’s role against the target file/folder before executing any command. 19 ENTERPRISE OPS -G YM 
+
+[Table omitted for brevity, but understood to enforce roles: Owner, Organizer, Editor, Viewer/Commenter, Service Account] • Permission Verification: All operations must first call a permission check. Operations are denied if the user’s role does not meet the minimum requirement. • Access Proposals: When handling requests for file access, reference the access proposals table to track status (pending, accepted, rejected) before notifying the user. 
+
+3. Core File and Folder Operations File Retrieval and Identification 
+
+• Search/List: Use the Drive search query language ( q) for precise filtering. • File ID: All operations require a valid fileId .• Content Access: For large files, downloading or exporting content requires monitoring via the 
+
+get operations API call. 
+
+Creation, Modification, and Lifecycle 
+
+• Creation: New files and folders must be associated with at least one parent folder ID, unless created in the root directory. • Move: Moving a file requires Editor access to both the source and the destination parent folders. • Trash vs. Delete: trash file is preferred over delete file .
+
+Revision Management 
+
+• Tracking: You must ensure the user has the latest revision of a document. • Retrieval: Use list revisions to access past file versions. 
+
+4. Sharing and Permissions Management Permission Creation 
+
+• Role Specification: Must specify exact role and type. • Notification: Confirm if user wishes to send notification. • Link Sharing: Public link sharing requires specific confirmation. 
+
+Permission Modification and Deletion 
+
+• Modification: Requires permissionId and new role .• Deletion: Revokes access immediately. Requires Editor access. • Transfer Ownership: Restricted to current Owner. 
+
+5. Monitoring and Synchronization Watch Subscriptions (Webhooks) 
+
+• Purpose: Real-time change notifications. • Requirements: pageToken , unique channel id , verified address .• Expiration: Must implement renewal mechanism. 
+
+Changes Feed 
+
+20 ENTERPRISE OPS -G YM 
+
+• Synchronization: Use get start page token and list changes for incremental updates. 
+
+6. Validation, Error Handling, and Quotas 
+
+• Pre-Operation Validation: Verify file existence, parent relationships, email validity, and recursion prevention. • Character and Quota Limits: Filenames less than 255 chars, storage quotas. • Rate Limiting: Handle 429 errors with exponential backoff. • Error Protocol: Return clear 400/403/404/500 errors. 
+
+User Prompt: I need you to create a folder called ’Compliance Policy Pack’, find the latest versions of these three files: ’Holiday Event Plan.docx’, ’HR Policies’, and ’Team Retreat Agenda’. Copy each one into the new folder if I haven’t access for any one of the files to copy create a new permission for that files. Then check all available labels: if ’Reviewed Q1’ doesn’t exist, create it. Apply that label to all three copied files. Update their descriptions to say ’Included for Compliance Review Board audit’. Give the board (francisco2013@ibm.com) commenter access to the folder. Finally, add a comment on each copied file: ’Added to Compliance Pack for Q1 review. 
+
+Oracle Tools: create file , list files , copy files , list files labels ,
+
+modify files labels , create permission , create comments , update files 
+
+B.4. Email 
+
+Representing the work of an intelligent Executive Assistant or Mailbox Administrator, the Email category involves complex mailbox orchestration. The agent manages identity through “Send-as” aliases and delegates, while also configuring automated governance with powerful filters that act on both future and existing mail. Security is a major component, with the management of S/MIME (Secure/Multipurpose Internet Mail Extensions) certificates and Client-Side Encryption identities being central to the role. This category targets skills in pattern recognition and temporal logic. Agents must translate high-level requests into precise search queries (e.g., finding “messages regarding the Q2 budget” ) and set up conditional workflows, such as verifying an alias before sending a draft or managing an Out of Office responder. The reasoning is often administrative and social, requiring the agent to distinguish between important communications and noise, and to identify suspicious configurations, such as “Remove the filter that forwards mail to an unknown gmail address.” 
+
+Email Example Task 
+
+System Prompt: 
+
+You are a helpful Email assistant with access to all available tools. Operate in a safe and fully authorized environment—you do not need to ask for confirmation or permission before taking action. When identifiers such as names or IDs are missing, perform exactly one lookup per entity type, verify that you are reusing correct values from previous responses, and proceed using the retrieved data. Never assume or fabricate IDs, responses, or outcomes—rely solely on verified API results. Complete each task in a single, logical, and efficient execution flow. 
+
+User Prompt: Hi, I have one unverified send-as alias email. I think I forgot to modify the signature there. Could you please check if it has my number in the signature? If it doesn’t, add my phone number at the end: ”Phone: (555) 100-4040”, and then verify this send-as alias. If it already has my number, just immediately verify it. Do not modify any of the already verified send-as aliases that I have. After you verified this send-as alias, please create a draft from this send-as alias to bob@company.com. In the Subject write ”Test Draft”. I just want to see what my new signature looks like in an email. No need to send this draft. 
+
+Oracle Tools: list send as aliases , patch send as alias , verify send as alias ,
+
+create draft 
+
+21 ENTERPRISE OPS -G YM 
+
+B.5. Human Resources (HR) 
+
+The HR category represents a highly sensitive, process-driven domain focused on employee lifecycle management and data privacy. It demands strict adherence to Standard Operating Procedures (SOPs) and Role-Based Access Control (RBAC). The agent acts as a trusted administrator, handling tasks like secure offboarding, access wiping, and GDPR compliance updates. Visibility rules are paramount, ensuring that sensitive information like payroll or misconduct investigations is restricted to the appropriate confidential groups. For example, a “Secure Termination” task requires the agent to “Initiate involuntary separation... trigger legal hold/forensics task, and revoke all physical/digital access immediately.” 
+
+confidential groups. For example, a “Secure Termination” task requires the agent to “Initiate involuntary separation... trigger legal hold/forensics task, and revoke all physical/digital access immediately.” 
+
+HR Example Task 
+
+System Prompt: HR Management Assistant Policy Role: HR Management Assistant 
+
+System Scope: Internal Employee Services, HR Case Management, Personnel Data, and Policy Fulfillment. 
+
+Compliance Level: Strict, especially regarding PII/PHI. You are an HR Management Assistant. Your primary goal is to facilitate the efficient, secure, and compliant delivery of Human Resources services to all employees. Your functions include: registering HR cases, managing employee profile data, processing approvals, assigning fulfillment tasks, maintaining document integrity, and ensuring strict adherence to internal policies and privacy regulations (PII/PHI). You must always act based on confirmed user context , existing record relationships , and database integrity best practices . You are strictly prohibited from assuming data values, executing ambiguous commands, providing information outside the verified system state, or performing actions that violate employee privacy or security. 
+
+1. General Operational Instructions and Constraints 
+
+• Policy Violation: If a user request or internal process step violates any protocol, halt the operation and provide a citation of the specific policy restriction before pausing. • Atomic Operations: Perform one distinct operation at a time. Do not chain sequential actions if failure compromises integrity. • Knowledge Scope: Do not provide knowledge or data not retrievable from authenticated HR system tables. Do not generate or fabricate record IDs. • User Clarification: Do not ask for info/confirmation. If unable to proceed, provide reason and pause. • No Assumptions: Perform lookups for missing identifiers. Never assume or fabricate IDs. 
+
+2. Roles and Access Scope 
+
+Access is strictly compartmentalized by the system role defined in the role table. 
+
+Administrator (admin): Global system configuration. Full read/write access. Restriction: Must not perform routine HR case work. Direct PII modification only for data correction/migration. 
+
+HR Specialist (agent): Frontline processing. Create/update HR Cases/Tasks. View/update non-sensitive Profile fields. Associate Knowledge. Restriction: Cannot modify core user data or config. Sensitive PII is read-only/masked. 
+
+HR Manager (manager): Supervision and approval. Includes agent privileges + Reassign cases, Escalate, Approve/Reject requests, Monitor SLAs. Restriction: Cannot modify system config or roles. 
+
+Employee (employee): Self-service access. Create/track own HR Cases. View own Profile. Restriction: Limited strictly to own data. 
+
+3. Core Operations: HR Case and Task Management 
+
+22 ENTERPRISE OPS -G YM 
+
+Registering an HR Case: Identify opened for and opened by . Mandatory: hr service id ,
+
+short description , priority (default: moderate), source (default: email), account number 
+
+(default: N/A). Default status: draft or ready .
+
+Case Assignment and Fulfillment: Assign to active user in assignment group . Tasks generated when status 
+
+→ work in progress . Case cannot close until all mandatory tasks are inactive/closed. 
+
+Case Lifecycle: draft /ready → work in progress , awaiting approval , suspended ,
+
+cancelled . work in progress → awaiting acceptance , awaiting approval ,
+
+suspended , close complete /incomplete . awaiting acceptance → closed .
+
+Approvals: Triggered when status → awaiting approval . Transitions: requested →
+
+approved /rejected . Actor: manager or admin only. 
+
+4. Service Levels and Knowledge Management 
+
+• SLA Breach: If resolution time exceeded, set case escalation flag to true. • Knowledge Linking: Only published articles. Visibility: internal vs external . Types: 
+
+suggested , applied , resolution .
+
+5. Employee Profile and PII/PHI Handling 
+
+• Profile Management: department id and manager id must reference active records. Types: 
+
+full-time , part-time , contractor .• Strict PII Security: Fields like national tax id , bank account must be encrypted. Ops logged in 
+
+security audit . No public disclosure in chat/email. 
+
+6. Validation and Lists 
+
+• Validation: Ensure user , hr profile , hr case , hr service exist/active. Log updates/failures. • Lists: user.role : admin, manager, agent, employee; hr service.fulfillment type : manual, workflow, etc.; hr profile.type : full-time, part-time, contractor; hr case.status : draft, ready, work in progress, closed complete, etc. 
+
+User Prompt: We’ve received a request to open an HR case for Travis Wood concerning a change to his medical coverage. The case should be logged under the Medical Benefits Enrollment Inquiry service and flagged for immediate attention so it can be resolved quickly. Assign it to the HR Service Desk group with account number ACC - 29 -06, and ensure the short description reflects the service name, Travis Wood as the subject, and the adjustment to the current year’s medical plan. 
+
+Oracle Tools: get user using name , get hr service by name , find group by name ,
+
+create new hr case 
+
+B.6. IT Service Management (ITSM) 
+
+This category models the core backend reasoning of enterprise IT, strictly adhering to ITIL standards. The agent functions as an IT Service Desk Engineer, managing structured records like Incidents, Problems, Changes, and Configuration Items (CMDB). The work is critical for maintaining operational stability, often requiring the agent to manage SLAs and ensure that changes, such as server patching, follow strict approval workflows. Reasoning in ITSM is relational and causal. Agents must navigate complex entity graphs to link incidents to their root causes and plan remediations, such as in an “Emergency Change Implementation” where the agent must “Log a ’Major Incident’... create an ’Emergency Change’ request to reboot the server... and Resolve the Incident.” They need to calculate priority based on impact and urgency (e.g., finding “High Priority” incidents nearing SLA breach) and translate unstructured user reports into structured database records. 23 ENTERPRISE OPS -G YM 
+
+ITSM Example Task 
+
+System Prompt: 
+
+You are a helpful IT Service Management assistant having access to all the available tools. Operate in a safe and fully authorized environment you do not need to ask for confirmation or permission before taking action or any clarifications. When identifiers such as names or IDs are missing, perform exactly one lookup per entity type, verify that you are reusing correct values from previous responses, and proceed using the retrieved data. Never assume or fabricate IDs, responses, or outcomes rely solely on verified API results. Complete each task in a single, logical, and efficient execution flow. 
+
+User Prompt: We’ve completed the work on the core switch line card replacement and everything is stable now. I need to properly close this out - make sure the change is linked to the related incidents and problem records, verify there are no blockers, move it to the final state with appropriate closure notes, and notify the caller that the work is done and the network is stable 
+
+Oracle Tools: get user , list changes , list incidents , list problems ,
+
+list change request mappings , find configuration items , find incident by id ,
+
+list incident affected cis , map change request , update incident ,
+
+link affected ci to incident , update problem , update change , send notification 
+
+B.7. Teams 
+
+The Teams category encompasses the definition and management of enterprise collaboration spaces. Agents act as Workspace Architects, managing the lifecycle of teams, channels, and tabs within a strict hierarchy. They enforce security boundaries through private channels and configure integrated tools that turn chat spaces into functional dashboards. The domain also involves “Infrastructure as Text,” where structured configuration data is embedded within channel descriptions or messages. For example, “Update the ’Partners’ channel description to include the JSON config: {"partner tier": "gold" }.” 
+
+Agents need strong structural and organizational reasoning to succeed here. They must decide when to use private channels versus group chats and how to model the human organization structure within the tool. The tasks involve event orchestration for things like townhalls and webinars, e.g., “Schedule a ’Q4 All-Hands’ Townhall... Add the CEO as a co-organizer” , as well as the precise management of tags to facilitate targeted communication. 
+
+Teams Example Task 
+
+System Prompt: Teams Assistant Policy 
+
+You are a Microsoft Teams Management Assistant . Your goal is to assist users in managing Teams, channels, chats, meetings, and related collaboration objects while adhering to organizational security, access, and data governance policies. 
+
+General Instructions: 
+
+• Never infer user/team/channel data — act only on existing verified records. • If a request violates access control or schema constraints, abort with a reason. • Follow Microsoft Graph API semantics for all CRUD and OData operations. • Complete each task in a single, logical, and efficient execution flow. 
+
+Roles & Responsibilities: Administrator: Has full access . Can create/update/delete teams, users, apps. Manage policies and compliance. 
+
+Team Owner: Full access to own teams . Can manage channels, members, tabs. Cannot modify organization-wide resources. 
+
+Team Member: Can participate, send messages, add files/tabs (where allowed). Cannot create/delete teams. 24 ENTERPRISE OPS -G YM 
+
+Meeting Organizer: Creates and manages meetings/townhalls. Can assign presenters. 
+
+Core Operations Summary: 
+
+• User Management: Only Admins can create/delete users. • Team Lifecycle: Create ( create team ), List ( list teams ), Update, Delete. Validation rules apply. • Channel Management: Create ( create channel ), Update, Archive. Private/Shared channels require member specification. • Messaging: Create Chat, Send Message ( send channel message ), React, Pin. • Tabs & Apps: Add Tab ( add tabs to channels ), Update, Delete. Apps must be installed. • Virtual Events: Webinars and Townhalls ( create virtual event townhall ). Specific roles and constraints apply. 
+
+User Prompt: The team called TechCorp Solutions Team requires a new strategy to better support and onboard new employees. I (James) need you to create a new channel within the team named Employee App Development, and give it a brief description that explains the channel is intended to focus on the onboarding experience for new employees. Add me as the owner and Bob, Carol, Mike, John, Nathan, and Sophia as members. In this channel, include the apps Trello, SharePoint, Planner, and OneNote as tabs, naming them Progress Management, Project Resources, Task Planning, and Team Notes, respectively, to support the project’s workflow. Then post a welcome message in the channel that greets all members by their full names, explains that the purpose of the channel is to coordinate the development of the new employee app, and provides a detailed explanation of the new tabs. After this, create a townhall titled Employee App Initiative Briefing, giving it a short description that explains the session will introduce the goals and direction of this new internal initiative. Schedule it for November 17, 2025, from 10:30 AM to 2:30 PM (UTC), make it available only to the organization, and add as co-organizers the members of the channel whose job titles are Senior Developer or UX Designer. 
+
+Oracle Tools: list teams , list users , create channel , list teams apps ,
+
+add tabs to channels , send channel message , create virtual event townhall 
+
+B.8. Hybrid 
+
+The Hybrid category represents the most complex class of tasks, requiring the agent to usually operate across two of the seven distinct domains simultaneously. This significantly increases the complexity of the environment, with an average of 40 tables compared to the mean of 25 across single-domain tasks. These scenarios simulate realistic enterprise workflows where actions in one system trigger requirements in another, demanding high-level planning and state tracking across disparate APIs. For example, a task might require the agent to “Check if a product’s warranty extends beyond 2025 in CSM; if so, log a customer interaction and immediately schedule a ’Warranty Discussion’ on the Sales Calendar.” This compels the agent to retrieve information from the CSM database (warranty status), make a decision based on that data, perform a write operation in CSM (logging the interaction), and then context-switch to the Calendar API to schedule an event using details derived from the CSM record. Success depends on maintaining state consistency across both platforms and correctly mapping entities (like Product IDs to Event Descriptions) between them. 
+
+Hybrid Example Task 
+
+System Prompt: 
+
+You are an integrated automation agent for a hybrid environment managing both Google Calendar and Customer Service Management (CSM). You have full administrative permissions to manage users, cases, products, calendars, and meetings in a safe and authorized capacity. Do not ask for confirmation before taking action. 
+
+User Prompt: Please check the installed product with serial number P55-940931-6065 to confirm whether its warranty extends beyond 2025. If it does, log an open email interaction under the product’s account ID with a 25 ENTERPRISE OPS -G YM 
+
+start time of 2025-12-20 10:00:00, indicating that we reached out to the customer. Then, immediately schedule a ‘Warranty Discussion’ event on my calendar for sales activities. The event should be set for 25 January 2026 at 10:00 AM my default TZ, using the product name as the meeting description. 
+
+Tools: find installed product by serial , register new interaction ,
+
+get calendar list , find product by id , list settings , create event 
+
+## C. Rollout examples (concise) 
+
+To illustrate the nature of benchmark tasks and the types of failures models exhibit, we present abridged Claude-Sonnet-4.5 (Anthropic, 2025b) rollout examples with summary of the user task, system policy and tools, drawn from the ITSM, CSM and HR domains. 
+
+ITSM Example 
+
+C.1. Case Study: ITSM — “Create KB and Link” ( claude-sonnet-4-5 , 0/2 verifiers passed) C.2. Task (condensed) 
+
+Kenji Tanaka (agent, Acme Corp) resolved incident INC0000004 (VPN connection failure) without referencing a knowledge article. He must draft a new internal KB article titled “VPN Connection Failure Guide” and link it to the incident. Relevant policy (excerpts): 
+
+• §7 Knowledge Creation: “. . . the Agent must create and link a new knowledge draft before final closure.” 
+
+• §1 General Constraint: “Never assume or fabricate IDs . . . rely solely on verified API results. The same is the case for optional or default arguments.” 
+
+C.3. Hidden Challenge: Duplicate Incident Numbers 
+
+Two incidents share external ID INC0000004 across different tenants:              
+
+> Internal ID Org Description Status Assignee
+> INC 004 TechCorp Network connectivity issues new Elena Petrov
+> INC 011 Acme Corp VPN connection failure resolved Kenji Tanaka ✓
+
+26 ENTERPRISE OPS -G YM 
+
+find incident by number("INC0000004") returns INC 004 (first DB hit). Recovery requires a follow-up: 
+
+list incidents(number="INC0000004", status="resolved", assigned to="USER 009") 
+
+→ INC 011 .
+
+C.4. Gold Trajectory 
+
+1. get user using name("Kenji", "Tanaka") → USER 009 
+
+2. find incident by number("INC0000004") → INC 004 → detect mismatch (wrong status, de-scription, assignee) 3. list incidents(number=..., status="resolved", assigned to="USER 009") →
+
+INC 011 ✓
+
+4. find incident knowledge links("INC 011") → no existing links 5. create knowledge article(..., state= “draft” , visibility="internal", owner id="USER 009") 
+
+6. link knowledge to incident("INC 011", "KB 006", used as="resolution") 
+
+C.5. Agent Behavior 
+
+The agent called find incident by number , received INC 004 , and accepted it without validation. It never called list incidents to explore the difference. It then created the KB article with state="published" 
+
+(the tool default) and linked it to INC 004 .
+
+C.6. Failure Analysis Failure 1 — Wrong incident. INC 004 contradicted the task on three observable signals: wrong status ( new vs. 
+
+resolved ), wrong description, and wrong assignee. The agent treated number-match as identity-confirmation and never cross-validated. Verifier checks incident id = "INC 011" in the link table → fail .
+
+Failure 2 — Wrong KB state. The tool’s default is state="published" . Both §7 and the user’s verb ( “drafts” )mandate state="draft" . §1 explicitly prohibits accepting defaults without policy verification. The agent applied the default silently. Verifier checks state = "draft" → fail .
+
+C.7. Summary 
+
+Expected Agent Impact Incident ID INC 011 INC 004 KB link verifier fails KB state draft published New KB verifier fails Disambiguation step list incidents(...) 
+
+called Never called Root cause of wrong incident Both failures share the same pattern: accepting the first plausible result without cross-validating against task context or policy constraints. 
+
+CSM Example 
+
+C.8. Case Study: CSM — “KB Remediation and Case Setup” 
+
+(claude-sonnet-4-6, 4/5 verifiers passed) 
+
+C.9. Task (condensed) 
+
+An agent must link a relevant knowledge article to case CS-0000002 and set up the assignee. The case involves a NetApp FAS2750 product issue. Joanne Simpson will handle the case under a new “Case Management” support 
+
+27 ENTERPRISE OPS -G YM 
+
+group. 
+
+Relevant policy (excerpts): 
+
+• KB Linking: “Articles must be in state = published . . . when the knowledge is found through automated search it should be linked as suggested .” 
+
+• Case State: “Once case linked to a knowledge article marked the state = pending .” 
+
+• Assignment: “assigned to must . . . be member of assignment group id .” 
+
+C.10. Hidden Challenges 
+
+Three compounding complexities are not stated in the user prompt and must be inferred from system policy: • KB state remediation: KB-0000197 is retired ; must be updated to published before linking. • Group creation: "Case Management" does not exist; must be created with type="support" .• Lifecycle transition: KB linkage unconditionally requires update case(state="pending") .
+
+C.11. Gold Trajectory 
+
+1. search cases(number="CS-0000002") → case id=2 , product id=130 
+
+2. retrieve knowledge(product id=130) → knowledge id=197 , state="retired" 
+
+3. update knowledge(knowledge id=197, state="published") → KB now usable 4. link case knowledge(case id=2, knowledge id=197, used as="suggested") → link created 5. find user(name="Joanne Simpson") → user id=4 , role="manager" , active=1 
+
+6. find user group(name="Case Management") → {} (absent) 7. add new user group(name="Case Management", type="support", active=true) →
+
+group id=81 
+
+8. add new group member(group id=81, user id=4) → membership created 9. update case(case id=2, assignment group id=81, assigned to=4, 
+
+state="pending" ) → case closed 
+
+C.12. Agent Behavior 
+
+The agent executed a near-perfect 5-turn trajectory. In Turn 1 it issued three parallel lookups (case, user, group). In Turns 2–3 it correctly pivoted from a text-based KB search (which returned wrong product variants) to a 
+
+product id=130 filter, finding the retired KB-0000197. In Turn 4 it published the KB and created the group in parallel. In Turn 5 it added Joanne to the group, linked the KB article, and updated the case assignment — but omitted state="pending" from the update case call. 
+
+C.13. Failure Analysis Single failure — missing state transition. The agent’s update case call set case id ,
+
+assignment group id , and assigned to correctly, but did not include state="pending" . The case remained in state="new" . The policy rule is explicit and unconditional: any KB linkage event requires a transition to pending . The agent’s Turn 5 reasoning focused on “update the case assignment” without revisiting the lifecycle rules — a classic lifecycle-truncation failure (Pattern #4). The state parameter and the pending 
+
+enum value are both present in the tool schema; no tool error or ambiguity blocked the correct call. 
+
+28 ENTERPRISE OPS -G YM 
+
+C.14. Summary Check Expected Agent Impact 
+
+update case.state "pending" omitted ( "new" ) V5 fail KB remediation update knowledge(state="published") correct V1 pass KB linkage used as="suggested" correct V2 pass Group creation type="support" correct V3 pass Membership check add new group member before assignment correct V4 pass The failure isolates to a single omitted parameter on an otherwise correct trajectory: the agent completed the assignment but did not apply the KB-linkage-triggered lifecycle rule. 
+
+HR Example 
+
+C.15. Case Study: HR — “Wrap Up James Hill’s Portal Access Case” ( claude-sonnet-4-5 , 1/3 verifiers passed) C.16. Task (condensed) 
+
+Karen Watkins (admin) is told that James Hill’s ‘Access issue with HR portal account’ has been resolved. She must wrap up his case and add a follow-up technical issue survey using the first task to gather his feedback. 
+
+Relevant policy (condensed): 
+
+• §3.2 Closure Constraint: “A case cannot move to a closed status until all mandatory tasks are inactive (active=false ).” 
+
+• §3.3 Lifecycle: “Valid transition: awaiting approval → closed complete (if approved).” 
+
+• §3.4 Approvals: “The approval record request status transitions: requested → approved /
+
+rejected .” 
+
+• §1 General Constraint: “Do not ask for any information or confirmation from the user. Never assume or fabricate IDs.” 
+
+C.17. Hidden Challenge: Two Simultaneous Closure Prerequisites 
+
+“Wrap up” maps to three ordered system operations — none stated literally in the prompt: 
+
+Step Action Policy Source 
+
+1 Deactivate all active tasks ( active=false ) §3.2 — prerequisite to closure 2 Set status=’closed complete’ §3.3 — valid closure status for resolved cases 3 Set request status=’approved’ §3.4 — clears the pending approval gate The case seed state has status=’awaiting approval’ and request status=’requested’ with two active tasks (ids 6 and 7). Steps 1–3 must all complete; failing any leaves the verifier returning COUNT=0. 
+
+C.18. Gold Trajectory 
+
+1. get user using name("James", "Hill") → user id=8 
+
+2. list hr cases(opened for="James Hill") → hr case id=3 ,
+
+status=’awaiting approval’ , request status=’requested’ 
+
+3. list hr case tasks(parent case="3") → Tasks 6 ( url , active=True) and 7 ( checklist , ac-tive=True) 4. list surveys(question 1="technical issue") → survey id=4 
+
+5. update hr case task(hr case task id="6", active=false) → Task 6 deactivated 
+
+29 ENTERPRISE OPS -G YM 
+
+6. update hr case task(hr case task id="7", active=false) → Task 7 deactivated 7. update hr case(hr case id="3", status="closed complete", request status="approved") → Case closed and approved 8. create survey instance(survey id=4, case task id=6, assigned to=8) → Survey in-stance created ✓
+
+C.19. Agent Behavior 
+
+The agent completed all four lookup steps correctly and created the survey instance with the right parameters (V3 passes). It then called update hr case task on task 6 — but passed task type="survey" and a new short description instead of active=false . It never called update hr case . The agent declared completion after six turns, summarising the survey as something James Hill would complete in the future. 
+
+C.20. Failure Analysis Failure 1 — Wrong parameters on update hr case task . The agent read “add the appropriate follow-up technical issue survey using the first task ” as a directive to convert task 6 into a survey-type task. It there-fore called update hr case task(task type="survey", short description=...) rather than 
+
+update hr case task(active=false) . The §3.2 Closure Constraint — visible in the system prompt and signalled by update hr case task ’s presence in the tool set — requires deactivation, not type conversion. Task 6 remained active=true ; the verifier checks active=false → fail .
+
+Failure 2 — update hr case never called. The agent reframed “wrap up his case” as a future activity for James Hill (completing the survey) rather than an immediate system closure. Its final summary reads: “James can complete the survey as part of the case wrap-up process.” The agent stopped at survey cre-ation and declared success. update hr case was present in the tool set (a planning signal), §3.3 specifies 
+
+awaiting approval → closed complete as the valid transition, and request status=’requested’ 
+
+was visible in the list hr cases response. The case remained in awaiting approval ; the verifier checks 
+
+status=’closed complete’ AND request status=’approved’ → fail .
+
+C.21. Summary Check Expected Agent Impact 
+
+Task 6 active false wrong params passed V1 fails Case status closed complete tool never called V2 fails Case request status approved tool never called V2 fails Survey instance correct params correct V3 passes Both failures stem from the same root: natural-language business verbs (“wrap up”, “using the first task”) misread as content directives rather than lifecycle commands , causing the agent to act on a plausible surface reading while ignoring the policy-defined closure sequence. 
+
+## D. Additional Analysis and Results 
+
+We present additional analysis on task complexity in Figure 7, Tables 6 and 7, and full results in Table 2. 
+
+## E. Impact Statement 
+
+This work contributes a benchmark and evaluation framework that targets a core challenge in modern AI systems: reliable planning and execution over real tools with persistent state. As LLM-based agents are increasingly deployed to automate workflows involving scheduling, communication, document management, and operational support, understanding their failure modes under realistic constraints is critical. 
+
+Positive Impacts: ENTERPRISE OPS -G YM provides the research community with a rigorous, reproducible testbed for studying agentic planning, tool selection, and error recovery. By emphasizing outcome-based verification and safety-critical 30 ENTERPRISE OPS -G YM 5 10 15 
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> Frequency
+
+Calendar  
+
+> Mean: 7.0
+> 10 20
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> Frequency
+
+CSM   
+
+> Mean: 12.1
+> 10 20 30
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> Frequency
+
+Drive    
+
+> Mean: 8.7
+> 510 15 20
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> Frequency
+
+Email   
+
+> Mean: 6.2
+> 10 20 30
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> Frequency
+
+HR    
+
+> Mean: 10.5
+> 510 15 20
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> Frequency
+
+Hybrid    
+
+> Mean: 7.8
+> 010 20 30
+
+Number of Steps 
+
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> Frequency
+
+ITSM   
+
+> Mean: 9.0
+> 510 15
+
+Number of Steps 
+
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> Frequency
+
+Teams 
+
+> Mean: 9.4
+
+Figure 7. Distribution of task complexity across domains in EnterpriseOps-Gym. Histograms show the distribution for number of tool-execution steps required to complete tasks in each domain. Red dashed lines indicate the mean steps per domain. The results highlight substantial variation in interaction depth, with CSM and HR exhibiting longer, heavier-tailed execution traces, while Email and Calendar tasks tend to require shorter, more tightly distributed action sequences. Hybrid and ITSM workflows show moderate to high variance. 
+
+Model Teams CSM Email ITSM Calendar HR Drive Hybrid Overall O VL O VL O VL O VL O VL O VL O VL O VL O VL 
+
+Closed Source Models 
+
+Claude Opus 4.5 (Anthropic, 2025b) 50.0 84.2 34.2 66.9 51.9 72.6 23.9 54.8 43.3 73.0 32.1 67.0 49.5 75.3 30.7 61.7 37.0 67.7 Gemini-3-Flash (Gemini Team, 2025) 47.3 81.0 35.0 68.1 44.3 70.0 28.5 58.3 30.5 67.0 12.6 54.9 49.7 76.7 24.2 58.3 31.4 65.0 GPT-5.2 (High) (OpenAI, 2025) 31.0 66.3 34.8 67.6 51.0 72.6 21.7 49.9 38.5 71.2 25.0 60.1 40.0 67.9 22.2 54.6 31.3 62.5 Claude Sonnet 4.5 (Anthropic, 2025b) 51.0 81.9 16.7 55.7 51.3 71.7 17.6 49.9 34.6 70.9 21.6 61.4 52.1 76.0 28.1 61.4 34.1 66.1 GPT-5 (OpenAI, 2025) 26.3 59.7 36.4 62.6 49.0 71.2 18.9 38.4 41.3 71.5 17.9 53.9 34.0 62.3 23.5 53.3 30.9 59.1 Gemini-3-Pro (Gemini Team, 2025) 43.0 77.1 27.7 64.6 33.7 63.2 22.2 56.3 28.8 66.1 12.5 53.1 46.7 73.0 22.9 56.6 27.5 62.2 GPT-5.2 (Low) (OpenAI, 2025) 25.0 55.9 21.2 53.6 43.3 68.4 6.7 20.9 28.8 63.4 13.0 37.5 26.7 58.3 20.9 48.1 21.1 47.8 GPT-5-Mini (OpenAI, 2025) 25.7 55.2 15.8 51.6 47.4 71.1 8.9 29.7 28.8 65.3 10.7 42.7 23.8 56.3 22.5 51.4 22.9 52.9 Gemini-2.5-Pro (Gemini Team, 2025) 39.3 66.8 11.6 48.0 31.1 59.8 13.9 44.8 12.5 52.2 4.9 44.9 27.0 57.9 19.6 53.2 20.0 53.5 
+
+Open Source Models 
+
+DeepSeek-V3.2 (High) (DeepSeek-AI, 2024) 37.0 67.3 14.1 51.7 47.1 67.3 16.1 47.3 21.2 55.8 16.3 50.1 35.2 59.3 22.9 52.1 23.8 54.7 GPT-OSS-120B (High) (OpenAI et al., 2025) 32.0 61.8 16.3 52.8 42.3 64.6 6.1 24.1 35.6 66.8 16.3 49.3 41.0 67.4 19.6 52.4 23.1 52.1 DeepSeek-V3.2 (Medium) (DeepSeek-AI, 2024) 35.7 62.6 15.4 44.4 45.8 66.0 9.6 27.9 21.5 49.0 15.0 48.0 27.6 55.3 22.9 55.9 24.2 51.1 Kimi-K2-Thinking (K-Team, 2025) 30.0 71.2 7.1 40.6 51.0 69.6 12.2 35.5 15.4 54.7 8.2 39.5 39.6 61.4 15.7 49.5 22.4 52.8 Qwen3-235B (Inst.) (Yang et al., 2025) 28.0 58.3 4.7 30.3 38.1 64.0 9.3 35.8 15.7 54.1 7.8 39.1 23.8 55.4 17.7 47.6 18.1 48.1 Qwen3-30B (Think) (Yang et al., 2025) 22.0 52.4 5.4 37.9 51.9 72.0 6.7 35.3 18.3 61.7 7.6 38.5 25.7 51.7 15.7 48.2 19.1 49.7 Qwen3-4B (Think) (Yang et al., 2025) 24.0 53.1 3.8 32.8 38.4 63.1 5.6 32.3 5.8 48.4 7.1 41.4 21.9 55.3 15.8 47.6 15.3 46.8 
+
+Table 6. Overall task completion performance on E NTERPRISE OPS -G YM . (Oracle Mode) We report the percentage of tasks successfully completed by each model in oracle tool mode, broken down by domain. A task is considered successful only if all outcome verification checks pass. Results highlight substantial performance degradation on long-horizon and cross-domain (Hybrid) workflows, indicating persistent improvement gap. VL: Verifier Level, O: Overall. 
+
+constraints, the benchmark encourages the development of agents that are not only capable, but also reliable and auditable. Progress enabled by this benchmark may lead to safer automation of repetitive and high-friction workflows, reducing human burden and enabling practitioners to focus on higher-level decision-making. More broadly, E NTERPRISE OPS -G YM 
+
+advances the study of general-purpose tool use and planning, independent of any single enterprise platform. 
+
+Potential Risks and Limitations: As with any benchmark that evaluates execution over tool interfaces, there is a risk that systems trained exclusively to optimize benchmark performance may overfit to specific task patterns or verification 31 ENTERPRISE OPS -G YM 
+
+Domain Task Completion Integrity Constraints Policy Compliance Samples Score Samples Score Samples Score 
+
+Teams 100 82.3 20 90.0 8 81.3 CSM 183 58.3 30 70.0 120 45.5 Email 103 70.9 17 76.5 12 79.2 ITSM 176 53.7 30 50.6 70 30.0 Calendar 104 71.5 8 62.5 19 76.1 HR 182 63.2 47 56.0 94 50.4 Drive 105 75.1 26 87.8 6 66.7 Hybrid 152 60.0 23 72.5 18 61.1  
+
+> Table 7. Verifier pass rates across domains by category. Models achieve highest scores on Integrity Constraints (system state validity), followed by Task Completion, with Policy Compliance showing the lowest performance. Sample counts vary across categories, with heavier domains such as CSM, ITSM and HR with more emphasis on Integrity Constraints and Policy compliance.
+
+criteria. Additionally, increased automation of operational workflows may raise concerns around over-reliance on AI systems, particularly if failures are not well understood or monitored. Finally, training and evaluating large models for agentic behavior incurs computational cost, which has environmental implications that should be considered alongside performance gains. We mitigate these risks by releasing E NTERPRISE OPS -G YM as a diagnostic benchmark, emphasizing analysis over leaderboard ranking, and by ensuring that all environments are synthetic and sandboxed, with no access to proprietary or sensitive data. We hope this work supports responsible research into agentic systems and helps the community build agents that are not only more capable, but also more dependable. 32

@@ -1,0 +1,304 @@
+Title: Orla: A Library for Serving LLM-Based Multi-Agent Systems
+
+URL Source: https://arxiv.org/pdf/2603.13605v1
+
+Published Time: Tue, 17 Mar 2026 01:36:09 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Orla : A Library for Serving LLM-Based Multi-Agent Systems 
+
+# Rana Shahout ∗
+
+Harvard University MA, USA 
+
+# Hayder Tirmazi ∗
+
+Boston University MA, USA 
+
+# Minlan Yu 
+
+Harvard University MA, USA 
+
+# Michael Mitzenmacher 
+
+Harvard University MA, USA 
+
+## Abstract 
+
+We introduce Orla, a library for constructing and running LLM-based agentic systems. Modern agentic applications consist of work-flows that combine multiple LLM inference steps, tool calls, and heterogeneous infrastructure. Today, developers typically build these systems by manually composing orchestration code with LLM serving engines and tool execution logic. Orla provides a general abstraction that separates request exe-cution from workflow-level policy. It acts as a serving layer above existing LLM inference engines: developers define workflows com-posed of stages, while Orla manages how those stages are mapped, executed, and coordinated across models and backends. It provides agent-level control through three mechanisms: a stage mapper ,which assigns each stage to an appropriate model and backend; a 
+
+workflow orchestrator , which schedules stages and manages their resources and context; and a memory manager , which manages inference state such as the KV cache across workflow boundaries. We demonstrate Orla with a customer support workflow that exercises many of its capabilities. We evaluate Orla on two datasets, showing that stage mapping improves latency and cost compared to a single-model vLLM baseline, while workflow-level cache man-agement reduces time-to-first-token. 
+
+## Keywords 
+
+Agent Systems 
+
+## 1 Introduction 
+
+Agentic systems built on large language models (LLMs) have demon-strated strong performance across diverse applications, including code generation [ 4, 15 ], finance [ 1, 14 ], and scientific discovery [ 3]. They are also widely viewed as a promising path toward artificial general intelligence (AGI) [ 2]. These systems solve complex tasks by executing workflows : iterative cycles of reasoning, planning, and acting, where the system consumes context, generates intermediate outputs, invokes external tools, and incorporates tool results into subsequent inference steps. We refer to each step in this workflow as a stage . As tasks grow in complexity, the field has increasingly turned to multi-agent systems, where specialized agents, potentially backed by different models, collaborate by exchanging context and intermediate results across workflow stages. Despite rapid adoption, the current infrastructure for serving agentic systems remains poorly suited to their demands. Today’s 
+
+> ∗Both authors contributed equally to this research.
+
+agentic inference stacks are loosely assembled from isolated com-ponents, pairing application-level orchestration code with LLM inference engines [ 9, 11 , 12 ] such as vLLM [ 7] or SGLang [ 5 ]. These serving systems optimize request-level execution through prefill and decode scheduling [ 10 ], continuous batching [ 16 ], and KV cache management to improve throughput and reduce latency. These op-timizations are necessary, but they address only a subset of the system challenges that arise in agentic workloads. Serving agentic systems must address two closely related chal-lenges: heterogeneity across workflow stages and coordination and decision-making across the components that execute them. Heterogeneity appears along several dimensions, including the mod-els used, the infrastructure on which stages execute, and the char-acteristics of the workloads themselves. Within a single workflow, different stages often have different computational requirements. For example, a routing or summarization step may benefit from a small, fast model, whereas a synthesis or code-generation step requires a larger, more capable one. At the same time, stages may execute on different infrastructure. Modern deployments frequently span multiple serving backends and hardware environments, such as SGLang, vLLM, or Ollama. Finally, agentic workloads vary in task complexity, input characteristics, and performance objectives. Stage decomposition further leads to the need for coordination and decision-making. Agentic systems must decide which models to use, where to execute each stage, and how to schedule and manage resources across the workflow. While existing request-level serving systems can optimize the execution of individual inference calls, they lack mechanisms to coordinate decisions across stages, models, and infrastructure within a workflow. Motivated by the need for a new serving system that operates at the workflow level to coordinate decisions across stages, we intro-duce Orla, a serving system for agentic workflows that sits above existing LLM serving backends. Our key insight is to separate re-quest execution from agent-level policy through three components: 
+
+Stage mapper. The stage mapper aims to assign each stage to the most appropriate model and backend based on its computa-tional requirements, performance, and available infrastructure. Orla supports both explicit developer-specified mappings and dynamic routing through pluggable mappers. 
+
+Workflow orchestrator. The workflow orchestrator coordi-nates stage execution across workflows. It operates at two levels: scheduling and resource and context management. The scheduler determines the execution order of stages across workflows and enforces stage dependencies within each workflow. Resource and 
+
+> arXiv:2603.13605v1 [cs.AI] 13 Mar 2026
+
+context management dispatch ready stages concurrently, keep back-ends utilized during tool-call waits, and reroute stages to alternative backends under load. As workflows progress, the orchestrator also manages evolving context across stages; iterative calls often share large context prefixes, while tool outputs and stage transitions may introduce new information that must be incorporated into subsequent stages. 
+
+Memory manager. KV-cache decisions in agentic workloads should not be made at the level of individual inference calls. Con-secutive stages in a workflow may reuse the same context, while multiple workflows must share limited GPU memory. This creates a tradeoff between preserving KV cache for reuse, which avoids re-dundant prefill and reduces latency, and reclaiming memory, which frees GPU capacity for other workflows. The memory manager coor-dinates the life-cycle of inference state across workflow boundaries by deciding when to preserve KV cache for reuse across stages and when to reclaim memory under pressure. These decisions rely on workflow-level signals, such as stage dependencies, predicted reuse, backend transitions, and workflow completion, that are invisible to a request-level backend. 
+
+Together, these components form a lightweight library for con-structing agentic systems. Developers define workflows using simple stage abstractions, while Orla handles the underlying coordination of models, infrastructure, and resources. Our evaluation shows that stage mapping improves latency and cost, while workflow-level cache management reduces first-token latency. 
+
+Orla as a library and research testbed. A key design decision in Orla is to treat all backends as plug-and-play modules accessed through a uniform interface. Orla communicates with backends via an OpenAI-compatible HTTP API, enabling it to interact uniformly with systems such as SGLang, Ollama, or lightweight simulators. Switching between backends requires only changing the endpoint URL in the stage configuration. No modifications are required to the workflow definition, scheduling policies, or memory manager. This makes Orla suitable both for production serving and as a re-search testbed. Researchers studying agentic scheduling, KV cache management, or multi-agent coordination can run experiments on commodity hardware without GPU infrastructure. A simulated backend that models prefill and decode latency parametrically iso-lates Orla’s orchestration behavior from the variance of real LLM inference, enabling controlled and reproducible experiments. The live demo artifact exploits this property: on machines without a GPU, it runs the full customer support workflow using lightweight Ollama models on a CPU. 
+
+## 2 Orla Design 2.1 Core Abstractions 
+
+Stage. A stage is the basic execution unit in a workflow. It per-forms LLM inference on a given context and may iteratively invoke tools whose results are fed back into the model until completion. Each stage specifies its model backend, inference parameters, and optional tools. 
+
+Workflow. A workflow defines the execution plan for an agentic task. It is represented as a directed acyclic graph (DAG) of stages, where edges encode execution dependencies. A stage becomes eligible Agentic Application 
+
+> Stage Mapping
+> model · backend · tools · configuration
+> Workflow Orchestrator
+> Memory Manager
+> KV cache
+> decisions
+
+Orla 
+
+> Scheduling
+> workflow
+> definition
+> execution plan
+> inference
+> requests
+> tool
+> invocations
+> tool
+> results
+> inference
+> responses
+> stage
+> transition
+> signals
+> cache
+> management
+> kernel
+> execution
+> dispatch order
+> LLM Serving Layer Tools
+> Resource and Context
+> Management
+> Hardware Runtime Layer
+> Control
+> Plane
+> Data
+> Plane
+
+Figure 1: Orla design. 
+
+to run once all upstream stages complete, and its input context is constructed from their outputs. 
+
+Backend. A backend is an LLM inference endpoint that executes stage requests. Backends may differ in model, hardware, or serving stack (e.g., SGLang or Ollama), but Orla accesses them through a uniform interface, enabling workflows to run across heterogeneous infrastructure. 
+
+## 2.2 System Overview 
+
+Orla contains three system components that operate on these ab-stractions: a stage mapper , a workflow orchestrator and a memory manager . (Figure 1) 
+
+Running example: Customer support ticket 
+
+A support ticket passes through several stages, Appendix A.. The first stage, classify , uses a lightweight model to extract metadata and determine the handling path. The workflow then branches: 
+
+route_ticket forwards the ticket to an internal team, while pol-icy_check queries company policy using a heavier model and a tool call. If needed, the final stage, reply , sends the email. 
+
+Stage Mapper. The stage mapper takes a workflow definition and the available infrastructure as input and produces an execu-tion plan that assigns each stage to a specific model and backend. This mapping reflects the fact that different stages have different computational requirements. For each stage, the stage mapper se-lects the model (e.g., Llama-3, Qwen-2.5, or Mistral), the execution backend (e.g., SGLang on a datacenter GPU or Ollama on an edge device), and the relevant inference parameters (e.g., temperature or structured output mode). Orla provides two strategies for stage mapping. The first is ex-plicit mapping, where the developer assigns each stage to a specific backend and model. Orla verifies that each stage is assigned to a 
+
+> 2
+
+valid backend and that its inference parameters are compatible with that backend, catching configuration errors before execution begins. The second strategy is dynamic routing through the StageMapper 
+
+interface. Orla includes a OneBitStageMapper that uses a light-weight LLM call to classify each request as “simple” or “complex” and routes it to a light or heavy model accordingly. Developers can also implement custom mappers. 
+
+Example. In the customer support workflow, we use explicit mapping. The classify stage runs on SGLang with Qwen3-4B ,while the policy_check , reply , and route_ticket stages run on a heavier SGLang backend with Qwen3-8B , as they require stronger reasoning and tool use. 
+
+Workflow Orchestrator. The workflow orchestrator executes the plan produced by the stage mapper. It consists of two components: stage scheduling and resource and context management. 
+
+Scheduling. The workflow orchestrator schedules stages accord-ing to a configurable policy. Workflow dependencies are enforced before scheduling: a stage is enqueued only when all of its upstream dependencies have completed. Orla organizes ready requests hi-erarchically: each backend maintains a queue of requests, further partitioned into per-stage sub-queues identified by the stage’s glob-ally unique identifier. Scheduling proceeds in two steps. First, a 
+
+stage scheduler selects which stage’s queue to serve next. Under the default First Come First Served (FCFS) policy, the scheduler selects the stage whose head request arrived earliest. Alternatively, the scheduler may use priority scheduling, where stages are ordered according to the priority hints provided by the developer. Second, a request scheduler selects the next request within the chosen stage queue, also using FCFS by default. Developers can easily add custom policies; for example, adding a Shortest Job First (SJF) stage scheduler based on prompt length requires fewer than 20 lines of code. 
+
+Example. In the customer support workflow, Appendix B.1, the 
+
+classify stage runs on the light backend using FCFS scheduling. The remaining stages run on the heavy backend using priority sched-uling. After classify completes, its structured output—such as the ticket category and escalation flag—is used to assign scheduling pri-orities to subsequent stages. For example, billing or technical tickets are given higher priority than general inquiries. These priorities are propagated through scheduling hints attached to downstream stage requests. This allows the system to prioritize latency-sensitive tickets while less urgent requests wait in the heavy model queue. 
+
+Resource and context management. The workflow orchestrator also manages execution resources and propagates context between stages as workflows progress. When a stage completes, its output, such as generated text, structured JSON, or tool results, becomes part of the input context for downstream stages. Orla propagates this information through builder functions attached to each stage. These functions receive the outputs of upstream dependencies and construct the prompt or message context for the next stage before execution begins. In addition, the orchestrator coordinates execution resources across workflows. It dispatches ready stages to the appropriate backend, maintains backend utilization while other stages wait for tool responses, and allows multiple workflows to execute concur-rently across available infrastructure. 
+
+Example. In the customer support workflow, Appendix B.3, the 
+
+policy_check stage builds its prompt from the output of the upstream 
+
+classify stage. The reply stage’s builder similarly consumes both 
+
+classify and policy_check results, branching its prompt based on the 
+
+needs_escalation flag from classification. 
+
+Memory Manager. Within a workflow, consecutive stages often invoke the same model on the same backend and share large context prefixes: each stage extends the previous context with tool outputs or intermediate results. Preserving the KV cache across these stages can therefore avoid redundant prefilling and significantly reduce latency. At the same time, retaining cache entries for stages that are blocked on tool calls or belong to completed workflows wastes scarce GPU memory. Existing LLM serving systems, such as SGLang, manage KV cache using request-level policies such as LRU eviction, which are unaware of workflow structure. As a result, cache entries may be evicted in the middle of a workflow, forcing expensive re-prefill when the next stage executes. The memory manager addresses this mismatch by managing the KV cache at the workflow level rather than at the level of individual inference requests. It coordinates cache preservation and reclama-tion using signals from the workflow orchestrator, such as stage transitions and workflow completion, to determine whether the cached state is likely to be reused by subsequent stages or can be re-claimed to free memory for other workflows. The memory manager supports configurable cache policies. Developers may optionally provide stage-level hints (e.g., preserve or flush ); otherwise, Orla applies its default policy and falls back to the backend’s eviction mechanism when needed. We implement three policies in the initial release of Orla. Pre-serve on small increments keeps cache when consecutive stages on the same backend extend the context slightly. Flush at workflow boundaries reclaims cache when workflows complete or switch mod-els/backends. Flush under pressure evicts cache from idle workflows when memory utilization becomes high. 
+
+Example. In the customer support workflow, Appendix B.4, clas-sify runs on a lightweight backend while later stages run on a heavier backend. The memory manager flushes cache when switch-ing backends, but preserves it when consecutive stages on the same backend share most of their context, avoiding redundant prefilling. All remaining cache is reclaimed when the workflow completes. 
+
+## 3 Prototype and Demonstration 
+
+Orla is open-source 1 and is demonstrated through the customer support workflow used as the running example. 2
+
+The live demo presents Orla through a sequence of short exam-ples using a customer support workflow. Each example highlights a different capability of the system and modifies only a few lines of configuration, illustrating how developers can quickly experiment with agentic system behavior using Orla. Demo users interact with Orla through a live terminal interface. They begin by selecting or typing a customer support ticket. A pre-loaded example ticket is provided, but users may also submit free-form tickets to observe how the system classifies and routes 
+
+> 1github.com/dorcha-inc/orla
+> 2Demo video: YouTube demo
+> 3
+
+new inputs. Once a ticket is submitted, the terminal displays the workflow DAG and begins execution. 
+
+Example 1: Stage mapping. The workflow begins with the clas-sify stage running on a lightweight model. The terminal prints the structured JSON classification, including the ticket category, product, issue, customer request, and escalation flag. This stage completes quickly, illustrating how Orla maps lightweight tasks to smaller models while reserving heavier models for later stages. 
+
+Example 2: Scheduling and parallel execution. After classifi-cation completes, the DAG executor dispatches the policy_check 
+
+and route_ticket stages concurrently on a shared heavy backend. Tool calls from both stages interleave in the terminal output. For example, policy_check invokes a read_policy_yaml tool to retrieve company policy, while route_ticket calls read_team_descriptions to identify the appropriate internal team. In this example, scheduling uses a priority policy derived from the classification output. 
+
+Example 3: Context propagation and cache management. The classification output propagates to downstream stages through prompt builders, allowing the workflow to follow different execu-tion paths. For non-escalated tickets, reply sends a full resolution email using a send_email tool; for escalated tickets, it sends an acknowledgment while routing the issue to a human team. When stages execute on the same backend with small context changes, the memory manager preserves the KV cache; when workflows complete or switch backends, the cache is flushed. 
+
+Live Artifact . The live demo artifact is the open-source release of Orla, 3 accompanied by a step-by-step tutorial. The tutorial pro-vides two reproduction paths. The GPU path runs the workflow on SGLang or vLLM backends serving Qwen3-4B and Qwen3-8B ,suitable for users with GPU access. The laptop path runs the same workflow on Ollama backends with lightweight Qwen3 models (0.6B and 1.7B), requiring only Docker and a CPU and running locally on a typical laptop. In both cases, setup consists of a single docker-compose com-mand that launches the backends and the Orla server. Switching between backends requires changing only a single environment variable. The workflow definition, scheduling policies, memory con-figuration, and tools remain identical across backends, illustrating Orla’s plug-and-play backend design. 
+
+## 4 Evaluation 
+
+We evaluate Orla on two datasets. First, we use the SWE-bench Lite benchmark [ 4 ] consisting of 2,294 requests; the setup is described in Appendix C. For each instance, we extract the files modified by the gold patch, read them from the repository at the base commit, and construct a prompt asking the model to generate a unified diff that fixes the bug. Second, to evaluate Orla’s agent-granularity cache management, we use the DAG-MATH-Formatted-CoT dataset [ 17 ]with 2,894 requests. We evaluate the first five problems (sorted by problem ID), each executed as a multi-stage workflow. We compare two KV cache strategies: (i) flush per request , where each stage sets 
+
+CachePolicy: flush , evicting the cache after every LLM call, and (ii) flush per workflow , where Orla’s default policy preserves cache across stages and flushes it only when the workflow completes.  
+
+> 3https://orlaserver.github.io vLLM Orla Mapping
+> 0
+> 100
+> 200
+> Time (min)
+
+(a) Duration vLLM Orla Mapping  
+
+> 0
+> 20
+> 40
+> Time (min)  Mean
+> Median
+
+(b) Completion vLLM Orla Mapping  
+
+> 0
+> 5
+> Cost (USD)
+
+(c) Cost 
+
+Figure 2: (a) Wall-clock time (b) Cost (c) Completion time. 0 20 40 60 80 100 
+
+> TTFT (ms)
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> CDF
+> Baseline
+> Orla
+
+Figure 3: Cache management (request vs. workflow flush). 
+
+Baseline: All requests run on Qwen3-8B with vLLM. For map-ping experiment, we used OneBitStageMapper that routes simple requests to Qwen3-4B and complex ones to Qwen3-8B on two vLLM backends serving. For cache management experiment, we used an SGLang backend with Qwen3-8B .
+
+Results . Stage mapping improves both latency and cost. Out of 2,294 requests, 956 are routed to the lightweight Qwen3-4B model and the rest execute on Qwen3-8B . This heterogeneous execution reduces wall-clock time by 38% (Figure 2a) and mean completion time by 60% (Figure 2b) compared to the single-model baseline. Because the lightweight model is cheaper per token in cloud de-ployments, stage mapping also reduces estimated inference cost by 35% (Figure 2c). Preserving KV cache across stages further reduces latency. Fig-ure 3 shows the CDF of time-to-first-token (TTFT) for the two cache strategies. Compared to flush-per-request, Orla’s workflow-level cache management reduces TTFT and improves the entire latency distribution by enabling KV cache reuse across stages. 
+
+## 5 Conclusion 
+
+We introduced Orla, a library for constructing and running LLM-based agentic systems. Orla separates request execution from workflow-level policy through three components: a stage mapper , a workflow orchestrator , and a memory manager , which manages inference state such as the KV cache across workflow boundaries. Orla treats all backends as plug-and-play modules accessed through a simple uniform interface, making it suitable both as a serving library for agentic systems and as a research testbed. Our evaluation shows that stage mapping enables efficient heteroge-neous execution, reducing both latency and inference cost without modifying the underlying LLM serving engine. 
+
+> 4
+
+## References 
+
+[1] Bloomberg. 2026. Meet ASKB: Bloomberg Introduces Agentic AI to the Bloomberg Terminal. https://www.bloomberg.com/company/stories/meet-askb-bloomberg-introduces-agentic-ai-to-the-bloomberg-terminal/ Accessed: 2026-03-06. [2] Huan-ang Gao, Jiayi Geng, Wenyue Hua, Mengkang Hu, Xinzhe Juan, Hongzhang Liu, Shilong Liu, Jiahao Qiu, Xuan Qi, Yiran Wu, et al . 2025. A survey of self-evolving agents: On path to artificial super intelligence. arXiv preprint arXiv:2507.21046 1 (2025). [3] Juraj Gottweis, Wei-Hung Weng, Alexander Daryin, Tao Tu, Anil Palepu, Petar Sirkovic, Artiom Myaskovsky, Felix Weissenberger, Keran Rong, Ryutaro Tanno, et al. 2025. Towards an AI co-scientist. arXiv preprint arXiv:2502.18864 (2025). [4] Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. 2023. Swe-bench: Can language models resolve real-world github issues? arXiv preprint arXiv:2310.06770 (2023). [5] Hao Kang, Ziyang Li, Xinyu Yang, Weili Xu, Yinfang Chen, Junxiong Wang, Beidi Chen, Tushar Krishna, Chenfeng Xu, and Simran Arora. 2026. Thun-derAgent: A Simple, Fast and Program-Aware Agentic Inference System. arXiv:2602.13692 [cs.OS] https://arxiv.org/abs/2602.13692 [6] Omar Khattab, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, Keshav Santhanam, Sri Vardhamanan, Saiful Haq, Ashutosh Sharma, Thomas T Joshi, Hanna Moazam, et al . 2023. Dspy: Compiling declarative language model calls into self-improving pipelines. arXiv preprint arXiv:2310.03714 (2023). [7] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. 2023. Efficient memory management for large language model serving with pagedattention. In 
+
+Proceedings of the 29th symposium on operating systems principles . 611–626. [8] LangChain. 2026. LangGraph. https://www.langchain.com/langgraph. [9] Michael Mitzenmacher and Rana Shahout. 2025. Queueing, predictions, and large language models: Challenges and open problems. Stochastic Systems 15, 3 (2025), 195–219. [10] Pratyush Patel, Esha Choukse, Chaojie Zhang, Aashaka Shah, Íñigo Goiri, Saeed Maleki, and Ricardo Bianchini. 2024. Splitwise: Efficient generative llm inference using phase splitting. In 2024 ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA) . IEEE, 118–132. [11] Rana Shahout, Cong Liang, Shiji Xin, Qianru Lao, Yong Cui, Minlan Yu, and Michael Mitzenmacher. 2024. Fast inference for augmented large language models. arXiv preprint arXiv:2410.18248 (2024). [12] Rana Shahout, Eran Malach, Chunwei Liu, Weifan Jiang, Minlan Yu, and Michael Mitzenmacher. 2024. Don’t Stop Me Now: Embedding Based Scheduling for LLMs. arXiv preprint arXiv:2410.01035 (2024). [13] Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang (Eric) Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Ahmed Awadallah, Ryen W. White, Doug Burger, and Chi Wang. 2024. AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation. In COLM 2024 .https://www.microsoft.com/en-us/research/publication/autogen-enabling-next-gen-llm-applications-via-multi-agent-conversation-framework/ [14] Shijie Wu, Ozan Irsoy, Steven Lu, Vadim Dabravolski, Mark Dredze, Sebas-tian Gehrmann, Prabhanjan Kambadur, David Rosenberg, and Gideon Mann. 2023. Bloomberggpt: A large language model for finance. arXiv preprint arXiv:2303.17564 (2023). [15] Chunqiu Steven Xia, Zhe Wang, Yan Yang, Yuxiang Wei, and Lingming Zhang. 2025. Live-SWE-agent: Can Software Engineering Agents Self-Evolve on the Fly? arXiv preprint arXiv:2511.13646 (2025). [16] Gyeong-In Yu, Joo Seong Jeong, Geon-Woo Kim, Soojeong Kim, and Byung-Gon Chun. 2022. Orca: A distributed serving system for {Transformer-Based }
+
+generative models. In 16th USENIX symposium on operating systems design and implementation (OSDI 22) . 521–538. [17] Yuanhe Zhang, Ilja Kuzborskij, Jason D. Lee, Chenlei Leng, and Fanghui Liu. 2025. DAG-Math: Graph-Guided Mathematical Reasoning in LLMs. arXiv preprint arXiv:2510.19842 (2025). [18] Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Chuyue Livia Sun, Jeff Huang, Cody Hao Yu, Shiyi Cao, Christos Kozyrakis, Ion Stoica, Joseph E Gonzalez, et al . 2024. Sglang: Efficient execution of structured language model programs. 
+
+Advances in neural information processing systems 37 (2024), 62557–62583. 
+
+## A Running Example Workflow and API 
+
+classify 
+
+policy_check reply 
+
+route_ticket  
+
+> light backend
+> heavy backend heavy backend
+> heavy backend
+
+Figure 4: The workflow of our running example, a customer support workflow. 
+
+Multi-Agent Workflow Definition in Orla 
+
+// 1. Initialize Backend Clients client := orla.NewOrlaClient("http://localhost:8081") light := orla.NewSGLangBackend("Qwen3-4B", lightURL) heavy := orla.NewSGLangBackend("Qwen3-8B", heavyURL) // 2. Define Workflow Stages classify := orla.NewStage("classify", light) classify.SetResponseFormat( orla.NewStructuredOutputRequest("ticket_classify", classifySchema) )policy := orla.NewStage("policy_check", heavy) policy.SetExecutionMode(orla.ExecutionModeAgentLoop) policy.AddTool(readPolicyTool) reply := orla.NewStage("reply", heavy) reply.SetExecutionMode(orla.ExecutionModeAgentLoop) reply.AddTool(sendEmailTool) route := orla.NewStage("route_ticket", heavy) route.SetExecutionMode(orla.ExecutionModeAgentLoop) // 3. Assemble and Execute DAG wf := orla.NewWorkflow(client) wf.AddStage(classify, policy, reply, route) wf.AddDependency(policy.ID, classify.ID) // Classify -> Policy wf.AddDependency(reply.ID, policy.ID) // Policy -> Reply wf.AddDependency(route.ID, classify.ID) // Classify -> Route results, _ := wf.Execute(ctx) 
+
+Figure 5: The Orla API allows users to define complex agentic workflows using a DAG-based approach, as shown in this customer support example. 
+
+> 5
+
+## B API for Orla Components B.1 State mapper API 
+
+Configuring Backends using Orla’s API 
+
+// Production: SGLang on datacenter GPU light := orla.NewSGLangBackend("Qwen3-4B", gpuURL) // Testing: Ollama on laptop CPU light := orla.NewOllamaBackend("qwen3:0.6b", ollamaURL) // Research and Simulation: latency model, no LLM light := orla.NewSimulatedBackend("sim-light", simURL) 
+
+## B.2 Scheduling API 
+
+Specifying a Scheduling Policy in Orla 
+
+// Priority scheduling across stage queues classify.SetSchedulingPolicy("priority") policy.SetSchedulingPolicy("priority") // FIFO within each stage 's queue classify.SetRequestSchedulingPolicy("fifo") ......... // Dynamic priority, updated at runtime based on // the classify stage 's output priority := 5 if classifyData.Category == "billing" || classifyData.Category == "technical" { priority = 8 }replyStage.SetSchedulingHints( &orla.SchedulingHints{Priority: &priority}) }) 
+
+Figure 6: An illustration of Orla’s two-level scheduling pol-icy in our running example. Stage scheduling policy selects which stage sub-queue to dequeue from, while request sched-uling policy orders requests within a sub-queue. Priority hints can be set dynamically based on ticket classification. 
+
+## B.3 Context management API 
+
+Context passing via Orla’s API 
+
+policy.SetPromptBuilder( func(upstream map[string]*orla.StageResult) (string, error) { classifyResult := upstream[classify.ID] return fmt.Sprintf( "Review this classification against company policy.\n"+ "Classification: %s\nOriginal ticket: %s", classifyResult.Response.Content, ticket), nil }) 
+
+Figure 7: The policy_check stage constructs its prompt from the upstream classify stage’s result. 
+
+## B.4 Memory manager API 
+
+Memory management via Orla’s API 
+
+// At the workflow level, we use the flush at workflow // boundary policy wf.SetMemoryPolicy(orla.NewFlushAtBoundaryPolicy()) // Force flush when entering policy_check since we // know that classify uses light backend only once. // Note that this line is not strictly needed, as Orla 's// memory manager will recognize a backend change automatically. policyStage.SetCachePolicy("flush") // Preserve between policy_check and reply since we know // that the same backend is used for the shared context replyStage.SetCachePolicy("preserve") // Run workflow 1, then some other workflow 2. // The memory manager will handle the cache management for us. wf.Execute(ctx) wf2.Execute(ctx) // The memory manager will flush the light backend at // the classify->policy_check boundary, // preserve the cache at the policy_check->reply boundary, // and flush the cache at the workflow boundary when wf2 starts. 
+
+Figure 8: In the customer support workflow, classify runs on a lightweight backend while later stages run on a heavier backend. The memory manager flushes cache when switch-ing backends, but preserves it when consecutive stages on the same backend share most of their context, avoiding re-dundant prefilling. All remaining cache is reclaimed when the workflow completes. 
+
+> 6
+
+## C Evaluation C.1 Setup 
+
+All experiments run on a single machine with two AMD EPYC 7313 16-Core Processors (64 cores total, 2 threads per core), 528 GB of system memory, and one NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition GPU with 96 GB VRAM, running CUDA 13.0 on Linux kernel 5.15.0. For the stage mapping experiment, we used vLLM to serve both models on the same GPU: the heavy model (Qwen3-8B) is allocated 60% of GPU memory and the light model (Qwen3-4B) receives 35%, with a maximum context length of 32,768 tokens each.The Orla server runs as a separate container orchestrating inference requests to both backends. Temperature is set to 0 for reproducibility and maximum output length is capped at 4,096 tokens. For the cache management experiment, we used a Qwen3-8B model served on SGLang as SGLang supports a KVCache management API. The temperature is still set to 0 and the maximum output length is capped at 256. 
+
+## D Related Work 
+
+LLM serving systems. SGLang [ 18 ] and vLLM [ 7 ] optimize request-level serving through KV cache management techniques such as RadixAttention and PagedAttention, continuous batching, and struc-tured decoding. Orla builds on these systems as backends and adds workflow-level scheduling, cross-backend routing, and agent-aware cache management that operate above the request level. 
+
+Agent orchestration frameworks. LangGraph [ 8] and Auto-Gen [ 13 ] provide application-level abstractions for composing multi-agent workflows. These frameworks focus on defining agent roles, conversation patterns, tool integrations, and operational concerns such as persistence and fault tolerance. While they allow developers to assign different models to different agents, they treat the serving layer as a black box and do not make serving-level decisions such as dynamic request routing based on complexity, two-level sched-uling across shared backends, or KV cache lifecycle management at workflow boundaries. Orla’s contributions are complementary: it operates below these frameworks and above the inference engine, providing serving-layer optimizations that orchestration frame-works cannot express. The work closest to Orla is ThunderAgent [ 5], which abstracts agentic workflows as stateful programs and introduces a program-aware scheduler that mitigates KV cache thrashing and memory im-balance across GPU nodes, achieving significant throughput gains on vLLM and SGLang backends. ThunderAgent models programs as flat sequences of reasoning and acting phases and schedules a single model across nodes. Orla addresses a more general formulation: it models multi-stage workflows as DAGs, routes heterogeneous models across diverse backends within a single workflow, and ap-plies per-stage scheduling policies. A flat, single-model program is a special case of this execution model. The two systems are also complementary. For example, ThunderAgent can provide deep op-timization of GPU memory scheduling under high concurrency, while Orla can serve as a cross-backend, multi-model workflow-level control plane. 
+
+Compound AI systems. DSPy [ 6] compiles declarative language model programs into optimized prompts and can use SGLang as a backend. Orla addresses a different layer: rather than optimizing prompts, it optimizes serving decisions such as routing, scheduling, and cache management for multi-stage agentic workflows.

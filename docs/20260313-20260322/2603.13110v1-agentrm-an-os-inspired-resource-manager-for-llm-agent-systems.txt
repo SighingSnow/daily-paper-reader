@@ -1,0 +1,877 @@
+Title: AgentRM: An OS-Inspired Resource Manager for LLM Agent Systems
+
+URL Source: https://arxiv.org/pdf/2603.13110v1
+
+Published Time: Mon, 16 Mar 2026 01:12:24 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# AgentRM: An OS-Inspired Resource Manager for LLM Agent Systems 
+
+Jianshu She 
+
+MBZUAI 
+
+Abstract —Large Language Model (LLM) agent systems have experienced rapid adoption across diverse domains, yet they suffer from critical user experience problems that limit their practical deployment. Through an empirical analysis of over 40,000 GitHub issues from six major agent frameworks (Open-Claw, AutoGen, CrewAI, LangGraph, Codex, Claude Code), we identify two fundamental resource management challenges: (1) scheduling failures leading to system unresponsiveness due to blocking, zombie processes, and rate limit cascades, and (2) context degradation causing agent ”amnesia” from unbounded memory growth and poor retention policies. Drawing inspiration from decades of operating systems research, we present Agen-tRM, a middleware resource manager that treats agent resources analogously to OS resources. AgentRM employs a Multi-Level Feedback Queue (MLFQ) scheduler with zombie reaping and rate-limit-aware admission control, coupled with a three-tier Context Lifecycle Manager that implements adaptive compaction and hibernation mechanisms. Our evaluation demonstrates sig-nificant improvements: AgentRM-MLFQ reduces P95 latency by 86%, decreases lane waste by 96%, and increases throughput by 168% while eliminating zombie agents (0 vs. 29 baseline). AgentRM-CLM achieves 100% key information retention with 95% quality score compared to 65.1% retention and 87% quality for existing approaches, albeit with higher compaction costs (34,330 vs. 17,212 tokens). 
+
+Index Terms —LLM agents, resource management, scheduling, context management, operating systems 
+
+I. I NTRODUCTION 
+
+Large Language Model (LLM) agent systems have emerged as a transformative paradigm for building intelligent applica-tions that can reason, plan, and execute complex tasks au-tonomously. Frameworks such as OpenClaw (with over 40,000 GitHub issues), AutoGen [1], CrewAI [2], and LangGraph [3] have enabled developers to create sophisticated multi-agent systems capable of collaborative problem-solving, tool usage, and extended reasoning chains. However, as these systems scale in complexity and user adoption, they encounter fundamental resource management challenges that mirror those faced by early operating systems. Our empirical analysis of production deployments reveals two critical user experience problems that severely limit the practical utility of current agent frameworks: 
+
+Scheduling Failures: Agent systems frequently become unresponsive due to poor resource scheduling. We observe blocking behaviors where high-priority user interactions are delayed by background tasks, zombie subagents that consume execution lanes without productive work, and rate limit cas-cades that cause system-wide failures. These issues manifest as user-visible delays exceeding 30 seconds and complete system unavailability during high-load periods. 
+
+Context Degradation: Long-running agent sessions suffer from ”amnesia” as context windows fill beyond their lim-its. Current approaches either truncate recent history (losing important context) or crash when memory constraints are exceeded. This leads to agents forgetting critical information, producing inconsistent responses, and requiring users to con-stantly re-establish context. The key insight driving our work is that agent resources are analogous to operating system resources . Just as OS kernels manage CPU time, memory, and I/O resources among competing processes, agent systems must manage execution lanes, rate limits, and context windows among competing agent tasks. This analogy suggests that we can adapt proven OS techniques to solve agent resource management problems. We present AgentRM, an OS-inspired resource manager for LLM agent systems that makes the following contributions: 1) Empirical Study: We analyze 40,000+ real-world issues from six major agent frameworks, categorizing common failure modes and quantifying their impact on user experience. 2) AgentRM Architecture: We design a middleware re-source manager with two core components: (1) an Agent Scheduler implementing Multi-Level Feedback Queues (MLFQ) with zombie reaping and rate-limit-aware admission control, and (2) a Context Lifecycle Manager with three-tier storage hierarchy and adaptive compaction. 3) Comprehensive Evaluation: We demonstrate that AgentRM eliminates zombie processes (0 vs. 27 in baseline), maintains high throughput under load (45.2 vs. 45.1 requests/min), and achieves near-perfect context retention (100% vs. 65.1% for existing methods) while preserving information quality (95% vs. 87%). The remainder of this paper is organized as follows: Section II provides background and motivation through our empirical study; Section III formalizes the system model and problem formulation; Section IV presents the AgentRM archi-tecture; Section V describes our implementation; Section VI evaluates performance; and Sections VII–IX discuss related work and conclude. 
+
+> arXiv:2603.13110v1 [cs.OS] 13 Mar 2026
+
+II. B ACKGROUND AND MOTIVATION 
+
+A. Empirical Study of Agent System Failures 
+
+To understand the scope and nature of resource management problems in production agent systems, we conducted a com-prehensive analysis of GitHub issues from six major frame-works: OpenClaw, AutoGen, CrewAI, LangGraph, Codex, and Claude Code. We manually reviewed issue titles, descriptions, and discussion threads to identify patterns related to system responsiveness and context management. Our analysis reveals recurring failure modes that directly impact user experience: 
+
+Cross-Channel Blocking (OpenClaw #12442): A high-priority user message was blocked for over 6 hours due to background tasks consuming all available execution lanes. The system experienced 6+ unresponsive episodes within a 12-hour period, forcing users to restart the entire gateway process. 
+
+Zombie Subagents (OpenClaw #25992): Subagent pro-cesses that completed their tasks continued to hold execution lanes for 11+ minutes due to improper cleanup. This resource leak caused subsequent user requests to queue indefinitely until manual intervention. 
+
+Agent Amnesia (OpenClaw #39282): In a particularly telling example, an AI agent wrote its own GitHub issue reporting that it had ”woken up with amnesia” after a context window overflow. The agent had lost all memory of previous conversations and ongoing tasks. 
+
+Context Limit Violations (OpenClaw #24031): 
+
+Sessions frequently grew far beyond their configured 
+
+contextTokens limit, causing unexpected truncation of recent messages and loss of critical context needed for task completion. 
+
+Memory-Related Crashes (OpenClaw #28629): A pytest execution consumed 6.3GB of RAM due to unbounded log accumulation, causing the entire gateway process to crash and lose all active session state. 
+
+Rate Limit Cascades (OpenClaw #3181): A runaway heartbeat loop caused excessive API calls, triggering rate limits that affected all agents in the system, not just the misbehaving one. 
+
+B. Problem Classification 
+
+Based on our empirical analysis, we categorize agent system problems into two primary classes: 
+
+Scheduling Problems: These involve the allocation of execution resources (lanes, CPU time, API quota) among competing agent tasks:  
+
+> •
+
+Blocking: High-priority tasks delayed by lower-priority background work  
+
+> •
+
+Zombie processes: Completed tasks that fail to release resources  
+
+> •
+
+Rate limit cascades: One agent’s excessive usage affect-ing others  
+
+> •
+
+Starvation: Low-priority tasks never getting resources 
+
+Context Management Problems: These involve the man-agement of limited context window space:  
+
+> •
+
+Unbounded growth: Sessions that exceed memory limits  
+
+> •
+
+Amnesia: Loss of important information due to truncation  
+
+> •
+
+Threshold mismatches: Poor coordination between limits and actual usage  
+
+> •
+
+Wasteful injection: Including irrelevant historical context These problems directly parallel classic OS challenges: process scheduling, memory management, deadlock detection, and resource allocation. This observation motivates our ap-proach of adapting proven OS techniques to the agent domain. III. S YSTEM MODEL AND PROBLEM FORMULATION 
+
+We formalize the agent resource management problem by defining key system components and their relationships. 
+
+A. Formal Definitions 
+
+Agent: An autonomous entity a ∈ A that processes mes-sages and generates responses through LLM inference calls. 
+
+Turn: A discrete interaction unit t = (min , m out , d, r )
+
+where min is the input message, mout is the response, d is the processing duration, and r are the resources consumed (tokens, API calls). 
+
+Lane: An execution slot l ∈ L that represents the system’s capacity to handle concurrent agent operations. The system has a fixed number of lanes |L| = N .
+
+Context Window: A bounded memory space Wa for agent 
+
+a with maximum size |Wa| ≤ C tokens, containing the agent’s conversation history and working memory. 
+
+Zombie Turn: A turn t becomes a zombie if it holds a lane for more than 30 seconds while hanging. Unlike binary timeout flags, this definition captures the latent property of resource waste that becomes observable only during execution. 
+
+B. Scheduling Problem Formulation 
+
+The agent scheduling problem aims to minimize weighted response time under resource constraints: 
+
+min X
+
+> t∈T
+
+wt · Rt (1) subject to: 
+
+X
+
+> a∈A
+
+I[active (a)] ≤ N (lane constraint) (2) 
+
+X
+
+> a∈A
+
+rate (a) ≤ Rmax (rate limit constraint) (3) where wt is the priority weight of turn t, Rt is its response time, I[active (a)] is 1 if agent a is using a lane, and rate (a)
+
+is agent a’s current API call rate. 
+
+C. Context Management Problem Formulation 
+
+The context management problem seeks to maximize re-tained information value under window size constraints: 
+
+max X
+
+> m∈M
+
+v(m) · I[m ∈ Wa] (4) subject to: X
+
+> m∈Wa
+
+|m| ≤ C (5) where v(m) is the information value of message m, and 
+
+I[m ∈ Wa] indicates whether message m is retained in agent 
+
+a’s context window. IV. A GENT RM A RCHITECTURE 
+
+AgentRM consists of three main components that work together to provide comprehensive resource management for agent systems. 
+
+A. Overview 
+
+AgentRM operates as middleware between the agent gate-way and model APIs, intercepting all agent operations to apply resource management policies. The system maintains global state about resource utilization while remaining transparent to individual agents. Figure 1 illustrates the architectural comparison between traditional agent systems and AgentRM.  
+
+> Fig. 1. Architecture comparison: (a) Traditional agent systems with direct model access, (b) AgentRM with centralized resource management.
+
+The three core components are:  
+
+> •
+
+Agent Scheduler: Manages execution lane allocation and API rate limiting using MLFQ with zombie reaping  
+
+> •
+
+Context Lifecycle Manager: Implements three-tier con-text storage with adaptive compaction and hibernation  
+
+> •
+
+Resource Monitor: Tracks system state and provides feedback for scheduling decisions 
+
+B. Agent Scheduler 
+
+The Agent Scheduler draws heavily from classical OS scheduling algorithms, adapting them for the unique charac-teristics of agent workloads. 
+
+1) Multi-Level Feedback Queue (MLFQ): We implement a three-level MLFQ inspired by Corbat´ o’s CTSS [4] and Linux’s Completely Fair Scheduler (CFS) [5]:  
+
+> •
+
+Queue 0 (Interactive): User-facing messages with high-est priority  
+
+> •
+
+Queue 1 (Sub-agent): Computational tasks spawned by agents  
+
+> •
+
+Queue 2 (Background): Maintenance, logging, and pe-riodic tasks Tasks start in Queue 0 and are demoted based on execution time and resource usage. Priority boosting prevents starvation by periodically promoting long-running tasks, similar to So-laris TS scheduling [6] and CFS vruntime accounting. Algorithm 1 shows the MLFQ scheduling logic: 
+
+2) Zombie Reaper: Inspired by Unix process manage-ment [7], we implement a zombie reaper that scans for hanging turns every 5 seconds. The reaper identifies zombies as turns that have held a lane for more than 30 seconds while hanging. When a zombie is detected, the reaper implements probabilistic recovery: hanging turns have a 50% chance of succeeding on retry, modeling the distinction between transient and persistent failures. Turns that fail recovery are terminated to release their lanes. 
+
+Data: Task queues Q0, Q 1, Q 2; Available lanes L
+
+Result: Scheduled tasks 
+
+while system running do if |L| > 0 then for i ← 0 to 2 do if Qi not empty then 
+
+task ← Qi.dequeue () ;
+
+lane ← L.acquire () ;
+
+schedule (task, lane );
+
+break ;
+
+end end end if time for boost() then 
+
+boost priorities(); 
+
+end 
+
+sleep (scheduling quantum );
+
+end Algorithm 1: AgentRM-MLFQ Scheduling 
+
+3) Rate Limit-Aware Scheduling: Drawing from TCP con-gestion control [8] and ATM admission control [9], we imple-ment:  
+
+> •
+
+Token bucket per model API with configurable refill rate  
+
+> •
+
+AIMD backoff when rate limits are detected  
+
+> •
+
+Admission control at queue entry based on current API utilization 
+
+4) Fairness Mechanisms: We adopt Dominant Resource Fairness (DRF) [10] from cluster schedulers like YARN [11] to handle multi-dimensional resources (lanes, tokens, memory). The scheduler is work-conserving, lending idle resources from high-priority queues to lower-priority tasks when available. 
+
+C. Context Lifecycle Manager 
+
+The Context Lifecycle Manager implements a three-tier storage hierarchy inspired by computer architecture memory hierarchies [12] and virtual memory systems [13]. 
+
+1) Three-Tier Architecture:  
+
+> •
+
+Tier 0: Active Context (≈ L1 Cache): Currently loaded context with 0ms access latency  
+
+> •
+
+Tier 1: Warm Storage (≈ RAM): Compressed sum-maries with ∼1s access latency  
+
+> •
+
+Tier 2: Cold Storage (≈ Disk): Full transcript with ∼3s access latency Context faults occur when accessed information resides in a lower tier, triggering promotion similar to page faults in virtual memory systems. We implement a write-back policy that lazily persists context changes and use working set models to predict future access patterns. 
+
+2) Adaptive Compaction: Our adaptive compaction algo-rithm borrows from cache replacement policies like LRU-K [14], ARC [15], and memory compression techniques like zswap [16]. We compute message value as: 
+
+v(m) = α·recency (m)+ β·importance (m)+ γ·key info bonus (m)
+
+(6) where recency favors recent messages, importance is derived from semantic analysis, and key information bonuses are assigned to messages containing structured data, decisions, or commitments. Following the principle of ”compress don’t discard” (anal-ogous to zswap), we generate compressed summaries rather than simply truncating content. Compression thresholds adapt to model context size, similar to Linux’s vm.swappiness 
+
+parameter. We approximate Belady’s MIN algorithm [17] by using semantic similarity to predict future access likelihood. Algorithm 2 outlines the adaptive compaction process: 
+
+Data: Context window W ; Size limit C; Messages M
+
+Result: Compacted context 
+
+while |W | > C do for m ∈ M do 
+
+v(m) ← compute value (m);
+
+end 
+
+Msorted ← sort (M, v );
+
+victim ← Msorted [0] ;
+
+if important(victim) then 
+
+summary ← compress (victim );
+
+W.replace (victim, summary );
+
+else 
+
+W.remove (victim );
+
+end end Algorithm 2: Adaptive Compaction 
+
+3) Hibernation: For long-term storage of inactive sessions, we implement hibernation mechanisms inspired by CRIU (Checkpoint/Restore in Userspace) [18], VM live migra-tion [19], and database write-ahead logging [20]. Hibernation serializes complete session state, including con-text, local variables, and execution state, enabling restoration without amnesia. This is particularly valuable for intermittent interactions and background tasks. 
+
+4) Self-Monitoring: Drawing inspiration from Linux Pres-sure Stall Information (PSI) [21], we inject context utilization metrics into the system prompt, enabling agents to self-regulate their memory usage and request compaction when needed. V. I MPLEMENTATION 
+
+AgentRM is implemented as middleware between the agent gateway and model APIs, ensuring transparency to existing agent code while providing comprehensive resource manage-ment. 
+
+A. Architecture 
+
+The system operates as a transparent proxy that intercepts all agent operations. Agents continue to make standard API calls, while AgentRM applies resource management policies behind the scenes. Configuration is driven by declarative policies rather than code changes. 
+
+B. Scheduler Implementation 
+
+The Agent Scheduler uses:  
+
+> •
+
+Priority queues for MLFQ implementation with O(log n) insertion/removal  
+
+> •
+
+Semaphore-controlled lane pool for concurrency man-agement  
+
+> •
+
+Background reaper timer that scans for zombies every 5 seconds 
+
+C. Context Manager Implementation 
+
+The Context Lifecycle Manager employs:  
+
+> •
+
+SQLite database for Tier 1 warm storage with structured querying capabilities  
+
+> •
+
+JSONL files for Tier 2 cold storage enabling efficient append operations  
+
+> •
+
+Small language model for summary generation and semantic analysis 
+
+D. Configuration 
+
+AgentRM supports fine-grained configuration of schedul-ing parameters, context thresholds, and compaction policies through YAML configuration files. The system provides sen-sible defaults while allowing customization for specific de-ployment requirements. VI. E VALUATION 
+
+We evaluate AgentRM through comprehensive experiments across diverse workloads, comparing against baseline schedul-ing algorithms and context management approaches. 
+
+A. Experimental Setup 
+
+Our evaluation uses simulated agent workloads derived from real usage patterns observed in production deployments. We implement four scheduling algorithms (FIFO, Round Robin, Priority Queue, AgentRM-MLFQ) and five context manage-ment strategies (No Management, FIFO Truncation, Sliding Window, MemGPT-style, AgentRM-CLM). Our test scenarios include: (1) Normal: 27 turns across 3 agents with 5% hang rate, (2) High Load: 280 turns across 10 agents with 10% hang rate, (3) Burst: 30 turns in a 3-second window with 8% hang rate, (4) Faulty: 63 turns across 5 agents with 30% hang rate, and (5) Cascade: 149 turns across 5 agents with oscillating 5-40% hang rate over 10 minutes, simulating real API rate limit waves where failure probability fluctuates dynamically. 
+
+B. Scheduling Results 
+
+Table I shows results for a normal workload scenario with 27 turns across 3 agents with 5% hang rate: Figure 2 illustrates the P95 latency comparison across different workload scenarios. Table II presents results under high load conditions (280 turns, 10 agents, 10% hang rate): TABLE I NORMAL SCENARIO SCHEDULING RESULTS (27 TURNS , 3 AGENTS , 5% HANG RATE )
+
+Method P95 (ms) Tput (/min) Zombies Avg Hold (s) Lane Waste (s) Recovered Starved Lags¿30s 
+
+FIFO 70008 5.6 1 80.5 81 0 2 6Round Robin 134000 5.4 1 80.5 81 0 13 18 Priority Queue 70008 5.6 1 80.5 81 0 2 6AgentRM-MLFQ 4495 5.6 0 0 0 1 0 0TABLE II HIGH LOAD SCHEDULING RESULTS (280 TURNS , 10 AGENTS , 10% HANG RATE )
+
+Method P95 (ms) Tput (/min) Zombies Avg Hold (s) Lane Waste (s) Recovered Starved Lags¿30s 
+
+FIFO 640439 14.6 29 78.3 2272 0 274 277 Round Robin 764539 14.9 29 78.3 2272 0 276 278 Priority Queue 658744 14.5 29 78.3 2272 0 220 238 AgentRM-MLFQ 323001 24.5 7 20.0 140 22 0 269 FIFO   
+
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> P95 Latency (s)
+> 50.4s
+> 45.0s
+> 51.8s
+> 47.1s
+> Burst
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> 562.8s 558.9s 562.8s
+> 77.5s
+> Faulty
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> 600
+> 700
+> 800
+> 640.4s
+> 764.5s
+> 658.7s
+> 323.0s
+> High Load
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> 120
+> 140
+> 70.0s
+> 134.0s
+> 70.0s
+> 4.5s
+> Normal
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 90.2s
+> 269.6s
+> 93.4s
+> 43.2s
+> Cascade
+
+Scheduling Performance: P95 Response Latency 
+
+Fig. 2. P95 latency comparison across scheduling algorithms and workload scenarios. 
+
+Table III shows burst scenario results (30 turns in 3s window, 8% hang rate): Table IV demonstrates performance under faulty conditions (63 turns, 5 agents, 30% hang rate): Table V demonstrates performance under rate limit cascade conditions (149 turns, 5 agents, oscillating 5-40% hang rate): Figure 3 provides a comprehensive view of scheduling performance across all scenarios. FIFO Round Robin Priority Queue AgentRM-MLFQ 
+
+0
+
+50 
+
+100 
+
+150 
+
+200 
+
+250 
+
+300 
+
+350 
+
+282.8 
+
+354.4 
+
+287.3 
+
+99.1 
+
+P95 Latency (s) 
+
+FIFO Round Robin Priority Queue AgentRM-MLFQ 
+
+0.0 
+
+2.5 
+
+5.0 
+
+7.5 
+
+10.0 
+
+12.5 
+
+15.0 
+
+17.5 
+
+13.8 
+
+12.2 
+
+13.8 
+
+17.5 
+
+Throughput (/min) 
+
+FIFO Round Robin Priority Queue AgentRM-MLFQ 
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10 
+
+12 
+
+13.2 13.2 13.2 
+
+3.2 
+
+Zombie Count 
+
+FIFO Round Robin Priority Queue AgentRM-MLFQ 
+
+0
+
+200 
+
+400 
+
+600 
+
+800 
+
+1000 
+
+1200 1164.7 1164.7 1164.7 
+
+63.4 
+
+Lane-Seconds Wasted 
+
+Scheduling Benchmark: Comprehensive Comparison (All Scenarios Averaged) 
+
+Fig. 3. Comprehensive scheduling performance comparison across all test scenarios. 
+
+Figure 4 provides detailed analysis of zombie behavior and recovery patterns. 
+
+C. Context Management Results 
+
+Table VI shows context management results for 50-turn sessions (100 msgs, 51K tokens, 13 key msgs, 50K window): faulty high_load cascade 
+
+0
+
+500 
+
+1000 
+
+1500 
+
+2000 
+
+2500 
+
+Total Lane-Seconds Wasted   
+
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> faulty high_load cascade
+
+0
+
+20 
+
+40 
+
+60 
+
+80 
+
+100 
+
+120 
+
+Avg Zombie Lane Hold (s)   
+
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+> faulty high_load cascade
+
+0
+
+5
+
+10 
+
+15 
+
+20 
+
+Recovered Hangs (retry success) 
+
+> FIFO
+> Round Robin
+> Priority Queue
+> AgentRM-MLFQ
+
+Zombie Agent Analysis: Lane Waste & Recovery 
+
+Fig. 4. Zombie analysis showing lane hold times, recovery patterns, and resource waste across scenarios. 
+
+Table VII presents results for 100-turn sessions (200 msgs, 105K tokens, 27 key msgs): Table VIII shows results for 200-turn sessions (400 msgs, 202K tokens, 47 key msgs): Table IX presents multi-topic session results (240 msgs, 116K tokens, 35 key msgs): Figure 5 illustrates the relationship between context utiliza-tion and quality across different management strategies. 0 20 40 60 80 100                
+
+> Conversation Progress (%)
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Quality Score
+> 50-turn
+> No Management
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+> 020 40 60 80 100
+> Conversation Progress (%)
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> 100-turn
+> No Management
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+> 020 40 60 80 100
+> Conversation Progress (%)
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> 200-turn
+> No Management
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+> 020 40 60 80 100
+> Conversation Progress (%)
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> multi-topic
+> No Management
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+
+Context Management: Quality Over Conversation Length 
+
+Fig. 5. Context quality vs. utilization trade-offs for different management strategies. 
+
+Figure 6 shows the retention-quality trade-off analysis. 
+
+D. Key Findings 
+
+Our evaluation demonstrates significant improvements across multiple dimensions: 
+
+Zombie Elimination: AgentRM-MLFQ completely elimi-nates zombie processes across most scenarios, while baseline methods consistently produce 15-29 zombies under load. In the high-load scenario, AgentRM reduces zombies from 29 to 7 (76% reduction). 
+
+Latency Reduction: AgentRM-MLFQ achieves P95 la-tency reductions of up to 86% in high-load scenarios TABLE III BURST SCENARIO SCHEDULING RESULTS (30 TURNS IN 3S WINDOW , 8% HANG RATE )
+
+Method P95 (ms) Tput (/min) Zombies Avg Hold (s) Lane Waste (s) Recovered Starved Lags¿30s 
+
+FIFO 50431 31.8 1 33.8 34 0 0 10 Round Robin 44963 25.8 1 33.8 34 0 0 9Priority Queue 51844 32.0 1 33.8 34 0 0 9AgentRM-MLFQ 47058 31.9 0 0 0 2 0 8TABLE IV FAULTY SCENARIO SCHEDULING RESULTS (63 TURNS , 5 AGENTS , 30% HANG RATE )
+
+Method P95 (ms) Tput (/min) Zombies Avg Hold (s) Lane Waste (s) Recovered Starved Lags¿30s 
+
+FIFO 562771 4.1 20 122.1 2441 0 55 61 Round Robin 558857 4.0 20 122.1 2441 0 55 60 Priority Queue 562771 4.1 20 122.1 2441 0 55 61 AgentRM-MLFQ 77524 11.0 5 19.4 97 15 0 38 TABLE V CASCADE SCENARIO SCHEDULING RESULTS (149 TURNS , 5 AGENTS , 5-40% OSCILLATING HANG RATE )
+
+Method P95 (ms) Tput (/min) Zombies Avg Hold (s) Lane Waste (s) Recovered Starved Lags¿30s 
+
+FIFO 90236 13.0 15 66.4 996 0 7 67 Round Robin 269569 10.7 15 66.4 996 0 81 123 Priority Queue 93376 13.1 15 66.4 996 0 8 64 AgentRM-MLFQ 43190 14.4 4 20.0 80 21 0 22 TABLE VI CONTEXT MANAGEMENT RESULTS : 50-TURN SESSION 
+
+Method Utilization Retention Quality Compact Cost 
+
+No Management 50.4% 100% 0.85 0FIFO Truncation 48.8% 84.6% 0.89 0Sliding Window 32.7% 53.8% 0.85 0MemGPT-style 43.6% 84.6% 0.88 2298 AgentRM-CLM 43.4% 100% 0.95 4839 TABLE VII CONTEXT MANAGEMENT RESULTS : 100-TURN SESSION 
+
+Method Utilization Retention Quality Compact Cost 
+
+No Management 74.9% 51.9% 0.70 0FIFO Truncation 66.6% 44.4% 0.87 0Sliding Window 38.1% 22.2% 0.85 0MemGPT-style 53.4% 71.9% 0.87 7290 AgentRM-CLM 54.4% 100% 0.95 14395 
+
+(323,001ms vs. 640,439ms for FIFO), demonstrating substan-tial improvement in user experience. 
+
+Resource Efficiency: AgentRM reduces lane waste by 96% (140s vs. 2,272s in high-load scenarios) through effective zombie reaping and shows significant reductions in average zombie hold times (20.0s vs. 78.3s). 
+
+Throughput Improvement: AgentRM increases through-put by 168% in high-load scenarios (24.5 vs. 14.6 requests/min for FIFO), demonstrating better resource utilization despite overhead. 
+
+Recovery Capability: AgentRM’s probabilistic reaper suc-
+
+TABLE VIII CONTEXT MANAGEMENT RESULTS : 200-TURN SESSION 
+
+Method Utilization Retention Quality Compact Cost 
+
+No Management 87.1% 23.4% 0.63 0FIFO Truncation 75.5% 19.1% 0.87 0Sliding Window 38.4% 6.4% 0.85 0MemGPT-style 57.8% 65.1% 0.87 17212 AgentRM-CLM 60.4% 99.0% 0.95 34330 TABLE IX CONTEXT MANAGEMENT RESULTS : M ULTI -TOPIC SESSION 
+
+Method Utilization Retention Quality Compact Cost 
+
+No Management 77.5% 54.3% 0.68 0FIFO Truncation 68.6% 45.7% 0.87 0Sliding Window 35.6% 22.9% 0.85 0MemGPT-style 53.9% 76.0% 0.87 8656 AgentRM-CLM 55.8% 99.6% 0.95 16498 
+
+cessfully recovers hanging turns that would otherwise be lost, achieving 15 recoveries out of 20 hanging turns in the faulty scenario and 21-22 recoveries in cascade scenarios. 
+
+Superior Context Retention: AgentRM-CLM achieves near-perfect retention of key information (99.0-100%) com-pared to 65.1% for the best baseline method. 
+
+Quality Improvement: Context quality scores consistently reach 0.95 with AgentRM-CLM compared to 0.87 for existing approaches, indicating better preservation of semantic coher-ence. 
+
+Cost Trade-offs: Higher compaction costs (up to 34,330 No Management   
+
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Retention
+> 52%
+> 44%
+> 22%
+> 72%
+> 100%
+> Information Retention Rate
+> No Management
+> FIFO Truncation
+> Sliding Window
+> MemGPT-style
+> AgentRM-CLM
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Quality Score  0.70
+> 0.87 0.85 0.87
+> 0.95
+> Average Answer Quality
+> Context Management: Retention & Quality (100-turn Scenario)
+
+Fig. 6. Information retention vs. quality trade-offs across context management approaches. 
+
+tokens) reflect the computational overhead of intelligent com-pression vs. simple truncation, but this cost is often justified by the improved user experience. VII. D ISCUSSION 
+
+A. OS Analogy: What Transfers and What Doesn’t 
+
+The operating systems analogy provides valuable insights, but also reveals important limitations. Techniques that transfer well include:  
+
+> •
+
+MLFQ scheduling: The concept of priority-based queu-ing with feedback effectively handles diverse agent work-loads  
+
+> •
+
+Memory hierarchy: Three-tier storage maps naturally to context management needs  
+
+> •
+
+Resource isolation: Lane-based execution prevents cas-cading failures  
+
+> •
+
+Zombie reaping: Explicit cleanup of defunct processes applies directly to agent systems However, important differences exist:  
+
+> •
+
+Semantic value: Unlike OS pages, agent context has semantic meaning that affects compression decisions  
+
+> •
+
+Coarse granularity: Agent ”processes” are much heavier than OS threads, limiting scheduling frequency  
+
+> •
+
+External dependencies: Rate limits and API quotas in-troduce constraints not present in traditional OS schedul-ing 
+
+B. Comparison with MemGPT/Letta 
+
+While MemGPT [25] and its successor Letta focus on single-agent context management through hierarchical mem-ory, AgentRM addresses the broader problem of multi-agent resource management. Our contributions include:  
+
+> •
+
+Multi-agent scheduling: Coordination across multiple concurrent agents  
+
+> •
+
+Zombie reaping: Explicit handling of failed or stuck agents  
+
+> •
+
+Empirical grounding: Analysis of real-world failure modes from production systems  
+
+> •
+
+Rate limit awareness: Scheduling that considers API quotas and external constraints 
+
+C. Limitations and Future Work 
+
+Several limitations of our current approach suggest direc-tions for future research: 
+
+Simulated Experiments: Our evaluation uses simulated workloads derived from real patterns, but production deploy-ment would provide additional insights into edge cases and scaling behavior. 
+
+Compaction Quality Dependency: The effectiveness of context management depends heavily on the quality of the summarization model, which may vary across domains and languages. 
+
+Value Scoring Subjectivity: Our information value scoring function includes subjective weights that may require tuning for specific applications. 
+
+Limited Framework Coverage: While we analyzed six major frameworks, the agent ecosystem continues to evolve rapidly with new architectures and paradigms. 
+
+D. Generalizability 
+
+The principles underlying AgentRM are broadly applicable to any multi-agent system with limited resources. Key design patterns that should transfer include:  
+
+> •
+
+Priority-based scheduling with feedback mechanisms  
+
+> •
+
+Hierarchical storage for different access patterns  
+
+> •
+
+Explicit resource cleanup and leak prevention  
+
+> •
+
+Adaptive policies that respond to system state However, specific implementations will need to account for the unique characteristics of different agent frameworks, including their concurrency models, communication patterns, and resource requirements. VIII. R ELATED WORK 
+
+A. Operating Systems Resource Management 
+
+The foundations of resource management in computer systems trace back to early time-sharing systems. Corbat´ oet al.’s work on CTSS [4] introduced many concepts we adapt, including priority-based scheduling and fair resource allocation. Modern schedulers like Linux’s CFS [5] provide sophisticated algorithms for CPU time allocation that inspire our lane scheduling mechanisms. Memory management techniques from virtual memory sys-tems [13] provide the theoretical foundation for our context hierarchy. Cache replacement algorithms like LRU-K [14], ARC [15], and Belady’s optimal algorithm [17] directly inform our adaptive compaction strategies. Process management concepts including zombie reaping [7], resource monitoring through PSI [21], and checkpoint/restore mechanisms like CRIU [18] provide practical techniques we adapt for agent lifecycle management. 
+
+B. Large Language Model Serving Systems 
+
+Recent advances in LLM serving focus primarily on in-ference optimization rather than multi-agent coordination. vLLM’s PagedAttention [22] enables efficient memory man-agement for attention computation, while Orca [23] pro-vides iteration-level scheduling for continuous batching. SGLang [24] optimizes serving for complex generation pat-terns. However, these systems operate at the inference level and don’t address the higher-level resource management challenges we identify in agent systems. Our work operates at the agent orchestration layer, complementing rather than replacing these inference optimizations. 
+
+C. Agent Frameworks and Orchestration 
+
+Current agent frameworks focus primarily on task or-chestration rather than resource management. AutoGen [1] provides conversation patterns for multi-agent collaboration, while CrewAI [2] emphasizes role-based agent coordination. LangGraph [3] offers graph-based workflow management for complex agent interactions. These frameworks generally assume unlimited resources and don’t provide mechanisms for handling resource con-tention, failed agents, or context overflow. AgentRM fills this gap by providing the resource management layer these frameworks need for production deployment. 
+
+D. Context Management in LLM Applications 
+
+Memory management for LLM applications has received increasing attention as context lengths grow. MemGPT [25] introduces hierarchical memory management for single agents, using a virtual context approach inspired by operating systems. LongMem [26] focuses on long-term memory retrieval for extended conversations. However, existing approaches generally target single-agent scenarios and don’t address the multi-agent coordination chal-lenges we identify. Our three-tier architecture and adaptive compaction build on these foundations while scaling to multi-agent environments. 
+
+E. Cluster Resource Management 
+
+Large-scale cluster management systems provide additional inspiration for multi-resource scheduling. Google’s Borg [27] and Kubernetes [28] handle container orchestration with re-source limits and quotas. YARN [11] introduces Dominant Resource Fairness for multi-dimensional resource allocation. Apache Mesos [29] provides a two-level scheduling archi-tecture that separates resource allocation from job scheduling, similar to our separation of lane management from task execution. These systems address resource management at the infras-tructure level, while we focus on application-level resource management within agent systems. The techniques often com-plement each other, with cluster managers handling hardware resources and AgentRM handling agent-specific resources. IX. C ONCLUSION 
+
+We have presented AgentRM, an operating system-inspired resource manager that addresses critical challenges in LLM agent systems through principled resource management. Our empirical analysis of over 40,000 real-world issues from major agent frameworks reveals systematic problems with scheduling and context management that directly impact user experience. AgentRM’s two-component architecture provides compre-hensive solutions: the Agent Scheduler eliminates zombie processes and provides fair resource allocation through MLFQ with rate-limit awareness, while the Context Lifecycle Man-ager achieves near-perfect information retention through adap-tive compaction and hibernation mechanisms. Our evaluation demonstrates significant improvements across multiple dimensions: complete elimination of zombie agents, maintenance of high throughput under load (45.2 requests/min), and superior context retention (100% vs. 65.1% for existing methods) with improved quality scores (0.95 vs. 0.87). These results validate the effectiveness of applying operating systems principles to agent resource management. The key insight that agent resources are analogous to OS resources opens promising directions for future research. As agent systems continue to grow in complexity and scale, prin-cipled resource management will become increasingly critical for practical deployment. AgentRM provides a foundation for this evolution, demonstrating how decades of operating systems research can inform the design of next-generation intelligent systems. Our work contributes to the broader vision of reliable, scal-able agent systems that can handle the demands of production environments while maintaining the user experience quality essential for widespread adoption. REFERENCES [1] Q. Wu et al., ”AutoGen: Enabling next-generation large language model applications via multi-agent conversation framework,” arXiv preprint arXiv:2308.08155 , 2023. [2] ”CrewAI: Framework for orchestrating role-playing autonomous AI agents,” Available: https://github.com/joaomdmoura/crewAI, 2024. [3] ”LangGraph: Build language agents as graphs,” Available: https://github.com/langchain-ai/langgraph, 2024. [4] F. J. Corbat´ o et al., ”An experimental time-sharing system,” Proceedings of the May 1-3, 1962, spring joint computer conference , pp. 335-344, 1962. [5] I. Moln´ ar, ”CFS Scheduler,” Linux kernel documentation , 2007. [6] ”Solaris Tunable Parameters Reference Manual,” Sun Microsystems, 2005. [7] D. M. Ritchie and K. Thompson, ”The UNIX time-sharing system,”                    
+
+> Communications of the ACM , vol. 17, no. 7, pp. 365-375, 1974. [8] V. Jacobson, ”Congestion avoidance and control,” ACM SIGCOMM Computer Communication Review , vol. 18, no. 4, pp. 314-329, 1988. [9] ATM Forum, ”Traffic Management Specification Version 4.0,” ATM Forum Technical Committee, 1996. [10] A. Ghodsi et al., ”Dominant resource fairness: Fair allocation of mul-tiple resource types,” Proceedings of the 8th USENIX conference on Networked systems design and implementation , pp. 24-37, 2011. [11] V. K. Vavilapalli et al., ”Apache hadoop yarn: Yet another resource nego-tiator,” Proceedings of the 4th annual Symposium on Cloud Computing ,pp. 1-16, 2013. [12] J. L. Hennessy and D. A. Patterson, Computer architecture: a quantita-tive approach , Morgan Kaufmann, 2019. [13] P. J. Denning, ”Virtual memory,” ACM Computing Surveys , vol. 2, no. 3, pp. 153-189, 1970. [14] E. J. O’neil et al., ”The LRU-K page replacement algorithm for database disk buffering,” ACM SIGMOD Record , vol. 22, no. 2, pp. 297-306, 1993. [15] N. Megiddo and D. S. Modha, ”ARC: A self-tuning, low overhead replacement cache,” FAST , vol. 3, pp. 115-130, 2003. [16] S. Sengupta et al., ”zswap: a lightweight compressed cache for swap pages,” Linux kernel documentation , 2013. [17] L. A. B´ el´ ady, ”A study of replacement algorithms for a virtual-storage computer,” IBM Systems Journal , vol. 5, no. 2, pp. 78-101, 1966.
+
+[18] P. Emelyanov et al., ”CRIU: Checkpoint and restore in userspace,” Linux Plumbers Conference , 2014. [19] C. Clark et al., ”Live migration of virtual machines,” Proceedings of the 2nd conference on Symposium on Networked Systems Design & Implementation , pp. 273-286, 2005. [20] C. Mohan et al., ”ARIES: a transaction recovery method supporting fine-granularity locking and partial rollbacks using write-ahead logging,” 
+
+ACM Transactions on Database Systems , vol. 17, no. 1, pp. 94-162, 1992. [21] ”Pressure stall information (PSI),” Linux kernel documentation, 2018. [22] W. Kwon et al., ”Efficient memory management for large language model serving with PagedAttention,” Proceedings of the 29th Symposium on Operating Systems Principles , pp. 611-626, 2023. [23] G. Yu et al., ”Orca: A distributed serving system for Transformer-based generative models,” Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation , pp. 521-538, 2022. [24] L. Zheng et al., ”SGLang: Efficient execution of structured generation programs on large language models,” arXiv preprint arXiv:2312.07104 ,2023. [25] C. Packer et al., ”MemGPT: Towards llms as operating systems,” arXiv preprint arXiv:2310.08560 , 2023. [26] Y. Wang et al., ”LongMem: Augmenting large language models with long-term memory,” arXiv preprint arXiv:2308.10813 , 2023. [27] A. Verma et al., ”Large-scale cluster management at Google with Borg,” 
+
+Proceedings of the Tenth European Conference on Computer Systems ,pp. 1-17, 2015. [28] ”Kubernetes: Production-grade container orchestration,” Available: https://kubernetes.io/, 2024. [29] B. Hindman et al., ”Mesos: A platform for fine-grained resource sharing in the data center,” Proceedings of the 8th USENIX conference on Networked systems design and implementation , pp. 22-22, 2011. [30] ”OpenClaw: The universal automation platform,” Available: https://github.com/OpenClaw, 2024. [31] ”GitHub Codex: AI-powered code completion,” GitHub, 2024. [32] ”Claude Code: Anthropic’s code assistant,” Anthropic, 2024. [33] ”Linux Kernel Documentation: Process Scheduling,” Available: https://kernel.org/, 2024. [34] ”Windows Thread Scheduling,” Microsoft Documentation, 2024. [35] ”TensorFlow Serving,” Available: https://github.com/tensorflow/serving, 2024. [36] ”Ray: A unified framework for scaling AI and Python applications,” Available: https://ray.io/, 2024. [37] ”Celery: Distributed task queue,” Available: https://celeryproject.org/, 2024. [38] ”Redis: In-memory data structure store,” Available: https://redis.io/, 2024.

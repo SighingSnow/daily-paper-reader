@@ -1,0 +1,629 @@
+Title: When the Specification Emerges: Benchmarking Faithfulness Loss in Long-Horizon Coding Agents
+
+URL Source: https://arxiv.org/pdf/2603.17104v1
+
+Published Time: Thu, 19 Mar 2026 00:14:09 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# When the Specification Emerges: Benchmarking Faithfulness Loss in Long-Horizon Coding Agents 
+
+Lu Yan and Xuan Chen and Xiangyu Zhang 
+
+Purdue University 
+
+Abstract 
+
+Current coding-agent benchmarks usually pro-vide the full task specification upfront. Real research coding often does not: the intended system is progressively disclosed through in-teraction, requiring the agent to track durable design commitments across a long session. We introduce a benchmark for this setting and study faithfulne Ss Loss U nder e M ergent s Pecification ( SLUMP ), defined as the reduc-tion in final implementation faithfulness un-der emergent specification relative to a single-shot specification control. The benchmark con-tains 20 recent ML papers (10 ICML 2025, 10 NeurIPS 2025), 371 atomic verifiable compo-nents, and interaction scripts of approximately 60 coding requests that progressively disclose the target design without revealing the paper itself. Final repositories are scored with a five-level component-faithfulness rubric and accompanied by an exposure audit to verify that scored components are recoverable from the visible interaction. Evaluated on Claude Code and Codex, the single-shot specification control achieves higher overall implementation fidelity on 16/20 and 14/20 papers, respectively. Structural integration degrades under emergent specification on both platforms, while seman-tic faithfulness loss is substantial on Claude Code and small on Codex. As a mitigation case study, we introduce ProjectGuard , an exter-nal project-state layer for specification tracking. On Claude Code, ProjectGuard recovers 90% of the faithfulness gap, increases fully faith-ful components from 118 to 181, and reduces severe failures from 72 to 49. These results identify specification tracking as a distinct eval-uation target for long-horizon coding agents. The benchmark is open-sourced on Github. 
+
+1 Introduction 
+
+AI coding agents are increasingly used to imple-ment research ideas in practice. Recent bench-marks evaluate whether agents can translate pa-pers or task descriptions into working code, in-cluding PaperBench (Starace et al., 2025), MLR-Bench (Chen et al., 2025), LMR-Bench (Yan et al., 2025), and RECODE-H (Miao et al., 2025). These benchmarks have substantially advanced evaluation of coding agents, but they largely share a common assumption: the target specification is available at the start of the session, whether as a paper, a task description, or a test suite. They do not measure whether an agent can faithfully implement a sys-tem whose specification is distributed across a long interaction. Real research workflows often violate this as-sumption. A researcher rarely begins with a com-plete implementation blueprint. Early turns frame the idea and compare alternatives, middle turns implement components under partial specification, and later turns refine and integrate those compo-nents into a unified training and evaluation pipeline. The intended method is therefore not written once in a canonical prompt. It is assembled across many turns, interleaved with exploratory alternatives, lo-cal revisions, and integration decisions. Faithful implementation in this setting requires specifica-tion tracking: the agent must retain durable design commitments introduced earlier in the interaction and preserve them as the codebase evolves (Zhu et al., 2026; Liu et al., 2026). We study faithfulne Ss L oss Under e Mergent sP ecification ( SLUMP ): the reduction in final im-plementation faithfulness that occurs when the tar-get design is disclosed progressively through in-teraction rather than provided upfront. SLUMP is an endpoint-based notion. We do not attempt to measure temporal drift inside a session. Instead, we ask whether the final repository produced under emergent specification is less faithful than the final repository produced by the same platform under a single-shot specification control. We analyze this loss along two diagnostic dimensions: semantic faithfulness to the committed design and structural 1
+
+> arXiv:2603.17104v1 [cs.SE] 17 Mar 2026
+
+integration of earlier modules into the final system. To measure SLUMP , we construct a benchmark from 20 randomly sampled ML papers (10 from ICML 2025 and 10 from NeurIPS 2025). For each paper, we extract a canonical specification from the original text, decompose it into atomic verifi-able components, and derive an interaction script of approximately 60 coding requests that progres-sively discloses the target design without revealing the paper itself. Across the 20 papers, this yields 371 frozen components for evaluation. We score the final repository against a five-level component faithfulness rubric and complement scoring with an exposure audit that checks, for each component, whether it is recoverable from the agent-visible in-teraction. This audit is necessary because emergent-specification evaluation is only meaningful if the target components are actually inferable from the visible dialogue. We instantiate the benchmark on two long-horizon coding platforms, Claude Code and Codex, under two conditions: emergent specification and a single-shot specification control. The single-shot control achieves higher overall implementation fi-delity on 16 of 20 papers on Claude Code and 14 of 20 papers on Codex, providing direct evidence of 
+
+SLUMP . The decomposition of this gap differs across platforms: structural integration degrades under emergent specification on both systems, while se-mantic faithfulness loss is substantial on Claude Code and small on Codex. These results show that progressive specification disclosure imposes a mea-surable cost on final implementation fidelity even when the underlying platform and tooling are held fixed. As a case study in targeted mitigation, we in-troduce ProjectGuard , an external project-state layer for specification tracking. ProjectGuard 
+
+maintains a semantic view of committed project knowledge and a structural view of repository organization, then injects a compatibility-aware project brief before each coding turn or proactive restart. On Claude Code, where SLUMP is substan-tial, ProjectGuard recovers 90% of the faithful-ness gap between emergent specification and the single-shot specification control, increases the num-ber of fully faithful components by 53%, and re-duces severe failures by 32%. This paper makes three contributions. First, it introduces a benchmark and evaluation method-ology for specification tracking under emergent-specification coding, combining long interaction scripts, component-level faithfulness scoring, and an exposure-based fairness audit. Second, it pro-vides empirical evidence that emergent specifica-tion reduces final implementation fidelity relative to a single-shot specification control on current long-horizon coding platforms. Third, it presents 
+
+ProjectGuard as a targeted mitigation case study, showing that externally maintained project state can substantially reduce SLUMP without modifying the underlying model. The benchmark is open-sourced on Github. 
+
+2 Problem Statement 
+
+2.1 Emergent-Specification Coding 
+
+We study emergent-specification coding, a multi-turn coding setting in which the target system is not given in a single initial prompt but is progressively disclosed through user requests. Early turns may explore alternatives or defer details, middle turns implement components under partial specification, and later turns refine and integrate those compo-nents into a complete system. The implementation target is therefore distributed across the interaction rather than stated upfront. This setting requires the agent to retain both lo-cal task state and project-level specification state. Local task state includes recent files, current errors, and the immediate edit under discussion. Project-level specification state includes durable design commitments such as equations, architectural con-straints, interface contracts, and evaluation require-ments. Faithful implementation requires tracking both across a long interaction. We evaluate agents against the final commit-ted design: the set of design facts that are estab-lished by the end of the interaction as part of the intended system. Exploratory alternatives, aban-doned branches, and unresolved suggestions are not part of the target. The benchmark construc-tion in Section 3 operationalizes this target using a canonical specification derived from the source paper and an interaction script that reveals it pro-gressively without exposing the paper itself. 
+
+2.2 SLUMP : Faithfulness Loss Under Emergent Specification 
+
+Let p denote a task and a an agent platform. Let 
+
+Rem  
+
+> p,a
+
+be the final repository produced when the agent receives the emergent multi-turn interaction, and let Rss  
+
+> p,a
+
+be the final repository produced when the same agent receives the complete specification 2in a single shot upfront. For any implementation-faithfulness metric F , we define faithfulne S s Loss Under eMergent sPecification ( SLUMP ) as 
+
+SLUMP F (p, a ) = F (Rss 
+
+> p,a
+
+) − F (Rem 
+
+> p,a
+
+).
+
+Positive values indicate that progressive disclosure reduces final implementation faithfulness relative to the single-shot specification control. This definition is deliberately endpoint-based. We do not attempt to measure temporal drift within a session. Instead, we measure whether the fi-nal implementation under emergent specification is less faithful than the final implementation obtained when the full design is available from the start. We analyze SLUMP along two diagnostic dimen-sions. The first is semantic faithfulness : whether the final code implements the committed algorith-mic content of the target design. The second is 
+
+structural integration : whether later-stage code preserves and reuses earlier modules rather than bypassing or reimplementing them along incom-patible paths. These dimensions are measured later using Mean Component Faithfulness (MCF) and Dependency Integration Ratio (DIR), respectively. They are diagnostic views of the observed loss rather than claims about its unique cause. 
+
+3 Benchmark 
+
+Our benchmark is designed to evaluate specifica-tion tracking under emergent-specification coding. It targets four properties. First, the target system should emerge through interaction rather than be-ing given upfront in a single prompt. Second, ses-sions should be long enough to require the agent to preserve design commitments across a sustained implementation arc rather than only across local edits. Third, evaluation should be component-level and tied to a frozen target specification derived from the source paper. Fourth, the papers should be recent and high-value so that contamination risk is reduced, though not eliminated. The benchmark therefore aims to be neither trivially unfair nor triv-ially explicit: most scored components must be recoverable from the visible interaction, but many should only become clear after integrating informa-tion across turns. We construct the benchmark from 20 recent ML papers: 10 randomly sampled from ICML 2025 and 10 from NeurIPS 2025. Each paper is converted into an emergent-specification coding task together with a frozen component checklist for evaluation. 
+
+3.1 Construction Pipeline 
+
+All benchmark assets are produced with a sin-gle frozen model snapshot ( CLAUDE -SONNET -4-5-20250929) using fixed prompt templates and schema-constrained outputs. The model serves as a controlled annotation instrument rather than an oracle for scientific truth: the original paper re-mains the sole authority for all paper-grounded content. Exact prompts, snapshot identifiers, and output schemas are provided in the appendix. 
+
+Phase 1: specification grounding. For each pa-per, we first extract a canonical specification from the PDF. This artifact contains a detailed method description with explicit mathematical content, the datasets and metrics used in evaluation, a step-by-step implementation plan, and plausible local de-sign alternatives for major components. The pur-pose of the canonical specification is not to recon-struct the authors’ historical development process, but to define a single frozen implementation target against which final repositories can be scored. We then decompose the canonical specification into atomic verifiable components. Each compo-nent records its intended functionality, exact for-mula when applicable, expected inputs and outputs, and module-level connections to the rest of the sys-tem. We focus on algorithmic structure and inter-module wiring. Hyperparameters are excluded un-less they are part of the mathematical identity of the method. This extraction is performed once per paper and frozen before any agent run. Across the 20 papers, the benchmark contains 371 verifiable components in total. 
+
+Phase 2: interaction scaffolding. Given the canonical specification, we synthesize a latent tra-jectory of 10 to 20 intermediate project versions. The first version begins from a deliberately under-specified idea, such as a loose objective family or a vague architectural template, and the final ver-sion matches the canonical method exactly. Each transition introduces one meaningful refinement to the design. We then convert these refinements into natural-language coding requests under a strict agent-blindness constraint: the agent sees neither the source paper nor the hidden canonical specifi-cation. Each paper yields approximately 60 user requests. These trajectories are synthetic rather than histor-ical. They are not intended to reconstruct how the original authors discovered the method. Instead, 30 10 20 30 40 50 60       
+
+> Turn
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Fraction explicitly specified (R=4)
+> 010 20 30 40 50 60
+> Turn
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Fraction recoverable (R>=1)
+> asgoadaptive
+> atlasdautomatic
+> capturingpolyse
+> curvatureenhanc
+> dualequidualspa
+> hierarchicalequ
+> humantexts
+> infoconsidentif
+> largelanguagege
+> lowrank
+> nonlinearlyprec
+> ppdiffdiffusing
+> quantifyingtask
+> randomfeature
+> safeautoknowled
+> scalablepolicyb
+> slothscaling
+> tcpdiffusionmul
+> towardscomprehe
+> towardsreliable
+
+Figure 1: Cumulative exposure over turns. Left: fraction of components explicitly specified ( R=4 ). Right: 
+
+fraction recoverable ( R≥1). Each line is one paper. The gap between panels reflects the ambiguous middle where components are inferable but not yet fully specified. 
+
+they are constrained to satisfy three benchmark requirements: temporal coherence, meaningful re-finement at each step, and exact convergence to the canonical specification. This lets us evaluate whether an agent can recover and preserve a dis-tributed target design without ever seeing that de-sign in one place. 
+
+3.2 Scoring Protocol 
+
+After each run, the final repository is scored component-wise against the frozen checklist us-ing the five-level rubric in Table 1. Scoring is per-formed by a bounded LLM judge with at most eight repository-inspection tool calls per compo-nent. The judge is given the component specifica-tion and may inspect the repository, but it does not have access to hidden benchmark artifacts beyond the frozen component description. The distinction between equivalent and faith-ful is important. A component receives score 3 if the implementation differs in form but preserves the same functional behavior and system role. It receives score 4 only when the implementation closely matches both the intended formulation and its architectural realization. This distinction mat-ters because SLUMP is not limited to outright omis-sion or failure; it can also appear as a structurally weaker or differently realized implementation that still partially works. 
+
+3.3 Benchmark Fairness Validation 
+
+An emergent-specification benchmark raises an im-mediate validity question: are the scored compo-nents actually recoverable from the interaction the agent observed? If not, low scores would reflect benchmark unfairness rather than a failure of speci-fication tracking. We address this with an exposure audit conducted independently of any agent run. 
+
+Score Label Definition 0 Absent No code attempts this compo-nent. 1 Wrong Code attempts the component but implements logic incon-sistent with the specification. 2 Simplified Code implements a degraded or approximate version of the intended component. 3 Equivalent Code differs in form but pre-serves the same functional be-havior and system role. 4 Faithful Code closely matches the in-tended formulation and archi-tectural realization. 
+
+Table 1: Component-level faithfulness rubric used to score final repositories against the frozen benchmark specification. 
+
+For each component c, we annotate the recov-erability level from the visible interaction and repository state alone. The recoverability level 
+
+R(c) ∈ { 0, 1, 2, 3, 4} records whether a competent agent could infer the intended component from the visible interaction. Score 0 indicates that the com-ponent is not recoverable from the visible interac-tion. Score 1 indicates weak recoverability. Score 2 indicates recoverability with residual ambiguity. Score 3 indicates clear recoverability. Score 4 indi-cates that the component is explicitly specified. We summarize this audit with two corpus-level statistics. The Recoverable Component Rate is 
+
+RCR = 1
+
+|C|
+
+X
+
+> c
+
+1[R(c) ≥ 1] ,
+
+the fraction of scored components that are at least weakly inferable from the visible interaction. The Explicitly Specified Rate is 
+
+ESR = 1
+
+|C|
+
+X
+
+> c
+
+1[R(c) = 4] ,
+
+4the fraction stated without ambiguity. Across the 20 papers, the macro-averaged RCR is 0.994, while the macro-averaged ESR is 0.666. In total, 358 of 371 components are both committed and recov-erable. Thus, nearly all scored components are available from the visible dialogue, but many must be assembled across turns rather than copied from a single explicit instruction. Figure 1 plots the cumulative fraction of compo-nents that are explicitly specified ( R=4 , left) and recoverable ( R≥1, right) as a function of turn num-ber, for each paper. Two features are visible. First, the curves are spread across papers: some meth-ods are largely specified by turn 20, while others continue introducing new components past turn 40. Second, the right panel converges faster than the left, indicating that many components enter an am-biguous window (recoverable but not yet explicit) before their final form is committed. This temporal structure is by design and ensures that the bench-mark stresses long-horizon retention rather than testing only the agent’s response to the final few turns. 
+
+3.4 Score Calibration Benchmark-asset audit. We sample five papers and manually inspect their canonical specifications, latent trajectories, generated request scripts, and extracted component sets against the original pa-pers. The audit checks four properties: canonical specifications preserve the paper’s mathematical content without hallucinating unsupported com-mitments; design alternatives are plausible local options rather than historical claims; the latent tra-jectory is temporally coherent and converges ex-actly to the canonical specification; and the coding requests are sufficiently specific for an agent that cannot access hidden benchmark artifacts. Based on this audit, we revise the prompt templates once and freeze the final construction pipeline. 
+
+Judge calibration. Because both benchmark con-struction and scoring involve LLM-based annota-tion, we calibrate the automated judge against hu-man labels (Zhuge et al., 2025) on 120 component-run pairs stratified across papers, platforms, and score levels. Two independent annotators, each blind to the judge and to each other, inspect the repository and assign scores using the same five-level rubric. Table 2 reports agreement between each annotator and the automated judge, as well as inter-annotator agreement. Agreement is high:                          
+
+> Metric A1–Judge A2–Judge A1–A2 Weighted κ(quadratic) 0.927 0.882 0.930 Exact-match accuracy 91.7% 86.7% 88.3% Spearman ρ0.938 0.899 0.932 Within ±197.5% 96.7% 99.2% Boundary disagr. (2–3) 1.8% 4.9% 5.2% Boundary disagr. (3–4) 3.3% 6.2% 7.9%
+> Table 2: Pairwise agreement among the automated com-ponent judge and two independent annotators (each blind to the other scores) on 120 stratified component-run pairs.
+
+weighted Cohen’s κ is 0.882–0.927 between an-notators and judge, inter-annotator agreement is 0.930, and 96.7%–99.2% of pairwise scores fall within ±1. The dominant residual error is con-servative false absence: in four cases per annota-tor, the judge assigns score 0 despite relevant code existing in the repository, with three such cases shared across both annotators. This suggests that remaining disagreement is driven more by bounded repository search than by rubric ambiguity. Full details about the benchmark can be found in Appendix A. 
+
+4 Experiments 
+
+4.1 Setup 
+
+We evaluate whether emergent specification re-duces final implementation faithfulness relative to a single-shot specification control. We use two commercial long-horizon coding systems, Claude Code and Codex. For each of the 20 benchmark papers, we run two conditions on each platform. In the emergent condition, the agent receives the multi-turn interaction script and must recover the target design progressively through dialogue. In the single-shot specification control, the agent re-ceives the complete paper in one prompt at the start of the session. This yields 80 runs in total. The single-shot specification control is the rel-evant contrast for SLUMP . It keeps the platform, model family, and tooling fixed while removing the need to assemble the design across turns. The resulting gap therefore measures the cost of pro-gressive specification disclosure under the same coding environment. We report three metrics. Mean Component Faith-fulness (MCF) measures semantic faithfulness to the committed design. Let si ∈ { 0, 1, 2, 3, 4} be the rubric score for component i and let N be the 50.25 
+
+> 0.50
+> 0.75
+> IF50
+> Claude Code
+> P1 P2 P3 P4 P5 P6 P7 P8 P9
+> P10
+> P11
+> P12
+> P13
+> P14
+> P15
+> P16
+> P17
+> P18
+> P19
+> P20
+> Paper
+> 0.25
+> 0.50
+> 0.75
+> IF50
+> Codex
+> Emergent
+> Single-shot
+> Positive gap
+> Negative gap
+
+Figure 2: Per-paper IF50 under emergent specification and the single-shot specification control. 
+
+number of components in the paper. Then 
+
+MCF = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+si.
+
+MCF ranges from 0 to 4. Dependency Integration Ratio (DIR) (Le Hai et al., 2025) measures structural integration: 
+
+DIR = |Eused ||Etotal | ,
+
+where Etotal is the set of public symbols exported by standalone modules and Eused is the subset ac-tually reused by downstream integration code. DIR ranges from 0 to 1. To summarize both dimensions, we define im-plementation faithfulness 
+
+IF50 = 12
+
+ MCF 4
+
+
+
++ 12 DIR .
+
+IF50 ranges from 0 to 1 and serves as our primary endpoint metric for SLUMP .
+
+4.2 Results 
+
+Figure 2 shows per-paper IF50 under emergent specification and the single-shot specification con-trol. On Claude Code, the single-shot control out-performs emergent specification on 16 of 20 papers, with a mean IF50 gap of +0 .116 and Wilcoxon signed-rank p = 0 .0003 . On Codex, the same pat-tern holds on 14 of 20 papers, with a mean gap of 
+
++0 .071 and p = 0 .012 . This is the primary evi-dence for SLUMP : when the same platform receives the full design upfront rather than progressively                
+
+> Platform / Condition MCF DIR IF50 Claude Code / Emergent 2.718 0.149 0.414 Claude Code / Single-shot 3.031 0.303 0.530 Codex / Emergent 3.242 0.148 0.479 Codex / Single-shot 3.245 0.289 0.550
+
+Table 3: Aggregate faithfulness under emergent specifi-cation and the single-shot specification control. 0.6 0.7 0.8 0.9 1.0 
+
+> Test Pass Rate
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> IF50
+> TPR vs. IF50
+> Claude Code
+> Codex
+
+Figure 3: Test pass rate fails to detect SLUMP .
+
+through interaction, final implementation fidelity is higher. The decomposition of this gap differs across plat-forms. On Claude Code, emergent specification lowers both semantic faithfulness and structural in-tegration: MCF drops from 3.031 under the single-shot control to 2.718 under emergent specification, while DIR drops from 0.303 to 0.149. On Codex, the MCF gap is negligible (3.245 versus 3.242), but the DIR gap remains substantial (0.289 versus 0.148). Thus, SLUMP is robust at the overall IF50 level and robust on structural integration across both platforms, while semantic faithfulness loss is concentrated on Claude Code. This platform asymmetry is important. It shows that SLUMP is not tied to a single narrow failure pattern. Progressive specification disclosure can re-duce final implementation fidelity through different mixtures of semantic loss and structural non-reuse on different systems. For this reason, we treat MCF and DIR as diagnostic views of SLUMP , while using IF50 as the primary summary measure. Note that executable tests do not reliably detect 
+
+SLUMP . Across multi-turn runs, as shown in Fig-ure 3, the correlation between test pass rate and IF50 is low, indicating that agent-authored tests may validate the implementation that was produced without verifying that it remains faithful to the in-tended design. 6Case Description Committed design Three-stream residual update committed in the visible interaction by turn 40/97: scalar state receives summed EU+SH deltas; coordinates receive an EU delta; SH features receive an SH delta. Emergent Final integrated model bypasses the earlier module, drops the coordinate update, and replaces the summed scalar residual with separate h_eu /h_sh paths. Score: Simpli-fied (2/4). Single-shot Final model preserves all three residual paths in one layer module, including the coordinate update and summed scalar residual. Score: Faithful (4/4). 
+
+Table 4: Representative example of SLUMP on a clearly committed component. The emergent run implements the intended module earlier in the session but does not preserve it in the final integrated pipeline, whereas the single-shot specification control does. 
+
+Qualitative example. One representative ex-ample comes from the DualEquiNet task (Xu et al., 2025). By turn 40/97, the visible inter-action clearly commits to a three-stream resid-ual update: the scalar state receives the sum of the EU and SH deltas, coordinates receive an EU coordinate delta, and SH features receive an SH delta. In the emergent run, the agent initially implements this design as a dedicated module ( equivariant_coordinate_update.py ), but the final consolidated model later bypasses that module, drops the coordinate update, and replaces the summed scalar residual with sep-arate h_eu /h_sh MLP paths. The final reposi-tory therefore receives a Simplified score on this component, and the earlier module is no longer reused by the final pipeline. Under the single-shot specification control, the same platform pre-serves all three residual paths in a single layer mod-ule ( src/layers/dualequi_layer.py ), yielding a Faithful score. This example illustrates SLUMP as a failure to preserve a committed component dur-ing integration rather than a failure to implement it in isolation. 
+
+5 Mitigating SLUMP with ProjectGuard 
+
+Section 4 showed that emergent specification re-duces final implementation faithfulness relative to the single-shot specification control, with losses visible in both semantic faithfulness and structural integration. As a case study in targeted mitigation, we introduce ProjectGuard , an external project-state layer designed to improve specification track-ing in long-horizon coding without modifying the underlying model or the platform’s native context-management mechanism. 
+
+5.1 Method 
+
+ProjectGuard maintains two synchronized exter-nal views of the project. The first is a semantic state that stores durable project knowledge, in-cluding design commitments, implementation de-cisions, and supporting resources extracted from accepted project progress. This state is conserva-tive: it records committed project facts rather than every proposal made during the interaction. The second is a structural state that summarizes the cur-rent repository organization, including files, public symbols, and interface relations derived directly from the codebase. The semantic state captures what the project is intended to do; the structural state captures where those commitments live in code and what compatibility constraints later edits must respect. Before each coding turn, a forecaster combines the current request with prior user requests and the external project state to generate a task brief for the coding agent. The brief highlights relevant de-sign commitments, identifies modules that should be preserved or revised, and surfaces repository constraints needed for compatibility-aware modifi-cation. When the remaining live context is likely in-sufficient for the upcoming request, ProjectGuard 
+
+starts a fresh session and injects a rendered project brief containing the current semantic and structural state. This design targets the two diagnostic dimen-sions of SLUMP . The semantic state supports reten-tion of committed algorithmic content, while the structural state and forecasting step support reuse and integration of previously implemented mod-ules. 
+
+5.2 Results 
+
+We evaluate whether ProjectGuard reduces 
+
+SLUMP by comparing emergent+ ProjectGuard 
+
+runs against the plain emergent baseline on the same benchmark and platforms. To contextualize the gains, we also report gap recovery relative to the full-specification control: 
+
+Recovery F = F (Rmem ) − F (Rem )
+
+F (Rss ) − F (Rem ) ,
+
+7when the denominator is positive. On Claude Code, where Section 4.2 showed substantial SLUMP , ProjectGuard improves MCF from 2.718 to 3.000, recovering 90% of the full-to-emergent gap. Fully faithful components in-crease from 118 to 181 out of 371, while severe failures decrease from 72 to 49. IF50 improves on 15 of 20 papers. These gains indicate that external project state can substantially reduce faithfulness loss when the baseline platform exhibits it. On Codex, semantic gains are small, consistent with the limited MCF gap observed in Section 4.2. Structural gains remain meaningful: DIR improves on 15 of 19 papers with non-missing values, with mean relative improvement of 76%. This suggests that compatibility-aware forecasting and structural state can improve integration even when semantic faithfulness is already comparatively stable. Per-paper results, overhead statistics, and imple-mentation details are provided in the Appendix B. 
+
+6 Related Work 
+
+Recent work benchmarks coding agents under in-teractive, project-level, or research-oriented set-tings. InterCode (Yang et al., 2023) introduced interactive coding with execution feedback. Pro-jectEval (Liu et al., 2025), RepoExec (Le Hai et al., 2025), and FEA-Bench (Li et al., 2025b) evalu-ate project- and repository-level code generation from fixed task descriptions or provided reposi-tory context. In research-oriented settings, Paper-Bench (Starace et al., 2025), LMR-BENCH (Yan et al., 2025), ResearchCodeBench (Hua et al., 2025), and RECODE-H (Miao et al., 2025) evalu-ate paper-grounded implementation when the pa-per, masked repository targets, or structured task feedback are available to the agent from the start, while MLR-Bench (Chen et al., 2025) broadens the setting to open-ended ML-research workflows beyond coding alone. Closer in spirit, CodeFlow-Bench (Wang et al., 2025) and SR-Eval (Zhan et al., 2025) study multi-turn code generation under iter-ative decomposition or stepwise requirement re-finement. Our benchmark differs in one specific way: the target design is paper-grounded but never shown upfront, and evaluation targets final faithful-ness to the accumulated design rather than comple-tion against a fixed initial specification. A separate literature studies how agents cope with long horizons and large repositories. At the context level, prior work explores simple masking versus summarization, gist-style memory, activation-level compression, and learned context-management mechanisms such as Context Fold-ing (Sun et al., 2025), AgentFold (Ye et al., 2025), and MEM1 (Zhou et al., 2026). At the reposi-tory level, Think-Search-Patch (Xiong et al., 2025), repository-memory methods, and structure-aware retrieval methods improve code repair or reposi-tory code generation by recovering relevant context from files, commits, issues, or structural graphs. Concurrently, SWE-ContextBench (Zhu et al., 2026) and LoCoEval (Liu et al., 2026) evaluate context reuse and retention in repository-oriented task sequences. Our setting is complementary: the state that must be tracked is not only latent in the repository or earlier observations, but also newly committed design knowledge introduced by the user over time. Finally, several works argue that execution-based metrics alone are too coarse for agentic de-velopment. Agent-as-a-Judge (Zhuge et al., 2025) provides requirement-level evaluation for develop-ment tasks, LLM critics for code changes study execution-free evaluation of repository patches, and SciCoQA (Baumgärtner and Gurevych, 2026) focuses specifically on discrepancies between sci-entific papers and codebases. Our evaluation fol-lows the same general motivation but targets a dif-ferent object: faithfulness of the final repository to a progressively disclosed, paper-derived design. 
+
+7 Conclusion 
+
+We introduced a benchmark to measure SLUMP ,the reduction in final implementation faithfulness when a target design is progressively disclosed rather than provided upfront. Among 20 papers in the benchmark, emergent specification consis-tently lowers implementation fidelity relative to a single-shot specification control, especially in struc-tural integration. A mitigation case study shows that explicitly tracking external semantic and struc-tural project state substantially reduces SLUMP . The benchmark and results highlight specification track-ing as a distinct challenge for evaluating and im-proving long-horizon coding agents. 8Limitations 
+
+This work has several limitations. First, the bench-mark is built from 20 recent ML papers and instan-tiated on two commercial long-horizon coding plat-forms. Although this is sufficient to establish the ex-istence of SLUMP in our setting, it does not by itself characterize all research domains, all task types, or all coding agents. In particular, the benchmark focuses on method implementation with substantial mathematical structure, and the observed patterns may differ for broader software-engineering tasks or for research workflows in which the final design is less crisply defined. Second, the benchmark interaction scripts are synthetic. They are constructed to be temporally coherent and to converge exactly to the canonical specification, but they do not reconstruct the au-thors’ historical research process. Our exposure audit helps validate that the scored components are recoverable from the visible interaction, yet syn-thetic trajectories may still differ from real user behavior in pacing, ambiguity, and revision style. Third, SLUMP is defined here as an endpoint gap relative to a single-shot specification control. We do not measure temporal degradation within a ses-sion, and we do not claim that our experiments isolate a unique mechanism behind the observed loss. The diagnostic dimensions in this paper, se-mantic faithfulness and structural integration, are useful views of the effect, but they are not a com-plete causal account. Fourth, both benchmark construction and com-ponent scoring rely in part on LLM-based anno-tation. We mitigate this with frozen prompts, a bounded judge, an exposure audit, and calibration against blinded human annotations, but residual annotation error remains possible. In addition, the single-shot specification control should be inter-preted as a matched comparison condition, not as a universal upper bound on achievable performance. Finally, ProjectGuard is presented as a case study in targeted mitigation rather than as a defini-tive solution. Its design choices are motivated by the benchmark’s diagnostic dimensions, but the current experiments do not establish which compo-nents of the system are necessary, whether the ap-proach generalizes across more platforms, or how it compares with a broader range of memory and context-management baselines. 9References 
+
+Sanghyun Ahn, Wonje Choi, Junyong Lee, Jinwoo Park, and Honguk Woo. 2025. Towards reliable code-as-policies: A neuro-symbolic framework for embodied task planning. Preprint , arXiv:2510.21302. Kang An, Yuxing Liu, Rui Pan, Yi Ren, Shiqian Ma, Donald Goldfarb, and Tong Zhang. 2025. Asgo: Adaptive structured gradient optimization. arXiv preprint arXiv:2503.20762 .Ameya Anjarlekar, Rasoul Etesami, and R Srikant. 2025. Scalable policy-based rl algorithms for pomdps. 
+
+Preprint , arXiv:2510.06540. Tim Baumgärtner and Iryna Gurevych. 2026. Scicoqa: Quality assurance for scientific paper–code align-ment. arXiv preprint arXiv:2601.12910 .Manu Bhat, Jonghyun Park, Jianke Yang, Nima Dehmamy, Robin Walters, and Rose Yu. 2025. At-lasd: Automatic local symmetry discovery. arXiv preprint arXiv:2504.10777 .Hui Chen, Miao Xiong, Yujie Lu, Wei Han, Ailin Deng, Yufei He, Jiaying Wu, Yibo Li, Yue Liu, and Bryan Hooi. 2025. Mlr-bench: Evaluating ai agents on open-ended machine learning research. In Advances in Neural Information Processing Systems, Datasets and Benchmarks Track .Tianyu Hua, Harper Hua, Violet Xiang, Benjamin Klieger, Sang T. Truong, Weixin Liang, Fan-Yun Sun, and Nick Haber. 2025. Researchcodebench: Benchmarking llms on implementing novel machine learning research code. In Advances in Neural In-formation Processing Systems, Datasets and Bench-marks Track .Cheng Huang, Pan Mu, Cong Bai, and Peter AG Watson. 2025. Tcp-diffusion: A multi-modal diffusion model for global tropical cyclone precipitation forecasting with change awareness. Preprint , arXiv:2410.13175. Laura Kopf, Nils Feldhus, Kirill Bykov, Philine Lou Bommer, Anna Hedström, Marina M-C Höhne, and Oliver Eberle. 2025. Capturing polysemanticity with prism: A multi-concept feature description frame-work. arXiv preprint arXiv:2506.15538 .Nam Le Hai, Dung Manh Nguyen, and Nghi DQ Bui. 2025. On the impacts of contexts on repository-level code generation. In Findings of the Association for Computational Linguistics: NAACL 2025 , pages 1496–1524. Insu Lee, Wooje Park, Jaeyun Jang, Minyoung Noh, Kyuhong Shim, and Byonghyo Shim. 2025. To-wards comprehensive scene understanding: Integrat-ing first and third-person views for lvlms. Preprint ,arXiv:2505.21955. Feifei Li, Mi Zhang, Zhaoxiang Wang, and Min Yang. 2025a. Infocons: Identifying interpretable criti-cal concepts in point clouds via information theory. 
+
+arXiv preprint arXiv:2505.19820 .Wei Li, Xin Zhang, Zhongxin Guo, Shaoguang Mao, Wen Luo, Guangyue Peng, Yangyu Huang, Houfeng Wang, and Scarlett Li. 2025b. FEA-bench: A bench-mark for evaluating repository-level code generation for feature implementation. In Proceedings of the 63rd Annual Meeting of the Association for Compu-tational Linguistics (Volume 1: Long Papers) .Zongzhao Li, Jiacheng Cen, Bing Su, Wenbing Huang, Tingyang Xu, Yu Rong, and Deli Zhao. 2025c. Large language-geometry model: When llm meets equivari-ance. Preprint , arXiv:2502.11149. Kaiyuan Liu, Youcheng Pan, Yang Xiang, Daojing He, Jing Li, Yexing Du, and Tianrun Gao. 2025. Pro-jectEval: A benchmark for programming agents au-tomated evaluation on project-level code generation. In Findings of the Association for Computational Linguistics: ACL 2025 , pages 20205–20221, Vienna, Austria. Association for Computational Linguistics. Yang Liu, Li Zhang, Fang Liu, Ping Lin, and Xinyi Li. 2026. A scalable benchmark for repository-oriented long-horizon conversational context management. 
+
+arXiv preprint arXiv:2603.06358 .Chunyu Miao, Henry Peng Zou, Yangning Li, Yankai Chen, Yibo Wang, Fangxin Wang, Yifan Li, Wooseong Yang, Bowei He, Xinni Zhang, and 1 oth-ers. 2025. Recode-h: A benchmark for research code development with interactive human feedback. arXiv preprint arXiv:2510.06186 .Konstantinos Oikonomidis, Jan Quan, Emanuel Laude, and Panagiotis Patrinos. 2025. Nonlinearly precondi-tioned gradient methods under generalized smooth-ness. Preprint , arXiv:2502.08532. Felipe Maia Polo, Seamus Somerstep, Leshem Choshen, Yuekai Sun, and Mikhail Yurochkin. 2025. Sloth: scaling laws for llm skills to predict multi-benchmark performance across families. Preprint ,arXiv:2412.06540. Yu Eric Qian, Wilson S. Geisler, and Xue-Xin Wei. 2025. Quantifying task-relevant similarities in rep-resentations using decision variable correlations. In 
+
+The Thirty-ninth Annual Conference on Neural Infor-mation Processing Systems .Ilya Kaufman Sirot and Omri Azencot. 2025. Curvature enhanced data augmentation for regression. arXiv preprint arXiv:2506.06853 .Zhenqiao Song, Tiaoxiao Li, Lei Li, and Martin Ren-qiang Min. 2025. Ppdiff: Diffusing in hybrid sequence-structure space for protein-protein complex design. Preprint , arXiv:2506.11420. Rishi Sonthalia, Michael Murray, and Guido Montúfar. 2025. Low rank gradients and where to find them. 
+
+Preprint , arXiv:2510.01303. Giulio Starace, Oliver Jaffe, Dane Sherburn, James Aung, Jun Shern Chan, Leon Maksin, Rachel Dias, Evan Mays, Benjamin Kinsella, Wyatt Thompson, 
+
+10 Johannes Heidecke, Amelia Glaese, and Tejal Pat-wardhan. 2025. Paperbench: Evaluating ai’s ability to replicate ai research. In Proceedings of the 42nd International Conference on Machine Learning .Weiwei Sun, Miao Lu, Zhan Ling, Kang Liu, Xuesong Yao, Yiming Yang, and Jiecao Chen. 2025. Scaling long-horizon llm agent via context-folding. arXiv preprint arXiv:2510.11967 .Sizhe Wang, Zhengren Wang, Dongsheng Ma, Yongan Yu, Rui Ling, Zhiyu Li, Feiyu Xiong, and Wentao Zhang. 2025. Codeflowbench: A multi-turn, itera-tive benchmark for complex code generation. arXiv preprint arXiv:2504.21751 .Bojian Xiong, Yikun Lei, Xikai Liu, Shaowei Zhang, Pengyun Zhu, Yan Liu, Yongqi Leng, Ling Shi, Meizhi Zhong, Yurong Zhang, Yan Gao, Yiwu Wu, Yao Hu, and Deyi Xiong. 2025. Think-search-patch: A retrieval-augmented reasoning framework for repository-level code repair. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: Industry Track .Junjie Xu, Jiahao Zhang, Mangal Prakash, Xiang Zhang, and Suhang Wang. 2025. Dualequinet: A dual-space hierarchical equivariant network for large biomolecules. arXiv preprint arXiv:2506.19862 .Shuo Yan, Ruochen Li, Ziming Luo, Zimu Wang, Daoyang Li, Liqiang Jing, Kaiyu He, Peilin Wu, Jun-tong Ni, George Michalopoulos, Yue Zhang, Ziyang Zhang, Mian Zhang, Zhiyu Chen, and Xinya Du. 2025. LMR-BENCH: Evaluating LLM agent’s abil-ity on reproducing language modeling research. In 
+
+Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing .John Yang, Akshara Prabhakar, Karthik Narasimhan, and Shunyu Yao. 2023. Intercode: Standardizing and benchmarking interactive coding with execution feed-back. Advances in Neural Information Processing Systems , 36:23826–23854. Rui Ye, Zhongwang Zhang, Kuan Li, Huifeng Yin, Zhengwei Tao, Yida Zhao, Liangcai Su, Liwen Zhang, Zile Qiao, Xinyu Wang, Pengjun Xie, Fei Huang, Siheng Chen, Jingren Zhou, and Yong Jiang. 2025. Agentfold: Long-horizon web agents with proactive context management. arXiv preprint arXiv:2510.24699 .Cong Zeng, Shengkun Tang, Yuanzhou Chen, Zhiqiang Shen, Wenchao Yu, Xujiang Zhao, Haifeng Chen, Wei Cheng, and Zhiqiang Xu. 2025. Human texts are outliers: Detecting llm-generated texts via out-of-distribution detection. arXiv preprint arXiv:2510.08602 .Zexun Zhan, Shuzheng Gao, Ruida Hu, and Cuiyun Gao. 2025. Sr-eval: Evaluating llms on code gener-ation under stepwise requirement refinement. arXiv preprint arXiv:2509.18808 .Jiawei Zhang, Xuan Yang, Taiqi Wang, Yu Yao, Aleksandr Petiushko, and Bo Li. 2025. Safeauto: Knowledge-enhanced safe autonomous driving with multimodal foundation models. Preprint ,arXiv:2503.00211. Haibo Zhao, Dian Wang, Yizhe Zhu, Xupeng Zhu, Owen Lewis Howell, Linfeng Zhao, Yaoyao Qian, Robin Walters, and Robert Platt. 2025. Hierarchical equivariant policy via frame transfer. In Forty-second International Conference on Machine Learning .Zijian Zhou, Ao Qu, Zhaoxuan Wu, Sunghwan Kim, Alok Prakash, Daniela Rus, Jinhua Zhao, Bryan Kian Hsiang Low, and Paul Pu Liang. 2026. MEM1: Learning to synergize memory and reasoning for effi-cient long-horizon agents. In The Thirteenth Interna-tional Conference on Learning Representations .Jared Zhu, Minhao Hu, and Junde Wu. 2026. Swe context bench: A benchmark for context learning in coding. arXiv preprint arXiv:2602.08316 .Mingchen Zhuge, Changsheng Zhao, Dylan R. Ashley, Wenyi Wang, Dmitrii Khizbullin, Yunyang Xiong, Zechun Liu, Ernie Chang, Raghuraman Krishnamoor-thi, Yuandong Tian, Yangyang Shi, Vikas Chandra, and Jürgen Schmidhuber. 2025. Agent-as-a-judge: Evaluate agents with agents. In Proceedings of the 42nd International Conference on Machine Learning .Nikita Zozoulenko, Thomas Cass, and Lukas Gonon. 2025. Random feature representation boosting. 
+
+Preprint , arXiv:2501.18283. 
+
+11 A Benchmark Construction Details 
+
+A.1 Sampling Frame and Paper List 
+
+We construct the benchmark from 20 recent ML pa-pers, randomly sampling 10 from ICML 2025 and 10 from NeurIPS 2025. We do not further curate the sample for benchmark difficulty. This choice intentionally preserves natural variation across pa-pers in mathematical complexity, component count, interaction length, and measured SLUMP . The bench-mark therefore reflects the heterogeneity of recent conference methods rather than a hand-selected set of particularly clean or difficult papers. Table 5 lists the sampled papers together with their component counts and interaction lengths. Be-low we provide a brief description of each paper to clarify the domain and methodological character of the corresponding benchmark task. 
+
+P1: ASGO (An et al., 2025). Proposes Adaptive Structured Gradient Optimization, which exploits the low-rank and block-diagonal structure of gra-dient matrices to reduce the memory and computa-tional cost of second-order optimization methods. The implementation involves structured precondi-tioner construction and adaptive rank selection. 
+
+P2: AtlasD (Bhat et al., 2025). Introduces an algorithm for automatically discovering local sym-metries in data by learning group-equivariant map-pings without requiring prior specification of the symmetry group. The benchmark components cen-ter on symmetry detection modules and equivariant network layers. 
+
+P3: PRISM (Kopf et al., 2025). Presents a multi-concept feature description framework for neural network interpretability that captures polysemantic neurons by decomposing activations into multiple semantically distinct concepts rather than assigning a single label per unit. 
+
+P4: Curvature Enhanced Data Augmenta-tion (Sirot and Azencot, 2025). Develops a data augmentation strategy for regression tasks that leverages curvature information from the input manifold to generate synthetic training samples in regions where the target function varies most rapidly. 
+
+P5: DualEquiNet (Xu et al., 2025). Proposes a dual-space hierarchical equivariant network for modeling large biomolecular structures by operat-ing simultaneously in Cartesian and internal co-ordinate spaces. The architecture enforces SE(3) equivariance through hierarchical message passing across spatial scales. 
+
+P6: Hierarchical Equivariant Policy (Zhao et al., 2025). Introduces a robot manipulation policy that achieves SE(3) equivariance through frame transfer across a hierarchy of reference frames, en-abling sample-efficient learning of spatial reason-ing for object rearrangement and assembly tasks. 
+
+P7: Human Texts Are Outliers (Zeng et al., 2025). Formulates LLM-generated text detection as an out-of-distribution detection problem, treat-ing human-written text as the in-distribution class and leveraging distributional divergence measures to identify machine-generated content without re-quiring access to the generating model. 
+
+P8: InfoCons (Li et al., 2025a). Proposes an information-theoretic framework for identifying interpretable critical concepts in point cloud data by selecting subsets of geometric primitives that maximize mutual information with downstream task labels. 
+
+P9: Large Language-Geometry Model (Li et al., 2025c). Bridges large language models and geo-metric reasoning by incorporating equivariant rep-resentations into the language model architecture, enabling joint processing of natural language in-structions and three-dimensional molecular or spa-tial inputs. 
+
+P10: Low Rank Gradients (Sonthalia et al., 2025). Provides theoretical and empirical anal-ysis of when and why gradient matrices in deep networks exhibit low-rank structure during train-ing, and develops practical criteria for predicting gradient rank as a function of architecture and train-ing dynamics. This paper yields the largest number of verifiable components (49) in the benchmark. 
+
+P11: Nonlinearly Preconditioned Gradient Methods (Oikonomidis et al., 2025). Extends preconditioned gradient descent to settings with generalized smoothness conditions, providing con-vergence guarantees for nonlinear preconditioning strategies that go beyond the standard Lipschitz gradient assumption. 
+
+P12: PPDiff (Song et al., 2025). Introduces a diffusion model for protein-protein complex design that operates in a hybrid sequence-structure space, 12 ID Venue Paper Title # Comp. # Req. P1 NeurIPS 2025 ASGO: Adaptive Structured Gradient Optimization 14 60 P2 ICML 2025 AtlasD: Automatic Local Symmetry Discovery 12 49 P3 NeurIPS 2025 Capturing Polysemanticity with PRISM: A Multi-Concept Feature Description Framework 16 60 P4 ICML 2025 Curvature Enhanced Data Augmentation for Regression 12 61 P5 NeurIPS 2025 DualEqui: A Dual-Space Hierarchical Equivariant Network for Large Biomolecules 22 60 P6 ICML 2025 Hierarchical Equivariant Policy via Frame Transfer 14 57 P7 NeurIPS 2025 Human Texts Are Outliers: Detecting LLM-generated Texts via Out-of-distribution Detection 10 60 P8 ICML 2025 InfoCons: Identifying Interpretable Critical Concepts in Point Clouds via Information Theory 19 60 P9 ICML 2025 Large Language-Geometry Model: When LLM meets Equivariance 16 51 P10 NeurIPS 2025 Low Rank Gradients and Where to Find Them 49 60 P11 ICML 2025 Nonlinearly Preconditioned Gradient Methods under Generalized Smoothness 20 60 P12 ICML 2025 PPDiff: Diffusing in Hybrid Sequence-Structure Space for Protein-Protein Complex Design 24 56 P13 NeurIPS 2025 Quantifying Task-relevant Similarities in Representations Using De-cision Variable Correlations 12 61 P14 ICML 2025 Random Feature Representation Boosting 18 48 P15 ICML 2025 SafeAuto: Knowledge-Enhanced Safe Autonomous Driving with Multimodal Foundation Models 26 59 P16 NeurIPS 2025 Scalable Policy-Based RL Algorithms for POMDPs 20 60 P17 NeurIPS 2025 Sloth: Scaling Laws for LLM Skills to Predict Multi-Benchmark Performance across Families 15 57 P18 ICML 2025 TCP-Diffusion: A Multi-modal Diffusion Model for Global Tropical Cyclone Precipitation Forecasting with Change Awareness 21 52 P19 NeurIPS 2025 Towards Comprehensive Scene Understanding: Integrating First and Third-Person Views for LVLMs 17 57 P20 NeurIPS 2025 Towards Reliable Code-as-Policies: A Neuro-Symbolic Framework for Embodied Task Planning 14 60 Mean / Total 18.6 / 371 57.4 / 1148 
+
+Table 5: Benchmark paper list. The sample comprises 10 ICML 2025 and 10 NeurIPS 2025 papers selected at random. Component counts range from 10 to 49 (mean 18.6); interaction scripts range from 48 to 61 requests (mean 57.4). 
+
+jointly generating amino acid sequences and three-dimensional backbone conformations for protein-protein interfaces. 
+
+P13: Quantifying Task-Relevant Similari-ties (Qian et al., 2025). Proposes decision vari-able correlations as a metric for comparing neural representations in terms of their task-relevant con-tent, offering a behaviorally grounded alternative to representational similarity analysis. 
+
+P14: Random Feature Representation Boost-ing (Zozoulenko et al., 2025). Develops a boost-ing framework over random feature representations, iteratively constructing an ensemble of random fea-ture models whose combined representation im-proves approximation quality for kernel methods. 
+
+P15: SafeAuto (Zhang et al., 2025). Integrates structured driving safety knowledge into multi-modal foundation models for autonomous driving, using knowledge graphs and retrieval mechanisms to enforce safety constraints during planning and decision making. 
+
+P16: Scalable Policy-Based RL for POMDPs (Anjarlekar et al., 2025). De-rives scalable policy gradient algorithms for partially observable Markov decision processes by exploiting structural properties of belief-space opti-mization to reduce the variance and computational cost of gradient estimation. 
+
+P17: Sloth (Polo et al., 2025). Proposes scal-ing laws that decompose LLM performance into skill-specific components, enabling prediction of multi-benchmark performance across model fami-lies from a small number of representative evalua-tions. 
+
+P18: TCP-Diffusion (Huang et al., 2025). 
+
+Presents a multimodal diffusion model for forecast-ing tropical cyclone precipitation, incorporating change-awareness mechanisms that condition the 13 generative process on temporal evolution patterns in satellite and reanalysis data. 
+
+P19: Towards Comprehensive Scene Under-standing (Lee et al., 2025). Addresses the in-tegration of first-person and third-person visual perspectives within large vision-language models, proposing architectural modifications that enable joint reasoning across viewpoints for scene under-standing tasks. 
+
+P20: Towards Reliable Code-as-Policies (Ahn et al., 2025). Introduces a neuro-symbolic frame-work for embodied task planning that improves the reliability of code-as-policies approaches through formal verification of generated programs and sym-bolic constraint satisfaction during plan execution. 
+
+A.2 Frozen Prompt Templates 
+
+All benchmark assets are produced using a single frozen model snapshot with fixed prompt templates and schema-constrained outputs. The source pa-per serves as the sole authority for paper-grounded content. Below we reproduce the exact prompt templates used in the frozen pipeline. Placeholder variables are typeset in <angle brackets> .
+
+Prompt A: Canonical Specification Extraction. 
+
+Extract the following fields for this paper (paper_id and title are already known; generate only the following): Required output schema (return ONLY valid JSON ): {"idea": "Summary of the method (at least 600 words). Include key mathematical components such as loss functions, main equations, and core signals. Be specific about the mathematical formulation. The summary should be sufficiently detailed for others to reproduce the paper.", "evaluation": { "datasets": ["list of datasets/benchmarks "], "metrics": ["list of evaluation metrics"], "description": "How each metric is calculated" }, "Implementation": "Assume you were the first author of this paper, starting from scratch. Describe step-by-step how to implement the idea and complete the evaluation (ignore baselines). Provide a concrete and detailed implementation document that others can reproduce. This is the reverse engineering of your research journey; do not rely on existing code or repositories.", "design_alternatives": [ {"design_id": "unique identifier (e.g., loss_function, architecture; hyperparameters are not a design)", "description": "What design choice this represents, e.g., for which component, in which step", "example_options": [ "option1", "option2", "option3" ]}]}Guidelines: - Output ONLY the JSON, no additional text 
+
+Prompt B: Atomic Component Extraction. 
+
+You are a specification decomposer. Given a detailed technical specification of a research paper, decompose it into components and identify how components are connected. For example, how data is prepared, how the model architecture is defined, how the loss is backpropagated, how the output of component A connects to component B, which subset is used for evaluation, and how the metrics are computed. Based on these, identify atomic verifiable claims that can be independently checked against an implementation. Each claim should be a single, concrete, testable statement about what the code MUST do. Focus on wiring rather than concrete numbers that are configurable. For each claim, provide: - description: what this component does (1-2 sentences) - formula: the exact mathematical formula if applicable, or "N/A" if purely structural - inputs: what data/tensors this component receives, their source, and their meaning - outputs: what it produces, and what the outputs represent or measure - connections: which modules this component should connect to, and the relationships between them Output a JSON object with a single key "components" containing an array of claims. Example: {"components": [ {"description": "EU space message computation using invariant features and pairwise distances", "formula": "m_EU,ij = phi_EU( [h_i, h_j, ||x_ij||])", "inputs": "scalar features h_i, h_j; pairwise distance ||x_ij||", 
+
+14 "outputs": "message vector m_EU,ij", "connection": "inside DualEquiLayer; output is sent to ..."} ]} CRITICAL: Output the JSON object directly. Do NOT use any tools. Do NOT write any files. Return the JSON only. Here is the specification: <canonical_idea> 
+
+Prompt C: Latent Trajectory Generation. 
+
+Assume you were the first author of the paper "<paper_title>" published at <venue>. Reverse-engineer your own research journey: the iterative process you went through before arriving at the final published method. Generate a sequence of project versions (version 0 through version N) that authentically captures this evolution. Guidelines: 1. Start vague (version 0): High-level intuition, missing mathematical details, using generic placeholders such as "some contrastive loss" or "a deep network." 2. Progressive refinement: Explore at least one of the following actions in each subsequent version: - Brainstorm designs and ideas to achieve the high-level intuition of the whole paper or a concrete module. - Search for baselines and existing works. - Check one dependent library or benchmark to understand how to connect to your codebase. - Add a concrete functional module, detailed enough for reproduction. - Replace a functional module with a new module of better design. 3. Temporal consistency: The refinement process should reflect the reversed research journey; each refinement should be meaningful. 4. End at the canonical specification: The final version should match exactly the canonical specification below. 5. Be realistic: Reflect how research actually happens, starting with small steps to verify each hypothesis, optimizing design, examining failures, trying different options, and eventually converging. Generate 10 to 20 versions total. Canonical specification (your final destination): <canonical_spec> Output format: [{"version": 1, "Action": "Implement the core framework with xx model" (implementation description only, no code) }, {"version": 2, "Action": "I noticed xx and am considering whether using xx would be better. Examine the details of xx to check applicability." }, ... ]Generate the evolution sequence as a JSON array. Output ONLY the JSON array, no additional text. 
+
+Prompt D: Coding Request Generation. 
+
+Assume you were the first author of "<paper_title>". We are simulating how you could develop and implement the paper if you could work with a coding agent. Your current design and project status: <current_project_state> You now want to make the following change: <target_version> Generate a sequence of requests to the coding agent. These requests should: 1. Be clear and specific: The agent cannot see any of the documents above. Be clear and detailed about what to search, check, compare, or implement in each request, but do not write any code. 2. Show realistic task chunking: Do not attempt to accomplish everything at once. Break work into logical pieces. Each request can be a functional module involving multiple files. 3. Build sequentially: The agent will automatically use version control and unit tests to ensure correct implementation, or use tools to complete search and brainstorming tasks. Design the next request assuming the preceding request was successful, but independent of the agent response. Since you were still developing the paper step by step, you did not know whether the approach would succeed, let alone what it would eventually be called. Use phrases such as "my idea" or "my hypothesis." Generate 1 to 3 requests depending on 
+
+15 complexity. Output as a JSON array: [{"request": "..."}, {"request": "..."} ]Output ONLY the JSON array, no additional text. 
+
+Prompt E: Bounded Repository Judge.   
+
+> You are an implementation faithfulness judge. Determine whether a specific component is correctly implemented in the codebase located in your current working directory. Specification claim to verify: COMPONENT: <component_description> FORMULA: <component_formula> EXPECTED INPUTS: <expected_inputs> EXPECTED OUTPUTS: <expected_outputs> CONNECTED MODULE: <connected_module> Instructions: 1. Search the codebase for code implementing this component (use grep, glob, read tools). 2. Compare the found code against the formula and description. 3. Assign a score: 0 = ABSENT: no code attempts this component 1 = WRONG: code attempts it but the logic is incorrect 2 = SIMPLIFIED: degraded or approximate version (e.g., mean pooling instead of attention-weighted, missing formula terms) 3 = EQUIVALENT: not identical but functionally equivalent 4 = FAITHFUL: matches the specification IMPORTANT: You have a LIMITED turn budget. Perform at most 8 tool calls, then you MUST output your JSON verdict. If you have not found the code by then, score 0 (ABSENT). Do NOT continue searching beyond this limit. CRITICAL: Your FINAL message MUST end with EXACTLY this JSON format on its own line, with nothing after it: {"score": <0-4>, "evidence": "<file:line or 'not found '>", "deviation": "<description or 'none '>"}
+
+A.3 Benchmark-Asset Audit 
+
+We manually audited benchmark assets for five sampled papers before freezing the construction pipeline. The audit verified that the canonical speci-fication preserved the paper’s mathematical content without unsupported commitments, that component decompositions were verifiable and non-redundant, that latent trajectories were temporally coherent and converged exactly to the canonical specifica-tion, and that user-facing requests were sufficiently specific for an agent that did not see the hidden benchmark artifacts. On the basis of this audit, we revised the prompt templates once and froze the final pipeline. 
+
+B ProjectGuard Details 
+
+Section 2 defined SLUMP as the loss in final imple-mentation faithfulness under emergent specifica-tion relative to a single-shot specification control, and decomposed that loss into two diagnostic di-mensions: semantic faithfulness and structural inte-gration. We introduce ProjectGuard , an external project-state system designed to support both di-mensions in long-horizon coding. Its role is not to replace the underlying coding agent, but to main-tain project information outside the live context window and reintroduce that information when the current session is likely to be unreliable. The cen-tral idea is to preserve two coupled views of the project over time: a semantic state that records re-visable project knowledge, and a structural state 
+
+that records the evolving code organization needed for compatibility-aware implementation. Figures 4 and 5 contrast a standard long-horizon coding work-flow with our external project-state layer, illustrat-ing how ProjectGuard adds explicit semantic and structural project views to support specification tracking under emergent specification. 
+
+B.1 Semantic State Semantic state must remain revisable. In long-horizon research coding, the intended method is not specified once in a canonical prompt. It emerges through interaction and is repeatedly refined as the researcher clarifies goals, accepts some alternatives, rejects others, and revises earlier choices in light of new evidence. Supporting semantic faithful-ness in this setting therefore requires more than a flat summary of prior dialogue. The system must distinguish high-level designs from lower-level im-plementation decisions, preserve the resources that motivate those choices, and update earlier records when the intended design changes. Generic knowledge graphs are conceptually close to what we need, but maintaining graph state directly during many small iterative updates is cum-bersome in practice. Our design therefore uses a lightweight filesystem-native graph representation that supports local updates, transparent diffs, and straightforward prompt rendering. 16 …
+
+User : Create a ScalingLawAnalyzer module that: (1) Implements functions to compute 
+
+> the key intermediate quantities needed for scaling laws…
+
+Coding Agent: [Tool calling]…  
+
+> [Tool calling]…
+> I have implemented the new ScalingLawAnalyzer module…
+> Conversation-based Typeless Summary
+> Raw Conversation
+> R1: Implement the gradient decomposition that takes…
+> A1: [Tool calling] [Tool calling] [Tool calling] This is the code
+> for gradient decomposition: [code]…
+> Task-blind compact due to fi xed context window
+> Raw Conversation
+> R1: [Compact Summary]
+> A1: [Tool calling] [Tool calling] [Tool calling]: I have
+> implemented the new ScalingLawAnalyzer module…
+> Unorganized
+> Conversation
+> Directory
+
+Figure 4: Default long-horizon coding workflow. User requests, tool outputs, and code edits accumulate in a single live conversation, with older context periodically condensed into a compact summary. This representation preserves recent interaction state but provides only a weak project-level view of earlier design commitments and repository structure, making specification tracking under emergent specification difficult. Table 6: Per-paper ProjectGuard effectiveness across 20 benchmark papers. MCF Recovery and IF50 Recovery are expressed as percentages of the specification bottleneck gap (full-paper minus emergent) closed by ProjectGuard. DIR ∆ is the relative increase in dependency integration ratio. Memory is the external state size maintained by ProjectGuard. ∆Compaction is the change in compaction events per session. Positive results (recovery or integration gain) are highlighted . CC = Claude Code; Papers are indexed P1–P20; — indicates a zero denominator (no specification gap or no baseline integration).                                                                                                                                                                                                                          
+
+> P1
+> P2
+> P3
+> P4
+> P5
+> P6
+> P7
+> P8
+> P9
+> P10
+> P11
+> P12
+> P13
+> P14
+> P15
+> P16
+> P17
+> P18
+> P19
+> P20
+> Mean
+> MCF Rec. (%) CC +22 −0−100 +150 +70 +167 +250 +100 +33 +94 +5 +36 −200 −75 +0 −0+111 +0 +200 +150 +51
+> Codex −600 —−20 +33 −56 —+29 −100 +75 −24 −8+32 −45 −33 +11 +67 +80 +57 −20 +200 −18 DIR ∆(%) CC −47 −10 +48 +1125 +120 +955 +24 −58 +13 +1 +7 +24 −22 +19 −8+7 +83 +12 −54 —+118
+> Codex +15 +67 +49 +54 +55 −71 −52 +61 —+269 −23 +122 +58 +171 +21 +240 +292 +19 −9+99 +76
+> IF50 Rec. (%) CC +118 −13 +5 +482 +27 +92 +142 −11 +80 +104 −8+73 +355 −6+19 +13 +41 −42 +15 +119 +80
+> Codex −138 −109 +14 +60 −55 +66 −71 +102 +82 +92 +5 +77 +19 +29 −39 +141 +86 −9−9+68 +21
+> Memory (KB) CC 395 171 297 196 631 233 592 398 193 1103 312 244 493 160 242 284 485 211 821 340 390 Codex 426 106 685 98 757 175 160 143 111 661 243 118 171 99 133 248 458 116 474 333 286
+> ∆Compaction CC −4+4 −1+6 −12 −1−4−2+4 −22 +1 +7 +9 −2+3 +1 −4+2 −1−2−1Codex +17 +29 +35 +22 +9 +30 +16 +24 +22 +29 +31 +25 +35 +14 +22 +21 +15 +28 +14 +13 +23
+
+Project Semantic State. ProjectGuard rep-resents semantic project state using three record types: design , decision , and resource . Design records capture higher-level method structure, ar-chitectural constraints, and other long-lived com-mitments. Decision records capture more spe-cific implementation choices that operationalize a design, including interface conventions, train-ing choices, and other details that may later need revision. Resource records capture evidence or ar-tifacts that motivate designs and decisions, such as empirical observations and deferred questions. Each record is stored as an isolated markdown file, while relations among records are stored separately in a lightweight edge table. This representation preserves hierarchy without forcing all state into a single monolithic document. 
+
+Semantic State Updates. After each coding turn, a conversation-side helper analyzes the re-cent interaction and extracts committed additions or revisions to semantic state. Importantly, the system is conservative about what becomes canon-ical. It does not treat every assistant proposal as truth. Instead, it preferentially records commit-ments grounded in the user’s requests and in ac-cepted project progress. A merger then updates the persistent graph, preferring edits to existing records over uncontrolled growth in the number of nodes. This is essential because long-horizon coding does not merely accumulate new facts; it frequently revises earlier ones. 
+
+B.2 Structural State 
+
+Supporting semantic faithfulness alone is not suf-ficient for faithful implementation. In our setting, middle turns often produce standalone modules that are individually reasonable, but later integra-tion requires the agent to know which files already implement relevant functionality, which interfaces should be preserved, and where a design change should be propagated. Without an explicit struc-tural view of the repository, the agent may solve each request locally, bypass earlier code, or intro-duce incompatible reimplementations rather than revising existing modules. 
+
+Project Structural State. To support structural 17 integration, ProjectGuard maintains a second ex-ternal view of the project: a structural state that summarizes the repository skeleton relevant for future edits. This state includes the files that cur-rently exist, their class and function signatures, and other interface facts that shape how modules can be reused or revised. Unlike the semantic state, which captures what the project is supposed to do, the structural state captures how the project is currently organized as code. The two are complementary: the semantic state says what should hold; the struc-tural state says where those commitments currently live in the repository and what dependencies future edits must respect. 
+
+Structural Updates. Rather than inferring struc-ture from free-form summaries, ProjectGuard de-rives it directly from the codebase. After each coding turn, a structure-side helper checks the git history to identify which files were added, modified, or deleted, and then refreshes the project skeleton for the affected parts of the repository. This yields an up-to-date structural view grounded in actual code changes rather than in the agent’s textual de-scription of those changes. 
+
+Compatibility-aware Forecasting. Before each request is executed, a forecaster reconstructs the request in project context using the history of prior user requests together with the current semantic and structural states. Its role is to recover the likely purpose of the current task, identify which ear-lier modules are relevant, and determine whether compatibility-preserving revision is preferable to local reimplementation. The resulting brief is passed to the coding agent so that it approaches the current task with a project-level view rather than treating it as an isolated edit. 
+
+Proactive Restart. Large integration edits of-ten require touching many existing files at once. When the forecaster estimates that the remaining live context is unlikely to support the upcoming request, it can trigger a proactive restart before the coding turn begins. In this case, ProjectGuard is rendered into a structured project brief and injected into a fresh coding session so that the new session begins with both semantic and structural project state available. 
+
+B.3 Results 
+
+Table 6 reports per-paper ProjectGuard effective-ness across all 20 benchmark papers. Recovery percentages express the fraction of the specifica-tion bottleneck gap (full-paper minus emergent) closed by ProjectGuard. 
+
+Claude Code. ProjectGuard recovers 90% of the MCF gap, raising MCF from 2.718 (emergent) to 3.000, compared with 3.031 under the single-shot control. The improvement is broad: 13 of 20 papers show positive MCF recovery (W/T/L = 13/4/3, me-dian +35 %). Fully faithful components (score 4) increase from 118 to 181 out of 371, a gain of 53%, while severe failures (score ≤ 1) drop from 72 to 49, a reduction of 32%. IF50 recovery is positive on 15 of 20 papers (median +34 %), confirming gains in both semantic faithfulness and structural integration. 
+
+Codex. MCF improvement is negligible ( +0 .05 ,W/L = 9/9), consistent with the absence of a specifi-cation bottleneck gap on this platform (Section 4.2). Where no gap exists, there is nothing for Project-Guard to recover, confirming that the MCF gains on Claude Code stem from compensating for com-paction losses rather than from general coding assis-tance. Structural integration tells a different story: DIR improves on 15 of 19 papers with non-missing values (mean +76 %, median +55 %), exceeding Claude Code’s DIR performance (13/0/6, median 
+
++12 %). The compatibility-aware forecasting and structural state components thus provide integra-tion benefits largely independent of compaction pressure. 
+
+Overhead and compaction dynamics. Project-Guard maintains a mean external state of 390 KB on Claude Code and 286 KB on Codex. On Claude Code, compaction events per session change by a median of −1, indicating negligible additional context pressure. On Codex, compaction events increase substantially (mean +23 ), but this reflects the proactive restart mechanism rather than de-graded context efficiency: each restart initiates a fresh session that independently reaches Codex’s compaction threshold, so the aggregate count accu-mulates across multiple shorter sessions rather than indicating greater pressure within any single ses-sion. The IF50 results confirm that this increased compaction count does not erode faithfulness. 18 [Injected Completed Request] 
+
+Coding Agent: 
+
+From the loaded project memory, I can see you are working on a low-rank gradient 
+
+research project and the current task is to implement the ScalingLawAnalyzer module. 
+
+[Tool calling]… 
+
+I have implemented the new ScalingLawAnalyzer module… 
+
+This new module serves as 
+
+the “theory ↔empirics 
+
+scaling bridge” for the 
+
+project’s main goal. … 
+
+Project-aware Request 
+
+Completion 
+
+Existing signatures/layouts 
+
+already match the requested 
+
+bridge. No backtracking 
+
+required… 
+
+Compatibility with 
+
+Codebase 
+
+Task is to build a 
+
+substantial new module; 
+
+31% context window left. 
+
+Compact before the task. 
+
+Proactive Compact 
+
+Add/Delete/Update 
+
+Nodes/Edges 
+
+Memory 
+
+Management 
+
+…
+
+User : Create a ScalingLawAnalyzer module that: (1) Implements functions to compute 
+
+the key intermediate quantities needed for scaling laws… 
+
+Compact Summary 
+
+[DS]Validation.md 
+
+Validates component scaling 
+
+laws through empirical-
+
+theoretical comparison using 
+
+log-log regression… 
+
+[DC]Params.md 
+
+`ε` is set empirically from 
+
+probe outcomes using only 
+
+successful probes: ` ε := 
+
+Q0.25({composite_confiden 
+
+ce_score | success=True})… 
+
+[RS]Analysis.md 
+
+dominance_analyzer.py: 
+
+Statistical validation 
+
+framework with 
+
+DominanceResult dataclass… 
+
+EDGES.csv 
+
+Node A, Node B, Relationship 
+
+Analysis.md, Validation.md, 
+
+Analysis.md points to the 
+
+implementation of design in 
+
+validation.md 
+
+Request History 
+
+R1: Implement the gradient 
+
+decomposition that takes… 
+
+R2: Search the existing 
+
+literature on spiked 
+
+covariance models… 
+
+Codebase Skeleton 
+
+<file path>: 
+
+Class <class name>: 
+
+Init: <param: type> 
+
+Methods: 
+
+<method signature> 
+
+DESIGN 
+
+DECISION 
+
+RESOURCE Figure 5: ProjectGuard overview. Before each coding turn, the system combines the request history with the current repository skeleton to maintain two external views of the project: a semantic state of committed but revisable project knowledge, and a structural state of files, symbols, and interface relations. A forecaster then prepares a project-aware brief for the coding agent, highlighting relevant design commitments, compatibility constraints, and candidate modules for revision or reuse. When the remaining live context is unlikely to support the upcoming request, ProjectGuard can trigger a proactive restart and inject the rendered project state into a fresh session. After the turn completes, both semantic and structural state are updated from the new interaction and repository changes. 
+
+19
