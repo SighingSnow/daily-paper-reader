@@ -1,0 +1,749 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-22T19:25:06.721880+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 12,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 19,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.13724v1",
+      "title": "Testing with AI Agents: An Empirical Study of Test Generation Frequency, Quality, and Coverage",
+      "abstract": "Agent-based coding tools have transformed software development practices. Unlike prompt-based approaches that require developers to manually integrate generated code, these agent-based tools autonomously interact with repositories to create, modify, and execute code, including test generation. While many developers have adopted agent-based coding tools, little is known about how these tools generate tests in real-world development scenarios or how AI-generated tests compare to human-written ones.   This study presents an empirical analysis of test generation by agent-based coding tools using the AIDev dataset. We extracted 2,232 commits containing test-related changes and investigated three aspects: the frequency of test additions, the structural characteristics of the generated tests, and their impact on code coverage. Our findings reveal that (i) AI authored 16.4% of all commits adding tests in real-world repositories, (ii) AI-generated test methods exhibit distinct structural patterns, featuring longer code and a higher density of assertions while maintaining lower cyclomatic complexity through linear logic, and (iii) AI-generated tests contribute to code coverage comparable to human-written tests, frequently achieving positive coverage gains across several projects.",
+      "authors": [
+        "Suzuka Yoshimoto",
+        "Shun Fujita",
+        "Kosei Horikawa",
+        "Daniel Feitosa",
+        "Yutaro Kashiwa",
+        "Hajimu Iida"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-14T03:01:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.13724v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Empirical study of test generation by agent-based coding tools",
+      "llm_evidence_cn": "基于智能体的编码工具生成测试的实证研究",
+      "llm_evidence": "基于智能体的编码工具生成测试的实证研究",
+      "canonical_evidence": "基于智能体的编码工具生成测试的实证研究",
+      "llm_tldr_en": "Empirical analysis of how AI coding agents generate tests, comparing frequency, quality and coverage.",
+      "llm_tldr_cn": "实证分析AI编码智能体如何生成测试，比较频率、质量和覆盖率。",
+      "llm_tldr": "实证分析AI编码智能体如何生成测试，比较频率、质量和覆盖率。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.16289v1",
+      "title": "VisBrowse-Bench: Benchmarking Visual-Native Search for Multimodal Browsing Agents",
+      "abstract": "The rapid advancement of Multimodal Large Language Models (MLLMs) has enabled browsing agents to acquire and reason over multimodal information in the real world. But existing benchmarks suffer from two limitations: insufficient evaluation of visual reasoning ability and the neglect of native visual information of web pages in the reasoning chains. To address these challenges, we introduce a new benchmark for visual-native search, VisBrowse-Bench. It contains 169 VQA instances covering multiple domains and evaluates the models' visual reasoning capabilities during the search process through multimodal evidence cross-validation via text-image retrieval and joint reasoning. These data were constructed by human experts using a multi-stage pipeline and underwent rigorous manual verification. We additionally propose an agent workflow that can effectively drive the browsing agent to actively collect and reason over visual information during the search process. We comprehensively evaluated both open-source and closed-source models in this workflow. Experimental results show that even the best-performing model, Claude-4.6-Opus only achieves an accuracy of 47.6%, while the proprietary Deep Research model, o3-deep-research only achieves an accuracy of 41.1%. The code and data can be accessed at: https://github.com/ZhengboZhang/VisBrowse-Bench",
+      "authors": [
+        "Zhengbo Zhang",
+        "Jinbo Su",
+        "Zhaowen Zhou",
+        "Changtao Miao",
+        "Yuhan Hong",
+        "Qimeng Wu",
+        "Yumeng Liu",
+        "Feier Wu",
+        "Yihe Tian",
+        "Yuhao Liang",
+        "Zitong Shan",
+        "Wanke Xia",
+        "Yi-Fan Zhang",
+        "Bo Zhang",
+        "Zhe Li",
+        "Shiming Xiang",
+        "Ying Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T09:24:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.16289v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark for multimodal browsing search agents",
+      "llm_evidence_cn": "多模态浏览搜索智能体基准",
+      "llm_evidence": "多模态浏览搜索智能体基准",
+      "canonical_evidence": "多模态浏览搜索智能体基准",
+      "llm_tldr_en": "Introduces VisBrowse-Bench for evaluating visual reasoning capabilities of multimodal browsing agents.",
+      "llm_tldr_cn": "引入VisBrowse-Bench评估多模态浏览智能体的视觉推理能力。",
+      "llm_tldr": "引入VisBrowse-Bench评估多模态浏览智能体的视觉推理能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17973v2",
+      "title": "TDAD: Test-Driven Agentic Development - Reducing Code Regressions in AI Coding Agents via Graph-Based Impact Analysis",
+      "abstract": "AI coding agents can resolve real-world software issues, yet they frequently introduce regressions -- breaking tests that previously passed. Current benchmarks focus almost exclusively on resolution rate, leaving regression behavior under-studied. This paper presents TDAD (Test-Driven Agentic Development), an open-source tool that performs pre-change impact analysis for AI coding agents. TDAD builds a dependency map between source code and tests so that before committing a patch, the agent knows which tests to verify and can self-correct. The map is delivered as a lightweight agent skill -- a static text file the agent queries at runtime. Evaluated on SWE-bench Verified with two open-weight models running on consumer hardware (Qwen3-Coder 30B, 100 instances; Qwen3.5-35B-A3B, 25 instances), TDAD reduced regressions by 70% (6.08% to 1.82%) compared to a vanilla baseline. In contrast, adding TDD procedural instructions without targeted test context increased regressions to 9.94% -- worse than no intervention at all. When deployed as an agent skill with a different model and framework, TDAD improved issue-resolution rate from 24% to 32%, confirming that surfacing contextual information outperforms prescribing procedural workflows. All code, data, and logs are publicly available at https://github.com/pepealonso95/TDAD.",
+      "authors": [
+        "Pepe Alonso",
+        "Sergio Yovine",
+        "Victor A. Braberman"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T17:38:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.17973v2",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "tool for AI coding agents to reduce code regressions",
+      "llm_evidence_cn": "减少代码回归的AI代码智能体工具",
+      "llm_evidence": "减少代码回归的AI代码智能体工具",
+      "canonical_evidence": "减少代码回归的AI代码智能体工具",
+      "llm_tldr_en": "TDAD provides pre-change impact analysis to help AI coding agents avoid introducing regressions.",
+      "llm_tldr_cn": "TDAD提供变更前影响分析帮助AI代码智能体避免引入回归。",
+      "llm_tldr": "TDAD提供变更前影响分析帮助AI代码智能体避免引入回归。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18743v1",
+      "title": "Memento-Skills: Let Agents Design Agents",
+      "abstract": "We introduce \\emph{Memento-Skills}, a generalist, continually-learnable LLM agent system that functions as an \\emph{agent-designing agent}: it autonomously constructs, adapts, and improves task-specific agents through experience. The system is built on a memory-based reinforcement learning framework with \\emph{stateful prompts}, where reusable skills (stored as structured markdown files) serve as persistent, evolving memory. These skills encode both behaviour and context, enabling the agent to carry forward knowledge across interactions.   Starting from simple elementary skills (like Web search and terminal operations), the agent continually improves via the \\emph{Read--Write Reflective Learning} mechanism introduced in \\emph{Memento~2}~\\cite{wang2025memento2}. In the \\emph{read} phase, a behaviour-trainable skill router selects the most relevant skill conditioned on the current stateful prompt; in the \\emph{write} phase, the agent updates and expands its skill library based on new experience. This closed-loop design enables \\emph{continual learning without updating LLM parameters}, as all adaptation is realised through the evolution of externalised skills and prompts.   Unlike prior approaches that rely on human-designed agents, Memento-Skills enables a generalist agent to \\emph{design agents end-to-end} for new tasks. Through iterative skill generation and refinement, the system progressively improves its own capabilities. Experiments on the \\emph{General AI Assistants} benchmark and \\emph{Humanity's Last Exam} demonstrate sustained gains, achieving 26.2\\% and 116.2\\% relative improvements in overall accuracy, respectively. Code is available at https://github.com/Memento-Teams/Memento-Skills.",
+      "authors": [
+        "Huichi Zhou",
+        "Siyuan Guo",
+        "Anjie Liu",
+        "Zhongwei Yu",
+        "Ziqin Gong",
+        "Bowen Zhao",
+        "Zhixun Chen",
+        "Menglong Zhang",
+        "Yihang Chen",
+        "Jinsong Li",
+        "Runyu Yang",
+        "Qiangbin Liu",
+        "Xinlei Yu",
+        "Jianmin Zhou",
+        "Na Wang",
+        "Chunyang Sun",
+        "Jun Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T10:45:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.18743v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agent-designing agent framework with memory-based RL",
+      "llm_evidence_cn": "基于记忆强化学习的智能体设计框架",
+      "llm_evidence": "基于记忆强化学习的智能体设计框架",
+      "canonical_evidence": "基于记忆强化学习的智能体设计框架",
+      "llm_tldr_en": "Introduces Memento-Skills, an agent system that autonomously constructs and improves task-specific agents.",
+      "llm_tldr_cn": "提出Memento-Skills智能体系统，可自主构建和改进任务专用智能体。",
+      "llm_tldr": "提出Memento-Skills智能体系统，可自主构建和改进任务专用智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.14229v1",
+      "title": "Agentic DAG-Orchestrated Planner Framework for Multi-Modal, Multi-Hop Question Answering in Hybrid Data Lakes",
+      "abstract": "Enterprises increasingly need natural language (NL) question answering over hybrid data lakes that combine structured tables and unstructured documents. Current deployed solutions, including RAG-based systems, typically rely on brute-force retrieval from each store and post-hoc merging. Such approaches are inefficient and leaky, and more critically, they lack explicit support for multi-hop reasoning, where a query is decomposed into successive steps (hops) that may traverse back and forth between structured and unstructured sources. We present Agentic DAG-Orchestrated Transformer (A.DOT) Planner, a framework for multi-modal, multi-hop question answering, that compiles user NL queries into directed acyclic graph (DAG) execution plans spanning both structured and unstructured stores. The system decomposes queries into parallelizable sub-queries, incorporates schema-aware reasoning, and applies both structural and semantic validation before execution. The execution engine adheres to the generated DAG plan to coordinate concurrent retrieval across heterogeneous sources, route intermediate outputs to dependent sub-queries, and merge final results in strict accordance with the plan's logical dependencies. Advanced caching mechanisms, incorporating paraphrase-aware template matching, enable the system to detect equivalent queries and reuse prior DAG execution plans for rapid re-execution, while the DataOps System addresses validation feedback or execution errors. The proposed framework not only improves accuracy and latency, but also produces explicit evidence trails, enabling verification of retrieved content, tracing of data lineage, and fostering user trust in the system's outputs. On benchmark dataset, A.DOT achieves 14.8% absolute gain in correctness and 10.7% in completeness over baselines.",
+      "authors": [
+        "Kirushikesh D B",
+        "Manish Kesarwani",
+        "Nishtha Madaan",
+        "Sameep Mehta",
+        "Aldrin Dennis",
+        "Siddarth Ajay",
+        "Rakesh B R",
+        "Renu Rajagopal",
+        "Sudheesh Kairali"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-15T05:34:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.14229v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Agentic planner framework for multi-hop question answering",
+      "llm_evidence_cn": "用于多跳问答的智能体规划器框架",
+      "llm_evidence": "用于多跳问答的智能体规划器框架",
+      "canonical_evidence": "用于多跳问答的智能体规划器框架",
+      "llm_tldr_en": "A.DOT Planner is an agentic DAG-orchestrated framework for multi-modal, multi-hop question answering.",
+      "llm_tldr_cn": "A.DOT Planner是用于多模态多跳问答的智能体DAG编排框架。",
+      "llm_tldr": "A.DOT Planner是用于多模态多跳问答的智能体DAG编排框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15976v1",
+      "title": "An Agentic Evaluation Framework for AI-Generated Scientific Code in PETSc",
+      "abstract": "While large language models have significantly accelerated scientific code generation, comprehensively evaluating the generated code remains a major challenge. Traditional benchmarks reduce evaluation to test-case matching, an approach insufficient for library code in HPC where solver selection, API conventions, memory management, and performance are just as critical as functional correctness. To address this gap, we introduce petscagent-bench, an agentic framework built on an agents-evaluating-agents paradigm. Instead of relying on static scripts, petscagent-bench deploys a tool-augmented evaluator agent that compiles, executes, and measures code produced by a separate model-under-test agent, orchestrating a 14-evaluator pipeline across five scoring categories: correctness, performance, code quality, algorithmic appropriateness, and library-specific conventions. Because the agents communicate through standardized protocols (A2A and MCP), the framework enables black-box evaluation of any coding agent without requiring access to its source code. We demonstrate the framework on a benchmark suite of realistic problems using the PETSc library for HPC. Our empirical analysis of frontier models reveals that while current models generate readable, well-structured code, they consistently struggle with library-specific conventions that traditional pass/fail metrics completely miss.",
+      "authors": [
+        "Hong Zhang",
+        "Barry Smith",
+        "Satish Balay",
+        "Le Chen",
+        "Murat Keceli",
+        "Lois Curfman McInnes",
+        "Junchao Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-16T22:46:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.15976v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "agentic framework for evaluating AI-generated scientific code",
+      "llm_evidence_cn": "评估AI生成科学代码的智能体框架",
+      "llm_evidence": "评估AI生成科学代码的智能体框架",
+      "canonical_evidence": "评估AI生成科学代码的智能体框架",
+      "llm_tldr_en": "petscagent-bench is an agentic framework using evaluator agents to assess AI-generated HPC code.",
+      "llm_tldr_cn": "petscagent-bench使用评估智能体评估AI生成的HPC代码。",
+      "llm_tldr": "petscagent-bench使用评估智能体评估AI生成的HPC代码。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.16124v1",
+      "title": "SWE-QA-Pro: A Representative Benchmark and Scalable Training Recipe for Repository-Level Code Understanding",
+      "abstract": "Agentic repository-level code understanding is essential for automating complex software engineering tasks, yet the field lacks reliable benchmarks. Existing evaluations often overlook the long tail topics and rely on popular repositories where Large Language Models (LLMs) can cheat via memorized knowledge. To address this, we introduce SWE-QA-Pro, a benchmark constructed from diverse, long-tail repositories with executable environments. We enforce topical balance via issue-driven clustering to cover under-represented task types and apply a rigorous difficulty calibration process: questions solvable by direct-answer baselines are filtered out. This results in a dataset where agentic workflows significantly outperform direct answering (e.g., a ~13-point gap for Claude Sonnet 4.5), confirming the necessity of agentic codebase exploration. Furthermore, to tackle the scarcity of training data for such complex behaviors, we propose a scalable synthetic data pipeline that powers a two-stage training recipe: Supervised Fine-Tuning (SFT) followed by Reinforcement Learning from AI Feedback (RLAIF). This approach allows small open models to learn efficient tool usage and reasoning. Empirically, a Qwen3-8B model trained with our recipe surpasses GPT-4o by 2.3 points on SWE-QA-Pro and substantially narrows the gap to state-of-the-art proprietary models, demonstrating both the validity of our evaluation and the effectiveness of our agentic training workflow.",
+      "authors": [
+        "Songcheng Cai",
+        "Zhiheng Lyu",
+        "Yuansheng Ni",
+        "Xiangchao Chen",
+        "Baichuan Zhou",
+        "Shenzhe Zhu",
+        "Yi Lu",
+        "Haozhe Wang",
+        "Chi Ruan",
+        "Benjamin Schneider",
+        "Weixu Zhang",
+        "Xiang Li",
+        "Andy Zheng",
+        "Yuyu Zhang",
+        "Ping Nie",
+        "Wenhu Chen"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-17T05:12:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.16124v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmark for agentic repository-level code understanding",
+      "llm_evidence_cn": "用于智能体仓库级代码理解的基准测试",
+      "llm_evidence": "用于智能体仓库级代码理解的基准测试",
+      "canonical_evidence": "用于智能体仓库级代码理解的基准测试",
+      "llm_tldr_en": "SWE-QA-Pro provides a benchmark for evaluating agentic workflows on repository-level code understanding tasks.",
+      "llm_tldr_cn": "SWE-QA-Pro提供基准测试评估智能体工作流在仓库级代码理解任务上的表现。",
+      "llm_tldr": "SWE-QA-Pro提供基准测试评估智能体工作流在仓库级代码理解任务上的表现。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.13767v1",
+      "title": "Retrieve, Schedule, Reflect: LLM Agents for Chip QoR Optimization",
+      "abstract": "Modern chip design requires multi-objective optimization of timing, power, and area under stringent time-to-market constraints. Although powerful optimization algorithms are integrated into EDA tools, achieving high QoR hinges on effective long-horizon scheduling, which relies heavily on manual expert intervention. To address this issue and automate chip design, we propose an agentic LLM framework that schedules chip optimizations through direct interaction with EDA tools. The agent is grounded in natural language expertise expressed as a search tree through retrieval-augmented generation (RAG). We further improve scheduling quality with Pareto-driven QoR feedback through language reflection. Experimental results show that, compared with black-box search methods such as reinforcement learning, our framework achieves 10% greater timing improvement while consuming less power and area, with more than 4x speedup. The post-optimization QoR is also comparable to that achieved by human experts. Finally, the agent supports customized tasks expressed in natural language, enabling preferential QoR trade-offs. The code and chip design data will be publicly available at https://github.com/YiKangOY/Open-LLM-ECO.",
+      "authors": [
+        "Yikang ouyang",
+        "Yang Luo",
+        "Dongsheng Zuo",
+        "Yuzhe Ma"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-03-14T05:36:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.13767v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "agentic LLM framework with RAG-based search tree for chip optimization",
+      "llm_evidence_cn": "基于RAG搜索树的智能体LLM框架用于芯片优化",
+      "llm_evidence": "基于RAG搜索树的智能体LLM框架用于芯片优化",
+      "canonical_evidence": "基于RAG搜索树的智能体LLM框架用于芯片优化",
+      "llm_tldr_en": "An agentic LLM framework automates chip QoR optimization via retrieval-augmented scheduling and reflection.",
+      "llm_tldr_cn": "智能体LLM框架通过检索增强调度和反思自动化芯片QoR优化。",
+      "llm_tldr": "智能体LLM框架通过检索增强调度和反思自动化芯片QoR优化。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.14465v1",
+      "title": "AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents",
+      "abstract": "While Large Language Models (LLMs) have evolved into tool-using agents, they remain brittle in long-horizon interactions. Unlike mathematical reasoning where errors are often rectifiable via backtracking, tool-use failures frequently induce irreversible side effects, making accurate step-level verification critical. However, existing process-level benchmarks are predominantly confined to closed-world mathematical domains, failing to capture the dynamic and open-ended nature of tool execution. To bridge this gap, we introduce AgentProcessBench, the first benchmark dedicated to evaluating step-level effectiveness in realistic, tool-augmented trajectories. The benchmark comprises 1,000 diverse trajectories and 8,509 human-labeled step annotations with 89.1% inter-annotator agreement. It features a ternary labeling scheme to capture exploration and an error propagation rule to reduce labeling ambiguity. Extensive experiments reveal key insights: (1) weaker policy models exhibit inflated ratios of correct steps due to early termination; (2) distinguishing neutral and erroneous actions remains a significant challenge for current models; and (3) process-derived signals provide complementary value to outcome supervision, significantly enhancing test-time scaling. We hope AgentProcessBench can foster future research in reward models and pave the way toward general agents. The code and data are available at https://github.com/RUCBM/AgentProcessBench.",
+      "authors": [
+        "Shengda Fan",
+        "Xuyan Ye",
+        "Yupeng Huo",
+        "Zhi-Yuan Chen",
+        "Yiju Guo",
+        "Shenzhi Yang",
+        "Wenkai Yang",
+        "Shuqi Ye",
+        "Jingwen Chen",
+        "Haotian Chen",
+        "Xin Cong",
+        "Yankai Lin"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-15T16:13:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.14465v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "benchmark for evaluating step-level quality in tool-using agents",
+      "llm_evidence_cn": "评估工具使用智能体步骤级质量的基准",
+      "llm_evidence": "评估工具使用智能体步骤级质量的基准",
+      "canonical_evidence": "评估工具使用智能体步骤级质量的基准",
+      "llm_tldr_en": "AgentProcessBench provides step-level evaluation for tool-using agents with human-labeled annotations.",
+      "llm_tldr_cn": "AgentProcessBench为工具使用智能体提供步骤级评估和人工标注。",
+      "llm_tldr": "AgentProcessBench为工具使用智能体提供步骤级评估和人工标注。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.16289v2",
+      "title": "VisBrowse-Bench: Benchmarking Visual-Native Search for Multimodal Browsing Agents",
+      "abstract": "The rapid advancement of Multimodal Large Language Models (MLLMs) has enabled browsing agents to acquire and reason over multimodal information in the real world. But existing benchmarks suffer from two limitations: insufficient evaluation of visual reasoning ability and the neglect of native visual information of web pages in the reasoning chains. To address these challenges, we introduce a new benchmark for visual-native search, VisBrowse-Bench. It contains 169 VQA instances covering multiple domains and evaluates the models' visual reasoning capabilities during the search process through multimodal evidence cross-validation via text-image retrieval and joint reasoning. These data were constructed by human experts using a multi-stage pipeline and underwent rigorous manual verification. We additionally propose an agent workflow that can effectively drive the browsing agent to actively collect and reason over visual information during the search process. We comprehensively evaluated both open-source and closed-source models in this workflow. Experimental results show that even the best-performing model, Claude-4.6-Opus only achieves an accuracy of 47.6%, while the proprietary Deep Research model, o3-deep-research only achieves an accuracy of 41.1%. The code and data can be accessed at: https://github.com/ZhengboZhang/VisBrowse-Bench",
+      "authors": [
+        "Zhengbo Zhang",
+        "Jinbo Su",
+        "Zhaowen Zhou",
+        "Changtao Miao",
+        "Yuhan Hong",
+        "Qimeng Wu",
+        "Yumeng Liu",
+        "Feier Wu",
+        "Yihe Tian",
+        "Yuhao Liang",
+        "Zitong Shan",
+        "Wanke Xia",
+        "Yi-Fan Zhang",
+        "Bo Zhang",
+        "Zhe Li",
+        "Shiming Xiang",
+        "Ying Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T09:24:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.16289v2",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmark for multimodal browsing agents in visual search",
+      "llm_evidence_cn": "多模态浏览智能体视觉搜索基准",
+      "llm_evidence": "多模态浏览智能体视觉搜索基准",
+      "canonical_evidence": "多模态浏览智能体视觉搜索基准",
+      "llm_tldr_en": "Introduces VisBrowse-Bench for evaluating visual reasoning capabilities of multimodal browsing agents during search.",
+      "llm_tldr_cn": "提出VisBrowse-Bench基准，评估多模态浏览智能体在搜索过程中的视觉推理能力。",
+      "llm_tldr": "提出VisBrowse-Bench基准，评估多模态浏览智能体在搜索过程中的视觉推理能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.14225v1",
+      "title": "I'm Not Reading All of That: Understanding Software Engineers' Level of Cognitive Engagement with Agentic Coding Assistants",
+      "abstract": "Over-reliance on AI systems can undermine users' critical thinking and promote complacency, a risk intensified by the emergence of agentic AI systems that operate with minimal human involvement. In software engineering, agentic coding assistants are rapidly becoming embedded in everyday development workflows. Since software engineers create systems deployed across diverse and high-stakes real-world contexts, these assistants must function not merely as autonomous task performers but as Tools for Thought that actively support human reasoning and sensemaking. We conducted a formative study examining software engineers' cognitive engagement and sensemaking processes when working with an agentic coding assistant. Our findings reveal that cognitive engagement consistently declines as tasks progress, and that current agentic coding assistants' designs provide limited affordances for reflection, verification, and meaning-making. Based on these findings, e identify concrete design opportunities leveraging richer interaction modalities and cognitive-forcing mechanisms to sustain engagement and promote deeper thinking in AI-assisted programming.",
+      "authors": [
+        "Carlos Rafael Catalan",
+        "Lheane Marie Dizon",
+        "Patricia Nicole Monderin",
+        "Emily Kuang"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-15T05:03:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.14225v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Study on cognitive engagement with agentic coding assistants",
+      "llm_evidence_cn": "关于智能体编码助手认知参与的研究",
+      "llm_evidence": "关于智能体编码助手认知参与的研究",
+      "canonical_evidence": "关于智能体编码助手认知参与的研究",
+      "llm_tldr_en": "Formative study examining software engineers' cognitive engagement when working with agentic coding assistants.",
+      "llm_tldr_cn": "研究软件工程师使用智能体编码助手时的认知参与过程。",
+      "llm_tldr": "研究软件工程师使用智能体编码助手时的认知参与过程。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.15421v1",
+      "title": "CLAG: Adaptive Memory Organization via Agent-Driven Clustering for Small Language Model Agents",
+      "abstract": "Large language model agents heavily rely on external memory to support knowledge reuse and complex reasoning tasks. Yet most memory systems store experiences in a single global retrieval pool which can gradually dilute or corrupt stored knowledge. This problem is especially pronounced for small language models (SLMs), which are highly vulnerable to irrelevant context. We introduce CLAG, a CLustering-based AGentic memory framework where an SLM agent actively organizes memory by clustering. CLAG employs an SLM-driven router to assign incoming memories to semantically coherent clusters and autonomously generates cluster-specific profiles, including topic summaries and descriptive tags, to establish each cluster as a self-contained functional unit. By performing localized evolution within these structured neighborhoods, CLAG effectively reduces cross-topic interference and enhances internal memory density. During retrieval, the framework utilizes a two-stage process that first filters relevant clusters via their profiles, thereby excluding distractors and reducing the search space. Experiments on multiple QA datasets with three SLM backbones show that CLAG consistently improves answer quality and robustness over prior memory systems for agents, remaining lightweight and efficient.",
+      "authors": [
+        "Taeyun Roh",
+        "Wonjune Jang",
+        "Junha Jung",
+        "Jaewoo Kang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-16T15:30:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.15421v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "clustering-based agentic memory framework for SLM agents",
+      "llm_evidence_cn": "面向SLM智能体的聚类式记忆框架",
+      "llm_evidence": "面向SLM智能体的聚类式记忆框架",
+      "canonical_evidence": "面向SLM智能体的聚类式记忆框架",
+      "llm_tldr_en": "CLAG enables SLM agents to organize memory via agent-driven clustering for better knowledge retrieval.",
+      "llm_tldr_cn": "CLAG使SLM智能体能通过智能体驱动的聚类组织记忆。",
+      "llm_tldr": "CLAG使SLM智能体能通过智能体驱动的聚类组织记忆。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.16733v1",
+      "title": "IQuest-Coder-V1 Technical Report",
+      "abstract": "In this report, we introduce the IQuest-Coder-V1 series-(7B/14B/40B/40B-Loop), a new family of code large language models (LLMs). Moving beyond static code representations, we propose the code-flow multi-stage training paradigm, which captures the dynamic evolution of software logic through different phases of the pipeline. Our models are developed through the evolutionary pipeline, starting with the initial pre-training consisting of code facts, repository, and completion data. Following that, we implement a specialized mid-training stage that integrates reasoning and agentic trajectories in 32k-context and repository-scale in 128k-context to forge deep logical foundations. The models are then finalized with post-training of specialized coding capabilities, which is bifurcated into two specialized paths: the thinking path (utilizing reasoning-driven RL) and the instruct path (optimized for general assistance). IQuest-Coder-V1 achieves state-of-the-art performance among competitive models across critical dimensions of code intelligence: agentic software engineering, competitive programming, and complex tool use. To address deployment constraints, the IQuest-Coder-V1-Loop variant introduces a recurrent mechanism designed to optimize the trade-off between model capacity and deployment footprint, offering an architecturally enhanced path for efficacy-efficiency trade-off. We believe the release of the IQuest-Coder-V1 series, including the complete white-box chain of checkpoints from pre-training bases to the final thinking and instruction models, will advance research in autonomous code intelligence and real-world agentic systems.",
+      "authors": [
+        "Jian Yang",
+        "Wei Zhang",
+        "Shawn Guo",
+        "Zhengmao Ye",
+        "Lin Jing",
+        "Shark Liu",
+        "Yizhi Li",
+        "Jiajun Wu",
+        "Cening Liu",
+        "X. Ma",
+        "Yuyang Song",
+        "Siwei Wu",
+        "Yuwen Li",
+        "L. Liao",
+        "T. Zheng",
+        "Ziling Huang",
+        "Zelong Huang",
+        "Che Liu",
+        "Yan Xing",
+        "Renyuan Li",
+        "Qingsong Cai",
+        "Hanxu Yan",
+        "Siyue Wang",
+        "Shikai Li",
+        "Jason Klein Liu",
+        "An Huang",
+        "Yongsheng Kang",
+        "Jinxing Zhang",
+        "Chuan Hao",
+        "Haowen Wang",
+        "Weicheng Gu",
+        "Ran Tao",
+        "Mingjie Tang",
+        "Peihao Wu",
+        "Jianzhou Wang",
+        "Xianglong Liu",
+        "Weifeng Lv",
+        "Bryan Dai"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.SE"
+      ],
+      "published": "2026-03-17T16:15:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.16733v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Code LLM with agentic trajectories and reasoning integration",
+      "llm_evidence_cn": "集成智能体轨迹与推理的代码大模型",
+      "llm_evidence": "集成智能体轨迹与推理的代码大模型",
+      "canonical_evidence": "集成智能体轨迹与推理的代码大模型",
+      "llm_tldr_en": "Code LLM family trained with agentic trajectories for enhanced reasoning capabilities.",
+      "llm_tldr_cn": "通过智能体轨迹训练增强推理能力的代码大模型系列。",
+      "llm_tldr": "通过智能体轨迹训练增强推理能力的代码大模型系列。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.16021v1",
+      "title": "Interpretable Context Methodology: Folder Structure as Agentic Architecture",
+      "abstract": "Current approaches to AI agent orchestration typically involve building multi-agent frameworks that manage context passing, memory, error handling, and step coordination through code. These frameworks work well for complex, concurrent systems. But for sequential workflows where a human reviews output at each step, they introduce engineering overhead that the problem does not require. This paper presents Model Workspace Protocol (MWP), a method that replaces framework-level orchestration with filesystem structure. Numbered folders represent stages. Plain markdown files carry the prompts and context that tell a single AI agent what role to play at each step. Local scripts handle the mechanical work that does not need AI at all. The result is a system where one agent, reading the right files at the right moment, does the work that would otherwise require a multi-agent framework. This approach applies ideas from Unix pipeline design, modular decomposition, multi-pass compilation, and literate programming to the specific problem of structuring context for AI agents. The protocol is open source under the MIT license.",
+      "authors": [
+        "Jake Van Clief",
+        "David McDermott"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-03-17T00:03:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.16021v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "method for AI agent orchestration using filesystem structure",
+      "llm_evidence_cn": "使用文件系统结构的AI智能体编排方法",
+      "llm_evidence": "使用文件系统结构的AI智能体编排方法",
+      "canonical_evidence": "使用文件系统结构的AI智能体编排方法",
+      "llm_tldr_en": "MWP replaces framework-level orchestration with filesystem-based structure for sequential AI workflows.",
+      "llm_tldr_cn": "MWP用文件系统结构替代框架级编排用于顺序AI工作流。",
+      "llm_tldr": "MWP用文件系统结构替代框架级编排用于顺序AI工作流。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.15916v1",
+      "title": "Auto Researching, not hyperparameter tuning: Convergence Analysis of 10,000 Experiments",
+      "abstract": "When LLM agents autonomously design ML experiments, do they perform genuine architecture search -- or do they default to hyperparameter tuning within a narrow region of the design space? We answer this question by analyzing 10,469 experiments executed by two LLM agents (Claude Opus and Gemini 2.5 Pro) across a combinatorial configuration space of 108,000 discrete cells for dashcam collision detection over 27 days. Through ANOVA decomposition, we find that \\textbf{architectural choices explain 94\\% of performance variance} ($F = 1324$, $η^2 = 0.94$), while hyperparameter variation within a fixed architecture explains only 6\\%. Cross-task validation on a second collision dataset confirms this finding (75\\% architecture-explained variance) with a \\emph{different} winning backbone, confirming genuine architecture discovery. The agents' key contribution is discovering that V-JEPA\\,2 video features with Zipformer temporal encoders achieve 0.9245 AP -- a configuration no human proposed -- and concentrating search on productive architectural regions: at $N = 50$, LLM-guided search reaches AP $= 0.985$ versus $0.965$ for from-scratch random search. Post-bugfix convergence follows a power law ($c = 0.11$, $R^2 = 0.93$); the low exponent reflects the cost of broad exploration, not inefficiency, since the LLM discovers qualitatively better regions than random or Bayesian baselines. We characterize multi-agent search dynamics via entropy cycles and Jensen--Shannon specialization, providing the first large-scale empirical framework for LLM-guided combinatorial ML experiment design.",
+      "authors": [
+        "Xiaoyi Li"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-16T21:05:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.15916v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Analysis of LLM agents designing ML experiments",
+      "llm_evidence_cn": "分析LLM智能体设计ML实验",
+      "llm_evidence": "分析LLM智能体设计ML实验",
+      "canonical_evidence": "分析LLM智能体设计ML实验",
+      "llm_tldr_en": "Analyzes 10,000 experiments showing LLM agents focus on architecture search over hyperparameter tuning.",
+      "llm_tldr_cn": "分析万次实验，发现LLM智能体更关注架构搜索而非超参调优。",
+      "llm_tldr": "分析万次实验，发现LLM智能体更关注架构搜索而非超参调优。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17204v1",
+      "title": "CODMAS: A Dialectic Multi-Agent Collaborative Framework for Structured RTL Optimization",
+      "abstract": "Optimizing Register Transfer Level (RTL) code is a critical step in Electronic Design Automation (EDA) for improving power, performance, and area (PPA). We present CODMAS (Collaborative Optimization via a Dialectic Multi-Agent System), a framework that combines structured dialectic reasoning with domain-aware code generation and deterministic evaluation to automate RTL optimization. At the core of CODMAS are two dialectic agents: the Articulator, inspired by rubber-duck debugging, which articulates stepwise transformation plans and exposes latent assumptions; and the Hypothesis Partner, which predicts outcomes and reconciles deviations between expected and actual behavior to guide targeted refinements. These agents direct a Domain-Specific Coding Agent (DCA) to generate architecture-aware Verilog edits and a Code Evaluation Agent (CEA) to verify syntax, functionality, and PPA metrics. We introduce RTLOPT, a benchmark of 120 Verilog triples (unoptimized, optimized, testbench) for pipelining and clock-gating transformations. Across proprietary and open LLMs, CODMAS achieves ~25% reduction in critical path delay for pipelining and ~22% power reduction for clock gating, while reducing functional and compilation failures compared to strong prompting and agentic baselines. These results demonstrate that structured multi-agent reasoning can significantly enhance automated RTL optimization and scale to more complex designs and broader optimization tasks.",
+      "authors": [
+        "Che-Ming Chang",
+        "Prashanth Vijayaraghavan",
+        "Ashutosh Jadhav",
+        "Charles Mackin",
+        "Vandana Mukherjee",
+        "Hsinyu Tsai",
+        "Ehsan Degan"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AR",
+        "cs.PL"
+      ],
+      "published": "2026-03-17T23:10:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.17204v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-agent framework for RTL code optimization with dialectic agents",
+      "llm_evidence_cn": "用于RTL代码优化的多智能体协作框架",
+      "llm_evidence": "用于RTL代码优化的多智能体协作框架",
+      "canonical_evidence": "用于RTL代码优化的多智能体协作框架",
+      "llm_tldr_en": "CODMAS uses dialectic multi-agent collaboration to automate RTL code optimization in EDA.",
+      "llm_tldr_cn": "CODMAS使用辩证多智能体协作自动化EDA中的RTL代码优化。",
+      "llm_tldr": "CODMAS使用辩证多智能体协作自动化EDA中的RTL代码优化。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.16021v2",
+      "title": "Interpretable Context Methodology: Folder Structure as Agentic Architecture",
+      "abstract": "Current approaches to AI agent orchestration typically involve building multi-agent frameworks that manage context passing, memory, error handling, and step coordination through code. These frameworks work well for complex, concurrent systems. But for sequential workflows where a human reviews output at each step, they introduce engineering overhead that the problem does not require. This paper presents Model Workspace Protocol (MWP), a method that replaces framework-level orchestration with filesystem structure. Numbered folders represent stages. Plain markdown files carry the prompts and context that tell a single AI agent what role to play at each step. Local scripts handle the mechanical work that does not need AI at all. The result is a system where one agent, reading the right files at the right moment, does the work that would otherwise require a multi-agent framework. This approach applies ideas from Unix pipeline design, modular decomposition, multi-pass compilation, and literate programming to the specific problem of structuring context for AI agents. The protocol is open source under the MIT license.",
+      "authors": [
+        "Jake Van Clief",
+        "David McDermott"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-03-17T00:03:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.16021v2",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agent orchestration methodology using filesystem structure",
+      "llm_evidence_cn": "使用文件系统结构的智能体编排方法",
+      "llm_evidence": "使用文件系统结构的智能体编排方法",
+      "canonical_evidence": "使用文件系统结构的智能体编排方法",
+      "llm_tldr_en": "Replaces framework-level orchestration with folder-based agentic architecture.",
+      "llm_tldr_cn": "用基于文件夹的智能体架构替代框架级编排。",
+      "llm_tldr": "用基于文件夹的智能体架构替代框架级编排。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

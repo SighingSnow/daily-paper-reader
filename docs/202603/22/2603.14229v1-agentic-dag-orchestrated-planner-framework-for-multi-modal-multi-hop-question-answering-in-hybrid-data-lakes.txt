@@ -1,0 +1,560 @@
+Title: Agentic DAG-Orchestrated Planner Framework for Multi-Modal, Multi-Hop Question Answering in Hybrid Data Lakes
+
+URL Source: https://arxiv.org/pdf/2603.14229v1
+
+Published Time: Tue, 17 Mar 2026 04:38:13 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Agentic DAG-Orchestrated Planner Framework for Multi-Modal, Multi-Hop Question Answering in Hybrid Data Lakes 
+
+# Kirushikesh D B 1, Manish Kesarwani 1, Nishtha Madaan 1, Sameep Mehta 1,Aldrin Dennis 2, Siddarth Ajay 2, Rakesh B R 2, Renu Rajagopal 2, Sudheesh Kairali 2
+
+> 1
+
+IBM Research, India, 2IBM Software, India kirushi@ibm.com, {manishkesarwani, nishthamadaan, sameepmehta }@in.ibm.com, 
+
+{Aldrin.Dennis1, siddarth.ajay, raki, Renu.Rajagopal }@ibm.com, skairali@in.ibm.com 
+
+Abstract 
+
+Enterprises increasingly need natural language (NL) ques-tion answering over hybrid data lakes that combine structured tables and unstructured documents. Current deployed solu-tions, including RAG-based systems, typically rely on brute-force retrieval from each store and post-hoc merging. Such approaches are inefficient and leaky, and more critically, they lack explicit support for multi-hop reasoning, where a query is decomposed into successive steps (hops) that may traverse back and forth between structured and unstructured sources. We present Agentic DAG-Orchestrated Transformer (A.DOT) Planner, a framework for multi-modal, multi-hop question answering, that compiles user NL queries into directed acyclic graph (DAG) execution plans spanning both structured and unstructured stores. The system decomposes queries into parallelizable sub-queries, incorporates schema-aware reasoning, and applies both structural and semantic validation before execution. The execution engine adheres to the generated DAG plan to coordinate concurrent retrieval across heterogeneous sources, route intermediate outputs to dependent sub-queries, and merge final results in strict accordance with the plan’s logical dependencies. Advanced caching mechanisms, incorporating paraphrase-aware tem-plate matching, enable the system to detect equivalent queries and reuse prior DAG execution plans for rapid re-execution, while the DataOps System addresses validation feedback or execution errors. The proposed framework not only improves accuracy and latency, but also produces explicit evidence trails, enabling verification of retrieved content, tracing of data lineage, and fostering user trust in the system’s outputs. On benchmark dataset, A.DOT achieves 14.8% absolute gain in correctness and 10.7% in completeness over baselines. The system is currently under evaluation for deployment as the data retrieval module in IBM Watsonx.data Premium, with planned user studies, large-scale performance testing, and validation over representative client datasets, establishing a clear and immediate trajectory from research prototype to en-terprise deployment. 
+
+# 1 Introduction 
+
+Hybrid data lakes, which co-locate structured tables with unstructured document repositories, are increasingly used in enterprise environments. By integrating structured enter-
+
+Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+prise records (e.g., invoice metadata) with unstructured doc-uments (e.g., full invoice texts, contracts), organizations can support diverse analytical workloads and enable decision-making across different business units. Business users in-creasingly expect to query such heterogeneous sources in natural language, without requiring knowledge of SQL, vector-search syntax, or custom extraction pipelines. An ef-fective system must interpret user intent, locate relevant data across modalities, and synthesize a coherent answer. 
+
+Figure 1: Question Answering over Hybrid Data Lakes Figure 1 shows an example enterprise query: “Give me the average total amount for invoice receivers from Texas and their general payment terms.” Answering this requires (i) identifying invoices with Texas addresses in structured tables, (ii) computing the average grand total for those in-voices, and (iii) retrieving payment terms from associated unstructured invoice documents stored in a vector database. State-of-the-art systems (Bardhan, Xiao, and Wang 2024) would submit the NL query independently to both structured and unstructured stores. This design introduces several in-efficiencies. First, it places heavy reliance on NL2SQL (or 
+
+> arXiv:2603.14229v1 [cs.AI] 15 Mar 2026
+
+NL2Vector) models to generate precise queries, which in-creases the risk of hallucinations (Qu et al. 2024), especially when key information (e.g., payment terms) is not present in the underlying data source at all. Second, to avoid missing relevant results, these systems often over-retrieve, pulling back large volumes of data. This not only increases compu-tational overhead but can also cause unnecessary data leak-age, exposing more information than required. In contrast, a more principled approach is to fetch only the precise data required from each source, while maintaining explicit data lineage and selectively passing intermediate re-sults across modalities. Such targeted execution reduces un-necessary overhead, mitigates data leakage risks, and, cru-cially for enterprise settings, enables provenance tracking so that users can verify the origin of every returned answer. Benchmarks such as HybridQA (Chen et al. 2020) and MMQA (Talmor et al. 2021) highlight the need for multi-hop reasoning across heterogeneous sources: HybridQA contains 7K questions (in the dev and test set) requiring reasoning over tables and linked passages while MMQA extends the setting to text, tables, and images, showing the difficulty of joint reasoning beyond two modalities. Table-oriented models (e.g., TaBERT (Yin et al. 2020), TAPAS (Herzig et al. 2020)) and schema-aware text-to-SQL systems such as RAT-SQL (Wang et al. 2019) focus on single-modal pipelines and typically produce extractive answers. Agentic reasoning frameworks like ReAct (Yao et al. 2023) interleave reasoning with tool calls but execute sub-tasks sequentially, incurring higher latency. DAG-based planners such as LLM-Compiler (Kim et al. 2024) compile dependency graphs but often replace structured intermedi-ates with raw text, which is inefficient when downstream steps require only subsets of results. A comprehensive re-view of related work is presented in Appendix A. To our knowledge, no existing approach supports parallel execu-tion, plan caching, variable-scoped data passing, and evi-dence traceability in a unified framework; moreover, multi-hop reasoning that repeatedly alternates between structured and unstructured data remains unaddressed. In this paper, we present the Agentic DAG-Orchestrated 
+
+Transformer ( A.DOT ) Planner, a framework for multi-modal, multi-hop question answering in hybrid data lakes. A.DOT compiles the input NL query into a DAG plan, where each node corresponds to an atomic sub-query mapped to the appropriate data source (e.g., relational database or vec-tor store). A single LLM pass generates the plan, which is then validated both structurally and semantically. If incon-sistencies or errors are detected, the DataOps System inter-venes, first at the planning stage to refine the DAG against schema and semantic constraints, and later at execution time if the engine raises runtime errors. Independent nodes are ex-ecuted in parallel, with intermediate variables passed selec-tively to dependent steps. Paraphrase-aware caching enables the reuse of prior DAG plans for semantically equivalent queries, reducing redundant computation. Finally, the plan-driven execution maintains explicit data provenance across all intermediate stages, producing evidence trails that sup-port verification, lineage tracking, and compliance auditing. A.DOT is being evaluated for deployment as the primary retrieval module in IBM Watsonx.data Premium (Nirmal et al. 2025), with the goal of improving answer accuracy, and providing verifiable outputs in enterprise settings. The contributions of this work are as follows: 1. We propose A.DOT, an agentic framework for question answering over hybrid data lakes, combining DAG-based plan generation with structural and semantic validation, a dual-stage DataOps system for diagnosis and remedia-tion, paraphrase-aware plan caching, parallel execution, and fine-grained lineage tracking. 2. A variable-binding mechanism for inter-node communi-cation that selectively passes only the required data el-ements between sub-queries across both structured and unstructured sources, thereby improving scalability and reducing data leakage over large enterprise data lakes. 3. A parallel execution strategy that exploits DAG indepen-dence to reduce end-to-end latency, while enabling inter-mediate result exposure to enhance responsiveness. 4. A plan-driven execution model that records evidence and data lineage, enabling verification and auditability. 5. Empirical evaluation on HybridQA dataset demonstrates a 14.8% improvement in answer correctness and a 10.7% gain in completeness over strong agentic baselines. 
+
+# 2 Hybrid Data Setting 
+
+We consider a hybrid data lake consisting of both structured and unstructured modalities: D = {DS , D U }.
+
+Structured Component. DS is modeled as a relational database comprising a set of tables: 
+
+DS = {T1, T 2, . . . , T m},
+
+where each table Ti has schema columns {Ci, 1, . . . , C i,k }
+
+and tuples {Ri, 1, . . . , R i,n }. This component is managed in a relational engine. 
+
+Unstructured Component. DU is a collection of docu-ments: 
+
+DU = {d1, d 2, . . . , d p}.
+
+Documents are chunked into semantically coherent units and embedded with both dense and sparse encoders. The result-ing embeddings are stored in a vector index (e.g., Milvus): 
+
+VU = {v1, v 2, . . . , v q },
+
+where each vℓ includes: (i) the chunk text, (ii) metadata (e.g., document id, timestamps), (iii) a dense vector for semantic similarity, and (iv) a sparse vector for lexical matching. 
+
+Global Schema and Cross-links. We define a global schema S that captures both modalities: • Relational schema: column names, types, primary/for-eign keys, constraints. • Vector-store schema: collection fields and metadata keys (e.g., document id , table name , row id ). • Cross-links: mappings from vector metadata to rela-tional keys, enabling traversal across modalities. Figure 2: Agentic DAG-Orchestrated (A.DOT) Planner Architecture 
+
+Query Processing. Given an NL query Q, the task is to retrieve only the relevant information from both DS and 
+
+DU , integrate it through multi-hop reasoning, and generate a coherent answer. Because such queries often span multi-ple modalities, execution may require switching repeatedly between structured and unstructured sources. Retrieval must be precise, with intermediate results selectively propagated across sources rather than relying on bulk extraction. Be-yond correctness, the system must also preserve explicit data lineage at every stage, ensuring verifiability, compliance, and provenance tracking in enterprise settings. 
+
+# 3 Agentic DAG-Orchestrated (A.DOT) Planner Framework 
+
+Figure 2 illustrates the architecture of the proposed Agentic DAG-Orchestrated (A.DOT) Planner. The framework com-prises the following components: 1. Plan Caching: Accelerates query processing by reusing DAG plans for similar NL queries. 2. Plan Generator: Decomposes the input query Q into a DAG of atomic sub-queries. 3. Plan Validator: Applies syntactic and semantic checks to ensure executability and intent preservation. 4. DataOps System: Uses Diagnostic and Remediation 
+
+agents to address invalid or incomplete plans through suggestions, quick fixes, or full replanning. 5. Plan Executor: Coordinates execution of DAG nodes through an Execution Engine , invoking sub-agents like NL-2-SQL, NL-2-Milvus, and answer generation, while preserving variable bindings and aggregating results. Together, these modules enable robust, feedback-driven execution of queries across structured and unstructured data. 
+
+3.1 Plan Caching 
+
+To accelerate repeated or paraphrased queries, we maintain a repository that maps a query, context key to validated plans: 
+
+I :  Q, σ (S), γ  7 → P ,
+
+where σ(S) is a schema signature (e.g., hash of table/column metadata and cross-links) and γ denotes execution context (e.g., user/role, policy flags). Each cached entry stores a pa-rameterized DAG plan P, and provenance summaries. We support three retrieval strategies: 1. Exact caching: returns P when Q (after normalization) and the context (σ(S), γ ) exactly match a cached key 2. Template caching: stores parameterized templates with slots and a shared plan skeleton. Incoming Q is matched via paraphrase-aware slot extraction; on a high-confidence match, the template is instantiated and the re-sulting plan is validated 3. Semantic caching: indexes normalized queries with em-beddings (Zhou et al. 2025). Given Q, we retrieve top candidates by semantic similarity and reuse a candidate plan iff structural validation succeeds The cache implements LRU eviction. On a hit, the sys-tem bypasses plan generation but still performs validation. Subquery-level caching (reusing DAG subgraphs across plans) is promising future work. 
+
+3.2 Plan Generator 
+
+The Plan Generator transforms an NL query Q into a DAG plan P = ( V, E ) in a single LLM pass. Each node n ∈ V
+
+is an atomic sub-query, answerable from exactly one data source. Nodes are annotated with: • question: NL sub-task description • tool: Target data source ( sql for DS , vector for DU )• label: Symbolic variable storing n’s output • should expose answer: Boolean flag for early surfacing of intermediate results Edges (u → v) ∈ E encode dependencies, where the out-put of u is consumed by v. Independent nodes can be exe-cuted in parallel, while dependency edges coordinate infor-mation flow across structured and unstructured sources. An example DAG plan is shown in Appendix B. 
+
+3.3 Plan Validator 
+
+The validator ensures that a plan P is both executable under schema S and semantically aligned with query Q, intercept-ing errors before costly execution. It runs after cache hits or plan generation, returning feedback for diagnosis: 
+
+V (P, S, Q ) → (is valid , feedback ).
+
+Structural Checks. Verify schema compliance (all columns/tables are valid), variable hygiene ( $var d.col 
+
+is not dangling), node completeness (required fields present), and acyclicity of dependencies. Detailed rules and algorithm are provided in Appendix C. 
+
+Semantic Checks. Ensure intent preservation and execu-tion feasibility: join keys respect types, and aggregates ref-erence valid attributes. Open-source LLMs are used in an audit prompt to flag intent drift and suggest edits. Dual validation (structural + semantic) captures both static inconsistencies and semantic errors, enabling safe, feedback-driven refinement. 
+
+3.4 DataOps System 
+
+When validation fails or execution raises exceptions, the 
+
+DataOps System is activated. It analyzes feedback and se-lectively triggers custom remediation: 
+
+DataOps (P, S, H, F ) → A ,
+
+where P is the current plan, S is the schema, H is the edit history, F is the feedback from validators or executors, and 
+
+A denotes the resulting action. Depending on the failure type, the system may emit actionable recommendations for downstream decision-making, apply a targeted fix , or gener-ate a revised plan. Formally, it consists of four submodules: • Diagnoser: Identifies root causes of failures (e.g., tool mismatch, unresolved variable, missing filters) by in-specting validator messages and execution traces. • Recommender: Suggests non-executable recovery ac-tions like server downtime, flagging such cases for user escalation or alternative execution paths. • Fixer: Applies local, conservative edits (e.g., resolving renamed fields or fixing filter syntax) without altering DAG structure or prior node outputs. • Replanner: Performs full or partial rewrites of the exe-cution plan when deeper structural issues are detected. This modular enables progressive refinement: minor is-sues are resolved quickly by the Fixer, while more structural or semantic issues trigger the Replanner. By isolating diag-nosis, recommendation, and remediation roles, the system ensures reliable recovery without full re-generation. 
+
+3.5 Plan Executor 
+
+The executor traverses the DAG in topological order, exe-cuting zero in-degree nodes in parallel while respecting de-pendencies. A variable store maintains bindings and exposes only minimal required attributes (e.g., document id s) to successor nodes to reduce payload overhead. 
+
+Key challenge: Intermediate query results, can contain large payloads. Naively passing these downstream can over-whelm memory or exceed context limits in generation mod-els. To address this, the executor slims variables by prop-agating only the necessary keys (e.g., IDs), which are then used to join, filter, or retrieve relevant subsets in dependent subqueries. This strategy ensures efficiency and correctness without compromising the logical flow of execution. 
+
+Source-specific execution: 
+
+• SQL nodes ( DS ): Translated via NL-to-SQL(Gao et al. 2023), with alias normalization and policy enforcement. • Vector nodes ( DU ): Handled via NL-to-Vector modules (e.g., Milvus), using sparse+dense retrieval and optional joins with SQL outputs. 
+
+Streaming and partial answers: If a node has 
+
+should expose answer=true , its result is im-mediately surfaced with answer description , while the rest of the DAG continues execution. Failures (e.g., SQL errors, vector timeouts) are logged and returned to the DataOps system as structured feedback. 
+
+Lineage and logging: Each step records the executed op-erator, inputs, outputs, and data provenance (e.g., source rows or document spans), enabling downstream verification and auditability. 
+
+Final response generation: After all subqueries are exe-cuted, the system invokes a response synthesis module that composes the final answer using relevant subquery results. This step ensures coherence, eliminates redundancy, and produces a fluent, human-readable output. 
+
+# 4 Experiments 
+
+4.1 Experimental Settings 
+
+Dataset: To evaluate the robustness and efficiency of A.DOT, we evaluate its performance on the HybridQA dataset (Chen et al. 2020), a challenging benchmark that demands multi-hop reasoning across both structured tables and unstructured text. Designed to emulate real-world en-terprise scenarios, HybridQA tests a system’s ability to re-trieve, link, and synthesize information from heterogeneous data sources. The dataset is built from Wikipedia tables and their linked textual passages, requiring models to reason across both modalities. Each question often necessitates 1–2 hops be-tween structured and unstructured content, traversing docu-ments and table entries to derive the correct answer. For our evaluation, we focus on the development (dev) split, which consists of 3,466 question–answer pairs, carefully curated to reflect a wide range of reasoning challenges. We exclude the test set from our analysis, as the ground truth answers have not been publicly released. 
+
+Implementation Details: To adapt HybridQA for enterprise-grade benchmarking, we restructured its schema and storage formats to align with real-world data lake architectures. The original HybridQA dataset organizes structured content as JSON tables and links them to textual passages via cell-level annotations. However, this JSON-based format is impractical for large-scale enterprise systems, which typically rely on hybrid relational–vector backends. To bridge this gap, we recast HybridQA into a dual-store architecture: 
+
+Structured and Unstructured Storage: 
+
+• Relational Tables: All JSON tables are converted into a relational SQL backend (SQLDB). Each table preserves its original schema, maintaining column names, primary keys, and inter-row relationships. • Vector Store for Documents: Unstructured textual pas-sages, linked to table cells, are chunked into coherent segments and embedded into a Milvus vector database. This enables efficient dense and sparse retrieval. To ensure cross-modal connectivity: • We add a document id to rows in the SQL tables, es-tablishing a connection to related document chunks. • Each Milvus entry includes corresponding 
+
+document id , allowing bidirectional traversal be-tween table entries and their supporting evidence. This hybrid design allows the system to reason across modalities, enabling NL queries to access and synthesize in-formation from both relational and textual sources. 
+
+Execution Pipeline: The entire A.DOT pipeline is pow-ered by the LLaMA-3 70B model and implemented using the LangGraph framework. Each component, as illustrated in Figure 2, is modularized as an agent responsible for han-dling different stages of the process, from receiving the input query to producing the final answer. 
+
+Evaluation Metrics: We evaluate A.DOT using NL-centric metrics from the Unitxt (Bandel et al. 2024) library: 1. Answer Correctness: Measures whether the predicted answer is factually aligned with the reference. A binary label is produced via LLM-as-judge using the Mistral Large 2 model, ensuring the response captures the cor-rect meaning regardless of surface form. 2. Answer Completeness: Assesses the extent to which the predicted answer covers all required information. Graded on a scale from Very Bad to Excellent , this metric high-lights omissions and partial completions, again judged by Mistral Large 2. 
+
+4.2 Baselines 
+
+To demonstrate the effectiveness of A.DOT, we compare it against established industry-standard agentic frameworks. Since most of these frameworks operate via tool calling (e.g., invoking external API calls or database queries), we reformulate our data sources into two core tools: • SQL Retriever Accepts an NL query, converts it into SQL, and retrieves results from the relational database • Milvus Retriever Transforms NL query into a vector search and retrieves closest matching text chunks Both tools are made available to all baselines, along with metadata describing the data lake, ensuring a fair compari-son. The baselines include: 
+
+Standard RAG (Retrieval-Augmented Generation) As a widely adopted baseline, the RAG setup retrieves both structured and unstructured evidence for each user query us-ing the two retrievers. Retrieved results are concatenated and passed to the LLM in a single-pass generation step, without iterative reasoning or planning. 
+
+ReAct: We adopt the ReAct framework (Yao et al. 2023) as a strong reasoning-first baseline. ReAct agents alternate between generating thoughts and invoking tools. At each step, the agent uses observations from tool outputs to guide subsequent reasoning. We provide ReAct with both SQL and Milvus Retrievers to align with our hybrid setup. 
+
+LLM Compiler We also compare against the LLM Com-piler framework (Kim et al. 2024), which introduces a DAG-based planner for orchestrating tool calls. The planner can dynamically replan based on execution feedback and prior context, allowing more flexible coordination of SQL and Milvus retrievals. In our setup, both tools are provided to the planner, which produces a DAG-structured plan that can be executed in parallel or sequentially, depending on depen-dencies. This makes the LLM Compiler a stronger baseline, that more closely resemble A.DOT’s agentic execution. 
+
+4.3 Evaluation Results           
+
+> Frameworks Answer Correctness Answer Completeness
+> LLM Compiler 27.8 30.8 ReAct 40.2 44.3 Standard RAG 56.2 62.3
+> A.DOT 71.0 73.0
+
+Table 1: Comparison of various frameworks Table 1 presents a comparative evaluation of A.DOT against prominent agentic AI frameworks using the Hy-bridQA benchmark. All models use LLaMA-3-70B for in-ference and Mistral-Large as the LLM-as-a-Judge (LL-MaJ) for evaluation. A.DOT significantly outperforms all baselines, improving upon the strongest baseline (Standard RAG) by 14.8% in correctness and 10.7% in completeness . This highlights its superior ability to perform multi-hop reasoning over hybrid structured and unstructured sources. 
+
+Standard RAG: Performs relatively well when answers lie directly within unstructured documents. Since it uses the same retrieval backbone as A.DOT, it is able to fetch relevant chunks, but lacks deep reasoning capabilities and hence of-ten fails on complex multi-hop queries spanning modalities. ReAct: The ReAct agent leverages iterative reasoning and tool use but is capped at 20 rollout steps, a design choice aligned with our task requirements, which typically involve at most 2-hop reasoning. This safeguard ensures termination in cases of reasoning loops. While this avoids infinite loops, it limits recovery opportunities, leading to lower overall per-formance compared to RAG. 
+
+LLM Compiler: While LLM Compiler introduces struc-tured DAG-based planning and parallel execution to re-duce latency, it underperforms due to over-reliance on re-lational tools. It frequently skips vector-based retrieval and lacks robust plan validation. Unlike A.DOT, which employs schema-aware validation and semantic feedback for robust replanning, LLM Compiler only responds to final node fail-ures and is blind to mid-execution errors. It also lacks a mod-ular diagnostic and remediation loop. 
+
+A.DOT (Ours): A.DOT excels by integrating dynamic planning, fine-grained error handling, schema validation, and flexible evidence synthesis. It gracefully recovers from partial failures and ensures answer quality through stream-ing outputs, intermediate diagnostics, and answer validation. 
+
+4.4 Ablation Study 
+
+Model Answer Correctness Answer Completeness 
+
+Without Plan Validator and DataOps System 67.9 69.6 Without DataOps System 60.0 61.8 Without Plan Validator 68.0 69.6 A.DOT 71.8 74.3 Table 2: Ablation study Table 2 presents results from the ablation study conducted on a 500 sample subset of the HybridQA development set. This analysis quantifies the individual and combined impact of two critical components in A.DOT: the Schema Validator and the DataOps System. Interestingly, removing only the DataOps System re-sults in the sharpest drop in performance (60.0% Answer Correctness), as the system fails to recover from execu-tion errors, even when these are correctly flagged by the Schema Validator. However, when both the Schema Val-idator and DataOps System are disabled, performance im-proves (67.9%), which may seem counterintuitive. This is because, in the absence of the DataOps System, the Plan Validator halts execution upon detecting issues, but cannot repair the plan, resulting in premature termination. When both components are absent, the system proceeds unchecked and occasionally succeeds via direct execution, albeit with-out structural safeguards. These results highlight the tight coupling between validation and replanning: only when both operate together can the system detect, correct, and optimize plans effectively, leading to best performance. We note that plan caching is excluded from this ablation, as its primary utility lies in avoiding redundant computation across recurring queries, common in enterprise use cases but rare in the diverse HybridQA benchmark. 
+
+Error Analysis: We categorize observed failure cases into three broad types. Illustrative examples of these error cate-gories are provided in Appendix D: 1. Intermediate Subquery Failures: NL2SQL or NL2Milvus modules fail to retrieve necessary data. 2. Incorrect Data Source Assignment: The planner misidentifies whether a subtask requires structured (SQL) or unstructured (Milvus) querying 3. Lack of Intrinsic Knowledge: The system fails to incor-porate commonsense knowledge when reasoning across modalities 
+
+# 5 Deployment Plan 
+
+A.DOT is currently being evaluated for integration as the core retrieval module in IBM Watsonx.data Premium (Nir-mal et al. 2025), with the objective of enhancing answer accuracy and delivering verifiable outputs tailored to en-terprise needs. This transition from research prototype to product is backed by planned user studies, extensive perfor-mance benchmarking, and validation over representative en-terprise datasets. These efforts mark a clear trajectory toward real-world deployment, ensuring that A.DOT not only meets functional expectations but also aligns with the robustness and interpretability demands of production systems. 
+
+# 6 Conclusion and Future Work 
+
+In this paper, we introduced A.DOT, an enterprise-ready agentic framework for hybrid question answering over structured and unstructured data. Unlike traditional ex-tractive QA systems, A.DOT synthesizes fluent, context-aware responses by integrating relevant data from relational databases and vector-based document stores. Our architecture emphasizes modularity, fault-tolerant ex-ecution, and parallelism through a DAG-based planner. It in-corporates intermediate result caching, robust schema val-idation and remediation mechanisms, and supports inter-mediate answer exposure during execution. Additionally, A.DOT maintains fine-grained lineage logs at each step, enhancing traceability, auditability, and interpretability, key requirements in enterprise-grade deployments. On the Hy-bridQA benchmark, a challenging multi-hop QA dataset, A.DOT significantly outperforms agentic baselines such as ReAct, RAG, and LLM Compiler. As a future research direction, we aim to extend A.DOT beyond single-turn queries to support multi-turn conversa-tional settings, where maintaining context history and re-solving user intent are critical. The system’s modular design further allows seamless integration of additional modalities, such as graph databases, image-based knowledge, thereby broadening its applicability across a wide range of real-world hybrid data environments. References 
+
+Agarwal, A.; Devaguptapu, C.; et al. 2025. Hybrid graphs for table-and-text based question answering using llms. 
+
+arXiv preprint arXiv:2501.17767 .Bandel, E.; Perlitz, Y.; Venezian, E.; Friedman, R.; Ar-viv, O.; Orbach, M.; Don-Yehiya, S.; Sheinwald, D.; Gera, A.; Choshen, L.; Shmueli-Scheuer, M.; and Katz, Y. 2024. Unitxt: Flexible, Shareable and Reusable Data Preparation and Evaluation for Generative AI. In Chang, K.-W.; Lee, A.; and Rajani, N., eds., Proceedings of the 2024 Confer-ence of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 3: System Demonstrations) , 207–215. Mexico City, Mexico: Association for Computational Linguistics. Bardhan, J.; Xiao, B.; and Wang, D. Z. 2024. TTQA-RS-A break-down prompting approach for Multi-hop Table-Text Question Answering with Reasoning and Summarization. 
+
+arXiv preprint arXiv:2406.14732 .Chase, H.; et al. 2023. LangChain. https://github.com/ langchain-ai/langchain. A framework for developing appli-cations powered by language models. Chen, W.; Zha, H.; Chen, Z.; Xiong, W.; Wang, H.; and Wang, W. Y. 2020. HybridQA: A Dataset of Multi-Hop Question Answering over Tabular and Textual Data. In Cohn, T.; He, Y.; and Liu, Y., eds., Findings of the Associ-ation for Computational Linguistics: EMNLP 2020 , 1026– 1036. Online: Association for Computational Linguistics. Feng, Y.; Han, Z.; Sun, M.; and Li, P. 2022. Multi-Hop Open-Domain Question Answering over Structured and Un-structured Knowledge. In Carpuat, M.; de Marneffe, M.-C.; and Meza Ruiz, I. V., eds., Findings of the Association for Computational Linguistics: NAACL 2022 , 151–156. Seattle, United States: Association for Computational Linguistics. Gao, D.; Wang, H.; Li, Y.; Sun, X.; Qian, Y.; Ding, B.; and Zhou, J. 2023. Text-to-sql empowered by large lan-guage models: A benchmark evaluation. arXiv preprint arXiv:2308.15363 .Glenn, P.; Dakle, P. P.; Wang, L.; and Raghavan, P. 2024. Blendsql: A scalable dialect for unifying hybrid question answering in relational algebra. arXiv preprint arXiv:2402.17882 .Guan, C.; Huang, M.; and Zhang, P. 2024. Mfort-qa: Multi-hop few-shot open rich table question answering. In Pro-ceedings of the 2024 10th International Conference on Com-puting and Artificial Intelligence , 434–442. Herzig, J.; Nowak, P. K.; M¨ uller, T.; Piccinno, F.; and Eisen-schlos, J. M. 2020. TaPas: Weakly supervised table parsing via pre-training. arXiv preprint arXiv:2004.02349 .Kim, S.; Moon, S.; Tabrizi, R.; Lee, N.; Mahoney, M. W.; Keutzer, K.; and Gholami, A. 2024. An llm compiler for parallel function calling. In Forty-first International Confer-ence on Machine Learning .Lei, F.; Li, X.; Wei, Y.; He, S.; Huang, Y.; Zhao, J.; and Liu, K. 2023. S3HQA: A Three-Stage Approach for Multi-hop Text-Table Hybrid Question Answering. In Rogers, A.; Boyd-Graber, J.; and Okazaki, N., eds., Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers) , 1731–1740. Toronto, Canada: Association for Computational Linguistics. M¨ uller, T.; Eisenschlos, J.; and Krichene, S. 2021. TAPAS at SemEval-2021 Task 9: Reasoning over tables with interme-diate pre-training. In Palmer, A.; Schneider, N.; Schluter, N.; Emerson, G.; Herbelot, A.; and Zhu, X., eds., Proceedings of the 15th International Workshop on Semantic Evaluation (SemEval-2021) , 423–430. Online: Association for Compu-tational Linguistics. Nirmal, D.; et al. 2025. How enterprise data becomes AI’s most powerful tool. Qu, G.; Li, J.; Li, B.; Qin, B.; Huo, N.; Ma, C.; and Cheng, R. 2024. Before generation, align it! a novel and effective strategy for mitigating hallucinations in text-to-sql genera-tion. arXiv preprint arXiv:2405.15307 .Shen, Y.; Song, K.; Tan, X.; Li, D.; Lu, W.; and Zhuang, Y. 2023. Hugginggpt: Solving ai tasks with chatgpt and its friends in hugging face. Advances in Neural Information Processing Systems , 36: 38154–38180. Sun, H.; Dhingra, B.; Zaheer, M.; Mazaitis, K.; Salakhut-dinov, R.; and Cohen, W. W. 2018. Open domain question answering using early fusion of knowledge bases and text. 
+
+arXiv preprint arXiv:1809.00782 .Talmor, A.; Yoran, O.; Catav, A.; Lahav, D.; Wang, Y.; Asai, A.; Ilharco, G.; Hajishirzi, H.; and Berant, J. 2021. Multi-modalqa: Complex question answering over text, tables and images. arXiv preprint arXiv:2104.06039 .Wang, B.; Shin, R.; Liu, X.; Polozov, O.; and Richardson, M. 2019. Rat-sql: Relation-aware schema encoding and linking for text-to-sql parsers. arXiv preprint arXiv:1911.04942 .Yao, S.; Zhao, J.; Yu, D.; Du, N.; Shafran, I.; Narasimhan, K.; and Cao, Y. 2023. React: Synergizing reasoning and acting in language models. In International Conference on Learning Representations (ICLR) .Yin, P.; Neubig, G.; Yih, W.-t.; and Riedel, S. 2020. TaBERT: Pretraining for joint understanding of textual and tabular data. arXiv preprint arXiv:2005.08314 .Yu, X.; Jian, P.; and Chen, C. 2025. TableRAG: A Retrieval Augmented Generation Framework for Heterogeneous Doc-ument Reasoning. arXiv preprint arXiv:2506.10380 .Zhou, C.; Qiu, C.; Liang, L.; and Acuna, D. E. 2025. Paraphrase identification with deep learning: A review of datasets and methods. IEEE Access .
+
+# A Related Works 
+
+Recent work has pushed multi-hop Hybrid Question An-swering (HybridQA) – where queries require combining structured data (tables) with unstructured text – using ad-vanced LLMs and novel pipelines. Traditional systems of-ten relied on supervised retriever-reader models[(Sun et al. 2018),(M¨ uller, Eisenschlos, and Krichene 2021)], but these demand large training data. S3HQA(Lei et al. 2023) fine-tuned a retriever, a hybrid selector, and a generator to reach state-of-the-art accuracy on the HybridQA bench-mark(Chen et al. 2020). Recent approaches, leverage in-context learning and multi-step reasoning[(Guan, Huang, and Zhang 2024),(Yu, Jian, and Chen 2025),(Feng et al. 2022)] to reduce training needs. One such method is TTQA-RS(Bardhan, Xiao, and Wang 2024), a prompt-based pipeline that explicitly decomposes questions and retrieves evidence iteratively. Another zero-shot method is the Hybrid Graph approach(Agarwal, Devaguptapu et al. 2025). Instead of serial prompting, it constructs a unified graph of all can-didate table cells and text snippets and prunes it based on the question. Relative to A.DOT, which plans explicit query operations, the Hybrid Graph is more of a dynamic context builder; it excels at filtering relevant facts but does not yield a reusable “plan” beyond the immediate context – the fi-nal reasoning still happens implicitly in the LLM’s forward pass. In parallel, the NLP community has explored using LLMs themselves as planning and acting agents to tackle multi-step information tasks. (Yao et al. 2023) propose ReAct, which interleaves the LLM’s chain-of-thought reasoning with actions such as external queries. This allows the model to fetch information mid-reasoning and update its plan, re-ducing hallucinations in multi-hop QA. Other work treats the LLM as a high-level controller. HuggingGPT(Shen et al. 2023) uses ChatGPT to decompose a complex query into sub-tasks, invoke appropriate expert models (e.g. vision or text QA models from HuggingFace) for each, then inte-grate their outputs to produce the answer. A complementary line of research makes reasoning explicit through planning. BLENDSQL(Glenn et al. 2024) compiles hybrid QA into SQL-like queries that deterministically join structured and unstructured sources, yielding interpretable, reusable plans and lower context overhead. Similarly, LLMCompiler(Kim et al. 2024) generalizes this idea into parallel DAG exe-cution of function calls, improving efficiency and through-put. Yet, while LLMCompiler optimizes when to execute, it leaves the what under-specified. By contrast, A.DOT em-phasizes schema-aware validation, caching, and reusabil-ity—bridging the gap between interpretable query planning (as in BLENDSQL) and efficient orchestration (as in LLM-Compiler). Frameworks like LangChain(Chase et al. 2023) further popularize such agent-based orchestration, letting an LLM choose tool APIs (search, calculators, DB queries, etc.) in an interactive loop. In summary, our approach integrates the strengths of prior HybridQA systems (tight integration of heterogeneous data) with the adaptability of LLM-based agents, using a DAG-based planner to achieve more reliable and efficient multi-hop reasoning across hybrid data lakes. 
+
+# B DAG Example 
+
+Consider the question, What year was the athlete born in the event that had 70 competitors from 39 countries, with 64 finishers? . Figure 3, shows the corresponding DAG plan. The Plan Generator produces three atomic sub-queries: (1) retrieve the relevant event ID from the document col-lection ( DU ), (2) use this ID to fetch athlete details from the structured table ( DS ), and (3) resolve the athlete’s 
+
+Figure 3: Example DAG plan birth year back in DU . The final node is annotated with 
+
+should expose answer=true , enabling the system to surface the athlete’s birth year. 
+
+# C A.DOT Plan Validation 
+
+Given an execution plan P with subquestions and a database schema S, our validation algorithm proceeds in four phases: 
+
+(1) Structural Specification. Checks that 
+
+P. subquestions is a list, and each subquestion qi con-tains the required fields (question , tool , label ,
+
+should expose answer ). It ensures tool belongs to a known backend ( iceberg , milvus ) and label matches a valid variable pattern. If should expose answer 
+
+is True , the corresponding answer description 
+
+must be present. At least one subquestion must have 
+
+should expose answer = True .Algorithm 1: Execution Plan Validation  
+
+> 1:
+
+Input: S (Database schema), P (Execution plan with list P. subquestions ) 
+
+> 2: 3:
+
+/* 1. Plan Structural Specification */  
+
+> 4:
+
+if subquestions /∈ P or P.subquestions not a list 
+
+then  
+
+> 5:
+
+Error  
+
+> 6:
+
+end if  
+
+> 7:
+
+for each qi in P. subquestions , i = 1 to n do  
+
+> 8:
+
+if qi.status = executed then  
+
+> 9:
+
+Continue  
+
+> 10:
+
+end if  
+
+> 11:
+
+Require question , tool , label , and 
+
+should expose answer exist  
+
+> 12:
+
+Assert question is a non-empty string  
+
+> 13:
+
+Assert tool ∈ { iceberg , milvus } 
+
+> 14:
+
+Assert label matches $var int  
+
+> 15:
+
+Assert should expose answer ∈ { True , False } 
+
+> 16:
+
+if should expose answer = True then  
+
+> 17:
+
+Require answer description ̸ = ∅ 
+
+> 18:
+
+end if  
+
+> 19:
+
+end for  
+
+> 20:
+
+Require at least one qi with should expose answer =
+
+True  
+
+> 21: 22:
+
+/* 2. Dependency-Expression Hygiene */  
+
+> 23:
+
+Pattern gets $var d[.c]  
+
+> 24:
+
+for each non-executed qi do  
+
+> 25:
+
+for each match (vd, c ) in question do  
+
+> 26:
+
+d ← integer after $var  
+
+> 27:
+
+if d > n then  
+
+> 28:
+
+Error: Unknown variable  
+
+> 29:
+
+end if  
+
+> 30:
+
+if c̸ = ∅ and c / ∈ S and c / ∈ partialResult[ $var d ]
+
+then  
+
+> 31:
+
+Error: Unknown column  
+
+> 32:
+
+end if  
+
+> 33:
+
+end for  
+
+> 34:
+
+end for  
+
+> 35: 36:
+
+/* 3. Acyclic Intralogic Dependencies */  
+
+> 37:
+
+Build directed graph G 
+
+> 38:
+
+Nodes are labels of qi (strip leading $) 
+
+> 39:
+
+Add edge (u → v) if qu references variable $var v  
+
+> 40:
+
+if DFS detects cycle in G then  
+
+> 41:
+
+Error: Cyclic dependency  
+
+> 42:
+
+end if  
+
+> 43: 44:
+
+/* 4. Result */  
+
+> 45:
+
+VALID ← True if no errors recorded  
+
+> 46:
+
+Output: VALID , feedback: list of errors 
+
+(2) Dependency-Expression Hygiene. Ensures all vari-able references of the form $var d[.c] point to valid sub-questions and columns. It raises an error if a referenced sub-question index d is out of bounds or the column c is unde-fined in S or the partial result of qd.
+
+(3) Acyclic Dependencies. Builds a directed graph of variable dependencies across subquestions. A depth-first search is used to detect and reject cyclic dependencies. 
+
+(4) Result. The plan is marked VALID if no errors occur. Otherwise, a list of errors is returned. Each subquestion is treated atomically and expected to execute on a single data source, avoiding any multi-source orchestration. 
+
+# D Error Scenarios 
+
+The Tables 3, 4 and 5 cover the error cases that were ob-served in the proposed A.DOT framework. question id 03f0b21f92ee77b2 
+
+question What is the state represented by the teen whose home town is one of the gate-ways to the Great Smoky Mountains National Park? 
+
+table id Miss Teen USA special awards 1 
+
+answer-text Tennessee 
+
+Plan Generator 1 {
+
+2 "subquestions": [
+
+3 {
+
+4 "question": "Find the document_id of the teen whose hometown is one of the gateways to the Great Smoky Mountains National Park?", 
+
+5 "tool": "milvus", 
+
+6 "label": "$var_1", 
+
+7 "should_expose_answer": false 
+
+8 }, 
+
+9 {
+
+10 "question": "What is the state represented by the teen with document_id in $var_1.document_id?", 
+
+11 "tool": "iceberg", 
+
+12 "label": "$var_2", 
+
+13 "should_expose_answer": true, 
+
+14 "answer_description": "State represented by the teen whose hometown is one of the gateways to the Great Smoky Mountains National Park" 
+
+15 }
+
+16 ]
+
+17 }
+
+Milvus response 1 {
+
+2 "reasoning": "The query asks for the document_id of the teen whose hometown is one of the gateways to the Great Smoky Mountains National Park. After analyzing the chunks, I found that none of the provided chunks explicitly mention the Great Smoky Mountains National Park or its gateways. However, I can infer that the gateways to the Great Smoky Mountains National Park include cities like Gatlinburg, Pigeon Forge, and Sevierville in Tennessee, as well as Cherokee, North Carolina. Since none of the chunks mention these cities or the park, I couldn’t find a direct match. The response is based on the analysis of the provided chunks.", 
+
+3 "document_id": [] 
+
+4 }
+
+Table 3: In this example, the Great Smoky Mountains National Park is not available from the milvus chunks so the vectorstore retriever fails to gather the information or the document id to pass it to the next iceberg query. question id 15dd756a1e80bd1e 
+
+question Where is the venue of the club that won the Bathurst 12 Hour located? 
+
+table id Sport in Queensland 1 
+
+Table Schema 1 # Table: sport_in_queensland 
+
+2 [
+
+3 (document_id:INTEGER, Primary Key, No description available), 
+
+4 (club:TEXT, No description available), 
+
+5 (league:TEXT, No description available), 
+
+6 (venue:TEXT, No description available), 
+
+7 (established:TEXT, No description available), 
+
+8 (premierships:TEXT, No description available), 
+
+9 ]
+
+answer-text Willowbank 
+
+Plan Generated 1 {
+
+2 "subquestions": [
+
+3 {
+
+4 "question": "Find the document_id of the club that won the Bathurst 12 Hour?", 
+
+5 "tool": "milvus", 
+
+6 "label": "$var_1", 
+
+7 "should_expose_answer": false 
+
+8 }, 
+
+9 {
+
+10 "question": "What is the venue of the club with document_id in $var_1.document_id?", 
+
+11 "tool": "iceberg", 
+
+12 "label": "$var_2", 
+
+13 "should_expose_answer": true, 
+
+14 "answer_description": "Venue of the club that won the Bathurst 12 Hour" 
+
+15 }
+
+16 ]
+
+17 }
+
+Predicted Answer The venue of the club that won the Bathurst 12 Hour is located at Queensland Raceway. Table 4: In this example, the venue information is available in the structured data, but still the answer-text retrieves the same information from the unstructured context. question id 05625b361c2d12e9 
+
+question How many games were developed by a company that would become Vivendi games in 2006? 
+
+table id Index of MS-DOS games (Q) 0 
+
+answer-text 4
+
+Plan Generated 1 {
+
+2 "subquestions": [
+
+3 {
+
+4 "question": "Find the document_id of the club that won the Bathurst 12 Hour?", 
+
+5 "tool": "milvus", 
+
+6 "label": "$var_1", 
+
+7 "should_expose_answer": false 
+
+8 }, 
+
+9 {
+
+10 "question": "What is the venue of the club with document_id in $var_1.document_id?", 
+
+11 "tool": "iceberg", 
+
+12 "label": "$var_2", 
+
+13 "should_expose_answer": true, 
+
+14 "answer_description": "Venue of the club that won the Bathurst 12 Hour" 
+
+15 }
+
+16 ]
+
+17 }
+
+Predicted Answer The company that would become Vivendi Games in 2006 developed 3 games. Table 5: In this example, the milvus retriever only retrieves the 3 chunks instead of 4

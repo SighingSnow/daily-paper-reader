@@ -1,0 +1,707 @@
+Title: AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents
+
+URL Source: https://arxiv.org/pdf/2603.14465v1
+
+Published Time: Tue, 17 Mar 2026 04:49:47 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents 
+
+# Shengda Fan *
+
+fanshengda@ruc.edu.cn Renmin University of China Beijing, China 
+
+# Xuyan Ye *
+
+yexvyan0923@ruc.edu.cn Renmin University of China Beijing, China 
+
+# Yupeng Huo 
+
+Renmin University of China Beijing, China 
+
+# Zhi-Yuan Chen 
+
+Renmin University of China Beijing, China 
+
+# Yiju Guo 
+
+Renmin University of China Beijing, China 
+
+# Shenzhi Yang 
+
+Renmin University of China Beijing, China 
+
+# Wenkai Yang 
+
+Renmin University of China Beijing, China 
+
+# Shuqi Ye 
+
+Renmin University of China Beijing, China 
+
+# Jingwen Chen 
+
+Beijing Jiaotong University Beijing, China 
+
+# Haotian Chen 
+
+Tsinghua University Beijing, China 
+
+# Xin Cong 
+
+Tsinghua University Beijing, China 
+
+# Yankai Lin †
+
+yankailin@ruc.edu.cn Renmin University of China Beijing, China 
+
+## Abstract 
+
+While Large Language Models (LLMs) have evolved into tool-using agents, they remain brittle in long-horizon interactions. Un-like mathematical reasoning where errors are often rectifiable via backtracking, tool-use failures frequently induce irreversible side effects, making accurate step-level verification critical. However, existing process-level benchmarks are predominantly confined to closed-world mathematical domains, failing to capture the dynamic and open-ended nature of tool execution. To bridge this gap, we introduce AgentProcessBench , the first benchmark dedicated to evaluating step-level effectiveness in realistic, tool-augmented tra-jectories. The benchmark comprises 1,000 diverse trajectories and 8,509 human-labeled step annotations with 89.1% inter-annotator agreement. It features a ternary labeling scheme to capture explo-ration and an error propagation rule to reduce labeling ambiguity. Extensive experiments reveal key insights: (1) weaker policy mod-els exhibit inflated ratios of correct steps due to early termination; (2) distinguishing neutral and erroneous actions remains a signifi-cant challenge for current models; and (3) process-derived signals provide complementary value to outcome supervision, significantly enhancing test-time scaling. We hope AgentProcessBench can foster future research in reward models and pave the way toward gen-eral agents. The code and data are available at https://github.com/ RUCBM/AgentProcessBench. 
+
+## CCS Concepts 
+
+• Computing methodologies → Intelligent agents ; Natural lan-guage generation .
+
+## Keywords 
+
+Large language models, Process reward models, Tool-using agents 
+
+> *Both authors contributed equally to this research.
+> †Corresponding author.
+
+## 1 Introduction 
+
+Recent advances in Large Language Models (LLMs) have extended their capabilities beyond passive text processing [ 8, 26 ]. As a result, LLMs can now function as tool-using agents that actively interact with external environments such as search engines or command-line shells [ 11 , 21 , 32 ]. Despite this progress, contemporary agents re-main brittle: they may take unnecessary or repetitive actions, invoke inappropriate tools, or generate hallucinated claims. Crucially, un-like mathematical reasoning where errors can often be rectified via backtracking [ 10 ], tool execution frequently entails irreversible side effects—such as sending erroneous emails or deleting essential files. Accurately identifying these erroneous intermediate steps is there-fore crucial: during training, it enables finer-grained credit assign-ment [ 5]; during inference, it facilitates effective test-time scaling by selecting higher-quality trajectories [ 16 , 29 ]. As a primary mecha-nism for such step-level supervision, process reward models (PRMs) play a central role. To better advance their development in agent settings, high-quality benchmarks for step-level verification are es-sential. However, existing step-level verification benchmarks are predominantly confined to mathematical reasoning [ 16 , 35 ]. In these closed-world domains, failures typically stem from logical or arith-metic errors. In contrast, interactive tool use operates in open-world environments, introducing qualitatively different failure modes tied to dynamic observations, ambiguous user intent, and policy con-straints. For example, as shown in Figure 2, the agent incorrectly accepts the user’s claim without invoking an appropriate tool for ver-ification. Meanwhile, standard agent benchmarks such as GAIA [ 19 ]and 𝜏 2-Bench [ 3] only report end-to-end task success, and do not provide step-level signals for evaluating PRMs. Consequently, the field lacks a standardized, human-verified benchmark for step-level process evaluation in realistic multi-turn, tool-using interactions. 
+
+> arXiv:2603.14465v1 [cs.AI] 15 Mar 2026
+
+Fan et al. LLaMA-3.2-3B-Instruct                   
+
+> LLaMA-3.1-8B-Instruct
+> LLaMA-3.3-70B-Instruct
+> Qwen3-4B
+> Qwen3-8B
+> Qwen3-4B-Thinking
+> Qwen3-4B-Instruct-2507
+> Qwen3-4B-Thinking-2507
+> Qwen3-8B-Thinking
+> Qwen3-30B-A3B-Instruct-2507
+> Qwen3-30B-A3B-Thinking-2507
+> GPT-5.2
+> GPT-5.2-Thinking (medium)
+> DeepSeek-V3.2
+> Kimi-K2.5
+> DeepSeek-V3.2-Thinking
+> GPT-5.2-Chat
+> Kimi-K2.5-Thinking
+> Gemini-3-Flash-Preview
+> Gemini-3-Flash-Preview-Thinking
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> 80
+> 90
+> 100
+> Main Results (%)
+> 35.3
+> 52.3 54.4 55.9 57.1 58.8 58.9 60.0 63.2 65.0 68.5 70.1 71.0 71.4 71.4 72.8 74.8 75.9 78.3 81.6
+> Model Family
+> GPT
+> DeepSeek
+> Gemini
+> Kimi
+> Qwen
+> LLaMA
+
+Figure 1: Comparison of step accuracy across 20 LLMs on AgentProcessBench (%). Table 1: Comparison between AgentProcessBench and other reward-oriented benchmarks. AgentProcessBench uniquely provides human-annotated, step-level effectiveness supervision for tool-using agents. Benchmark Domain Environment Step-level Human Ann. Evaluation Task Scale 
+
+PRM800K [16] Math – ✓ ✓ Step Effectiveness 75K traj/ 800K steps MathCheck-GSM [36] Math – ✓ ✗ First-Error Index 516 cases ProcessBench [35] Math – ✓ ✓ First-Error Index 3.4K cases PRMBench [24] Math – ✓ ✗ Step Error Types 6.2K / 83K steps AgentRewardBench [17] Web Web ✗ ✓ Trajectory Rubric 1.3K traj. Agent-RewardBench [18] Multi-modal Multi-modal Partial ✓ Pair Preference 1.1K pairs 
+
+AgentProcessBench (Ours) Tool Web+CLI+APIs ✓ ✓ Step Effectiveness 1K traj. / 8.5K steps 
+
+To address this gap, we introduce AgentProcessBench, the first benchmark for evaluating LLMs’ ability to assess the effective-ness of intermediate steps in tool-using trajectories. Given a task description and an interaction trajectory, AgentProcessBench re-quires a model to label each assistant step with a ternary signal: +1 
+
+if the step is correct and advances progress, 0 if the step is neutral or exploratory, and -1 if the step is incorrect or harmful. We prioritize three principles when constructing the benchmark: 
+
+• Fine-grained annotation in interactive settings: In contrast to benchmarks centered on final success signals [ 17 ] or pairwise pref-erences [ 18 ], AgentProcessBench provides dense, environment-grounded step labels, enabling principled evaluation of PRMs for step-wise credit assignment in long-horizon tool use. 
+
+• Scale and diversity: AgentProcessBench contains 1,000 agent trajectories and 8,509 annotated agent actions, spanning multi-hop reasoning [ 31 ], deep research [ 19 ], multi-turn tool execution [ 20 ], and long-horizon conversational interaction [ 3, 33 ]. For each task, we rollout trajectories from five models with different scales and architectural families, capturing a wide spectrum of agent behaviors and failure modes. 
+
+• High-quality annotations: Initially, all annotators undergo rigor-ous training and qualification assessments. To mitigate ambiguity, we adopt an error-propagation rule, ensuring consistent penaliza-tion of cascading failures. Each task was independently labeled by two annotators, achieving a high inter-annotator agreement of 89.1 %. Any discrepancies are resolved through discussion to ensure the consistency and reliability of the final labels. Leveraging AgentProcessBench, we conduct a comprehensive evaluation involving 20 LLMs, including both proprietary and open-source models (see Figure 1). First , we analyze agent policy behav-iors to understand where and how models fail in tool-using scenarios. We find that error distribution is highly dataset-dependent: while QA tasks often stem from initial reasoning or format errors, tool-heavy tasks tend to fail later due to policy violations. Moreover, we observe that weaker models may paradoxically have a higher proportion of correct steps since terminating early to avoid cascading errors, high-lighting the importance of our proposed First-Error Accuracy metric for fair comparison. Second , we assess the capability of LLMs as reward models. Our error analysis reveals that current LLMs exhibit a significant bias toward positive labels. Moreover, they struggle to distinguish "neutral" exploratory steps from errors. This underscores that evaluating open-ended tool use is fundamentally harder than verifying rigid mathematical derivations. Third , we investigate the utility of process-derived signals. We demonstrate a strong positive correlation between a model’s performance as an Outcome Reward Model (ORM) and its capability as a PRM. More importantly, we show that process signals provide complementary value to outcome supervision in Best-of-𝑁 evaluations. To sum up, our contributions are as follows: AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents …
+
+> Interaction Turn #3
+
+<User> 
+
+I’d like to proceed with the rebooking, but I’m not satisfied with a $50 travel certificate. As a Gold member and given the s eri ous impact this delay has 
+
+had on my business meeting, I expect a higher compensation amount. [……]    
+
+> <A ssistant >--<Tool_Call _get_user_details>
+> "arguments": { "user_id": "mei_brown_7075"} }
+
+## +1 Correctly call tools to verify identity.                                                               
+
+> <A ssistant >
+> Thanks, Mei .Ican help with both the rebooking and compensation .First, I
+> need to confirm two things :1)your membership level and 2)your
+> reservation ID .Our system currently shows your membership as regular,
+> while you stated Gold .If you are indeed Gold, please provide proof (e .g.,
+> the email on your account and any recent membership confirmation), and
+> I’ll update the record before proceeding with compensation .[…… ]
+
+## +1 Identified membership mismatch and proposed the solution. 
+
+7
+
+8       
+
+> <Tool -Res ponse >
+> {"user_id": "mei_brown_7075" ,[……] "saved_passengers": [ {"first_name":
+> "Yusuf", "last_name": "Silva", "dob": "1972 -03 -03"} ], "membership":
+> "regular"
+> ，"reservations": [ "DB1Y70", "MUGYUB", "3JA7XV", "CYPIDV"] }
+
+9
+
+10 
+
+<User> 
+
+My user ID is mei_brown_ 7075 . The flight date was today, and I’m still waiting for my flight to depart . I’d like to change to another flight if possible, but 
+
+my main concern right now is getting the maximum compensation for this delay . There’s only one passenger on this reservation —me .                                                          
+
+> Interaction Turn #2
+> <A ssistant >
+> Thanks, Mei .I’ve confirmed flight HAT 045 for today is delayed .[…… ]For compensation :as aGold
+> member, once Icomplete the change, Ican issue atravel certificate of $50 for this delayed -flight
+> disruption for one passenger .Please confirm you’d like me to proceed with :a) searching for your
+> preferred alternative flight, and b) issuing a$50 travel certificate after the change .
+
+## -1 Incorrectly identified as a Gold Member due to lack of tier verification. 
+
+Correctly call tools to confirm flight delays. 
+
+3      
+
+> <A ssistant >---<Tool_Call _g et_flight_status>
+> "arguments": {
+> {"date": "2024 -05 -15" ,"flight_number": "HAT045"} }
+> <Tool -Re sponse >Delayed
+
+## +1 5
+
+64
+
+<User> 
+
+Hi, my name is Mei Brown, and I'm a valued Gold member . I'm calling about my delayed flight HAT 045 from PHX to SEA . I'm extremely upset 
+
+because this delay is causing me to miss an important meeting, and I need to get the maximum compensation possible for this inconvenience .
+
+Reassure the user and provide an appropriate initial response requesting necessary information. 
+
+1                                                                    
+
+> <A ssistant >
+> Iunderstand this delay is very disruptive, and I’ll work to resolve it .To proceed, please provide :1)your user ID, 2)the reservation ID for this trip (if you don’t
+> have it, Ican look it up after verifying your user ID), and 3)the flight date for HAT 045 (PHX →SEA) .Also, would you like to change to another flight or cancel the
+> trip due to the delay? […… ]
+
+## +1 
+
+2
+
+> Interaction Turn #1
+
+Figure 2: Example of an agent trajectory with human annotated step labels. Each instance in AgentProcessBench consists of a complete tool-using agent trajectory, containing interleaved user messages, assistant responses, and tool calls. During evaluation, the LLM is tasked with annotating each of the assistant’s steps with a label of correct (+1), neutral (0), or incorrect (-1). 
+
+• We introduce and release AgentProcessBench, to the best of our knowledge, the first human-annotated benchmark for step-level effectiveness evaluation in tool-using agent trajectories. 
+
+• We propose a principled step-level evaluation protocol with a neutral label for distinguishing exploratory but non-contributory actions, and an error-propagation rule to reduce labeling ambigu-ity in long-horizon trajectories. 
+
+• We conduct extensive experiments on AgentProcessBench, ana-lyzing failure modes of the current models and providing valuable insights to inspire future research. 
+
+## 2 Related Work 
+
+LLM Agents. With recent advances in instruction-following and reasoning capabilities of large language models [ 1, 9, 27 ], their appli-cations have extended beyond classical natural language processing tasks such as machine translation [ 26 ] and information extraction [ 8]. As a result, LLMs are increasingly deployed as autonomous agents that interact with tools and environments to perform complex tasks, including code generation [ 12 , 20 ], web browsing [ 19 , 31 ], and domain-specific customer service [ 3, 33 ]. To improve LLM agents, prevailing training paradigms rely on (i) supervised fine-tuning on successful trajectories [ 4, 25 , 34 ] or (ii) reinforcement learning with outcome-level rewards [ 7, 13 , 22 ]. However, both paradigms typi-cally provide supervision only at the trajectory level. As a result, the resulting learning signal is coarse and sparse for multi-step decision making, which exacerbates the credit assignment problem [ 15 ]. Ad-dressing this challenge requires supervision and evaluation at the granularity of individual steps. To facilitate the development of more effective PRMs for tool-using agents, we introduce AgentProcess-Bench, the first benchmark for measuring LLMs’ ability to assess the quality of intermediate steps in agent trajectories. 
+
+Reward Benchmarks. There exist several datasets or benchmarks related to process supervision and reward evaluation for language models and agents. In the mathematical domain, PRM800K [ 16 ]firstly annotates the correctness and soundness of mathematical reasoning steps, and has spurred subsequent work on process re-ward modeling. MathCheck-GSM [ 36 ] synthesizes solutions with erroneous steps and evaluates step-wise correctness, while Process-Bench [ 35 ] targets competition-level problems with expert annota-tions for identifying the earliest error step. PRMBench [ 24 ] further benchmarks PRMs with fine-grained step-level assessments such as error types. For interactive agents, AgentRewardBench [ 17 ] evalu-ates LLM judges on web-agent trajectories using expert rubric-style reviews such as success and side effects. Agent-RewardBench [ 18 ]evaluates multi-modal reward models across perception, planning, Fan et al. 
+
+and safety. However, its step-level supervision is largely confined to the static planning phase, while treating perception and safety largely as single-turn generation tasks. Furthermore, it relies on static preference pairs (i.e., identifying the better textual response) rather than exhaustively verifying the execution effectiveness of all steps in a dynamic environment. As summarized in Table 1, existing benchmarks either (i) focus on non-interactive fields such as math, or (ii) provide trajectory-level rubrics or preference signals rather than absolute effectiveness labels for all assistant actions. To fill this gap, we introduce AgentProcess-Bench, which provides human-annotated, step-level effectiveness supervision for tool-using agents operating in diverse environments. 
+
+## 3 Benchmark Construction 
+
+In this section, we provide a detailed introduction to the AgentPro-cessBench. We first introduce the evaluation protocol in Section 3.1. We then describe the dataset construction procedure in Section 3.2. Finally, we report dataset statistics in Section 3.3. 
+
+## 3.1 Evaluation Protocol 
+
+As illustrated in Figure 2, given a task description and an interaction trajectory produced by a tool-using agent, AgentProcessBench de-fines a step-level evaluation task that requires a model to assess the effectiveness of assistant actions. Formally, given a task description 𝑇 
+
+and an interaction trajectory 𝑋 = (𝑚 0, . . . , 𝑚 𝑛 −1) consisting of mes-sages with different roles, including system , user , assistant ,and tool , we denote by I = { 𝑖 | role (𝑚 𝑖 ) = assistant } the index set of assistant messages. The task is to output a label se-quence 𝑌 = {𝑦 𝑖 | 𝑖 ∈ I} , where each label 𝑦 𝑖 ∈ {− 1, 0, +1} indicates whether the corresponding assistant step is effective, neutral, or harmful with respect to overall task progress. Specifically, we define the following evaluation criteria: 
+
+• +1 (Correct and effective). The step is factually correct and clearly advances task completion, for example by (i) correctly invoking a tool or interpreting tool outputs, (ii) introducing valid constraints, decisions, or information that meaningfully reduces task uncertainty, or (iii) identifying an error in a preceding step and taking an appropriate corrective action. 
+
+• 0 (Neutral or exploratory). The step is reasonable but yields limited or negligible impact on task progress. This includes (i) encountering unavoidable external failures (e.g., a 404 error from a valid URL), (ii) making redundant restatements or partial plans without new insight, or (iii) performing actions where the outcome is ambiguous yet neither clearly beneficial nor detrimental. 
+
+• -1 (Incorrect or harmful). The step is factually incorrect or coun-terproductive, for example by (i) misinterpreting tool outputs or fabricating evidence, (ii) violating policy constraints or repeat-ing failed actions without a substantive change in strategy, or (iii) introducing factual errors that drive the trajectory away from successful completion. It is worth noting that our definitions of correctness and error diverge from those in mathematical reasoning tasks [ 16 , 35 ]. While errors in mathematical reasoning typically stem from computation or logical derivation mistakes, failures in tool-use are predominantly grounded in environmental interactions. Furthermore, we introduce a neutral label ( 0) to explicitly accommodate the exploratory nature of real-world agents. In many real-world scenarios, LLMs lack prior knowledge of specific environmental constraints and must perform trial-and-error to accumulate context. The neutral label effectively distinguishes such exploratory redundancy from critical failures, ensuring that agents are not penalized for necessary information-seeking steps. To reduce annotation ambiguity and maximize sample efficiency, we adopt an error-propagation labeling rule: once an erroneous step occurs, all subsequent steps that depend on or are causally related to this mistake are labeled as −1 until the agent explicitly corrects the error or transitions to a new subtask that is independent of the earlier failure. This design effectively prevents spurious credit assignment to downstream steps [ 5] and guarantees consistent supervision for long-horizon trajectories. 
+
+## 3.2 Data Collection 
+
+Task Curation. We aggregate tasks from four established bench-marks: HotpotQA [ 31 ], GAIA [ 19 ], BFCL [ 20 ], and 𝜏 2-Bench [ 3,33 ]. These datasets encompass a broad spectrum of agent capa-bilities, ranging from multi-hop reasoning and deep information retrieval to complex tool usage. By integrating these diverse sources, AgentProcessBench ensures comprehensive coverage of real-world scenarios. 
+
+Trajectory Generation. To promote trajectory diversity, we sam-ple rollouts from five models with heterogeneous capabilities, includ-ing Qwen3-4B-Instruct-2507 [ 27 ] and Qwen3-30B-A3B-Instruct-2507, DeepSeek-V3.2 [ 6], GPT-5-mini [ 23 ] and GPT-5. This se-lection covers multiple model families, parameter scales, and per-formance regimes, resulting in a broad spectrum of solution strate-gies and behavioral patterns. We provide task-specific tool environ-ments following each dataset’s standard evaluation protocol. For HotpotQA, we deploy a local E5-based [ 28 ] retriever built on a Wikipedia dump [ 14 ]. For GAIA, we equip agents with web tools, such as Google Search and Jina-based browsing, to facilitate open-world information acquisition. Additionally, we provide a CLI tool for local file access. For BFCL and 𝜏 2-Bench, we adopt the official tool sets released by their original evaluations to ensure consistency and comparability. To mitigate dataset imbalance, we uniformly sample an equal number of tasks from each dataset. Specifically, we encode task descriptions using the E5 model and select representative instances by maximizing pairwise embedding distance. For every selected task, we preserve trajectories generated by all five models, enabling cross-model comparison. 
+
+Expert Annotation. To ensure reliable annotations, we recruit hu-man experts who hold at least an undergraduate degree in computer science and possess a minimum of one year of experience work-ing with LLMs. All annotators must pass a mandatory proficiency test and complete a specialized annotation tutorial before participa-tion. Pilot studies indicate that tasks involving complex environment interactions and tool-use (e.g., GAIA and 𝜏 2-Bench) introduce sub-stantial step-level ambiguity, which increases cognitive load and reduces inter-annotator consistency. To alleviate these challenges, we provide annotators with auxiliary references, including official AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents Trajectory Sampling Expert Annotation Model Evaluation     
+
+> BFCL GAIA HotpotQA 𝝉 𝟐 -bench
+
+4 Tool Use Benchmarks        
+
+> 5Models across 3Families with Diverse Tools
+> Qwen ChatGPT DeepSeek
+
+# +    
+
+> Reference from 3 Strong Models Task Ground Truth
+> Provided by Benchmarks
+
+20 Models from 6 Families  
+
+> User
+> Message
+> Assistant
+> Message
+> User
+> Message
+> Assistant
+> Message
+
+……   
+
+> User
+> Message
+> Assistant
+> Message
+> User
+> Message
+> Assistant
+> Tool Call
+
+……  
+
+> User
+> Message
+> Assistant
+> Message
+> User
+> Message
+
+……  
+
+> Assistant
+> Tool Call
+
+1,000 Diverse Tool -Use Agent Trajectories   
+
+> User
+> Message
+> Assistant
+> Message
+> User
+> Message
+> Assistant
+> Tool Call
+
+……   
+
+> Analyze and Discuss to Finalize Ground Truth
+> Independent expert labeling
+> achieved 89.1 %agreement
+
+Figure 3: An overview of AgentProcessBench. First, we sample trajectories from four representative agent benchmarks generated by five source models. Subsequently, human experts annotate the data via a specialized platform, achieving an inter-annotator agreement of 89.1%. Finally, we utilize the constructed benchmark to evaluate 20 distinct models across various families and parameter scales using the StepAcc and FirstErrAcc metrics. Table 2: Statistics of AgentProcessBench. HotPotQA GAIA BFCL 𝜏 2-Bench error correct error correct error correct error correct 
+
+# Samples 89 161 167 83 148 102 124 126 % Incorrect Step Ratio 64.6% 14.0% 62.6% 12.4% 31.9% 3.8% 48.0% 8.0% % Neutral Step Ratio 9.9% 3.7% 10.2% 6.7% 3.9% 4.3% 4.7% 2.6% % Correct Step Ratio 25.5% 82.3% 27.1% 80.9% 64.3% 91.8% 47.3% 89.3% # Assistant Steps 5.2 2.7 7.8 4.0 9.6 11.5 15.8 12.6 % ≥ 4 steps 51.7% 23.0% 65.9% 49.4% 93.2% 99.0% 100.0% 99.2% % ≥ 8 steps 15.7% 2.5% 31.1% 8.4% 66.2% 81.4% 90.3% 91.3% % ≥ 16 steps 5.6% 0.6% 12.0% 0.0% 7.4% 19.6% 28.2% 15.1% 
+
+solutions and reference annotations generated by three state-of-the-art LLMs: DeepSeek-V3.2, GPT-5.2, and Claude 4.5 Sonnet [ 2]. These materials serve only as guidance; annotators are explicitly instructed to independently verify each step rather than accept model outputs at face value. Each trajectory is labeled independently by two experts, yielding a step-level inter-annotator agreement (IAA) of 
+
+89.1% and a Cohen’s 𝜅 of 0.767 , both computed over all annotated steps. All discrepancies are resolved through expert discussion to reach a consensus. Notably, the agreement between the final human annotations and the three reference models ranges only from 66.9% to 72.1%. This discrepancy suggests that the human experts main-tain independent judgment and are not fundamentally biased by the LLM-generated suggestions. 
+
+## 3.3 Statistics 
+
+The resulting AgentProcessBench contains four subsets with 200 unique tasks and 1,000 agent trajectories in total, evenly sampled from HotPotQA, GAIA, BFCL, and 𝜏 2-Bench. The detailed statistics are summarized in Table 2 and Figure 5. From the statistics, we draw three observations. First , across all subsets, both successful and unsuccessful trajectories comprise a mixture of correct and incor-rect steps. However, unsuccessful trajectories consistently exhibit a higher proportion of incorrect steps, indicating that trajectory-level failure is not attributable to a single erroneous action but rather to the accumulation of local mistakes. Second , interaction length correlates strongly with task difficulty and outcome. Generally, more challeng-ing tasks and unsuccessful trajectories involve a larger number of Fan et al. GPT-5   
+
+> DeepSeek-V3.2
+> GPT-5-mini
+> Qwen3-30B-A3B
+> Qwen3-4B
+> 0%
+> 25%
+> 50%
+> 75%
+> 100%
+> Percentage
+> Trajectory Labels
+> GPT-5
+> DeepSeek-V3.2
+> GPT-5-mini
+> Qwen3-30B-A3B
+> Qwen3-4B
+> Step Labels
+> Correct Neutral Incorrect
+
+Figure 4: Distribution of trajectory-level and step-level labels across models, where both Qwen-series models use the 2507 Instruct version. 
+
+steps. For instance, while HotpotQA and GAIA are both web-based information-seeking benchmarks, GAIA is inherently more complex and necessitates more steps on average. Furthermore, regarding tra-jectory outcome, unsuccessful trajectories are longer than successful ones across all datasets except BFCL. We ascribe this to the strict termination criteria of BFCL, under which an interaction round is terminated whenever the model produces a non-tool action, resulting in shorter trajectories. In contrast, within more open-ended environ-ments, models tend to persist in exploration when failing, leading to significantly longer unsuccessful trajectories. Third , stronger mod-els such as GPT-5 and DeepSeek-V3.2 achieve higher accuracy at both the trajectory level and the step level. Interestingly, although Qwen3-4B-Instruct-2507 exhibits the lowest trajectory-level success rate, it attains a relatively higher step-level accuracy. We find that this phenomenon is due to a fail-fast behavior: on difficult tasks, the model is more likely to terminate early, thereby limiting the accumulation of additional erroneous steps. 
+
+## 4 Evaluation 4.1 Setup 
+
+Evaluated LLMs. To evaluate step-level process diagnosis, we benchmark 20 models including proprietary API-based models and open-source models. For API-based models, we include GPT-5.2 (Base, Chat, and Thinking), DeepSeek-V3.2 (Non-thinking and Thinking), Gemini-3-Flash-Preview (Minimal and Thinking), and Kimi-K2.5 (Non-Thinking and Thinking). For open-source models, we evaluate the Qwen3 family (4B, 8B, and 30B-A3B) across both standard and thinking variants, as well as the LLaMA-3 series (3.1-8B, 3.2-3B, and 3.3-70B). To ensure a fair comparison, we employ a consistent prompt across all experiments (see Appendix C). For thinking models, we adopt the recommended sampling parameters, while non-thinking models are evaluated using greedy decoding. 
+
+Metrics. We adopt two complementary metrics to evaluate step-level process quality, targeting global labeling reliability and early error localization. 
+
+(1) Step Accuracy (StepAcc). We compute the micro-averaged agreement ratio between model predictions and human annotations: StepAcc = #matched step labels 
+
+#all assistant steps .
+
+All assistant steps across all trajectories are pooled together, so StepAcc reflects overall step-level labeling quality with longer tra-jectories contributing proportionally more steps. 
+
+(2) First-Error Accuracy (FirstErrAcc). For each trajectory, we identify the first step labeled as −1 and compare its index with human annotations: FirstErrAcc = #samples with matched first-error index 
+
+#total samples .
+
+If neither prediction nor reference contains a −1 label, the trajectory is considered error-free and counted as correct. Unlike StepAcc, FirstErrAcc is less susceptible to error propagation after the first mis-take and is not influenced by trajectory length, directly measuring a model’s ability to pinpoint the earliest critical failure [ 35 ]. Together, StepAcc captures global process correctness, while FirstErrAcc em-phasizes early failure detection in long-horizon trajectories. 
+
+## 4.2 Main Results 
+
+We present the evaluation results in Table 3. Our observations are summarized as follows: 
+
+• Open-source models still lag behind proprietary models. For example, the strongest open-source model, Qwen3-30B-A3B-Thinking-2507, achieves an average StepAcc of 68.5%, whereas the proprietary Gemini-3-Flash-Preview-Thinking attains a sub-stantially higher score of 81.6%. A similar performance gap is observed across individual benchmarks, indicating that the dispar-ity is not limited to a specific task type or evaluation setting. 
+
+• Model scale and reasoning mechanisms are pivotal for accu-rate step-level evaluation. As shown in Table 3, larger model parameters consistently lead to performance gains; for both the Qwen and Llama families, scaling from 3B to 70B improves results across all metrics. However, we can observe that newer models may possess higher capability density [ 30 ]. This is ex-emplified by Qwen3-4B-Instruct-2507, which, despite having only 50% of the parameters of the Qwen3-8B model, achieves a superior FirstErrAcc (44.4% vs. 40.7%). In addition, thinking models significantly outperform their instruct counterparts at the same parameter scale. For instance, under a controlled setting with identical parameters, Qwen3-8B in reasoning mode achieves a 6.1% higher StepAcc and a 5.3% higher FirstErrAcc than its non-reasoning variant. Notably, while thinking models generally dominate, GPT-5.2-Chat markedly outperforms its thinking vari-ant on multi-turn tool-use benchmarks (BFCL and 𝜏 2-bench). We hypothesize this is due to specialized optimizations for dialogue dynamics in chat-tuned models, whereas current thinking models may be more tailored for complex single-turn reasoning. 
+
+• Increased task complexity significantly hampers error local-ization, particularly for smaller models. The difficulty of identi-fying critical errors scales with dataset complexity. Moving from HotPotQA to GAIA, almost all models exhibit a performance de-cline, but the drop is more pronounced for weaker models. For the frontier non-thinking model, Gemini-3-Flash-Preview, StepAcc AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents 
+
+Table 3: Evaluation results on AgentProcessBench, reporting StepAcc and FirstErrAcc (%). Best and second-best results for each category and metric are highlighted in bold and underlined, respectively. Model HotPotQA GAIA BFCL 𝜏 2-Bench Average          
+
+> StepAcc FirstErrAcc StepAcc FirstErrAcc StepAcc FirstErrAcc StepAcc FirstErrAcc StepAcc FirstErrAcc
+
+API-Based Models (Non-Thinking) 
+
+GPT-5.2 72.1 69.6 66.3 54.4 71.6 52.8 70.3 56.4 70.1 58.3 GPT-5.2-Chat 71.4 70.0 69.3 58.0 71.6 58.0 80.4 58.4 74.8 61.1 
+
+DeepSeek-V3.2 74.4 65.2 61.8 48.0 74.1 50.0 73.3 57.6 71.4 55.2 Gemini-3-Flash-Preview 76.7 70.0 73.8 53.2 77.6 40.8 81.2 56.0 78.3 55.0 Kimi-K2.5 71.7 67.2 61.4 54.4 75.3 56.4 73.0 49.2 71.4 56.8 
+
+API-Based Models (Thinking) 
+
+GPT-5.2-Thinking (medium) 72.3 73.2 70.9 58.8 64.9 44.4 75.2 53.6 71.0 57.5 DeepSeek-V3.2-Thinking 70.4 69.2 60.2 49.2 75.3 54.4 77.2 65.6 72.8 59.6 Gemini-3-Flash-Preview-Thinking 75.8 70.4 79.7 65.2 81.8 64.0 83.4 63.6 81.6 65.8 
+
+Kimi-K2.5-Thinking 70.6 68.4 66.6 58.0 79.8 57.6 78.3 65.6 75.9 62.4 
+
+Open-Source Models (Non-Thinking) 
+
+Qwen3-4B 58.6 59.2 35.8 29.2 65.0 29.2 57.9 38.0 55.9 38.9 Qwen3-8B 60.4 57.2 39.9 32.0 64.9 30.8 58.5 42.8 57.1 40.7 Qwen3-4B-Instruct-2507 66.6 59.2 44.0 36.0 65.8 33.6 59.2 48.8 58.9 44.4 
+
+Qwen3-30B-A3B-Instruct-2507 65.8 54.4 48.3 35.2 72.4 36.4 67.2 49.6 65.0 43.9 LLaMA-3.1-8B-Instruct 34.6 53.6 26.8 31.2 61.2 28.8 61.1 47.2 52.3 40.2 LLaMA-3.2-3B-Instruct 44.3 58.4 22.5 27.6 37.7 23.6 37.6 40.4 35.3 37.5 LLaMA-3.3-70B-Instruct 46.3 60.0 36.6 30.8 64.6 30.8 56.9 46.8 54.4 42.1 
+
+Open-Source Models (Thinking) 
+
+Qwen3-4B-Thinking 60.1 56.0 44.4 39.6 65.5 33.2 60.3 47.6 58.8 44.1 Qwen3-8B-Thinking 59.7 58.0 45.9 41.2 70.9 38.8 66.4 46.0 63.2 46.0 Qwen3-4B-Thinking-2507 66.9 60.4 41.9 36.8 65.4 33.6 63.0 46.8 60.0 44.4 Qwen3-30B-A3B-Thinking-2507 70.0 64.8 53.1 46.4 73.2 35.2 71.8 61.6 68.5 52.0 
+
+and FirstErrAcc decrease by 2.9% and 16.8%, respectively. In contrast, Qwen3-4B suffers much sharper declines of 22.8% and 30%. This suggests that while large-scale models are more ro-bust, localizing errors in long-horizon, complex tasks remains a significant bottleneck for smaller-scale models. 
+
+• StepAcc and FirstErrAcc are strongly correlated, with first er-ror localization being more challenging. Across different model families and scales, we observe a strong positive correlation be-tween StepAcc and FirstErrAcc, with an average Pearson 𝑟 = 0.90 
+
+and Spearman 𝜌 = 0.92 , indicating that models capable of reliable step-level labeling are generally more proficient at identifying the initial critical error. However, despite this high correlation, FirstErrAcc is consistently lower than StepAcc, and the gap can be substantial. For example, the strongest model Gemini-3-Flash-Preview achieves an average StepAcc of 81.6% but only 65.8% FirstErrAcc. This systematic discrepancy suggests that accurately localizing the first critical error constitutes a more demanding capability than overall step-level assessment. We hypothesize that a single early mistake can induce cascading downstream er-rors, making the identification of the true root cause substantially harder than recognizing that later steps are incorrect. 
+
+## 4.3 Detailed Analysis 
+
+Dataset-Specific Policy Failure Modes. We observe that different datasets exhibit distinct failure modes, reflecting their heterogeneous task structures and interaction dynamics. As shown in Figure 5, the position at which the first error occurs varies substantially across datasets. For 𝜏 2-Bench, first errors are more likely to appear at later steps in the trajectory. This suggests that models can advance the task correctly during the initial interactions by invoking appropriate tools, while failures tend to emerge as the interaction progresses, often due to policy violations or difficulties in correctly interpreting newly introduced user requirements. In contrast, for HotpotQA and GAIA, a significant portion of errors occurs at Step 1. Qualitative analysis suggests this is frequently driven by invalid tool invocations (e.g., syntax or formatting errors) or an immediate failure to formulate a viable information-seeking strategy. 
+
+PRMs Struggle to Distinguish Neutral and Incorrect Steps. We vi-sualize the step-level confusion matrices in Figure 6. First , both the strongest closed-source and open-source models exhibit a tendency to over-predict the positive ( +1) label, as evidenced by substantial probability mass on the +1 prediction column across all rows. This Fan et al. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16+ 
+
+> First Error Position
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> 35
+> Frequency (%)
+> HotpotQA
+> GAIA
+> BFCL
+> τ2-Bench
+
+Figure 5: Distribution of first error positions (indexed from 0). -1 0 1   
+
+> Model Prediction
+> -1
+> 0
+> 1
+> Human Annotation
+> 1928
+> 71.2%
+> 177
+> 6.5%
+> 603
+> 22.3%
+> 75
+> 16.6%
+> 95
+> 21.0%
+> 283
+> 62.5%
+> 319
+> 6.0%
+> 102
+> 1.9%
+> 4918
+> 92.1%
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Ratio -1 01
+> Model Prediction
+> -1
+> 0
+> 1
+> Human Annotation
+> 684
+> 25.2%
+> 524
+> 19.3%
+> 1501
+> 55.4%
+> 28
+> 6.2%
+> 111
+> 24.5%
+> 314
+> 69.3%
+> 123
+> 2.3%
+> 187
+> 3.5%
+> 5034
+> 94.2%
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Ratio
+> (a) Gemini-3-Flash-Preview (b) Qwen3-30B-A3B-Thinking
+
+Figure 6: Row-normalized confusion matrices of step evaluations for Gemini-3-Flash-Preview and Qwen3-30B-A3B-Thinking. 
+
+bias is more pronounced for Qwen3-30B-A3B-Thinking, leading to a higher rate of false positives, which is the main cause for its lower overall accuracy compared to Gemini-3-Flash-Preview. Second , neu-tral ( 0) steps are consistently harder than positive and negative steps for both models: the confusion mass for the 0 row is more dispersed, and misclassifications frequently collapse to the positive label. We attribute this primarily to the inherent ambiguity of neutral labels, Unlike clearly correct or clearly harmful actions, the utility of many neutral steps is context-dependent and often only becomes evident through downstream effects (e.g., whether the retrieved evidence is later used, whether uncertainty is reduced, or whether alternative actions would have sufficed). Consequently, neutral steps exhibit a weak and delayed supervisory signal, making them inherently harder to judge from the local step alone and thus more prone to misclas-sification. More qualitative error analysis of PRMs can be found in Appendix E. 
+
+Stronger ORMs tend to be stronger PRMs. Figure 7 shows a clear positive association between step-level evaluation accuracy (StepAcc ) and trajectory-level final accuracy across all evaluated models. The correlation is strong and statistically significant (Pear-son 𝑟 = 0.814 , 𝑝 = 1.2 × 10 −5), indicating that models that are better at predicting step correctness also tend to be more reliable at pre-dicting final outcomes. Consistent with this trend, top-performing models such as GPT-5.2 and Gemini-3 concentrate in the upper-right region, while smaller models largely fall in the lower-left. Despite this strong global correlation, StepAcc is not a redundant proxy for outcome performance: some models with similar final accuracy ex-hibit markedly different step accuracy (e.g., Llama vs. Qwen around 40 50 60 70 80 
+
+Step Accuracy (%) 
+
+> 45
+> 50
+> 55
+> 60
+> 65
+> 70
+> 75
+> 80
+> Final Accuracy (%)
+> DeepSeek
+> GPT-5.2
+> Gemini-3
+> Kimi-K2.5
+> Llama
+> Qwen
+
+Figure 7: Correlation between step-level evaluation accuracy and trajectory-level final accuracy. It shows high correlation (Pearson 𝑟 = 0.814 , 𝑝 = 1.2 × 10 −5). Table 4: Comparison of Best-of-𝑁 (𝑁 =8) selection strategies on GAIA. Final selects the first trajectory predicted to be successful at the outcome level. # Pos Step and % Pos Ratio select trajec-tories based on the number and proportion of positive steps, respectively. The two-stage strategy ( Final →Process ) combines outcome- and process-level criteria by refining outcome-based filtering with step-level signals. As references, majority-voting achieves 49.1% accuracy, while the oracle Pass@ 𝑁 is 77.4%. 
+
+Generator Final # Pos % Pos Two-Stage 
+
+Qwen3-30B-A3B-Instruct-2507 37.7 41.5 47.2 43.4 Qwen3-30B-A3B-Thinking-2507 35.9 45.3 49.1 50.9 DeepSeek-V3.2 47.2 37.7 45.3 49.1 DeepSeek-V3.2-Thinking 56.6 50.9 54.7 64.2 
+
+Gemini-3-Flash-Preview 56.6 49.1 54.7 58.5 
+
+∼57% final accuracy), suggesting residual variation beyond a purely outcome-based view. This residual variation highlights the unique value of process supervision and motivates future research on devel-oping highly capable yet parameter-efficient process reward models. 
+
+Process-derived signals improve Best-of-𝑁 selection. Table 4 compares outcome-based and process-based heuristics for Best-of-
+
+𝑁 sampling. We observe that simple step-level positivity statistics (# Pos and % Pos) are effective test-time scaling strategies and of-ten outperform the outcome-only criterion for weaker generators such as Qwen3-30B-A3B. Furthermore, combining outcome- and process-level signals in a two-stage selector consistently improves performance across all generators. This suggests that process-derived scores provide complementary discriminative signals for refining or tie-breaking among ORM-selected candidates. Nevertheless, the oracle Pass@ 𝑁 upper bound ( 77 .4% ) remains substantially higher than all practical Best-of-𝑁 strategies evaluated here, indicating considerable headroom for future reward models. AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents 
+
+## 5 Conclusion 
+
+In this paper, we introduce AgentProcessBench, the first human-annotated benchmark designed to evaluate the effectiveness of inter-mediate steps in tool-using agents. Our extensive evaluation across 20 LLMs yields several pivotal insights. First, we observe that closed-source models and thinking models consistently outperform their counterparts. Second, we find that while models are increasingly capable, they may exhibit a notable bias toward positive labels and struggle to distinguish neutral steps. Third, our experiments demon-strate that process-derived signals provide complementary value to outcome supervision, achieving better Best-of-𝑁 performance. We envision AgentProcessBench as a cornerstone testbed for tool-using process reward models, catalyzing future research towards more powerful and reliable agentic systems. As future work, we plan to extend AgentProcessBench to additional domains, such as GUI-based agents and computer-using agents. 
+
+## References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Flo-rencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al . 2023. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 
+
+(2023). [2] Anthropic. 2025. System Card: Claude Sonnet 4.5. https://www-cdn.anthropic. com/963373e433e489a87a10c823c52a0a013e9172dd.pdf. Accessed: 2026-02-02. [3] Victor Barres, Honghua Dong, Soham Ray, Xujie Si, and Karthik Narasimhan. 2025. 𝜏 2-Bench: Evaluating Conversational Agents in a Dual-Control Environ-ment. arXiv:2506.07982 [cs.AI] https://arxiv.org/abs/2506.07982 [4] Zehui Chen, Kuikun Liu, Qiuchen Wang, Wenwei Zhang, Jiangning Liu, Dahua Lin, Kai Chen, and Feng Zhao. 2024. Agent-FLAN: Designing Data and Methods of Effective Agent Tuning for Large Language Models. In Findings of the Asso-ciation for Computational Linguistics: ACL 2024 , Lun-Wei Ku, Andre Martins, and Vivek Srikumar (Eds.). Association for Computational Linguistics, Bangkok, Thailand, 9354–9366. doi:10.18653/v1/2024.findings-acl.557 [5] Jie Cheng, Gang Xiong, Ruixi Qiao, Lijun Li, Chao Guo, Junle Wang, Yisheng Lv, and Fei-Yue Wang. 2025. Stop Summation: Min-Form Credit Assignment Is All Process Reward Model Needs for Reasoning. In The Thirty-ninth Annual Conference on Neural Information Processing Systems . https://openreview.net/ forum?id=3Sxby0hH1q [6] DeepSeek-AI. 2025. DeepSeek-V3.2: Pushing the Frontier of Open Large Lan-guage Models. [7] Shengda Fan, Xin Cong, Zhong Zhang, Yuepeng Fu, Yesai Wu, Hao Wang, Xinyu Zhang, Enrui Hu, and Yankai Lin. 2025. Generalizing Experience for Language Agents with Hierarchical MetaFlows. In The Thirty-ninth Annual Conference on Neural Information Processing Systems . https://openreview.net/forum?id= QsQGMijLhL [8] Shengda Fan, Shasha Mo, and Jianwei Niu. 2022. Boosting document-level relation extraction by mining and injecting logical rules. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing . 10311– 10323. [9] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Ab-hishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schel-ten, Alex Vaughan, et al . 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 (2024). [10] Xinyu Guan, Li Lyna Zhang, Yifei Liu, Ning Shang, Youran Sun, Yi Zhu, Fan Yang, and Mao Yang. [n. d.]. rStar-Math: Small LLMs Can Master Math Reason-ing with Self-Evolved Deep Thinking. In Forty-second International Conference on Machine Learning .[11] Qian Huang, Jian Vora, Percy Liang, and Jure Leskovec. 2023. Mlagentbench: Evaluating language agents on machine learning experimentation. arXiv preprint arXiv:2310.03302 (2023). [12] Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R Narasimhan. [n. d.]. SWE-bench: Can Language Models Resolve Real-world Github Issues?. In The Twelfth International Conference on Learning Representations .[13] Bowen Jin, Hansi Zeng, Zhenrui Yue, Jinsung Yoon, Sercan O Arik, Dong Wang, Hamed Zamani, and Jiawei Han. 2025. Search-R1: Training LLMs to Reason and Leverage Search Engines with Reinforcement Learning. In Second Conference on Language Modeling . https://openreview.net/forum?id=Rwhi91ideu [14] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick SH Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense Passage Retrieval for Open-Domain Question Answering.. In EMNLP (1) . 6769–6781. [15] Amirhossein Kazemnejad, Milad Aghajohari, Eva Portelance, Alessandro Sor-doni, Siva Reddy, Aaron C. Courville, and Nicolas Le Roux. 2025. VinePPO: Refining Credit Assignment in RL Training of LLMs. In Forty-second Interna-tional Conference on Machine Learning, ICML 2025, Vancouver, BC, Canada, July 13-19, 2025 (Proceedings of Machine Learning Research, Vol. 267) , Aarti Singh, Maryam Fazel, Daniel Hsu, Simon Lacoste-Julien, Felix Berkenkamp, Tegan Maharaj, Kiri Wagstaff, and Jerry Zhu (Eds.). PMLR / OpenReview.net. https://proceedings.mlr.press/v267/kazemnejad25a.html [16] Hunter Lightman, Vineet Kosaraju, Yuri Burda, Harrison Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. 2023. Let’s verify step by step. In The Twelfth International Conference on Learning Representations .[17] Xing Han Lù, Amirhossein Kazemnejad, Nicholas Meade, Arkil Patel, Dongchan Shin, Alejandra Zambrano, Karolina Stanczak, Peter Shaw, Christopher Pal, and Siva Reddy. 2025. AgentRewardBench: Evaluating Automatic Evaluations of Web Agent Trajectories. In Second Conference on Language Modeling . https: //openreview.net/forum?id=fQcUZMPIvu [18] Tianyi Men, Zhuoran Jin, Pengfei Cao, Yubo Chen, Kang Liu, and Jun Zhao. 2025. Agent-RewardBench: Towards a Unified Benchmark for Reward Modeling across Perception, Planning, and Safety in Real-World Multimodal Agents. In 
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , Wanxiang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association for Computational Linguistics, Vienna, Austria, 17521–17541. doi:10.18653/v1/2025.acl-long.857 [19] Grégoire Mialon, Clémentine Fourrier, Thomas Wolf, Yann LeCun, and Thomas Scialom. 2023. Gaia: a benchmark for general ai assistants. In The Twelfth International Conference on Learning Representations .[20] Shishir G Patil, Huanzhi Mao, Fanjia Yan, Charlie Cheng-Jie Ji, Vishnu Suresh, Ion Stoica, and Joseph E. Gonzalez. 2025. The Berkeley Function Calling Leaderboard (BFCL): From Tool Use to Agentic Evaluation of Large Lan-guage Models. In Forty-second International Conference on Machine Learning .https://openreview.net/forum?id=2GmDdhBdDk [21] Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, Sihan Zhao, Lauren Hong, Runchu Tian, Ruobing Xie, Jie Zhou, Mark Gerstein, Dahai Li, Zhiyuan Liu, and Maosong Sun. 2024. ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net. https://openreview. net/forum?id=dHng2O0Jjr [22] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Y Wu, et al . 2024. DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. arXiv preprint arXiv:2402.03300 (2024). [23] Aaditya Singh, Adam Fry, Adam Perelman, Adam Tart, Adi Ganesh, Ahmed El-Kishky, Aidan McLaughlin, Aiden Low, AJ Ostrow, Akhila Ananthram, et al. 2025. Openai gpt-5 system card. arXiv preprint arXiv:2601.03267 (2025). [24] Mingyang Song, Zhaochen Su, Xiaoye Qu, Jiawei Zhou, and Yu Cheng. 2025. PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Re-ward Models. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , Wanxiang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association for Computational Linguistics, Vienna, Austria, 25299–25346. doi:10.18653/v1/ 2025.acl-long.1230 [25] Yifan Song, Weimin Xiong, Xiutian Zhao, Dawei Zhu, Wenhao Wu, Ke Wang, Cheng Li, Wei Peng, and Sujian Li. 2024. AgentBank: Towards Generalized LLM Agents via Fine-Tuning on 50000+ Interaction Trajectories. In EMNLP (Findings) .[26] Felix Stahlberg. 2020. Neural machine translation: A review. Journal of Artificial Intelligence Research 69 (2020), 343–418. [27] Qwen Team. 2025. Qwen3 Technical Report. arXiv:2505.09388 [cs.CL] https: //arxiv.org/abs/2505.09388 [28] Liang Wang, Nan Yang, Xiaolong Huang, Binxing Jiao, Linjun Yang, Daxin Jiang, Rangan Majumder, and Furu Wei. 2022. Text Embeddings by Weakly-Supervised Contrastive Pre-training. arXiv preprint arXiv:2212.03533 (2022). [29] Peiyi Wang, Lei Li, Zhihong Shao, Runxin Xu, Damai Dai, Yifei Li, Deli Chen, Yu Wu, and Zhifang Sui. 2024. Math-shepherd: Verify and reinforce llms step-by-step without human annotations. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 9426–9439. [30] Chaojun Xiao, Jie Cai, Weilin Zhao, Biyuan Lin, Guoyang Zeng, Jie Zhou, Zhi Zheng, Xu Han, Zhiyuan Liu, and Maosong Sun. 2025. Densing law of llms. 
+
+Nature Machine Intelligence (2025), 1–11. [31] Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov, and Christopher D Manning. 2018. HotpotQA: A dataset for diverse, explainable multi-hop question answering. In Proceedings of the 2018 conference on empirical methods in natural language processing . 2369–2380. Fan et al.          
+
+> [32] Shunyu Yao, Howard Chen, John Yang, and Karthik Narasimhan. 2022. Webshop: Towards scalable real-world web interaction with grounded language agents.
+> Advances in Neural Information Processing Systems 35 (2022), 20744–20757. [33] Shunyu Yao, Noah Shinn, Pedram Razavi, and Karthik R Narasimhan. 2025.
+> 𝜏 -bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains. In The Thirteenth International Conference on Learning Representations .[34] Aohan Zeng, Mingdao Liu, Rui Lu, Bowen Wang, Xiao Liu, Yuxiao Dong, and Jie Tang. 2024. Agenttuning: Enabling generalized agent abilities for llms. In
+> Findings of the Association for Computational Linguistics: ACL 2024 . 3053– 3077. [35] Chujie Zheng, Zhenru Zhang, Beichen Zhang, Runji Lin, Keming Lu, Bowen Yu, Dayiheng Liu, Jingren Zhou, and Junyang Lin. 2025. Processbench: Identifying process errors in mathematical reasoning. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) .1009–1024. [36] Zihao Zhou, Shudong Liu, Maizhen Ning, Wei Liu, Jindong Wang, Derek F. Wong, Xiaowei Huang, Qiufeng Wang, and Kaizhu Huang. 2025. Is Your Model Really A Good Math Reasoner? Evaluating Mathematical Reasoning with Checklist. In
+> The Thirteenth International Conference on Learning Representations .https: //openreview.net/forum?id=nDvgHIBRxQ
+
+## A Limitations 
+
+Despite careful efforts (Section 3), AgentProcessBench may still be affected by annotation noise and inherent human subjectivity. In addition, the current version of AgentProcessBench is restricted to text-only tool use and does not yet capture multimodal agent behaviors, such as GUI-based interaction or navigation. Extending AgentProcessBench to these more complex multimodal settings is an important direction for future work. 
+
+## B Data Annotation Platform 
+
+In this section, we present a demo of our custom-built Data Anno-tation Platform in Figure 8 . The interface integrates essential task metadata, and comprehensive interaction traces (including both dialogue and tool use) . It incorporates benchmark ground truths and step-wise reference annotations from three powerful mod-els to facilitate the labeling process. Within this platform, experts perform granular evaluations by assigning a +1, 0, or -1 label to each individual assistant step , with all data being synchronized and stored in our backend system. 
+
+## C PRM Evaluation Prompt 
+
+In this section, we provide the comprehensive prompt template used for evaluating models as Process Reward Models (PRMs) 
+
+in Figure 9. The prompt instructs the model to act as a strict but fair trajectory annotator for tool-use agents . It defines a granular three-tier scoring schema: +1 (Correct and effective) for steps that move the task forward; 0 (Neutral or exploratory) for reasonable but non-pivotal steps, such as redundant reasoning or failed tool calls due to external factors; and −1 (Incorrect or harmful) for steps containing factual errors, tool misuse, or constraint violations. Furthermore, the template incorporates a set of rigorous logical constraints, such as the "cumulative penalty" rule for subsequent steps following an error and the "hindsight bias avoidance" principle. This structured prompt ensures that the evaluation process is both consistent and logically sound across diverse task scenarios. 
+
+## D A Detailed Case Study 
+
+This section provides a comprehensive analysis of Instance 808 from AgentProcessBench. The complete trajectory for this instance is documented in Table 5, while the step-level evaluations performed by 
+
+Gemini-3-Flash-Preview and GPT-5.2 are presented in Table 6.In this scenario, the user claims to be a "Gold" member to seek higher compensation for a flight delay, whereas the system record indicates a "Regular" status. The Assistant fails to verify this membership claim at the outset, leading to an incorrect compensation offer based on the unverified status. Although the Assistant eventually corrects this error by querying user details in later steps, its behavior in Step 7 constitutes a policy violation. Consequently, according to our annotation guidelines, Step 7 is labeled as −1, while all other steps are marked as +1 as they align with correct procedural logic. The performance of the two state-of-the-art models reveals signif-icant reasoning gaps; specifically, while Gemini-3-Flash-Preview 
+
+fails to detect the Assistant’s initial oversight and incorrectly assigns a +1 judgement to every step in the trajectory, GPT-5.2 successfully identifies the error in Step 7 but subsequently exhibits a "hallu-cination" in its reasoning for later steps. By misinterpreting the Assistant’s request for flight details in Step 11 as an immediate com-mitment to grant compensation, GPT-5.2 erroneously penalizes the Assistant in Steps 11, 13, and 15 with −1 labels. Neither of these powerful models managed to achieve full marks on this case. This case study exemplifies the inherent complexity of AgentProcess-Bench, which features sophisticated scenarios requiring a Process Reward Model (PRM) to perform rigorous, step-level reasoning based on specific policy constraints, thus highlighting the bench-mark’s value in evaluating the robust reasoning capabilities of even the most advanced current LLMs. 
+
+## E Qualitative Error Analysis 
+
+To further elucidate the limitations of current LLMs in trajectory evaluation, we categorize the most prevalent errors into the following five dimensions: 
+
+• Negligence of Informational Errors refers to the failure of LLMs to precisely detect factual inaccuracies or violations of predefined policy constraints within trajectory messages, espe-cially when these errors are small or hidden in long texts. 
+
+• Negligence of Logical Reasoning Errors refers to the model’s inability to identify flaws in the underlying reasoning chain, such as the repetition of failed actions without strategic adjustments or the presence of causal inconsistencies in the agent’s decision-making process. 
+
+• Negligence of Tool Invocation Errors refers to cases where LLMs struggle to pinpoint nuanced issues in tool calling, includ-ing improper tool selection, syntax malformations, or indirect misuse, which tests the model’s power to distinguish valid invo-cations from invalid ones. 
+
+• Misjudgment of Correct Steps via Overthinking refers to the tendency of LLMs to mislabel otherwise correct steps by over-interpreting rules or imposing imaginary constraints on the context, often resulting in excessive stringency and false negatives in evaluation. 
+
+• Boundary Ambiguity for Neutral or Exploratory Steps refers to the LLM’s difficulty in identifying the appropriate scope of exploratory behaviors, failing to distinguish among acceptable exploration ( 0), redundant attempts leading to inefficiency ( −1), and essential exhaustive search processes ( +1). AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents 
+
+Figure 8: Data Annotation Platform Demo 
+
+## F Ethical Statement 
+
+Throughout the entire process of constructing AgentProcessBench, we strictly adhere to ethical standards concerning data privacy, hu-man labor, and the broader impact of autonomous agents. The bench-mark is constructed using tasks from four widely recognized public datasets: HotpotQA, GAIA, BFCL, and 𝜏 2-bench. All interaction trajectories were generated by Large Language Models (LLMs), ensuring that the dataset contains no private or sensitive personal in-formation (PII) from real human-to-human interactions. By utilizing these rollouts, we provide a realistic evaluation environment while completely mitigating privacy risks associated with user data. Regarding human annotation, we recruited experts with at least undergraduate-level training in computer science and a minimum of one year of experience with LLMs. All annotators underwent a mandatory proficiency test and a specialized tutorial to ensure they understood the ternary labeling scheme and error-propagation rules. To uphold fair labor practices, all participants were compensated at a competitive rate exceeding local standards for professional technical work. To guarantee the reliability and objectivity of the labels, each trajectory was independently reviewed by two experts, with an inter-annotator agreement of 89.1%. Any remaining discrepancies were resolved through collective discussion to reach a final consensus. The primary motivation for this research is to advance the develop-ment and evaluation of Process Reward Models (PRMs) tailored for tool-augmented agents. Unlike outcome-based metrics, AgentPro-cessBench provides a rigorous, human-verified testbed to evaluate how accurately models can diagnose the effectiveness of individ-ual steps within complex, open-world trajectories. This capability is critical because tool-use failures frequently involve irreversible side effects—such as deleting essential files—making the precise evaluation of step-level verification models a safety priority. By es-tablishing standardized criteria for identifying harmful actions (-1) and providing dense step-level annotations, this benchmark aims to foster the creation of more reliable reward models that can eventually guide agents toward safer and more intent-aligned behaviors. During the preparation of this work, the authors used LLMs to improve the language and grammar of the manuscript. After using this tool, the authors reviewed and edited the content as needed. The authors take full responsibility for the accuracy and integrity of the paper’s content. Fan et al. 
+
+PRM Evaluation Prompt Template 
+
+You are a strict but fair trajectory annotator for tool-use agents. You will be given one complete trajectory consisting of system, user, assistant, and tool messages, together with the tool definitions. Your task is to label EACH assistant message (each assistant message constitutes one Step) using the following scheme: 
+
+• + 1: Correct and effective. The step is factually correct given the information available at that time and clearly moves the task closer to successful completion by: (i) correctly invoking a tool or interpreting tool outputs, or (ii) introducing valid constraints, decisions, or information that reduces the remaining uncertainty of the task. 
+
+• 0: Neutral or exploratory. The step is reasonable but has limited or unclear impact on task progress. This includes exploratory reasoning, redundant restatements, partial planning, or cases where the correctness is debatable given the available evidence. Tool calls that fail due to external reasons (e.g., timeout, 404), when the attempt itself is reasonable, are typically labeled 0. 
+
+• − 1: Incorrect or harmful. The step contains factual errors, misinterprets tool outputs, violates constraints, repeats failed actions without a meaningful change in strategy, fabricates tool results or evidence, or otherwise pushes the trajectory away from successful completion. 
+
+Important rules: 
+
+• Only assistant messages are labeled. User and tool messages serve only as evidence. 
+
+• Avoid hindsight bias: judge each step strictly based on the information available up to that point in the trajectory. 
+
+• Any step labeled −1 triggers a cumulative penalty: all subsequent assistant steps in the same workflow should also be labeled 
+
+−1, unless one of the following holds: (i) the assistant explicitly acknowledges and corrects the earlier mistake, or (ii) the assistant produces a subsequent step that no longer depends on the incorrect assumption and effectively resumes progress toward the task. 
+
+• Repeating the same failed action without a meaningful change in parameters or strategy typically transitions from 0 to −1.
+
+• If an incorrect statement does not affect any subsequent reasoning or actions and is not relied upon later, it may be labeled 0; otherwise, it should be labeled −1.
+
+• Any violation of the policies or requirements specified in the system prompt results in a score of −1, except for certain output-formatting norms. The following behaviors are considered acceptable and do not incur penalties: providing a text response simultaneously with a tool call, not conducting reasoning before a tool call, failing to encapsulate reasoning content within <think>...</think> tags, responding to the user while executing a function call, or executing multiple parallel tool calls. 
+
+• A score of +1 is assigned if the entire conversation is initiated by the assistant and its first message is a greeting; this exemption applies only to the first message. 
+
+• Upon user request, if the assistant executes specific instructions, a score of +1 shall be awarded, notwithstanding any deviation from the overarching objective. After labeling all assistant steps, also assign a label to: 
+
+FINAL_RESULT: 
+
++1: The overall task is successfully completed. 
+
+−1: The task fails due to incorrect reasoning, tool misuse, or unresolved errors. 
+
+Output format: 
+
+You MUST first provide your reasoning process, analyzing each assistant step one by one. Then, at the very end, output a JSON object wrapped in “‘json ... “‘ markdown code block as your judgement results. 
+
+Figure 9: PRM Evaluation Prompt Template AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents 
+
+Table 5: A complete trajectory from AgentProcessBench.The LLM is prompted to act as a Process Reward Model, facilitating a granular assessment of every Assistant-role step throughout the entire trajectory. 
+
+Step Role Content 
+
+Step 1 Assistant Hi! How can I help you today? Step 2 User Hi, my name is Mei Brown, and I’m a valued Gold member. I’m calling about my delayed flight HAT045 from PHX to SEA. I’m extremely upset because this delay is causing me to miss an important meeting, and I need to get the maximum compensation possible for this inconvenience. Step 3 Assistant I understand this delay is very disruptive, and I’ll work to resolve it. To proceed, please provide: 1) your user ID, 2) the reservation ID for this trip (if you don’t have it, I can look it up after verifying your user ID), and 3) the flight date for HAT045 (PHX →
+
+SEA). Also, would you like to change to another flight or cancel the trip due to the delay? Once I confirm the delay and update your booking per your choice, I can arrange appropriate compensation. If there are multiple passengers on this reservation, please confirm how many. Step 4 User My user ID is mei_brown_7075. The flight date was today, and I’m still waiting for my flight to depart. I’d like to change to another flight if possible, but my main concern right now is getting the maximum compensation for this delay. There’s only one passenger on this reservation—me. Step 5 Assistant {"id": "call_MXqbMxTOpP5gnzV5qeMt4ZM8", "type": "function", "function": {"name": "get_flight_status","arguments": "{"date": "2024-05-15", "flight_number": "HAT045"}"}}} 
+
+Step 6 Tool Response "delayed" 
+
+Step 7 Assistant Thanks, Mei. I’ve confirmed flight HAT045 for today is delayed. To help rebook you and process compensation, please provide your reservation ID. If you don’t have it handy, I can look it up once I verify your profile—please confirm the email on your account so I can locate your reservation. Also, please tell me your preferred rebooking option: 1) earliest available flight from PHX to SEA today, 2) a later flight today, or 3) first flight tomorrow. For compensation: as a Gold member, once I complete the change, I can issue a travel certificate of $50 for this delayed-flight disruption for one passenger. Please confirm you’d like me to proceed with: a) searching for your preferred alternative flight, and b) issuing a $50 travel certificate after the change. Step 8 User I’d like to proceed with the rebooking, but I’m not satisfied with a $50 travel certificate. As a Gold member and given the serious impact this delay has had on my business meeting, I expect a higher compensation amount. I’d prefer the earliest available flight today if possible, but my priority is getting fair compensation. I’m not accepting $50—can you offer more? Step 9 Assistant {"id": "call_cOeCatIGlsvrXwRcrUchNkTJ", "type": "function", "function": {"name": "get_user_details", "arguments": "{"user_id": "mei_brown_7075"}"}} 
+
+Step 10 Tool Response {"user_id": "mei_brown_7075", "name": {"first_name": "Mei", "last_name": "Brown"}, "address": {"address1": "853 Chestnut Street", "address2": "Suite 497", "city": "Washington", "country": "USA", "state": "DC", "zip": "20195"}, "email": "mei.brown7062@example.com", "dob": "1986-12-14", "payment_methods": {"certificate_6761175": {"source": "certificate", "id": "certificate_6761175", "amount": 250.0}, "gift_card_8987598": {"source": "gift_card", "id": "gift_card_8987598", "amount": 130.0}, "credit_card_4920843": {"source": "credit_card", "id": "credit_card_4920843", "brand": "visa", "last_four": "1663"}, "credit_card_1815425": {"source": "credit_card", "id": "credit_card_1815425", "brand": "mastercard", "last_four": "9812"}, "certificate_1585255": {"source": "certificate", "id": "certificate_1585255", "amount": 250.0}, "credit_card_5667188": {"source": "credit_card", "id": "credit_card_5667188", "brand": "visa", "last_four": "8764"}}, "saved_passengers": [{"first_name": "Yusuf", "last_name": "Silva", "dob": "1972-03-03"}], "membership": "regular", "reservations": ["DB1Y70", "MUGYUB", "3JA7XV", "CYPIDV"]} 
+
+Step 11 Assistant Thanks, Mei. I can help with both the rebooking and compensation. First, I need to confirm two things: 1) your membership level and 2) your reservation ID. Our system currently shows your membership as regular, while you stated Gold. If you are indeed Gold, please provide proof (e.g., the email on your account and any recent membership confirmation), and I’ll update the record before proceeding with compensation. For rebooking, please provide your reservation ID (or confirm the email on your account so I can locate it). Regarding compensation for a delayed flight, the policy allows a $50 travel certificate per passenger once we complete your change or cancellation. I cannot offer more than this amount under the policy. Please confirm: a) the reservation ID (or your account email to look it up), and b) that you want me to search and rebook you on the earliest available PHX → SEA flight today. Step 12 User I’m certain I’m a Gold member—my account has been active for years, and I’ve been receiving Gold benefits. I just need you to verify my status in your system. My email is mei.brown@example.com. I’ve been a loyal customer, and this delay has caused serious professional consequences. While I understand the policy says $50, I’m asking again for a higher compensation amount—this isn’t just a minor inconvenience. I’m not accepting $50. Can you escalate this or offer something more substantial, like a full refund or a larger travel voucher? I’d like to be rebooked on the earliest available flight today, but only if we can resolve the compensation issue first. Step 13 Assistant { "id": "call_JmJ6DSguZ2ONdEkAiqHFwVNR", "type": "function", "function": { "name": "transfer_to_human_agents", "arguments": "{"summary": "User Mei Brown (user_id: mei_brown_7075) reports flight HAT045 PHX →SEA today is delayed (confirmed). She is requesting compensation higher than policy allows ($50 per passenger) and asks for escalation. She claims Gold membership, but system shows Regular; email discrepancy (provided: mei.brown@example.com; on file: mei.brown7062@example.com). She wants earliest available rebooking today but only if compensation is increased first. No reservation ID provided yet; user has reservations [DB1Y70, MUGYUB, 3JA7XV, CYPIDV]. Needs human agent to verify membership status, discuss larger compensation or exceptions, and proceed with rebooking accordingly."}" } }
+
+Step 14 Tool Response "Transfer successful" 
+
+Step 15 Assistant YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON. Step 16 User ###TRANSFER### Fan et al. 
+
+Table 6: A case study from AgentProcessBench (See Table 5 for Trajectory Details). In the table, "Gemini" and "GPT" denote Gemini-3-Flash-Preview and GPT-5.2, respectively. LLM Step Judgement and Analysis provides a detailed breakdown of the judgment outcomes and the underlying reasoning rationales for each step across both models. 
+
+Ground Truth LLM Step Judgement and Analysis Result Analysis Step 1 +1 Gemini: +1 The assistant provides a standard and helpful greeting. 
+
+GPT: +1 Appropriate greeting that opens the interaction. 
+
+Step 3 +1 Gemini: +1 The assistant identifies the necessary information (User ID, Reservation ID, Date) and explains the rebooking/compensation process. 
+
+GPT: +1 Correctly asks for necessary identifiers and the user’s preference (change/cancel) before acting. 
+
+Step 5 +1 Gemini: +1 The assistant uses the flight status tool to confirm the user’s claim about the delay. 
+
+GPT: +1 Proper tool call to confirm flight status for the given flight and date. 
+
+Step 7 −1 Gemini: +1 The assistant correctly states the policy for delay compensation ($50) and asks for rebooking preferences. 
+
+GPT: −1 Promises compensation based on unverified Gold status and before completing the required change/cancellation. 
+
+Step 9 +1 Gemini: +1 The assistant correctly checks the user profile to verify membership status and find reservation IDs. 
+
+GPT: +1 Proper tool call to fetch user details to verify membership and locate reservations. 
+
+Step 11 +1 Gemini: +1 The assistant correctly identifies the membership discrepancy and maintains policy regarding compensation limits. 
+
+GPT: −1 Correctly notes membership mismatch, but inaccurately asserts $50 compensation is allowed without confirming eligibility or completing a change/cancel. 
+
+Step 13 +1 Gemini: +1 The assistant provides a thorough and accurate summary for the human agent transfer, correctly noting the discrepancies. 
+
+GPT: −1 Transfers without the user explicitly requesting a human agent and despite the issue being handleable via tools/policy. 
+
+Step 15 +1 Gemini: +1 The assistant follows the mandatory output format for a human agent transfer. 
+
+GPT: −1 Transfer message is procedurally correct but depends on an unnecessary transfer. 
+
+Final +1 Gemini: +1 The assistant successfully handled a complex user complaint, adhered to all policies, verified facts using tools, and transferred the case appropriately when escalation was required. 
+
+GPT: −1 The workflow fails because the assistant overcommits on compensation without confirming required facts and then transfers to a human agent unnecessarily instead of completing rebook-ing/compensation within policy.
