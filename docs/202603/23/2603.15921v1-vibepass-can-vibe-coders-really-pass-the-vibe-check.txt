@@ -1,0 +1,338 @@
+Title: VIBEPASS: Can Vibe Coders Really Pass the Vibe Check?
+
+URL Source: https://arxiv.org/pdf/2603.15921v1
+
+Published Time: Wed, 18 Mar 2026 00:20:09 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+Preprint. Under review. 
+
+# VIBE PASS : Can Vibe Coders Really Pass the Vibe Check? 
+
+Srijan Bansal 1, Jiao Fangkai 2,3 , Yilun Zhou 1∗, Austin Xu 1*, Shafiq Joty 1,2 , Semih Yavuz 11 Salesforce AI Research, 2 Nanyang Technological University, 3 A*STAR 
+
+## Abstract 
+
+As Large Language Models shift the programming toward human-guided ”vibe coding”, agentic coding tools increasingly rely on models to self-diagnose and repair their own subtle faults—a capability central to au-tonomous software engineering yet never systematically evaluated. We present V IBE PASS , the first empirical decomposition that jointly evaluates two coupled tasks: Fault-Triggering Test Generation (FT-Test) constructing a discriminative witness that exposes a latent bug, and Fault-targeted Program Repair (FPR) , repairing it under varying diagnostic conditions. V IBE PASS 
+
+pairs competitive programming problems with LLM-generated solutions that pass partial test suites but fail on semantic edge cases, enabling con-trolled identification of where the diagnostic chain breaks down. Evaluating 12 frontier LLMs, we find that fault-targeted reasoning does not scale with general coding ability. Models produce syntactically valid test inputs at near-ceiling rates yet collapse on discriminative generation, with fault hypothesis generation—not output validation—as the dominant bottleneck. Test-guided repair reveals a complementary insight: when self-generated tests successfully witness a fault, the resulting repair matches or outperforms repair guided by externally provided tests, but tests that fail to witness the fault actively degrade repair below unguided baselines. Together, these results reframe the challenge of autonomous debugging: the binding bottleneck is not code synthesis or test validity but fault-target reasoning, a capability that remains deficient across all frontier models. 
+
+ github.com/SalesforceAIResearch/vibepass 
+
+huggingface.co/datasets/Salesforce/vibepass 
+
+## 1 Introduction 
+
+Recent advances in Large Language Models (LLMs) have accelerated vibe coding —agentic workflows that generate substantial software with minimal human oversight (Dong et al., 2025). While recent systems surpass 90% pass rates on established benchmarks (Austin et al., 2021; Jain et al., 2024; Chen et al., 2021a), this performance reflects generation under ideal conditions: producing correct solutions from clear specifications. Real-world deployment demands more—models must verify code, diagnose latent faults not captured by existing tests, and synthesize targeted repairs. This gap represents a core failure mode of production coding assistants (Liu et al., 2023; 2024a; 2025). In practice, LLM-generated code satisfies all visible tests yet fails silently on boundary inputs. This raises a foundational question: given a near-correct program with no observable failures, can an LLM synthesize a concrete input witnessing the latent fault and exploit that diagnosis to repair it? 
+
+We term this fault-targeted reasoning . Existing work evaluates its components in isolation: test generation research (Altmayer Pizzorno & Berger, 2025; Chen et al., 2024b) uses syntactic validity and branch coverage as proxies for fault exposure, while repair research (Tian et al., 2024; Chopra et al., 2024) assumes a declared fault location, short-circuiting diagnosis entirely. Neither measures the connective capability binding autonomous debugging. We show that 
+
+> ∗
+
+Work done during Salesforce tenure. 
+
+1
+
+> arXiv:2603.15921v1 [cs.SE] 16 Mar 2026
+
+Preprint. Under review. proxy metrics overestimate fault-detection capability, and that this omitted diagnostic step is the binding bottleneck for end-to-end reliability. We introduce VIBE PASS , a benchmark that systematically evaluates fault-targeted rea-soning through two complementary tasks (Figure 1). Fault-Triggering Test Generation (Task-1) measures whether LLMs can generate tests that expose bugs in model-generated solutions—code that passes trivial test cases but contains subtle semantic flaws. Unlike existing test generation benchmarks that focus on coverage or correctness verification, we require tests to be discriminative : valid inputs on which buggy and accepted implementations diverge. Fault-Targeted Program Repair (Task-2) evaluates the ability to fix these bugs under three guidance conditions—no tests, externally provided fault-triggering tests, and self-generated tests—enabling controlled investigation of how diagnostic context influences repair success. V IBE PASS consists of 173 instances spanning 76 algorithmically challenging problems from LiveCodeBench, each paired with a model-generated buggy solution and a platform-accepted human-authored solution. Buggy solutions pass 10–90% of official test cases, ensuring bugs are non-trivial and require semantic reasoning to detect. We study fault-targeted reasoning as a raw reasoning capability across 12 frontier mod-els—including GPT-5 variants, Gemini-3, Claude Opus/Sonnet-4.6, and open-source sys-tems—revealing three critical findings. First, fault-targeted reasoning does not scale with general coding ability: while 86% of inputs are syntactically valid, only 61% are fault-triggering (ranging from 80% to 26%), with fault hypothesis generation as the dominant bottleneck (2.7× larger gap than output validation). Second, self-generated tests match or outperform external ones—improving repair by 6.4 points for strong reasoners when both yield valid corner cases —indicating that contextual alignment matters more than test quality alone. Third, fault-triggering input generation and output validation are near-perfectly cou-pled ( r = 0.98), strongly predicting repair success ( r = 0.79). We identify performance cliffs of multi-stage repair pipelines at fault localization (−15 pp) and test-to-repair transition ( ∼21 pp) confirming that fault-targeted reasoning—not code or test synthesis—is the binding bottleneck. Our contributions are: (i) a multi-stage framework decoupling test generation from repair; (ii) a high-quality benchmark with execution-based verification and multi-setting evaluation; and (iii) the first systematic analysis across 12 frontier LLMs, revealing substantial deficits in causal program reasoning despite strong generation performance. VIBE PASS benchmark data and evaluation code are publicly available. 
+
+## 2 VIBE PASS 
+
+VIBE PASS introduces a benchmark for fault-targeted reasoning through two complementary tasks (Fig 1): (1) Fault-triggering Test Generation (FT-Test) , which evaluates the ability to craft fault-triggering (FT) tests that expose subtle semantic bugs, and (2) Fault-targeted Program Repair (FPR) , which measures the ability to repair these bugs under varying guidance. V IBE PASS focuses on model-generated buggy solutions—code that passes trivial tests but contains semantic flaws, reflecting how LLM bugs grow increasingly nuanced as model capability improves. Our design follows three core principles: diverse semantic bugs, execution-based verification, and multi-setting evaluation (Appendix A.1.1). 
+
+2.1 Benchmark Construction 
+
+We construct V IBE PASS via a three-stage pipeline to ensure high-quality, verifiable instances that emphasize non-trivial reasoning (details in Appendix. A.2). 
+
+Problem Collection. We focus on function-level algorithmic problems, which enable precise execution-based evaluation and fine-grained test generation. We source problems from LiveCodeBench (Jain et al., 2024), whose continuous release mitigates train-test contamina-tion. After discarding problems with conflicting test cases or non-standard evaluation, we apply capability-based filtering, retaining only problems unsolved by majority of the three reasoning models (GPT-4o, Claude Sonnet 4, Gemini-2.5-Pro), yielding 170 problems, 89% rated “medium” or “hard”. 2Preprint. Under review. 
+
+Figure 1: VIBE PASS evaluates LLM performance across roles requiring fault-targeted reasoning, as typical in practical coding agents. Given a problem description and a buggy solution, the LLM ( Judge ) first determines whether a bug exists. If a bug is detected, the LLM (Tester ) generates a fault-triggering (FT) test, consisting of an input and expected output 
+
+(FT-Test Bug Discovery) . An FT-test is correct if it satisfies three conditions: the input is valid, the buggy solution fails the test, and a silver solution passes it. The FT-test is then used by the LLM ( Debugger ) to produce a revised solution (Fault-Targeted Program Repair) ,which must pass the official test suite to be considered a valid fix. 
+
+Input-Validity Checker Generation. Evaluating test generation requires verifying that generated inputs satisfy problem constraints. For each problem, we automatically generate a Python checker is valid (ti) → { True , False } using gpt-5-mini , validated against official test cases to ensure no false negatives—yielding valid checkers for 98.8% of problems (See Figure 4 for sample prompt input and model-generated output) 
+
+Solution Collection, Verification and Filtering. We collect 2,184 candidate solutions across 168 problems from human submissions and diverse LLMs (Appendix A.2). Solutions passing all official tests are designated silver 1; wrong-answer failures are designated 
+
+buggy —runtime errors are discarded as trivially detectable. We retain one silver and at most 4 buggy solutions per problem, prioritized first by difficulty then by semantic diversity 
+
+Final Dataset. VIBE PASS contains 173 instances spanning 76 unique problems. Each instance comprises a problem specification, official test cases, an input-validity checker, verified human-authored silver solution, and a model-generated buggy solution. Bug difficulty ranges from 10%–90% pass rate on official tests. Table 4 provides full statistics. 
+
+2.2 Task 1: Fault-Triggering Test Generation (FT-Test) Motivation. Effective fault localization requires targeted tests that expose bugs (Rafi et al., 2024; 2025)—central to test-driven development, and automated program repair. Task 1 evaluates whether LLMs can generate FT tests : inputs that trigger buggy behavior while passing correct implementations. 
+
+Task Definition. Given a problem specification P and buggy solution Sbuggy , generate a test (ti, to ) where ti indicates valid input and to is the expected output. A test is a FT test if: 
+
+Sbuggy (ti)̸ = to ∧ Ssilver (ti) = to.  
+
+> 1Accepted solutions passing all test cases are considered silver because the provided test suites may be incomplete; passing them does not guarantee absolute correctness.
+
+3Preprint. Under review. 
+
+Evaluation Settings. We evaluate two settings reflecting different information conditions: In Bug-Aware FT-Test , the model is informed that S contains a bug and must generate a test exposing it—measuring reasoning about known faults. In Bug-Discovery FT-Test , the model must first determine whether S is correct or buggy, then generate a FT-test only if it judges S buggy—measuring combined fault detection and test generation. Together, these settings isolate the impact of bug awareness on fault-targeted reasoning. 
+
+Evaluation Metrics. We evaluate FT-Test task along four progressively stringent criteria: • Validity ( VI ): ti conforms to the input specification, verified by the checker. • Executability ( VIO ): ti is valid and Ssilver (ti) = to.• Discriminative Input ( DI ): ti is valid and Sbuggy (ti)̸ = Ssilver (ti).• Discriminative Test ( DIO ): (ti, to ) satisfies executability s.t. Sbuggy (ti)̸ = to.Each level strictly refines the previous: DIO ⊆ { VIO , DI } ⊆ VI . Critically, the (VI → DI ) gap captures failures in fault hypothesis generation while the (VI → VIO ) gap captures failures in output validation—two distinct failure modes. We additionally measure Judgment Accuracy ( J)—whether the model correctly classifies solution correctness—and J+* , the conjunction of correct judgment and the corresponding 
+
+FT-Test metric (e.g., J+DIO ), capturing end-to-end success. 
+
+2.3 Task 2: Fault-targeted Program Repair (FPR) Motivation. Generating tests that expose bugs serves a diagnostic purpose—models must also repair identified faults. Task 2 evaluates whether LLMs can fix subtle semantic bugs under varying guidance. 
+
+Task Definition. Given a problem specification P and a buggy solution Sbuggy , generate a corrected solution Sfixed that passes all official test cases. We evaluate three settings to investigate whether external tests, self-generated tests, or no ad-ditional context beyond knowing a bug exists best supports program repair. FPR-NoTest : the model receives no test cases, establishing a baseline for unguided repair ability. FPR-ExtTest :the model receives a FT test generated in Task-1 as explicit evidence of faulty behavior, measuring the utility of externally provided diagnostic context. FPR-IntTest : the model first generates its own fault-targeted test and then uses it to guide repair, measuring whether self-constructed reasoning scaffolds aid debugging. 
+
+Evaluation Metrics. The primary metrics are Pass@1 and Success Rate (SR) —the percentage of fixes passing all official test cases (partial fixes count as failures), aggregated across problems and instances. For FPR-IntTest , we also assess self-generated test quality using Task 1 metrics ( VIO , DIO ) to examine whether successful debugging aligns with high-quality test generation. 
+
+2.4 Evaluated Models 
+
+We evaluate 12 models spanning frontier commercial and open-source systems: OpenAI 
+
+(GPT-5-Nano, GPT-5-Mini, GPT-5.2, GPT-5.2-Codex), Gemini (Gemini-3-Flash, Gemini-3-Pro, Gemini-3.1-Flash-Lite, Gemini-3.1-Pro), Claude (Sonnet-4.6, Opus-4.6), and open-source including GPT-OSS-120B and Nemotron-3-Nano-30B-A3B. Full experimental details are provided in Appendix A.3. 
+
+## 3 Results and Analysis 
+
+We organize our findings around three research questions that probe the capabilities and failure modes of frontier LLMs in fault-targeted reasoning. Each subsection presents quanti-tative results, identifies key failure patterns, and analyzes statistical dependencies across task components. 4Preprint. Under review. Table 1: Bug-Aware and Bug-Discovery FT-Test Generation Performance. In the Bug-Aware, the model knows the code is buggy, and performance measures FT-Test generation quality directly: VI /VIO for input/output validity, and DI /DIO for discriminative effective-ness. In the Bug-Discovery, J denotes judgment accuracy (buggy or not), and joint metrics (J+*) require both correct judgment and the corresponding quality criterion. Pass@1 is also reported to compare FT-Test with code generation (CG) reasoning ability.                                                                                                                                               
+
+> Model CG Bug-Aware FT-Test Bug-Discovery FT-Test
+> P@1 VIVIO DIDIO JJ+ VIJ+ VIO J+ DIJ+ DIO
+> Gemini-3.1 Flash-Lite 25.0 89.6 69.4 31.8 26.0 39.9 33.0 24.3 20.8 15.6 Gemini-3 Flash 78.9 95.4 92.5 63.6 63.0 75.1 74.0 69.4 60.1 59.0 Gemini-3 Pro 81.6 94.8 89.6 72.3 69.4 83.2 80.4 71.1 64.2 59.5 Gemini-3.1 Pro 92.1 89.0 83.2 69.9 68.8 80.4 77.5 59.5 59.5 48.0 GPT-5 (nano) 48.7 92.5 82.1 57.8 52.0 54.9 52.0 28.9 35.3 17.9 GPT-5 (mini) 43.4 89.0 82.1 63.0 60.7 62.4 60.7 54.3 48.0 45.7 GPT-5.2 71.1 88.4 82.1 69.4 68.2 83.8 81.5 76.3 66.5 65.3 GPT-5.2 (codex) 71.1 90.2 85.6 72.8 72.3 85.0 82.1 75.7 64.2 63.6 Sonnet-4.6 57.9 80.4 71.7 71.7 70.5 78.6 75.7 69.9 69.9 69.9 Opus-4.6 73.7 84.4 80.4 79.8 79.8 82.7 79.8 75.7 75.1 75.1 GPT-OSS-120B 67.1 76.3 69.9 66.5 65.3 74.0 70.5 66.5 67.1 65.9 Nemotron-3-30B-A3B 46.0 66.5 49.1 47.4 39.3 57.2 52.0 15.0 39.9 13.3
+> Mean 63.1 86.4 78.1 63.8 61.3 71.4 68.3 57.2 55.9 49.9
+
+3.1 RQ1: How effectively do frontier LLMs generate fault-triggering test cases? 
+
+Table 1 reveals a consistent hierarchy of performance across all evaluated models. In the Bug-Aware FT-Test setting, LLMs generate syntactically valid inputs with high reliability (average VI = 86.4), yet only 61.3 achieve discriminative FT-tests ( DIO ), yielding a 25.5% gap between input validity and discriminative FT-test generation. This result extends classical observations from automated testing that test adequacy and fault detection are fundamentally distinct capabilities (Chen et al., 2021b) to the LLM regime. The gap arises because producing format-compliant inputs largely relies on learned specification patterns, whereas exposing faults requires causal reasoning about program behavior. High DIO 
+
+performance dispersion under identical task conditions (e.g., 54pp gap between Opus-4.6 (79.8) and Gemini-3.1 Flash-Lite (26.0), underscores that FT-test generation is a highly discriminative capability that does not scale uniformly with general coding proficiency. Our framework decomposes Task-1 failures into two axes: the fault hypothesis gap ( VI − DI ,avg. ≈ 23 pp) and the output validation gap ( VI − VIO , avg. ≈ 8 pp). The fault hypothesis gap is 2.7x larger, showing that identifying FT-test inputs is the dominant bottleneck. Fault hypothesis gap varies 12× across models—from 57.8% (Gemini-3.1 Flash-Lite) to 4.6% (Opus-4.6)—making it a reliable discriminator of capability. A sharp capacity cliff is visible at the lower end: GPT-5-Nano achieves 92.5% VI but collapses to 57.8% DI , and Gemini-3.1-Flash-Lite falls to 31.8% DI despite 89.6% VI . Moreover, DIO /DI ≈ 0.96 versus VIO /VI ≈ 0.9, indicating that models that locate discriminating inputs also predict outputs accurately, so the output validation gap is largely subsumed by the fault hypothesis bottleneck. In Bug-Discovery, models must first judge solution correctness, creating a two-stage bottle-neck. Average judgment ( J) is 71.4%, with end-to-end J + DIO falling to 49.9% versus 61.3% in Bug-Aware DIO , and 60% of failures trace to misjudgment. Judgment dominates weaker models, while conditional test generation differentiates stronger ones—e.g., Gemini-3.1 Pro drops 32.4 pp from J to J + DIO , versus 7.6 for Opus 4.6. Remaining failures split into a conditional fault hypothesis gap ( ∼12 pp) and output validation gap ( ∼11 pp). To isolate degradation induced by the judgment requirement, we compare the FT-Test (bug-discovery vs. bug-aware) settings conditioned on judgment in the bug-discovery setting (Table 2). Bug-aware outperforms bug-discovery for 6 of 12 models, confirming that models 5Preprint. Under review. Table 2: Model performance on FT-Test Generation under Bug-Discovery and Bug-Aware settings. J denotes judgment accuracy; J + DIO /J measures joint success in discovery. In Bug-Aware, DIO is split by correct ( DIO /J) and incorrect ( DIO / ∼ J) verdicts. Agreement between discriminative test outcomes across settings is also reported.      
+
+> Model FT-Test discovery FT-Test aware Agreement
+> JJ
+
++ DIO /J DIO /J DIO / ∼ J J + DIO ∩ DIO                                                                  
+
+> Gemini-3.1 Flash-Lite 39.9 39.1 34.8 20.2 87.0 Gemini-3 Flash 75.1 78.5 73.8 30.2 87.7 Gemini-3 Pro 83.2 71.5 75.0 41.4 84.0 Gemini-3.1 Pro 80.3 59.7 73.4 50.0 73.4 GPT-5 (nano) 54.9 32.6 66.3 34.6 57.9 GPT-5 (mini) 62.4 73.1 76.9 33.8 83.3 GPT-5.2 83.8 77.9 74.5 35.7 92.4 GPT-5.2 (codex) 85.0 74.8 78.2 38.5 95.2 Sonnet-4.6 78.6 89.0 82.4 27.0 91.9 Opus-4.6 82.7 90.9 87.4 43.3 95.1 GPT-OSS-120B 74.0 89.1 78.9 26.7 88.3 Nemotron-3 Nano-30B 57.2 23.2 52.5 21.6 58.6 Mean 71.4 66.6 71.2 33.6 82.9
+
+effectively leverage self-derived judgment—making external grounding redundant or even detrimental. When the model correctly identifies a bug (J=1), bug-aware outperforms bug-discovery for only 6 of 12 models, suggesting that many models effectively leverage self-derived judgments without requiring external grounding. For these models (e.g., Opus-4.6, Sonnet-4.6, GPT-5.2-Codex), providing the bug label offers minimal or even negative value—the model’s internal confidence already guides effective test generation. The clearest exception is GPT-5-Nano ( J = 54.9%), where external bug grounding yields substantial gains ( DIO |J: 66.3% vs. DIO |∼ J: 34.6%). This asymmetry indicates that weaker models benefit from explicit grounding because their internal judgment is unreliable. Conversely, for stronger models, the bug-aware setting can depress performance by forcing test generation even in low-confidence cases—eliminating the implicit abstention mechanism available in bug-discovery. This aligns with the selective prediction framework in calibrated LLM evaluation (Wen et al., 2025), where allowing models to abstain on uncertain instances improves aggregate reliability. Moreover, in the bug-aware setting we observe a substantial performance gap conditioned on judgment accuracy: when comparing bug-aware results stratified by bug-discovery judgment correctness, models achieve DIO |J = 71.2% versus 
+
+DIO |∼ J = 33.6% on average. This 37.6 pp gap confirms the strong coupling between judgment accuracy and test quality, even when external bug labels are provided—suggesting that the underlying diagnostic capability remains the primary bottleneck rather than the availability of grounding information. 
+
+3.2 RQ2: How effectively do frontier LLMs debug subtle semantic bugs? 
+
+Table 3 reports debugging performance under three test-guidance settings: NoTest (un-guided, model knows the solution is buggy and sees only the problem), ExtTest (model receives an FT-Test from Task 1, correct or incorrect), and IntTest (model first generates its own test before debugging) Across all three FPR settings, proprietary models substantially outperform open-source counterparts, with Gemini-3 Flash achieving the strongest overall profile (NoTest SR: 70.5, IntTest SR: 56.0, ExtTest SR: 71.0) while Nemotron-3 Nano-30B consistently anchors the bottom. Counterintuitively, internally generated tests degrade repair performance on average — mean P@1 drops 6.8 points from NoTest (58.6) to IntTest (51.8) — indicating that self-generated test scaffolding introduces more noise than signal for most models. Externally generated tests partially recover performance but still fail to surpass NoTest SR on average (45.9 vs. 47.6), and while they consistently produce higher validity ( VIO : 75.4 vs. 70.1) and discriminative power ( DIO : 56.3 vs. 54.7) than internally 6Preprint. Under review. Table 3: NoTest , IntTest , and ExtTest Fault-Targeted Program Repair Performance. The first four columns ( left ) report P@1 under different settings. The remaining columns ( right ) show Success Rate (SR), VIO , and DIO (input/output validity and discriminative effectiveness) for internally generated or externally provided tests. Pass@1 for code generation (CG) is also included for comparison. ”No”, ”Int”, and ”Ext” correspond to NoTest, IntTest, and ExtTest FPR settings, respectively. 
+
+Model CG No Int Ext NoTest IntTest ExtTest 
+
+P@1 SR VIO DIO SR VIO DIO SR 
+
+Gemini-3.1 Flash-Lite 25.0 45.7 23.4 48.1 29.0 70.5 31.5 15.5 67.5 22.5 29.5 Gemini-3 Flash 78.9 86.1 66.8 82.5 70.5 79.5 62.0 56.0 85.0 55.5 71.0 Gemini-3 Pro 81.6 80.4 64.5 78.6 68.5 86.5 70.1 53.5 90.0 65.5 67.0 GPT-5 (nano) 48.7 38.3 35.6 39.2 24.0 65.0 47.0 23.5 81.0 49.0 28.5 GPT-5 (mini) 43.4 45.2 52.9 51.6 35.0 60.5 47.0 37.5 78.5 58.0 39.0 GPT-5.2 71.1 69.7 69.6 59.6 65.0 76.5 65.5 64.0 77.5 65.5 58.5 GPT-5.2 (codex) 71.1 67.8 68.9 61.0 63.5 71.5 63.0 60.0 78.5 66.5 54.5 Sonnet-4.6 57.9 63.5 64.0 57.3 48.5 63.0 51.0 48.0 74.5 71.5 43.5 Opus-4.6 73.7 73.9 65.7 70.3 59.0 71.0 59.0 55.0 79.5 66.5 60.0 GPT-OSS-120B 67.1 54.5 44.2 54.3 44.5 70.5 59.5 34.5 70.5 62.5 44.5 Nemotron-3 Nano-30B 46.0 19.9 14.1 11.9 16.0 56.5 45.5 9.5 47.0 36.0 9.0 Mean 60.4 58.6 51.8 55.9 47.6 70.1 54.7 41.6 75.4 56.3 45.9 0 20 40 60 80      
+
+> Pass@Debug on Intersection (%)
+> GPT-5.2-Codex
+> Sonnet-4.6
+> GPT-5.2
+> GPT-5-Mini
+> Opus-4.6
+> Gemini-3-Flash
+> GPT-OSS-120B
+> GPT-5-Nano
+> Gemini-3.1-Flash-Lite
+> n=115
+> n=87
+> n=113
+> n=89
+> n=94
+> n=98
+> n=97
+> n=72
+> n=32
+> ExtTest and IntTest (both valid, DIO=True)
+> NoTest
+> ExtTest
+> IntTest
+> 30 20 10 010 20
+> Difference: IntTest - ExtTest (%)
+> GPT-5.2-Codex
+> Sonnet-4.6
+> GPT-5.2
+> GPT-5-Mini
+> Opus-4.6
+> Gemini-3-Flash
+> GPT-OSS-120B
+> GPT-5-Nano
+> Gemini-3.1-Flash-Lite
+> +16.5%
+> +10.3%
+> +8.8%
+> +5.6%
+> +3.2%
+> -4.1%
+> -5.2%
+> -5.6%
+> -28.1%
+> Self-Generated vs External Test Advantage
+> IntTest Better
+> ExtTest Better
+
+Figure 2: Controlled comparison of test feedback mechanisms on valid corner-case intersection . Debugging performance is shown for samples where both external (Task-1) and self-generated (Task-3) tests are valid. Left : Success rates under N OTEST (gray), EXT TEST (blue), and I NT TEST (red) across 11 models. Right : Performance difference (I NT TEST − E XT TEST ) per model, with red bars favoring self-generated tests and blue bars favoring external tests. generated ones, this quality advantage does not uniformly translate to higher SR. The finding that both internal and external test augmentation underperform the no-test baseline on average suggests that generated tests — regardless of source — tend to impose repair constraints that are either misleading or misaligned with the true fault, and that models currently lack the robustness to filter and exploit such imperfect signals effectively. Code generation ability further proves to be a poor proxy for repair: GPT-5 (mini) achieves higher IntTest P@1 (52.9) than CG (43.4), Sonnet-4.6 records the table’s highest DIO (74.0) despite modest CG (57.9), and GPT-5.2 and its codex variant remain statistically indistinguishable across all FPR metrics, collectively suggesting that repair performance is governed more by fault localization and test utilization capacity than by raw generative capability. We conducted a controlled comparison to isolate the effect of test feedback mechanisms by analyzing samples where both external (Task-1) and self-generated (Task-3) tests produced valid corner-cases, ensuring differences reflect feedback effectiveness rather than test quality. 7Preprint. Under review. Valid                   
+
+> Input
+> Valid
+> IO
+> FT-Input
+> FT-IO
+> Repair
+> Judge
+> Valid
+> Input
+> Valid
+> IO
+> FT-Input
+> FT-IO
+> Repair
+> Judge
+> 1.00
+> 0.70 1.00
+> -0.13 0.47 1.00
+> -0.13 0.52 0.99 1.00
+> 0.31 0.79 0.57 0.65 1.00
+> -0.03 0.48 0.86 0.86 0.72 1.00
+> (a) Pipeline Stage Correlations
+> 1.00
+> 0.75
+> 0.50
+> 0.25
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Pearson Correlation
+> Valid
+> Input
+> Valid
+> IO
+> FT-Input FT-IO Repair Judge
+> Pipeline Stage (Cumulative Requirements)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Cumulative Success Rate (%)
+> Averaged over best 2 models per family
+> Each stage requires ALL previous capabilities
+> (b) Family Performance Across Stages
+> Model Family
+> Anthropic
+> Google
+> Open-Source
+> OpenAI
+
+Figure 3: Pipeline Stage Correlations and Model Family Performance Across Cumulative Requirements. Using V IBE PASS instances, we evaluate 12 frontier LLMs across a progres-sion of coding-reasoning tasks: input generation ( Valid Input ), output prediction ( Valid-IO ), fault-triggering discrimination ( FT-Input , FT-IO ), and program Repair , with Judge metrics assessing final correctness. [Left] Pearson correlations reveal that fault-triggering metrics (FT-Input –FT-IO , r = 0.988) and their relationship to Judge performance ( r ≥ 0.86) are the strongest predictors of success, while Valid Input alone weakly predicts downstream results (r = 0.311). This suggests that the ability to generate fault-revealing tests—rather than mere syntactic validity—is more closely aligned with solving complex bugs. [Right] Cumulative success rates show the largest performance drops at the Valid IO → FT-Input (14.7 pp) and 
+
+FT-IO → Repair (21.2 pp) transitions, identifying these as the primary reasoning bottlenecks. Family-level trends highlight that while OpenAI models maintain the highest stability (54.3%), Google models struggle with fault-triggering tasks and open-source models under-perform significantly in repair (12.1%). V IBE PASS maps the full spectrum from basic test generation to advanced debugging, exposing critical gaps in current model capabilities. For each model, we evaluated debugging success on the intersection of valid samples (32–115 per model, median 89) under three conditions: no feedback (N OTEST ), external test (E XT TEST ), and self-generated test (I NT TEST ). Across 12 models, N OTEST achieved 63.9% success, E XT TEST 57.8% (−6.1pp), and I NT TEST 64.2% (+0.3pp), with I NT TEST outperforming EXT TEST by 6.4pp (Wilcoxon p < 0.05, Cohen’s d = 0.41). At the model level, 8/12 models benefited more from self-generated tests, though some favored external tests, indicating high model-dependent variance ( σ = 20.1%). These results suggest that test provenance matters: self-generated tests aligned with the debugging context provide more effective guidance than external tests, highlighting the value of self-diagnosis even when both test types are valid corner-cases. 
+
+3.3 RQ3: How correlated are code-reasoning skills, and what limits bug repair? 
+
+To understand capability interactions within V IBE PASS , we performed a correlation anal-ysis across six cumulative pipeline stages— Valid Input (V I ), Valid IO (VIO ), FT-Input (DI ), 
+
+FT-IO (DIO ), Repair , and Judge —across all the evaluation models. Figure 3a shows the average of top two models per family with variance bands The analysis reveals strong inter-dependencies between fault-triggering capabilities and downstream reasoning. FT-Input and FT-IO exhibit near-perfect correlation (r=0.988), indicating that finding a fault-triggering input is the primary hurdle—producing valid output given one is trivial. These metrics strongly predict both Judge ( r ≥ 0.86) and Repair performance( r = 0.794), confirming that generating high-quality FT-tests is foundational to autonomous debugging. In contrast, Valid Input shows weak or negative correlations with all downstream stages ( r ≤ 0.125), confirming that syntactic fluency does not transfer to higher-order reasoning. 8Preprint. Under review. These dependencies manifest as distinct performance cliffs (Figure 3b). The sharpest attri-tion occurs at Valid IO → FT-Input (−14.7pp) and FT-IO → Repair (−21.2pp), marking the transitions from general execution to fault localization and code modification. OpenAI models achieve the highest final success rate (54.3%) with the most graceful degradation; open-source models lag substantially, especially in repair (12.1%). Together, these results pinpoint the fault-targeted reasoning as the critical bottleneck for autonomous debugging. 
+
+## 4 Related Works 
+
+Early benchmarks for code generation focused on short, function-level programming tasks such as HumanEval and MBPP (Chen et al., 2021a; Austin et al., 2021), but have since been largely saturated by code-specialized LLMs (Guo et al., 2024; DeepSeek-AI et al., 2024; Hui et al., 2024; Qwen Team, 2024). Evaluation efforts have since diverged into competition-level algorithmic reasoning and software engineering benchmarks. 
+
+Competition-Level Code Generation. Benchmarks such as AlphaCode (Li et al., 2022), APPS (Hendrycks et al., 2021), and xCodeEval (Khan et al., 2024) evaluate models on compet-itive programming tasks. Due to potential contamination from web-scale pretraining, newer benchmarks like LiveCodeBench and LiveCodeBench Pro update problems periodically to better assess generalization (Jain et al., 2024; Zheng et al., 2025). EvoCodeBench further reduces leakage by evolving datasets aligned with real repositories (Li et al., 2024). 
+
+Software Engineering Code Generation. Unlike competitive problems, software engineer-ing tasks require long-context understanding and maintainable implementations. Fried et al. (2023) highlights the mismatch between standard autoregressive objectives and real editing patterns in InCoder. Benchmarks for realistic workflows include repository-level completion, bug fixing, and full repository synthesis (Liu et al., 2024b; Jimenez et al., 2024; Ding et al., 2025). CodeChain proposes modular self-revision to improve correctness on complex generation tasks (Le et al., 2024). 
+
+Automatic Debugging, Testing, and Repair. Debugging and repair involve bug local-ization, test generation, and patch synthesis. LLMs can leverage execution feedback for self -correction and iterative refinement (Chen et al., 2024a; Wang et al., 2024; Ni et al., 2023; Chen et al., 2023). Iterative frameworks such as CodeChain and hierarchical debuggers further improve multi-step reasoning. Real-world repair benchmarks like SWE-bench eval-uate fixing genuine GitHub issues with reproducible tests (Jimenez et al., 2024). Recent work trains agents over software evolution histories (SWE-RL) (Wei et al., 2025) and studies candidate patch ranking (SweRank, ICLR 2026) (Reddy et al., 2025). Complementary efforts explore unit test synthesis (Lemieux et al., 2023) and vulnerability repair benchmarks such as CVE-Bench (Zhu et al., 2025), extending automated program repair evaluation beyond traditional settings. Despite these advances, most benchmarks still emphasize generation from scratch (Liu et al., 2023; Jain et al., 2024), whereas real development involves identifying faults, generating tests to expose them, and repairing underlying issues . These capabilities—collectively termed fault-targeted reasoning —remain underexplored, motivating dedicated benchmarks for assessing debugging, testing, and repair in realistic coding workflows. 
+
+## 5 Conclusion 
+
+We introduced VIBE PASS , a benchmark for evaluating fault-targeted reasoning in LLMs—the ability to expose latent bugs through discriminative test generation and perform targeted repair. Across 173 instances and 12 frontier models, we find that fault-targeted reasoning does not scale with general coding ability: the dominant bottleneck is fault hypothesis generation, not code or test synthesis. Self-generated tests match or exceed external ones, highlighting the importance of contextual alignment over raw test quality. Performance cliffs at fault localization and the test-to-repair transition confirm that causal program reasoning remains a critical unsolved capability, even for state-of-the-art systems. We hope V IBE PASS serves as a rigorous foundation for advancing autonomous debugging in real-world deployment settings. 9Preprint. Under review. 
+
+## References 
+
+Juan Altmayer Pizzorno and Emery D. Berger. Coverup: Effective high coverage test generation for python. Proceedings of the ACM on Software Engineering , 2(FSE):2897–2919, June 2025. ISSN 2994-970X. doi: 10.1145/3729398. URL http://dx.doi.org/10.1145/ 3729398 .Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al. Program synthesis with large language models. arXiv preprint arXiv:2108.07732 , 2021. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mo-hammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. Evaluating large language models trained on code. 
+
+arXiv preprint arXiv:2107.03374 , 2021a. Xinyun Chen, Maxwell Lin, Nathanael Sch¨ arli, and Denny Zhou. Teaching large language models to self-debug, 2023. URL https://arxiv.org/abs/2304.05128 .Xinyun Chen, Maxwell Lin, Nathanael Sch ¨arli, and Denny Zhou. Teaching large lan-guage models to self-debug. In ICLR , 2024a. URL https://openreview.net/forum?id= KuPixIqPiq .Yinghao Chen, Zehao Hu, Chen Zhi, Junxiao Han, Shuiguang Deng, and Jianwei Yin. Chatunitest: A framework for llm-based test generation, 2024b. URL https://arxiv.org/ abs/2305.04764 .Yiqun T. Chen, Rahul Gopinath, Anita Tadakamalla, Michael D. Ernst, Reid Holmes, Gordon Fraser, Paul Ammann, and Ren ´e Just. Revisiting the relationship between fault detection, test adequacy criteria, and test set size. In Proceedings of the 35th IEEE/ACM International Conference on Automated Software Engineering , ASE ’20, pp. 237–249, New York, NY, USA, 2021b. Association for Computing Machinery. ISBN 9781450367684. doi: 10.1145/3324884. 3416667. URL https://doi.org/10.1145/3324884.3416667 .Bhavya Chopra, Yasharth Bajpai, Param Biyani, Gustavo Soares, Arjun Radhakrishna, Chris Parnin, and Sumit Gulwani. Exploring interaction patterns for debugging: Enhancing con-versational capabilities of ai-assistants, 2024. URL https://arxiv.org/abs/2402.06229 .DeepSeek-AI, Qihao Zhu, Daya Guo, Zhihong Shao, Dejian Yang, Peiyi Wang, Runxin Xu, Y. Wu, Yukun Li, Huazuo Gao, Shirong Ma, Wangding Zeng, Xiao Bi, Zihui Gu, Hanwei Xu, Damai Dai, Kai Dong, Liyue Zhang, Yishi Piao, Zhibin Gou, Zhenda Xie, Zhewen Hao, Bingxuan Wang, Junxiao Song, Deli Chen, Xin Xie, Kang Guan, Yuxiang You, Aixin Liu, Qiushi Du, Wenjun Gao, Xuan Lu, Qinyu Chen, Yaohui Wang, Chengqi Deng, Jiashi Li, Chenggang Zhao, Chong Ruan, Fuli Luo, and Wenfeng Liang. Deepseek-coder-v2: Breaking the barrier of closed-source models in code intelligence. CoRR , abs/2406.11931, 2024. Jingzhe Ding, Shengda Long, Changxin Pu, Huan Zhou, Hongwan Gao, Xiang Gao, Chao He, Yue Hou, Fei Hu, Zhaojian Li, Weiran Shi, Zaiyuan Wang, Daoguang Zan, Chenchen Zhang, Xiaoxu Zhang, Qizhi Chen, Xianfu Cheng, Bo Deng, Qingshui Gu, Kai Hua, Juntao Lin, Pai Liu, Mingchen Li, Xuanguang Pan, Zifan Peng, Yujia Qin, Yong Shan, Zhewen Tan, Weihao Xie, Zihan Wang, Yishuo Yuan, Jiayu Zhang, Enduo Zhao, Yunfei Zhao, He Zhu, Chenyang Zou, Ming Ding, Jianpeng Jiao, Jiaheng Liu, Minghao Liu, Qian Liu, Chongyao Tao, Jian Yang, Tong Yang, Zhaoxiang Zhang, Xinjie Chen, Wenhao Huang, and Ge Zhang. 10 Preprint. Under review. Nl2repo-bench: Towards long-horizon repository generation evaluation of coding agents. 
+
+CoRR , abs/2512.12730, 2025. URL https://doi.org/10.48550/arXiv.2512.12730 .Yihong Dong, Xue Jiang, Jiaru Qian, Tian Wang, Kechi Zhang, Zhi Jin, and Ge Li. A survey on code generation with llm-based agents. arXiv preprint arXiv:2508.00083 , 2025. Daniel Fried, Armen Aghajanyan, Jessy Lin, Sida Wang, Eric Wallace, Freda Shi, Ruiqi Zhong, Scott Yih, Luke Zettlemoyer, and Mike Lewis. Incoder: A generative model for code infilling and synthesis. In The Eleventh International Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023 . OpenReview.net, 2023. URL 
+
+https://openreview.net/forum?id=hQwb-lbM6EL .Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai Dong, Wentao Zhang, Guanting Chen, Xiao Bi, Y. Wu, Y. K. Li, Fuli Luo, Yingfei Xiong, and Wenfeng Liang. Deepseek-coder: When the large language model meets programming - the rise of code intelligence. CoRR ,abs/2401.14196, 2024. Dan Hendrycks, Steven Basart, Saurav Kadavath, Mantas Mazeika, Akul Arora, Ethan Guo, Collin Burns, Samir Puranik, Horace He, Dawn Song, and Jacob Steinhardt. Measuring coding challenge competence with APPS. In Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks , 2021. Binyuan Hui, Jian Yang, Zeyu Cui, Jiaxi Yang, Dayiheng Liu, Lei Zhang, Tianyu Liu, Jiajun Zhang, Bowen Yu, Kai Dang, et al. Qwen2. 5-coder technical report. arXiv preprint arXiv:2409.12186 , 2024. Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fanjia Yan, Tianjun Zhang, Sida Wang, Armando Solar-Lezama, Koushik Sen, and Ion Stoica. Livecodebench: Holistic and contamination free evaluation of large language models for code. CoRR , abs/2403.07974, 2024. Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R Narasimhan. SWE-bench: Can language models resolve real-world github issues? In The Twelfth International Conference on Learning Representations , 2024. URL 
+
+https://openreview.net/forum?id=VTF8yNQM66 .Mohammad Abdullah Matin Khan, M. Saiful Bari, Xuan Do Long, Weishi Wang, Md. Rizwan Parvez, and Shafiq Joty. Xcodeeval: An execution-based large scale multilingual multitask benchmark for code understanding, generation, translation and retrieval. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics , pp. 6766–6805. Association for Computational Linguistics, 2024. Hung Le, Hailin Chen, Amrita Saha, Akash Gokul, Doyen Sahoo, and Shafiq Joty. Codechain: Towards modular code generation through chain of self-revisions with representative sub-modules, 2024. URL https://arxiv.org/abs/2310.08992 .Caroline Lemieux, Jeevana Priya Inala, Shuvendu K. Lahiri, and Siddhartha Sen. Codamosa: Escaping coverage plateaus in test generation with pre-trained large language models. In ICSE , ICSE ’23, pp. 919–931. IEEE Press, 2023. ISBN 9781665457019. doi: 10.1109/ ICSE48619.2023.00085. URL https://doi.org/10.1109/ICSE48619.2023.00085 .Jia Li, Ge Li, Xuanming Zhang, Yihong Dong, and Zhi Jin. Evocodebench: An evolving code generation benchmark aligned with real-world code repositories, 2024. URL https: //arxiv.org/abs/2404.00599 .Yujia Li, David Choi, Junyoung Chung, Nate Kushman, Julian Schrittwieser, R ´emi Leblond, Tom Eccles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de Masson d’Autume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey Cherepanov, James Molloy, Daniel Mankowitz, Esme Suther-land Robson, Pushmeet Kohli, Nando de Freitas, Koray Kavukcuoglu, and Oriol Vinyals. Competition-level code generation with alphacode. arXiv preprint arXiv:2203.07814 , 2022. 11 Preprint. Under review. Jiawei Liu, Chunqiu Steven Xia, Yuyao Wang, and Lingming Zhang. Is your code generated by chatgpt really correct? rigorous evaluation of large language models for code gener-ation. In Proceedings of the 37th International Conference on Neural Information Processing Systems , NIPS ’23, Red Hook, NY, USA, 2023. Curran Associates Inc. Kaibo Liu, Yudong Han, Yiyang Liu, Zhenpeng Chen, Jie M. Zhang, Federica Sarro, Gang Huang, and Yun Ma. Trickybugs: A dataset of corner-case bugs in plausible programs. In Proceedings of the 21st International Conference on Mining Software Repositories , MSR ’24, pp. 113–117, New York, NY, USA, 2024a. Association for Computing Machinery. ISBN 9798400705878. doi: 10.1145/3643991.3644870. URL https://doi.org/10.1145/3643991. 3644870 .Kaibo Liu, Zhenpeng Chen, Yiyang Liu, Jie M. Zhang, Mark Harman, Yudong Han, Yun Ma, Yihong Dong, Ge Li, and Gang Huang. Llm-powered test case generation for detecting bugs in plausible programs, 2025. URL https://arxiv.org/abs/2404.10304 .Tianyang Liu, Canwen Xu, and Julian J. McAuley. Repobench: Benchmarking repository-level code auto-completion systems. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net, 2024b. URL 
+
+https://openreview.net/forum?id=pPjZIOuQuF .Ansong Ni, Srini Iyer, Dragomir Radev, Veselin Stoyanov, Wen-Tau Yih, Sida Wang, and Xi Victoria Lin. LEVER: Learning to verify language-to-code generation with execution. In Proceedings of the 40th International Conference on Machine Learning , volume 202 of 
+
+Proceedings of Machine Learning Research , pp. 26106–26128. PMLR, 23–29 Jul 2023. URL 
+
+https://proceedings.mlr.press/v202/ni23b.html .Qwen Team. Code with codeqwen1.5, April 2024. URL https://qwenlm.github.io/blog/ codeqwen1.5/ .Md Nakhla Rafi, An Ran Chen, Tse-Hsun Chen, and Shaohua Wang. Back to the future! studying data cleanness in defects4j and its impact on fault localization, 2024. URL 
+
+https://arxiv.org/abs/2310.19139 .Md Nakhla Rafi, Lorena Barreto Simedo Pacheco, An Ran Chen, Jinqiu Yang, Tse-Hsun, and Chen. Sbest: Spectrum-based fault localization without fault-triggering tests, 2025. URL 
+
+https://arxiv.org/abs/2405.00565 .Revanth Gangi Reddy, Tarun Suresh, JaeHyeok Doo, Ye Liu, Xuan Phi Nguyen, Yingbo Zhou, Semih Yavuz, Caiming Xiong, Heng Ji, and Shafiq Joty. Swerank: Software issue localization with code ranking, 2025. URL https://arxiv.org/abs/2505.07849 .Runchu Tian, Yining Ye, Yujia Qin, Xin Cong, Yankai Lin, Yinxu Pan, Yesai Wu, Hui Haotian, Liu Weichuan, Zhiyuan Liu, and Maosong Sun. DebugBench: Evaluating debugging capability of large language models. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar (eds.), Findings of the Association for Computational Linguistics: ACL 2024 , pp. 4173–4198, Bangkok, Thailand, August 2024. Association for Computational Linguistics. doi: 10. 18653/v1/2024.findings-acl.247. URL https://aclanthology.org/2024.findings-acl. 247/ .Hanbin Wang, Zhenghao Liu, Shuo Wang, Ganqu Cui, Ning Ding, Zhiyuan Liu, and Ge Yu. INTERVENOR: Prompting the coding ability of large language models with the interactive chain of repair. In Findings of ACL 2024 , pp. 2081–2107, Bangkok, Thailand, August 2024. AC:. doi: 10.18653/v1/2024.findings-acl.124. URL https://aclanthology. org/2024.findings-acl.124/ .Yuxiang Wei, Olivier Duchenne, Jade Copet, Quentin Carbonneaux, Lingming Zhang, Daniel Fried, Gabriel Synnaeve, Rishabh Singh, and Sida I. Wang. Swe-rl: Advancing llm reasoning via reinforcement learning on open software evolution, 2025. URL https: //arxiv.org/abs/2502.18449 .12 Preprint. Under review. Bingbing Wen, Jihan Yao, Shangbin Feng, Chenjun Xu, Yulia Tsvetkov, Bill Howe, and Lucy Lu Wang. Know your limits: A survey of abstention in large language models, 2025. URL https://arxiv.org/abs/2407.18418 .Zihan Zheng, Zerui Cheng, Zeyu Shen, Shang Zhou, Kaiyuan Liu, Hansen He, Dongruixuan Li, Stanley Wei, Hangyi Hao, Jianzhu Yao, Peiyao Sheng, Zixuan Wang, Wenhao Chai, Aleksandra Korolova, Peter Henderson, Sanjeev Arora, Pramod Viswanath, Jingbo Shang, and Saining Xie. Livecodebench pro: How do olympiad medalists judge llms in competi-tive programming? CoRR , abs/2506.11928, 2025. doi: 10.48550/ARXIV.2506.11928. URL 
+
+https://doi.org/10.48550/arXiv.2506.11928 .Yuxuan Zhu, Antony Kellermann, Dylan Bowman, Philip Li, Akul Gupta, Adarsh Danda, Richard Fang, Conner Jensen, Eric Ihli, Jason Benn, Jet Geronimo, Avi Dhir, Sudhit Rao, Kaicheng Yu, Twm Stone, and Daniel Kang. Cve-bench: A benchmark for ai agents’ ability to exploit real-world web application vulnerabilities, 2025. URL https://arxiv.org/abs/ 2503.17332 .13 Preprint. Under review. 
+
+## A Appendix 
+
+A.1 Benchmark Design & Statistics 
+
+A.1.1 Key Design Principles 
+
+VIBE PASS is built on three core design principles that distinguish it from existing bench-marks: 
+
+Diverse Semantic Bugs. We curate non-trivial buggy solutions that pass a subset of official tests. Bugs with higher pass rates and diverse behaviors (measured via Hamming dis-tance) are prioritized, unlike trivially detectable syntax errors. These bugs capture genuine reasoning failures in model-generated code. 
+
+Execution-Based Verification. All metrics rely on automated execution against official test suite. A solution S passes if it terminates to the expected output on every test t
+
+of the official test suite T , i.e., S(ti) = to ∀ t ∈ T. A fault-triggering test is a test pair 
+
+t = ( ti, to ) where the buggy solution fails while the silver (or accepted) solution succeeds: 
+
+Sbuggy (ti)̸ = to = Ssilver (ti).
+
+Multi-Setting Evaluation. We evaluate models under varying information conditions (bug-aware vs. bug-discovery FT-Test, unguided (NoTest) vs. test-guided (ExtTest or IntTest) program repair) to isolate different reasoning capabilities and measure how external guidance affects performance. 
+
+A.2 Benchmark Construction Details Problem Collection. We source 1,055 function-level algorithmic problems from Live-CodeBench (Jain et al., 2024), spanning LeetCode, AtCoder, and Codeforces (May 2023–April 2025). Each problem includes a natural language specification, official test cases with veri-fied outputs, and platform-assigned difficulty labels. We discard problems with conflicting test cases (same input, different outputs) or non-standard evaluation (interactive judges, approximate outputs), ensuring deterministic execution-based metrics. We apply capability-based filtering , excluding problems solved within 3 attempts by cost-effective frontier models (gpt-4o , gemini-2.5-pro , claude-sonnet-4 ), retaining only problems requiring substantive reasoning. This yields 170 problems (16% retention), of which 89% are rated “medium” or “hard,” spanning dynamic programming (28%), graph algorithms (22%), data structures (18%), greedy algorithms (15%), and other domains (17%). 
+
+Input-Validity Checker Generation. We prompt gpt-5-mini to produce a Python function 
+
+is valid (ti) → { True , False } that checks whether input ti conforms to all constraints in the problem specification. Figure 4 shows prompt template and model-generated sample. Each checker is validated against the official test suite; checkers rejecting any official input are discarded and regenerated (up to 3 attempts). This ensures no false negatives, though it does not guarantee coverage of all implicit constraints. In practice, 98.8% of problems yield valid checkers, with 100% acceptance on official tests. 
+
+Solution Collection and Verification. We collect candidates from two sources: human solutions (accepted submissions scraped from official platforms, serving as high-confidence silver solutions) and model-generated solutions (5–10 samples per model per problem from diverse LLMs spanning capabilities and architectures; Appendix A.3). All candidates are executed against official test suites with relaxed time limits (2 × platform limits) to prioritize functional correctness over efficiency. Solutions passing all test cases are designated silver ;those failing at least one are designated buggy . We retain only wrong-answer failures, discarding runtime errors (exceptions, timeouts), as wrong-answer bugs reflect semantic reasoning failures. We retain one human-authored silver solution with minimal execution time per problem and buggy solutions prioritized first by difficulty (higher official pass rate) then by diversity—among solutions with the same pass count, those with maximally different failure patterns measured by Hamming distance over the binary pass/fail vector on official tests. This ensures retained bugs are both subtle (near-correct behavior) and semantically distinct. We employ a diverse set of state-of-the-art language models across 14 Preprint. Under review. Table 4: Dataset statistics for the V IBE PASS benchmark.                            
+
+> Statistic Value
+> Total instances (problem, gold, buggy tuples) 173 Unique problems 76 Avg. instances per problem 2.3
+> Problem Difficulty (platform labels)
+> Easy 1% Medium 25% Hard 73%
+> Buggy Solution Pass Rate on Official Tests
+> 1st quartile 43% Median 71% 3rd quartile 86% Mean 61%
+> Pass Rate Difficulty Labels
+> Near-Correct (80% or more) 31% Medium-Correct (40-80%) 27% Near-Incorrect (40% or less) 35%
+> Problem Domains
+> Array/Matrix 25% Other 19% Dynamic Programming 18% Math/Number Theory 16% Graph Algorithms 8% Other 13%
+> Bug Categories
+> Missing Edge Case 32% Incorrect Condition 28% Off-by-One Error 27% Wrong Algorithm 8% Others (DP State Transition Error, Incorrect Initialization) 5%
+> Platforms
+> Leetcode 57% Atcoder 43%
+
+different capabilities and architectures: (1) OpenAI: GPT-5-Nano, GPT-5-Mini, GPT-5, GPT-5.1, GPT-5.2; (2) Google: Gemini-2.5-Flash-Lite, Gemini-2.5-Flash, Gemini-2.5-Pro, Gemini-3-Flash, Gemini-3-Pro; (3) Anthropic: Claude Opus-4, Opus-4.1, Opus-4.5, Sonnet-4, Sonnet-4.5. This setup enables generation of buggy solutions across families, sizes, and architectures. We manually collected accepted Python solutions from the official coding platform (Leetcode, Atcoder) and verified them against the official test cases. In total, we collect 2,184 candidate solutions across 168 problems (13/problem). 
+
+A.3 Experimental Setup– LLM Generators for Bug and Solution Generations Models We evaluate a diverse set of frontier and open-source language models span-ning different capability levels and architectures. Our evaluation includes: (1) OpenAI models (medium reasoning): GPT-5-Nano, GPT-5-Mini, and GPT-5.2, GPT-5.2-Codex; (2) Google models: Gemini-3.1-Flash-Lite, Gemini-3-Flash, Gemini-3-Pro and Gemini-3.1-Pro; (3) Anthropic models: Claude Opus-4.6 and Sonnet-4.6; and (4) Open-source models: NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 (Nemotron-3-Nano), GPT-OSS-120B (high), and Qwen3-235B-A22B-Thinking-2507. This selection enables comparison across different model families, sizes, and architectural choices. For benchmark construction we emply GPT-5-Mini for constructing input validity checkers and weak-to-moderate reasoners (GPT-4o, Gemini-2.5-Pro, Claude Sonnet-4) for capability-bases filtering. 15 Preprint. Under review. 
+
+Inference Configuration. For all test generation and debugging tasks, we set temperature T=1 for API models (if available).We set the maximum context window to 128K tokens for open-source models, while almost 1M+ for API-based models, sufficient to accommodate problem specifications, code solutions, and generated test cases. We use high reasoning effort across all the models. 
+
+Prompt Design. All tasks use structured prompts that include: problem description, input-output format specifications, and task-specific instructions. For bug-discovery CCG, prompts explicitly request both a correctness judgment and a test case (if buggy). For test-guided debugging, failing test cases are provided in the prompt with clear formatting. For self-guided debugging, prompts instruct models to generate test cases internally before attempting repairs. Full prompt templates are provided in the Github repository. 
+
+Evaluation Protocol. All generated solutions and test cases are executed in isolated sand-boxed environments with relaxed time limits (5× the original competitive programming limits) to focus evaluation on semantic correctness rather than efficiency. Test validity is verified using the generated input-validity checkers. We report Pass@1 for debugging tasks and FT-Test accuracy metrics for test generation tasks, computed over the full set of benchmark instances. Each experiment is run once due to computational constraints. 16 Preprint. Under review. Prompt 
+
+Given the following problem statement and starter code, write only the Python function ‘is valid test ‘ (with the same signature as in the starter code, but without ‘self‘). The function should return True if the inputs are valid according to the problem constraints, and False otherwise. Output only the code for the ‘ is valid test ‘ function, with no extra text or comments. Problem Statement: You are given a 0-indexed integer array nums. You can perform any number of operations, where each operation involves selecting a subarray of the array and replacing it with the sum of its elements. For example, if the given array is [1,3,5,6] and you select subarray [3,5] the array will convert to [1,8,6]. Return the maximum length of a non-decreasing array that can be made after applying operations. A subarray is a contiguous non-empty sequence of elements within an array. Example 1: Input: nums = [5,2,2] Output: 1 Explanation: This array with length 3 is not non-decreasing. We have two ways to make the array length two. First, choosing subarray [2,2] converts the array to [5,4]. Second, choosing subarray [5,2] converts the array to [7,2]. In these two ways the array is not non-decreasing. And if we choose subarray [5,2,2] and replace it with [9] it becomes non-decreasing. So the answer is 1. Example 2: Input: nums = [1,2,3,4] Output: 4 Explanation: The array is non-decreasing. So the answer is 4. Constraints: 1 <= nums .length <= 10 5
+
+1 <= nums [i] <= 10 5
+
+Starter Code: c l a s s S o l u t i o n : def findMaximumLength ( s e l f , nums : L i s t [ i n t ] ) −> i n t : pass 
+
+Sample Output def i s v a l i d t e s t ( nums : l i s t ) −> bool : i f not i s i n s t a n c e ( nums , l i s t ) : r e t u r n F a l s e n = l e n ( nums ) i f not i s i n s t a n c e ( n , i n t ) or n < 1 or n > 1 0 * * 5 : r e t u r n F a l s e f o r x i n nums : i f not i s i n s t a n c e ( x , i n t ) or i s i n s t a n c e ( x , bool ) : r e t u r n F a l s e i f x < 1 or x > 1 0 * * 5 : r e t u r n F a l s e r e t u r n True Figure 4: Example prompt and corresponding model output for input-validity generation. 17

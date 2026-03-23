@@ -6,73 +6,64 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-22
-- 运行时间：2026-03-22 19:37:49 UTC
+- 最新运行日期：2026-03-23
+- 运行时间：2026-03-23 20:18:39 UTC
 - 运行状态：成功
-- 本次总论文数：17
+- 本次总论文数：14
 - 精读区：6
-- 速读区：11
+- 速读区：8
 
 ### 今日简报（AI）
-今日精读6篇论文，聚焦AI Agent测试与多模态浏览前沿动态。
-推荐关注AI Agent测试生成的实证研究，及多模态浏览代理的视觉搜索基准。
-建议了解AI如何自动化提升测试质量，并关注多模态浏览技术的最新进展。
-- 详情：[/202603/22/README](/202603/22/README)
+今日精读6篇力作，聚焦AI编程可靠性验证与经济学智能体审计前沿。
+VIBEPASS挑战AI编程的“氛围感”测试，可审计Agent则为经济学预测提供了新解法。
+建议关注AI编程实测表现，并尝试理解智能体在专业领域的决策逻辑。
+- 详情：[/202603/23/README](/202603/23/README)
 
 ### 精读区论文标签
-1. [Testing with AI Agents: An Empirical Study of Test Generation Frequency, Quality, and Coverage](/202603/22/2603.13724v1-testing-with-ai-agents-an-empirical-study-of-test-generation-frequency-quality-and-coverage)  
-   标签：评分：9.0/10、query:agent
-   evidence：基于智能体的编码工具生成测试的实证研究
-2. [VisBrowse-Bench: Benchmarking Visual-Native Search for Multimodal Browsing Agents](/202603/22/2603.16289v1-visbrowse-bench-benchmarking-visual-native-search-for-multimodal-browsing-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：多模态浏览搜索智能体基准
-3. [TDAD: Test-Driven Agentic Development - Reducing Code Regressions in AI Coding Agents via Graph-Based Impact Analysis](/202603/22/2603.17973v2-tdad-test-driven-agentic-development---reducing-code-regressions-in-ai-coding-agents-via-graph-based-impact-analysis)  
-   标签：评分：9.0/10、query:agent
-   evidence：减少代码回归的AI代码智能体工具
-4. [Memento-Skills: Let Agents Design Agents](/202603/22/2603.18743v1-memento-skills-let-agents-design-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：基于记忆强化学习的智能体设计框架
-5. [Agentic DAG-Orchestrated Planner Framework for Multi-Modal, Multi-Hop Question Answering in Hybrid Data Lakes](/202603/22/2603.14229v1-agentic-dag-orchestrated-planner-framework-for-multi-modal-multi-hop-question-answering-in-hybrid-data-lakes)  
+1. [VIBEPASS: Can Vibe Coders Really Pass the Vibe Check?](/202603/23/2603.15921v1-vibepass-can-vibe-coders-really-pass-the-vibe-check)  
    标签：评分：8.0/10、query:agent
-   evidence：用于多跳问答的智能体规划器框架
-6. [An Agentic Evaluation Framework for AI-Generated Scientific Code in PETSc](/202603/22/2603.15976v1-an-agentic-evaluation-framework-for-ai-generated-scientific-code-in-petsc)  
+   evidence：编程智能体故障检测与修复能力评估
+2. [An Auditable AI Agent Loop for Empirical Economics: A Case Study in Forecast Combination](/202603/23/2603.17381v3-an-auditable-ai-agent-loop-for-empirical-economics-a-case-study-in-forecast-combination)  
    标签：评分：8.0/10、query:agent
-   evidence：评估AI生成科学代码的智能体框架
+   evidence：将智能体循环架构适配于实证经济学的编程智能体
+3. [A Trace-Based Assurance Framework for Agentic AI Orchestration: Contracts, Testing, and Governance](/202603/23/2603.18096v1-a-trace-based-assurance-framework-for-agentic-ai-orchestration-contracts-testing-and-governance)  
+   标签：评分：8.0/10、query:agent
+   evidence：智能体AI编排系统的保障框架
+4. [Exploring the Agentic Frontier of Verilog Code Generation](/202603/23/2603.19347v1-exploring-the-agentic-frontier-of-verilog-code-generation)  
+   标签：评分：8.0/10、query:agent
+   evidence：Verilog代码生成的智能体LLM系统评估
+5. [HyEvo: Self-Evolving Hybrid Agentic Workflows for Efficient Reasoning](/202603/23/2603.19639v1-hyevo-self-evolving-hybrid-agentic-workflows-for-efficient-reasoning)  
+   标签：评分：8.0/10、query:agent
+   evidence：混合智能体系统的自动化工作流生成框架
+6. [Trojan's Whisper: Stealthy Manipulation of OpenClaw through Injected Bootstrapped Guidance](/202603/23/2603.19974v1-trojans-whisper-stealthy-manipulation-of-openclaw-through-injected-bootstrapped-guidance)  
+   标签：评分：8.0/10、query:agent
+   evidence：自主编码智能体平台的安全性分析
 
 ### 速读区论文标签
-1. [SWE-QA-Pro: A Representative Benchmark and Scalable Training Recipe for Repository-Level Code Understanding](/202603/22/2603.16124v1-swe-qa-pro-a-representative-benchmark-and-scalable-training-recipe-for-repository-level-code-understanding)  
-   标签：评分：8.0/10、query:agent
-   evidence：用于智能体仓库级代码理解的基准测试
-2. [VisBrowse-Bench: Benchmarking Visual-Native Search for Multimodal Browsing Agents](/202603/22/2603.16289v2-visbrowse-bench-benchmarking-visual-native-search-for-multimodal-browsing-agents)  
-   标签：评分：8.0/10、query:agent
-   evidence：多模态浏览智能体视觉搜索基准
-3. [IQuest-Coder-V1 Technical Report](/202603/22/2603.16733v1-iquest-coder-v1-technical-report)  
-   标签：评分：8.0/10、query:agent
-   evidence：集成智能体轨迹与推理的代码大模型
-4. [CODMAS: A Dialectic Multi-Agent Collaborative Framework for Structured RTL Optimization](/202603/22/2603.17204v1-codmas-a-dialectic-multi-agent-collaborative-framework-for-structured-rtl-optimization)  
-   标签：评分：8.0/10、query:agent
-   evidence：用于RTL代码优化的多智能体协作框架
-5. [Retrieve, Schedule, Reflect: LLM Agents for Chip QoR Optimization](/202603/22/2603.13767v1-retrieve-schedule-reflect-llm-agents-for-chip-qor-optimization)  
+1. [Intent Formalization: A Grand Challenge for Reliable Coding in the Age of AI Agents](/202603/23/2603.17150v1-intent-formalization-a-grand-challenge-for-reliable-coding-in-the-age-of-ai-agents)  
    标签：评分：7.0/10、query:agent
-   evidence：基于RAG搜索树的智能体LLM框架用于芯片优化
-6. [I'm Not Reading All of That: Understanding Software Engineers' Level of Cognitive Engagement with Agentic Coding Assistants](/202603/22/2603.14225v1-im-not-reading-all-of-that-understanding-software-engineers-level-of-cognitive-engagement-with-agentic-coding-assistants)  
+   evidence：AI代码智能体的意图形式化挑战
+2. [An Auditable AI Agent Loop for Empirical Economics: A Case Study in Forecast Combination](/202603/23/2603.17381v1-an-auditable-ai-agent-loop-for-empirical-economics-a-case-study-in-forecast-combination)  
    标签：评分：7.0/10、query:agent
-   evidence：关于智能体编码助手认知参与的研究
-7. [Interpretable Context Methodology: Folder Structure as Agentic Architecture](/202603/22/2603.16021v1-interpretable-context-methodology-folder-structure-as-agentic-architecture)  
+   evidence：面向实证经济学的可审计代码智能体循环
+3. [An Auditable AI Agent Loop for Empirical Economics: A Case Study in Forecast Combination](/202603/23/2603.17381v2-an-auditable-ai-agent-loop-for-empirical-economics-a-case-study-in-forecast-combination)  
    标签：评分：7.0/10、query:agent
-   evidence：使用文件系统结构的AI智能体编排方法
-8. [Interpretable Context Methodology: Folder Structure as Agentic Architecture](/202603/22/2603.16021v2-interpretable-context-methodology-folder-structure-as-agentic-architecture)  
+   evidence：用于实证规范搜索的AI代码智能体
+4. [VeriGrey: Greybox Agent Validation](/202603/23/2603.17639v1-verigrey-greybox-agent-validation)  
    标签：评分：7.0/10、query:agent
-   evidence：使用文件系统结构的智能体编排方法
-9. [AgentProcessBench: Diagnosing Step-Level Process Quality in Tool-Using Agents](/202603/22/2603.14465v1-agentprocessbench-diagnosing-step-level-process-quality-in-tool-using-agents)  
-   标签：评分：6.0/10、query:agent
-   evidence：评估工具使用智能体步骤级质量的基准
-10. [CLAG: Adaptive Memory Organization via Agent-Driven Clustering for Small Language Model Agents](/202603/22/2603.15421v1-clag-adaptive-memory-organization-via-agent-driven-clustering-for-small-language-model-agents)  
-   标签：评分：6.0/10、query:agent
-   evidence：面向SLM智能体的聚类式记忆框架
-11. [Auto Researching, not hyperparameter tuning: Convergence Analysis of 10,000 Experiments](/202603/22/2603.15916v1-auto-researching-not-hyperparameter-tuning-convergence-analysis-of-10000-experiments)  
-   标签：评分：6.0/10、query:agent
-   evidence：分析LLM智能体设计ML实验
+   evidence：使用工具调用序列的LLM智能体灰盒测试框架
+5. [Don't Vibe Code, Do Skele-Code: Interactive No-Code Notebooks for Subject Matter Experts to Build Lower-Cost Agentic Workflows](/202603/23/2603.18122v1-dont-vibe-code-do-skele-code-interactive-no-code-notebooks-for-subject-matter-experts-to-build-lower-cost-agentic-workflows)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于构建智能体工作流的自然语言界面框架
+6. [SODIUM: From Open Web Data to Queryable Databases](/202603/23/2603.18447v1-sodium-from-open-web-data-to-queryable-databases)  
+   标签：评分：7.0/10、query:agent
+   evidence：形式化网络探索搜索任务以构建可查询数据库
+7. [ProRL Agent: Rollout-as-a-Service for RL Training of Multi-Turn LLM Agents](/202603/23/2603.18815v1-prorl-agent-rollout-as-a-service-for-rl-training-of-multi-turn-llm-agents)  
+   标签：评分：7.0/10、query:agent
+   evidence：LLM智能体强化学习训练的可扩展基础设施框架
+8. [Helix: A Dual-Helix Co-Evolutionary Multi-Agent System for Prompt Optimization and Question Reformulation](/202603/23/2603.19732v1-helix-a-dual-helix-co-evolutionary-multi-agent-system-for-prompt-optimization-and-question-reformulation)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于提示优化的多智能体系统框架
 
 
 <div class="dpr-home-promo-card">

@@ -1,0 +1,896 @@
+Title: A Trace-Based Assurance Framework for Agentic AI Orchestration: Contracts, Testing, and Governance
+
+URL Source: https://arxiv.org/pdf/2603.18096v1
+
+Published Time: Fri, 20 Mar 2026 00:05:24 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# A Trace-Based Assurance Framework for Agentic AI Orchestration: Contracts, Testing, and Governance 
+
+Ciprian Paduraru 
+
+University of Bucharest 
+
+Romania ciprian.paduraru@unibuc.ro 
+
+Petru-Liviu Bouruc 
+
+University of Bucharest 
+
+Romania petru-liviu.bouruc@unibuc.ro 
+
+Alin Stefanescu 
+
+University of Bucharest & Institute for Logic and Data Science 
+
+Romania alin.stefanescu@unibuc.ro 
+
+Abstract —In Agentic AI, Large Language Models (LLMs) are increasingly used in the orchestration layer to coordinate multiple agents and to interact with external services, retrieval components, and shared memory. In this setting, failures are not limited to incorrect final outputs. They also arise from long-horizon interaction, stochastic decisions, and external side effects (such as API calls, database writes, and message sends). Common failures include non-termination, role drift, propagation of unsupported claims, and attacks via untrusted context or external channels. This paper presents an assurance framework for such Agentic AI systems. Executions are instrumented as Message-Action Traces (MAT) with explicit step and trace contracts. Contracts provide machine-checkable verdicts, localize the first violating step, and support deterministic replay. The framework includes stress testing, formulated as a budgeted counterexample search over bounded perturbations. It also supports structured fault injection at service, retrieval, and memory boundaries to assess containment under realistic operational faults and degraded conditions. Finally, governance is treated as a runtime compo-nent, enforcing per-agent capability limits and action mediation (allow , rewrite , block ) at the language-to-action boundary. To support comparative evaluations across stochastic seeds, models, and orchestration configurations, the paper defines trace-based metrics for task success, termination reliability, contract compliance, factuality indicators, containment rate, and gover-nance outcome distributions. More broadly, the framework is intended as a common abstraction to support testing and evalu-ation of multi-agent LLM systems, and to facilitate reproducible comparison across orchestration designs and configurations. 
+
+Index Terms —Multi-Agent Systems, Assurance, Testing, LLMs, Runtime Verification, Stress Testing 
+
+I. I NTRODUCTION 
+
+Modern enterprise workflows using an Agentic AI approach are increasingly mediated via LLM-orchestrated multi-agent systems . In these systems, an orchestration layer decomposes user intent into a plan, delegates subtasks to specialized agents, and executes actions through external services such as APIs, databases, and messaging systems. Production-focused reports highlight that evaluation, reliability, and debugging remain persistent bottlenecks once such systems interact with real services and untrusted inputs [1], [2]. In this paper, we focus on multi-agent LLM system :multiple LLM-driven agents that interact via messages and shared memory and may invoke external services (e.g., APIs, databases, and messaging). The coordinating component, termed as the orchestrator (orchestration layer), performs routing and role selection, manages shared memory/context, and mediates the translation from language-level decisions into concrete tool actions. 
+
+Motivating scenario. Consider a customer support triage as-sistant deployed in an enterprise helpdesk. It ingests an in-bound email (untrusted text), fetches customer history from an internal database, queries shipping status from a logistics API, drafts a reply, and updates internal tickets. In realistic operation, assurance must account for four recurring stressors:  
+
+> •
+
+Untrusted inputs: emails or retrieved snippets may in-clude indirect prompt injection attempts.  
+
+> •
+
+Integration faults: external services may time out, return partial responses, or serve stale cached data.  
+
+> •
+
+Policy constraints: privacy rules for personally identifi-able information (PII) and communication consent rules (e.g., opt-out lists).  
+
+> •
+
+Long-horizon coordination: handoffs between planner, verifier, and action roles may drift, loop, or deadlock across multi-step workflows. In this context, a test must evaluate not only the final answer but also the sequence of tool actions and side effects under stochastic decisions and imperfect services. This shifts the testing target from output-only oracles to trace-level proper-ties (termination, policy compliance, containment), monitored during execution. The framework proposed in this work integrates and adapts three directions that are often treated separately: (i) contract-based runtime monitoring over executions, grounded in run-time verification [3], [4]; (ii) robustness testing under realistic perturbations and boundary faults, consistent with chaos engi-neering and production-oriented agent evaluations [1], [5]; and (iii) governance controls at the language-to-action boundary, motivated by guidance and analyses on prompt injection, excessive agency, and tool-interface risk [6]–[8]. Figure 1 summarizes how these elements are organized into a single assurance workflow for multi-agent orchestration. Compared to observability-only tracing or standalone safety checks, the framework treats monitoring, stress testing, and governance as jointly testable through a shared trace-and-contract interface. The intent is not to prescribe a specific agent architecture, but to provide a testing-oriented abstraction that can be adopted across implementations to reason about failures, robustness, and governance consistently. The contributions are summarized below:  
+
+> arXiv:2603.18096v1 [cs.MA] 18 Mar 2026 •
+
+System model and failure taxonomy for multi-agent sys-tems. A lightweight model and taxonomy covering coor-dination failures (loops and deadlocks), error propagation across agents, role drift in long-horizon workflows, and failures introduced by external services and shared mem-ory.  
+
+> •
+
+Message-Action Traces (MAT) as a contract-carrying execution record. A trace representation that records each run as a sequence of typed steps (user/agent messages), tool calls, memory reads and writes, delegation, termina-tion), augmented with provenance and contract verdicts. The resulting record supports replay and localization of the first violating step, and serves as the common trace representation used across the pipeline in Fig. 1.  
+
+> •
+
+Stress testing as counterexample search under a budget. 
+
+A testing formulation that searches for small, realistic perturbation schedules and boundary-fault operators that trigger contract violations under an explicit cost budget. In this context, a contract [9] is a machine-checkable predicate over a step-level MAT record or over a trace (or prefix) that encodes an expected property (e.g., authoriza-tion, verification-before-action, progress, containment). The outcome is a replayable counterexample schedule together with the first violated contract and a localized trace region. This supports debugging, regression testing, and coverage-guided suite construction over contract IDs and interface/action signatures.  
+
+> •
+
+Governance mechanisms that constrain delegated author-ity and make outcomes measurable. A set of runtime controls including capability restriction (least privilege via per-agent capability sets) and action-time policy me-diation (allow, rewrite, block), with risk-aware routing and escalation to a verifier or human approval step when required by policy. Trace-derived metrics are defined to characterize governance behavior, including success and contract-failure rates, containment rate, and distributions over mediator outcomes. The paper focuses on the methodology, definitions, and met-rics required to instantiate an executable evaluation protocol; a full empirical study is ongoing but is not reported here. II. R ELATED WORK 
+
+Research on agentic AI, in particular, multi-agent LLM systems, has progressed quickly in building orchestration frameworks and evaluation tools. Less progress has been made on methods that can specify, monitor, and enforce properties of long-running multi-agent executions, especially when external services, retrieval, and shared memory are involved. 
+
+A. Frameworks and observability for agentic systems 
+
+AutoGen [10] supports multi-agent collaboration through structured conversation patterns. LangGraph [11] offers state-ful workflows with cycles, retries, and human checkpoints. For debugging and evaluation, LangSmith [12] records intermedi-ate steps and provides scoring and analysis tools. For retrieval-augmented generation, RAGAS [13] provides metrics such as faithfulness and context relevance. These systems make development and diagnosis easier, but they typically do not enforce properties such as termination, invariant preservation, or role stability under stochastic execution. 
+
+B. Benchmarks for capability, security, and misuse 
+
+AgentBench [14] and GAIA [15] evaluate task competence in interactive and assistant-style settings. They are useful for measuring what agents can do, but they are not designed to systematically test robustness under small perturbations or to expose multi-agent failure patterns such as delegation loops and error cascades. Security-focused benchmarks study indirect prompt injection in agent settings. BIPIA [16] targets indirect prompt injection for LLM applications. AgentDojo [17] provides realistic tasks with attack and defense variants. WASP [18] studies web agents under hijacking-style objec-tives. InjecAgent [19] evaluates prompt injection threats and defenses for agents integrated with external services. Misuse-oriented benchmarks extend evaluation beyond benign relia-bility. AgentHarm [20] measures harmful behavior in multi-step tasks. HarmBench [21] evaluates refusal and robustness to adversarial prompting. The study in [22] provides an empirical characterization of breakdowns in multi-agent LLM workflows, emphasizing recurrent patterns such as coordination and non-termination behaviors, verification and oversight gaps, role-level drift over long horizons, and error propagation across agents. Our failure taxonomy (cf. F1-F5 from Sec. III) is aligned with these observations but is structured to support monitored, trace-level evaluation: F1 captures coordination collapse and non-termination; F2 formalizes unsupported-claim propagation as a trace-conditioned phenomenon; and F3 captures role drift as boundary violations against role-specific constraints. In addition, our taxonomy makes two dimensions explicit that are not central in [22]: (a) interface-driven compromise and poisoning via external services, retrieval, or shared memory (F4), motivated by prompt-injection and excessive-agency analyses; and (b) misuse-oriented harmful task execution (F5), motivated by safety and misuse evaluations. This mapping positions [22] as an empirical basis for what fails, while our taxonomy specifies failure conditions in a form suitable for contracts, stress testing, and governance measurement. 
+
+C. Runtime constraints, monitoring, and interface risk 
+
+Contract-based testing has been studied in the context of web services [9], where contracts specify admissible input-output behavior and interaction protocols. We generalize this notion to agentic AI systems by specifying contracts amachine-checkable boolean predicate over an agentic execu-tion, defined on individual steps or finite trace prefixes (e.g., “tool calls with side effects must be preceded by a verification action within h steps”). Contracts allow temporal, cross-agent, and interface-level properties to be specified independently of model internals. NeMo Guardrails [23] provides programmable mechanisms to apply policy constraints, often as dialogue and safety con-L2: Stress testing 
+
+> (sampling input and perturbation)
+> L4: Governance Boundary
+> Policy Shield
+> (Enforcement)
+> Verdict
+> Step Contracts
+> Proposed
+> action
+> External Interfaces Reasoning Engine
+> Orchestrator
+> Agents
+> Proposed
+> action
+> Delegate
+> Observation
+> L3: Controlled faults injection
+> Inject
+> Allow/
+> Rewrite
+> Trace Violation
+> (Async)
+> Environment
+> L1: Message-Action Traces (MAT) Ledger & Verification (foundation layer )
+> MAT Ledger
+> (Transition Log)
+> Trace Contracts
+> BLOCK
+
+Fig. 1. Pipeline overview of the assurance framework. Colors indicate the four layers and their roles. The system under test (SUT, green) is the deployed 
+
+multi-agent LLM system : an orchestrator coordinating an agent pool, together with the runtime governance boundary L4 (blue). The diagram uses a centralized orchestrator for clarity; the same instrumentation and controls apply to decentralized variants (e.g., peer-to-peer agents) by treating the current decision maker as the acting role at step t. The operational environment (green cloud) is depicted only through tool, retrieval, and memory interfaces, since the framework evaluates end-to-end integration behavior and integration failures. L2 stress testing (orange) draws task instances x ∼ D and applies bounded perturbations 
+
+δ to inputs and context. During execution, the acting role proposes an action at; L4 mediates the proposed external action using step contracts Istep and a policy shield Π, yielding allow , rewrite (to a governed action ˜at), or block (red dashed feedback) to prevent unsafe side effects. L3 (red) injects controlled faults at the same external interfaces to exercise realistic integration disturbances. The resulting observation ot+1 (tool output, retrieved evidence, or error) closes the interaction loop. In parallel, L1 (yellow) records Message-Action Trace entries and evaluates trace contracts Itrace over prefixes, localizing the first violation and emitting a replay record for debugging and regression testing. 
+
+trols. Runtime verification offers a formal basis for monitoring executions against specifications [3], [4], motivating contract-based monitoring for complex workflows. External service in-terfaces introduce additional risk. The Model Context Protocol (MCP) specification [24] and its security best practices [7] discuss trust and safety concerns when connecting models to tools and data. Unit 42 [8] reports prompt injection-style attack vectors in MCP deployments. These results motivate capability limits and policy mediation at the point where an internal plan can trigger an external side effect. 
+
+Failure modes and their operationalization. Recent analy-ses and benchmarks collectively highlight recurrent failure patterns in agentic systems, including non-termination and coordination breakdowns, error amplification across steps, role confusion, injection and interface poisoning, and harmful task completion [6]–[8], [16]–[22]. Our taxonomy in Sec. III aligns these observations with trace-level conditions that are di-rectly monitorable: coordination and termination failures ( F1 ), unsupported-claim propagation ( F2 ), role drift and boundary violations ( F3 ), interface-driven injection ( F4 ), and misuse outcomes ( F5 ). The goal is not to re-categorize prior work, but to provide a compact set of monitored failure classes that can be exercised by stress testing and fault injection and measured under governance controls. 
+
+D. Gap 
+
+Most existing work focuses on either building agent systems or observing them after the fact. What is missing is a single assurance approach that combines: (i) traces enriched with contracts that can be checked at runtime, (ii) stress testing that searches for small, realistic perturbations that cause con-tract violations, (iii) fault injection across external services, retrieval, and shared memory, and (iv) governance that limits authority and routes high-impact actions through policy and, when needed, human approval. This paper proposes such a framework to narrow the existing gaps. III. S YSTEM MODEL AND FAILURE TAXONOMY FOR 
+
+AGENTIC SYSTEMS 
+
+We summarize prior reports of agentic failure patterns into five operational classes, each defined as a trace-level condition that can be monitored and stress-tested. 
+
+A. System model 
+
+An agentic system can be viewed as a stochastic transition system with an explicit external environment and a mutable shared state, coordinated via an orchestrator. The orchestrator routes between agents, manages shared memory and context, and mediates external tool actions. Let A = {1, . . . , m } be the set of agents.. At step t, the global state st ∈ S , Eq. (1), summarizes:  
+
+> •
+
+shared memory Mt,• per-agent local contexts Cit (role prompt, conversation, working notes),  
+
+> •
+
+orchestration control state Gt (for example the current node in an execution graph, retry counters, budgets),  
+
+> •
+
+external environment state Et (for example service ses-sions, database state, network conditions). 
+
+st = ( Mt, C 1 
+
+> t
+
+, . . . , C mt , G t, E t). (1) In practice, assurance instrumentation stores only a filtered projection of this state (for example IDs, hashes, and redacted parameters) that is sufficient for monitoring, which reduces retention of sensitive prompt and service content. An action at ∈ U denotes an externally meaningful step such as emitting a message, calling an external service with parameters, reading or writing memory, delegating to another agent, or terminating a run. Executing at yields an observation 
+
+ot+1 (service response, retrieved passages, error code) and a next state sampled from the environment dynamics: 
+
+st+1 ∼ P (· | st, a t), at ∼ πit 
+
+> θ
+
+(· | Cit 
+
+> t
+
+, M t),
+
+where it is the selected agent at step t and πiθ denotes the stochastic policy induced by an LLM under role instructions and prompt context. This view emphasizes that failures arise from non-deterministic, long-horizon interaction (sampling, external service nondeterminism, partial observability), rather than fixed control flow [1], [22]. One execution is represented as a finite trace: 
+
+τ = ( s0, a 0, o 1, s 1, . . . , s T ),
+
+where T is the configured horizon or termination time. Let 
+
+Term( τ ) = 1 if a terminal action occurs within T steps (successful completion, safe abort, or explicit failure return). Failures are violations of properties over steps or over the whole trace. Two cases are distinguished:  
+
+> •
+
+local step failures, where a single transition violates a constraint,  
+
+> •
+
+workflow failures, where termination, safety, or correct-ness properties are violated over the trace. This aligns with runtime verification, which instruments exe-cutions and monitors traces against specifications [3], [4]. 
+
+B. Failure taxonomy 
+
+Recent empirical work reports fine-grained multi-agent fail-ure modes that include specification and system design is-sues, inter-agent misalignment, and breakdowns in verification and termination [22]. These are compressed into operational classes that can be tested under the trace model above, and extended with security-focused classes emphasized by agent security benchmarks and guidance [17], [18], [25]. 
+
+F1: Coordination collapse and non-termination. Operational definition: the system fails to make progress and does not terminate within the configured horizon, due to deadlock, oscillation, or circular delegation. Termination and verification failures are a major category in multi-agent systems [22]. Common subtypes include circular delegation, deadlock on approvals, repeated replanning without execution, and collisions in shared memory. Orchestrators that support cycles and retries increase expressiveness, but also increase the need for termination and invariant checks [11]. In the framework, collapse is detected using a non-negative potential function Φ : S → R≥0 that encodes remaining work using observable orchestration signals possibly weighted (for exam-ple Φ( st) = # unresolved subtasks + # pending approvals +#active retries). Collapse is detected as a sufficient condition over a sliding window of length w when the potential does not decrease, and the system does not terminate: 
+
+∀ t ∈ [k, k + w] : Φ( st+1 ) ≥ Φ( st) ∧ ¬ Term( τ ). (2) 
+
+F2: Error amplification and unsupported-claim propagation. Operational definition: an upstream factual error is accepted as an assumption and subsequently drives downstream actions or final outputs. A local factual error can become a system-level failure when an upstream output is treated as authorita-tive by downstream agents or by the orchestrator [22]. Let the final response be decomposed into atomic claims {cj }
+
+(minimal verifiable propositions), extracted by a lightweight claim splitter (rule-based or model-assisted). Each claim is linked to provenance evidence {ej } recorded in the trace (retrieved passages, external service outputs, database row identifiers). Define support( cj , e j ) = 1 when the evidence provides sufficient justification for the claim under a chosen verifier (e.g., entailment checking, exact result matching, or a constrained LLM judge). Otherwise, support( cj , e j ) = 0 .The unsupported claim rate is: 
+
+Hrate = |{ j : support( cj , e j ) = 0 }| |{ j : cj }| .
+
+To capture propagation, mark whether an unsupported claim becomes an input assumption for later actions (e.g., for exam-ple service calls, approvals, or downstream instructions). Let 
+
+use( cj , τ ) = 1 if claim cj is referenced in subsequent steps. Then: 
+
+Hprop = |{ j : support( cj , e j ) = 0 ∧ use( cj , τ ) = 1 }| |{ j : cj }| .
+
+Propagation is most harmful when high-impact claims are not re-checked against external services or retrieval before driving actions [1]. 
+
+F2: Error amplification and unsupported-claim propagation. Operational definition: an upstream factual error is accepted as an assumption and subsequently drives downstream actions or final outputs. A local factual error can become a system-level failure when an upstream output is treated as authoritative by downstream agents or by the orchestrator [22]. Let the final response be decomposed into atomic claims {cj } (minimal verifiable propositions), extracted by a lightweight claim splitter (rule-based or model-assisted). Each claim is linked to provenance evidence {ej } recorded in the MAT trace (retrieved passages, external service outputs, database row identifiers). Define support( cj , e j ) = 1 when the evidence provides sufficient justification for the claim under a chosen verifier (e.g., entailment checking, exact result match-ing, or a constrained LLM judge), and support( cj , e j ) = 0 
+
+otherwise. Let C = {1, . . . , J } index the extracted claims. The unsupported claim rate is: 
+
+Hrate = 1
+
+J |{ j ∈ C : support( cj , e j ) = 0 }| .
+
+To capture propagation, mark whether an unsupported claim becomes an input assumption for later actions (e.g., service calls, approvals, or downstream instructions). Let use( cj , τ ) = 1 if claim cj is referenced in subsequent steps. Then: 
+
+Hprop = 1
+
+J |{ j ∈ C : support( cj , e j ) = 0 ∧ use( cj , τ ) = 1 }| .
+
+Propagation is most harmful when high-impact claims are not re-checked against external services or retrieval before driving actions [1]. 
+
+F3: Role drift and boundary violations. Operational definition: an agent deviates from its assigned role by taking unauthorized actions or failing role-specific obligations over the execution horizon. Role confusion arises when an agent deviates from its declared role or when role boundaries collapse [22]. Let each agent i have a role contract 
+
+Ri = (Ui, Oi) specifying allowed actions Ui ⊆ U and obligations Oi (e.g., cite sources, only propose external calls, or avoid external side effects). A role violation occurs when 
+
+at /∈ Uit . Obligation violations are captured by explicit contracts (Sec. IV, L1). A compact per-agent trace-level drift score is: 
+
+Di(τ ) = 1
+
+|T i|
+
+X
+
+> t∈T i
+
+I{at /∈ U i},
+
+where I{·} denotes the indicator function and Ti = {t :
+
+it = i}. Drift becomes more likely as context accumulates, instructions interfere, or injected content changes effective constraints. 
+
+F4: Tool/memory injection and interface poisoning. Operational definition: untrusted text entering via memory or external interfaces alters the agent policy so that it selects an unsafe action. Shared memory and external interfaces create direct attack surfaces. OWASP [6] identifies Prompt Injection 
+
+and highlights Excessive Agency . Benchmarks and analyses show that prompt injection against agents that call external services is practical and defenses remain incomplete [16]– [19]. MCP security guidance recommends treating service integration as a system design problem, with explicit limits and checks, rather than relying on prompt-based defenses alone [7]. Injection is modeled as a bounded adversarial perturbation 
+
+δ applied to untrusted content entering the system via memory or external interfaces (e.g., retrieved text, tool outputs, or stored notes). Let M ′ 
+
+> t
+
+= inject( Mt, δ ) denote a poisoned memory state (similarly for poisoned interface descriptions or metadata). The attack succeeds if the induced policy selects an unsafe action at ∈ U unsafe , where Uunsafe denotes actions that violate security or safety policy (e.g., exfiltrating sensitive data, unauthorized service use, or irreversible external actions). Excessive Agency is the condition where the system is granted enough permissions that plausible perturbations or ordinary service failures can lead to unsafe external actions. In the trace model, a simple operational signal is: 
+
+Pr( at ∈ U unsafe ) > ϵ, (3) for some small but meaningful ϵ within the allowed pertur-bation budget. Standardized integration protocols can increase exposure by making it easier to connect many services and endpoints [7], [8], [24]. 
+
+F5: Misuse and harmful task execution. Operational definition: the system completes a harmful multi-step objective or performs a harmful external action without triggering refusal, containment, or escalation. Misuse-oriented benchmarks motivate explicit evaluation along this dimension [20], [21]. Operationally, a misuse failure is recorded when the run reaches a harmful end state (or performs a harmful external action) while governance and contracts remain unsatisfied or bypassed. IV. F RAMEWORK : T RACE CONTRACTS , A DVERSARIAL 
+
+TESTING , AND GOVERNANCE 
+
+This section presents a trace-based assurance framework for multi-agent LLM systems that interact with external ser-vices, retrieval, and shared memory. Layers L1–L3 form the surrounding assurance harness used to observe and stress-test the SUT. The deployed System Under Test (SUT) comprises the orchestrator, agent pool, and the runtime governance mediator (L4), since these jointly determine which external actions are executed. Layers L1–L3 constitute the assurance harness that instruments execution, applies perturbations/faults at interfaces, and checks contracts; the external environment is exercised through tool/retrieval/memory interfaces. Figure 1 provides a pipeline view of how the assurance harness exercises and audits executions. A task instance x
+
+is executed under configuration κ (roles, topology, contracts, and governance settings) and stochastic seed z, while the harness applies a perturbation or fault schedule δ. The run emits Message-Action Trace records that are checked against step and trace contracts, producing localized violations and a replay record for debugging and regression testing. Layer definitions correspond to Sec. IV-B– IV-E. 
+
+Layered responsibilities. The responsibilities of the four layers are: (i) L1 instruments each run as Message-Action Trace records with provenance and step/trace contract verdicts, en-abling monitoring, localization of the first violating step, and replay. (ii) L2 performs stress testing by searching for low-cost perturbation schedules δ (and counterexamples δ⋆) that trigger contract violations under a budget, as in Eq. 5. (iii) 
+
+L3 injects structured boundary faults at external interfaces (services, retrieval, memory) using a fault schedule and checks the containment requirement (Eq. 10). (iv) L4 governs external actions at the language-to-action boundary by enforcing per-agent capability sets Ki and mediating tool calls via the policy shield Π (allow / rewrite / block), as in Eq. 11. A. Assurance as monitored traces under perturbations 
+
+Assurance for agentic systems can be formulated as trace-based verification under environment perturbations and tool faults. Let x denote a task instance and let τ (x, δ, Π) be the resulting execution trace when the system is exposed to a perturbation schedule δ and mediated by a governance policy 
+
+Π. Let Ks = |I step | and Kτ = |I trace | denote the number of step and trace contracts, respectively. The setting assumes:  
+
+> •
+
+a finite set of step contracts Istep = {Istep 1 , . . . , I step  
+
+> Ks
+
+}
+
+evaluated on Message-Action Traces records (local in-variants);  
+
+> •
+
+a finite set of trace contracts Itrace = {Itrace 1 , . . . , I trace  
+
+> Kτ
+
+}
+
+evaluated on full traces or prefixes (workflow/temporal properties);  
+
+> •
+
+a perturbation/operator space ∆ capturing prompt ambiguity, tool latency/failures, retrieval noise, and memory/tool-channel injection;  
+
+> •
+
+a governance policy Π that mediates tool execution (al-low/rewrite/block) and may impose capability constraints. Let T denote the set of finite MAT traces emitted by the instrumented system under a fixed horizon T . A run fails if any trace contract is violated (i.e., violation of a single hard safety or correctness constraint is sufficient): 
+
+Fail( τ, Itrace ) = I
+
+n
+
+∃k ∈ { 1, . . . , K τ } : Itrace  
+
+> k
+
+(τ ) = 0 
+
+o
+
+.
+
+(4) Assurance can be posed as counterexample search with an explicit perturbation cost: find the lowest-cost δ ∈ ∆ that causes at least one trace contract to fail, 
+
+δ⋆ ∈ arg min  
+
+> δ∈∆
+
+cost( δ) s.t. Fail  τ (x, δ, Π) , Itrace  = 1 .
+
+(5) When δ is a schedule δ0: T , the total cost is aggregated as 
+
+cost( δ) = 
+
+> T
+
+X
+
+> t=0
+
+cost( δt).
+
+B. L1: MAT as contract-enriched instrumentation 
+
+Standard logs capture events but rarely provide seman-tic accountability : which role made which claim, based on which evidence, under which constraints, and with what ver-ification outcome. Executions are instrumented as Message-Action Traces , where each step is a typed record enriched with (i) provenance and (ii) explicit, checkable contracts. This follows runtime verification (monitor executions against specifications), adapted to agentic workflows where language, tools, and memory jointly determine behavior [3], [4]. 
+
+MAT record and step semantics. At step t, a controller (cen-tralized or distributed) selects an acting agent it and produces an action at (message, tool call, memory update, delegation, or termination). The environment returns an observation ot+1 
+
+(tool result, retrieved context, user reply), and the system updates its internal state. The system emits: 
+
+rt = ⟨t, i t, role( it), ˆst, a t, o t+1 , prov t, Istep  
+
+> t
+
+, verdict t⟩.
+
+(6) Here, Istep  
+
+> t
+
+is the set of step contracts checked at time t
+
+(selected based on the action type). The field verdict t stores the result of these checks, e.g., whether the step passed and which contract IDs were violated. 
+
+Provenance for factuality and audit. Let prov t be the set of provenance links recorded at step t. Each link has the form 
+
+(src , rel , dst ), where src and dst are trace artifacts (IDs for claim, retrieved passage, tool call, tool result, or memory entry), and rel is the link type (e.g., supports , returns ,
+
+derived from ). 
+
+Contract interface and selection. Let R denote the space of MAT records of the form in Eq. (6). Step contracts are boolean predicates on the current record, Istep  
+
+> k
+
+: R → { 0, 1},while trace contracts are evaluated on the trace (or a prefix), 
+
+Itrace  
+
+> k
+
+: T → { 0, 1}. At each step, a relevant subset Istep  
+
+> t
+
+⊆Istep is evaluated, determined by the action type (e.g., tool calls trigger policy checks; memory writes trigger sanitization; final responses trigger factuality/PII checks). Trace contracts in Itrace are checked on prefixes τ0: t and on termination. At each step, a relevant subset Istep  
+
+> t
+
+⊆ I step is evaluated, determined by the action type (e.g., tool calls trigger policy checks; memory writes trigger sanitization; final responses trigger factuality and PII checks, such as detection of personal identifiers against policy-specific allowlists (permitted identi-fiers) or redaction rules (masking or removal when disclosure is not allowed). Trace contracts in Itrace are checked on prefixes τ0: t and on termination. 
+
+Verdicts and localization. Monitoring outcomes are recorded as: 
+
+verdict t = ⟨pass t, violations t, severity t, mitigation t⟩,
+
+(7) where violations t is the set of violated contract IDs, severity t
+
+is a discrete level (e.g., soft vs. hard), and mitigation t records the response (e.g., retry, replan, sandbox, escalate, block). This localizes failures to specific steps and agents and supports replay. 
+
+Example base contract templates. Contracts can be drawn from a small library of templates instantiated with system-specific parameters (e.g., tool sets, allowlists, and window sizes):  
+
+> •
+
+Verify before acting: any side-effecting external call must be preceded by a verifier step within the last h steps.  
+
+> •
+
+Principle of least privilege: an external service T may be invoked only if it is permitted by Kit and the call parameters satisfy predefined allowlists.  
+
+> •
+
+Progress: Φ must decrease at least once in any window of length w, unless the run terminates (Eq. 2). These templates aim to cover correctness (progress and ter-mination), safety (verification gates), and security (capability limits). 
+
+C. L2: Adversarial stress testing as constrained environment search 
+
+Capability benchmarks primarily measure average case task performance and contract compliance, rather than behavior under perturbations and faults. Assurance also needs coun-terexample discovery : finding small, plausible perturbations that cause contract violations under an explicit budget. Stress testing is therefore posed as a constrained search over the main input and interaction channels: prompt and context, external services, retrieval, and memory. In this paper, adversarial ,refers to worst-case perturbation selection within a bounded, plausible operator set ∆ under a cost budget B, not necessarily a malicious human attacker. 
+
+Perturbation schedules. A perturbation δ can be applied once (e.g., rewriting the user request) or applied over time as a schedule. Let δ0: T = ( δ0, . . . , δ T ) with δt ∈ ∆. The resulting execution trace is 
+
+τ = Exec( x, κ, z, δ 0: T ),
+
+where κ is the system configuration (roles, topology, services, governance) and z is the stochastic seed. We write δ0: T =(δ0, . . . , δ T ) for a perturbation schedule; when the per-step form is not needed, we denote the schedule simply by δ.
+
+Violation signal and plausibility cost. At step t, only the step contracts relevant to the current action are evaluated. Let 
+
+Istep  
+
+> t
+
+⊆ I step denote this selected subset (e.g., contracts for external service calls, memory writes, or the final response). Given the MAT record rt, define a weighted violation score: 
+
+Vio( rt, Istep  
+
+> t
+
+) = X 
+
+> Istep
+> k∈I step
+> t
+
+αk · IIstep  
+
+> k
+
+(rt) = 0 ,
+
+where αk ≥ 0 encodes contract severity. Each perturbation operator δt is assigned an explicit cost that reflects how intrusive it is: 
+
+cost( δt) = ctok |∆tokens | + chook nhooks + cmag η. (8) Here |∆tokens | counts token changes in prompts or other text inputs; nhooks counts activated boundary fault hooks (e.g., forcing a timeout or delay on a specific external call); and 
+
+η is a magnitude parameter for response perturbation (e.g., removing or changing fields in a structured payload). A fixed budget B bounds the total cost so perturbations remain small, realistic, and comparable across runs. 
+
+Search strategies and adaptive adversaries. The same per-turbation operator interface can be used with simple search methods (random fuzzing, beam search over operator se-quences, evolutionary search), reinforcement learning, or with an adaptive adversary. Adaptive search is useful for staged failures that unfold over multiple steps (e.g., first inducing role drift, then exploiting the resulting authority). At step t, the adversary observes a filtered summary ht = Obs( rt) (exposing only safe MAT fields such as action type, called service, and contract pass/fail outcomes) and selects the next operator δt. Figure 2 summarizes this inner-loop interaction. When the adversary is implemented as a learned policy (e.g., via reinforcement learning), the inner-loop perturbation selection can be formalized as an optimization problem. The adversary observes a filtered state summary ht = Obs( rt)
+
+and selects perturbation operators δt to maximize contract violations while remaining within a bounded cost budget. Equation (9) defines the objective optimized by such an adap-tive adversary. Here, Instab( x, κ, δ ) penalizes perturbation schedules that lead to unstable or non-reproducible executions (e.g., high variance across replays), encouraging replayable counterexamples. 
+
+max 
+
+> πadv
+> ψ
+
+E
+
+" TX
+
+> t=0
+
+γt
+
+Vio( rt, Istep  
+
+> t
+
+) − β cost( δt)
+
+#
+
+− λ E
+
+h
+
+Instab( x, κ, δ )
+
+i
+
+s.t. 
+
+> T
+
+X
+
+> t=0
+
+cost( δt) ≤ B. 
+
+(9) 
+
+Operator families. The operator space ∆ is a small library of bounded transformations:  
+
+> •
+
+Prompt and context: paraphrasing, adding ambiguity, reordering constraints, inserting distractors, or splicing untrusted text, bounded by token changes.  
+
+> •
+
+External services: delays and timeouts, dropped re-sponses, field corruption, metadata changes, or stale re-sults, bounded by frequency and magnitude.  
+
+> •
+
+Retrieval: shuffling top k, adding near duplicate distrac-tors, perturbing ranking scores, or truncating evidence, bounded by the number of modified items.  
+
+> •
+
+Memory: inserting untrusted notes, reordering items, forc-ing truncation, or simulating write collisions, bounded by the number and size of writes. 
+
+From failures to reproducible test-cases. For each stress test-ing experiment (one executed search on a task and system configuration), the procedure returns a replayable perturbation schedule δ⋆ 
+
+> 0: T
+
+and the violated contracts with the responsible steps (t, i t) identified from MAT. In addition, a replay record is stored, including the seed, tool stubs or cached tool outputs, retrieved artifacts, and the injected fault schedule. This allows deterministic reproduction in continuous integration and sup-ports regression tests after changes to prompts, policies, or services. The replay artifact supports regression testing after changes to κ, including updates to the agent policy πθ and adjustments to governance policy Π (Figure 2, green path). 
+
+D. L3: Structured fault injection across external services, retrieval, and memory 
+
+Adversarial perturbations are only one source of failures. Production assurance also requires robustness to common in-tegration faults such as timeouts, partial outages, stale caches, malformed payloads, and inconsistent shared memory. A chaos engineering [5] approach is used to test these conditions by in-jecting controlled faults at system boundaries. During the run, MAT contracts check a containment property. Containment requires that the fault is detected, an appropriate mitigation is executed, and the final user-facing output still satisfies the required contracts. 2. Adversary (Search)                                
+
+> 3. Execution & Monitor
+> Violation
+> 3. Result & Eval 1. Setup
+> 2. Adversarial loop
+> Score
+> Config & Workload Fig. 2. Adversarial counterexample search as an inner–outer assurance loop. (1) Setup: fix a system configuration κ(roles, tools, contracts, governance) and sample tasks x∼ D with stochastic seed z.(2) Inner loop (search): an adversary selects bounded perturbations δ(subject to cost( δ)≤B) and injects them into the execution; the system produces a trace τ= Exec( x, κ, z, δ ), which is monitored for contract violations (step/trace contracts Istep ,Itrace ) and auxiliary signals such as progress Φand unsupported-claim rate Hrate . The resulting score guides the next perturbation choice. (3) Outer loop (engineering feedback): when a violation is found (red arrow), the framework localizes the first failing step tand stores a replay record (e.g., (z, δ ⋆)and required stubs), enabling configuration revision and re-testing (green dashed path), including updates to agent parameters πθand/or governance policy Π.
+
+Fault operators and injection points. Faults are injected at three boundaries: service adapters, retrieval, and shared mem-ory. The fault library includes timeouts and delays, dropped or partial responses, payload corruption, schema mismatches, stale cache returns, retrieval shuffles, and memory injection, reordering, or collisions. Parameters such as ℓ, η, and ∆t
+
+bound fault severity. 
+
+Containment contract. Let Fault t indicate that a fault is in-jected or observed at step t, Detect t that the fault is recognized and recorded in MAT, and Mitigate t that a corrective action is taken (retry and backoff, alternate service, replan, clarification, or escalation). A minimal containment requirement is: 
+
+∀ t : Fault t ⇒ ∃ t′ ∈ [t, t + w] Detect t′
+
+∧ ∃ t′′ ∈ [t′, t ′ + w′] Mitigate t′′ . (10) In addition, the final response must satisfy all relevant con-tracts, including all Itrace  
+
+> k
+
+∈ I trace and any end of run Istep 
+
+> k
+
+checks that apply to the final response. If Eq. 10 fails, MAT localizes the boundary where the fault entered and the first step where it led to a trace-level violation, enabling replay and regression testing (under recorded seeds and stubs) using the recorded seed and fault schedule. 
+
+E. L4: Governing external actions and service calls 
+
+Even when a system performs well on routine tasks, dele-gated tool access can turn small reasoning errors or injected instructions into real-world harm. Governance is therefore treated as a runtime layer that mediates external actions via least privilege, policy enforcement, and selective escalation for high-impact effects. 
+
+Capability boundaries (least privilege). Each agent Ai (for 
+
+i ∈ A) is assigned a capability set Ki (allowed services, endpoints, parameter ranges, and rate limits). Let cap( at)
+
+denote the capabilities required by action at. Action at is authorized for the acting agent it iff: 
+
+Allow( at, i t) = 1 ⇐⇒ cap( at) ⊆ K it .
+
+This limits the impact of prompt injection and behavioral drift by construction. 
+
+Policy shield (allow / rewrite / block). All proposed actions pass through a policy mediator Π, which produces a governed outcome given the proposed action at and the current state estimate ˆst:
+
+Π( at, ˆst) ∈ { allow (at), rewrite (˜ at), block }. (11) Rewriting applies bounded corrections (e.g., removing sensi-tive content, clamping parameters to safe ranges, or converting a high-impact action into an approval request). Approval can be provided by a human reviewer (human-in-the-loop, HITL) or by a designated verifier component, depending on deployment policy. 
+
+Risk-aware routing and sandboxing (trust as a heuristic). 
+
+A per-agent trust score Ti(t) ∈ [0 , 1] summarizes recent contract outcomes and policy events. Trust is not a secu-rity guarantee; it is a practical signal used for routing and sandboxing, with decay so older “good” behavior does not dominate. When Ti(t) falls below a threshold, governance can: (i) shrink the capability set Ki, (ii) route the subtask to a verifier agent, or (iii) apply stricter mediation for high-impact actions. Selective human escalation for high-impact actions. For pre-labeled high-impact actions (e.g., send_email ,
+
+> payment
+
+, delete , grant_access ), policy may require HITL approval. Operationally, this requirement is enforced by the policy mediator Π via rewrite (convert the action into an explicit approval request) or block (prevent execution until approval), as defined in Eq. (11). V. E VALUATION AND METRICS 
+
+This section proposes an evaluation methodology and a set of metrics for assessing multi-agent LLM systems and governance variants. The methodology treats evaluation as contract-monitored execution traces, so that utility, robustness to perturbations, fault containment, and governance behavior are comparable under a common trace representation. A full empirical study is left to ongoing and future work; the protocol and estimators below are specified in a form intended to be instantiated in a later implementation. 
+
+A. Evaluation object: tasks, configurations, and traces 
+
+Let x ∼ D denote a task instance sampled from a workload distribution. Let κ denote a system configuration (agent topol-ogy, role prompts, tool adapters, contract set, and governance policy). Let z denote a stochastic seed (model sampling, tie breaks, and any randomized tool stubs). Let δ denote a perturbation and fault schedule drawn from an operator family 
+
+∆. A single run produces an execution trace: 
+
+τ = Exec( x, κ, z, δ ).
+
+A run is a contract failure if at least one trace contract is violated, using Eq. (4). A run is a task failure if the task objective is not met, even if no contract is violated. Both notions are reported because they reflect different deployment concerns. Contract failure is safety and governance oriented: it indicates that at least one monitored constraint (e.g., verifi-cation gates, least privilege, containment requirements, refusal rules) has been violated, even if the task output appears useful. Task failure is end-to-end utility oriented: it indicates that the intended outcome was not achieved (wrong, incomplete, or unusable), even if monitored constraints were satisfied. To estimate expectations, a finite workload set D =
+
+{x1, . . . , x N } is fixed and each task is run with S seeds 
+
+z1, . . . , z S , yielding N × S runs per (κ, δ ) condition. Rate metrics that reduce to a binomial proportion (e.g., success, contract failure, containment, non-termination, refusal or block rates) are accompanied by Wilson-score confidence intervals or Clopper–Pearson exact intervals. For derived metrics that are not simple proportions (e.g., ratios such as tokens per successful run, or robustness summaries such as area under 
+
+R(B)), percentile bootstrap intervals are computed by resam-pling runs and recomputing the metric. 
+
+B. Protocol and design choices 
+
+Industry guidance has emphasized the practical importance of well-scoped task suites and systematic failure analysis when evaluating agentic systems 1. The protocol specified here complements these recommendations with contract-monitored traces that localize failures to concrete execution steps and interfaces. Workloads. An enterprise-oriented workload suite 
+
+D is assumed to cover common orchestration patterns and risk cases. A practical instantiation partitions tasks into categories and uses a fixed number of tasks per category, so that aggregate results are not dominated by a single class:  
+
+> •
+
+Tool use tasks: query an internal database, retrieve doc-uments, summarize, and propose an action.  
+
+> •
+
+Multi-step planning tasks: delegation across roles, ap-proval gates, retries, and coordination across agents.  
+
+> •
+
+Policy constrained tasks: PII handling, consent lists, and compliance checks enforced at action time.  
+
+> 1https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+> •
+
+Misuse oriented tasks: malicious or policy violating re-quests that should trigger refusal or containment. Each task includes at least one untrusted input channel (e.g., email text, a retrieved snippet, or a document excerpt) and at least one tool boundary where integration failures are realistic (e.g., timeouts, partial results, stale cache returns, or schema mismatch). This supports direct measurement of injection robustness, fault containment, and governance behavior. Existing agent evaluation suites are used to seed task specifications and prompt templates (e.g., AgentBench [14], GAIA [15], AgentDojo [17], HarmBench [21], AgentHarm [20]). These suites provide realistic task narratives and failure oriented scenarios, but they typically assume their own tool ab-stractions, action schemas, and safety rules. For trace contract evaluation, each seeded task is re-instantiated for the target de-ployment by adapting (a) the tool layer (swap benchmark tools for the deployed adapters and endpoints), (b) the action inter-face (map benchmark actions onto the system action types: messages, tool calls, memory reads and writes, delegation, termination), and (c) the policy layer (align PII, consent, and capability constraints with the governance policy). In addition, the task is paired with a perturbation and fault matrix applied at the same tool and memory boundaries that are monitored by contracts. This instantiation procedure provides a practical bridge from existing task suites to contract-monitored, tool grounded evaluations of agent interactions. 
+
+Perturbation and fault matrix. For each task instance x,evaluation covers three operating conditions:  
+
+> •
+
+Nominal runs ( δ = ∅): baseline behavior under the unmodified input and normal tool operation. These runs measure utility and contract compliance without injected disturbances.  
+
+> •
+
+Structured fault injection ( δ ∈ ∆fault ): controlled bound-ary faults applied to tools, retrieval, or memory. These runs measure robustness to integration issues such as timeouts, partial responses, stale cache returns, and schema mismatches.  
+
+> •
+
+Adversarial schedules ( δ chosen by search under a cost budget): perturbations selected to trigger contract vio-lations while remaining small and realistic. These runs measure worst-case behavior under bounded, plausible disturbances. This design reflects the observation that production reliability depends on behavior under imperfect conditions, not only under nominal inputs [1], [5]. 
+
+Governance variants and ablations. Results are compared across governance and instrumentation variants. A minimal set includes:  
+
+> •
+
+No governance. Tool actions are executed directly, with-out policy mediation.  
+
+> •
+
+Policy shield. Each proposed tool action is mediated at execution time (allow / rewrite / block), as in Eq. 11.  
+
+> •
+
+Shield + capability constraints. Least privilege is en-forced via per-agent capability sets Ki, which restrict the services, endpoints, and parameter ranges that each agent may invoke.  
+
+> •
+
+Shield + routing heuristics. Risk-aware routing and sand-boxing are enabled; when recent contract outcomes in-dicate elevated risk, actions are routed through stricter mediation or forwarded to a verifier or human approval step. These variants target risks emphasized by OWASP and related guidance, including prompt injection and excessive agency [6]–[8]. 
+
+Repeated runs and seed control. Each task is run with mul-tiple seeds. This captures stochastic variability from model sampling and tool or retrieval non-determinism. Single-run metrics are reported alongside multi-run robustness metrics (e.g., Success@k). For failure analysis, an execution record for deterministic reproduction is stored, including seeds, tool stubs, and injected fault schedules; this enables later regression testing against the same recorded conditions. 
+
+Uncertainty quantification. For binomial proportions (success rates, violation rates, containment rates), Wilson-score confi-dence intervals or Clopper–Pearson exact intervals are reported [26]. For non-linear aggregates (e.g., robustness curve area, tokens per successful run), bootstrap confidence intervals are reported [27]. Per-category results (means and intervals) are also reported to avoid mixing heterogeneous task types. 
+
+C. Primary metrics 
+
+Metrics are grouped by evaluation goal. All metrics are computed from MAT traces and monitored contracts. For estimation, fix a finite workload set D = {x1, . . . , x N } and S
+
+seeds per task, z1, . . . , z S (so there are N ×S total runs). For a fixed configuration κ and operating condition δ, run (xi, z s)
+
+produces a trace τi,s = Exec( xi, κ, z s, δ ) and an outcome indicator Y (xi, z s, δ ) ∈ { 0, 1}.
+
+1) End-to-end utility and reliability: a) Task success: Task success measures whether the task objective is satisfied for a given run. The estimated success rate under configuration κ and condition δ is: 
+
+\Success( κ, δ ) = 1
+
+N S 
+
+> N
+
+X
+
+> i=1
+> S
+
+X
+
+> s=1
+
+Y (xi, z s, δ ).
+
+b) Success@k: Because the system is stochastic, a ro-bustness metric analogous to pass@k is defined and is reported when multi-run evaluation is included [28]. A task is counted as solved if any of k independent runs succeeds: 
+
+\Success@k( κ, δ ) = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+I
+
+
+
+max  
+
+> j∈{ 1,...,k }
+
+Y (xi, z j , δ ) = 1 
+
+
+
+.
+
+This metric is reported for nominal runs and, when robustness is evaluated, for selected perturbation budgets. 
+
+c) Termination reliability: Non-termination and coordi-nation collapse are measured using Term( τ ) and the progress contract (Eq. 2). The estimated non-termination rate is: 
+
+[NTR = 1
+
+N S 
+
+> N
+
+X
+
+> i=1
+> S
+
+X
+
+> s=1
+
+I{¬ Term( τi,s )}.
+
+To distinguish early failures from long-horizon collapse, dis-tributions of steps-to-termination and steps-to-first-failure can be included. 
+
+2) Contract compliance and failure localization: a) Trace contract violation rate: Trace-level assurance is summarized by the fraction of runs that violate at least one trace contract (Eq. 4): 
+
+dFail = 1
+
+N S 
+
+> N
+
+X
+
+> i=1
+> S
+
+X
+
+> s=1
+
+Fail( τi,s , Itrace ).
+
+b) Per-contract violation profile: Let VioID( τ ) denote the set of violated contract IDs recorded in MAT verdicts. For each contract k, the estimated violation rate is: 
+
+bpk = 1
+
+N S 
+
+> N
+
+X
+
+> i=1
+> S
+
+X
+
+> s=1
+
+I{k ∈ VioID( τi,s )}.
+
+A ranked list of contracts by bpk is reported. Hard and soft violations are separated using the severity field in Eq. (7). 
+
+c) First violation step and responsible role: For each failing run, let t⋆ be the first step where any monitored contract is violated. The distributions of t⋆ and the associated agent identity it⋆ are reported. This indicates whether failures tend to arise early (planning and delegation) or late (tool actions, policy mediation, or escalation). 
+
+3) Quality and factuality: a) Unsupported claim rate and propagation: The defi-nitions from failure class F2 (Section III) are reused. Given claims {cj } extracted from the final response and provenance evidence {ej } recorded in MAT, Hrate and Hprop are com-puted per run and then averaged across runs: 
+
+bHrate = 1
+
+N S 
+
+X
+
+> i,s
+
+Hrate (τi,s ), bHprop = 1
+
+N S 
+
+X
+
+> i,s
+
+Hprop (τi,s ).
+
+When gold reference answers exist, support can be checked by exact match or entailment tests. When gold is unavailable, a constrained judge may be used; in that case, judge calibration and judge variance are reported [29]. 
+
+b) Retrieval-grounded metrics: For configurations that include a retrieval component (i.e., the system consults an ex-ternal corpus and conditions generation on retrieved passages), reference-free retrieval quality metrics such as faithfulness and context relevance are reported using established tooling [13]. These metrics are treated as secondary signals, mainly to interpret changes in unsupported-claim rates under retrieval noise. 
+
+4) Fault robustness and containment: a) Containment rate: For structured fault injection runs, the containment rate (Sec. IV, Eq. 10) reports how often injected faults are detected and mitigated within the required windows and do not lead to trace-level failures in the final output: 
+
+dCR = #{faults that satisfy Eq. (10) and final contracts }
+
+#{faults injected } .
+
+A breakdown by fault type can also be included (timeout, par-tial response, stale cache, corrupt payload, memory collision). b) Residual harm under faults: Containment can fail by delayed detection, ineffective mitigation, or downstream policy violations. An additional safety signal is therefore reported: whether any policy-relevant contract is violated in the final response after a fault. This complements dCR by separating non-critical quality loss from safety-critical failure. 
+
+5) Safety, governance, and misuse resistance: a) Policy mediator outcomes: The governance layer produces allow, rewrite, or block outcomes (Eq. 11). Their occurrence rates over tool actions are reported: 
+
+bpallow , bprewrite , bpblock .
+
+Rates are also reported conditioned on action risk level (low-impact vs. high-impact) and input category (non-malicious vs. misuse-oriented). 
+
+b) Blocked high-impact action rate: For pre-labeled high-impact actions, the fraction that are blocked or routed to approval is reported. This provides a measurable signal of excessive agency at the action boundary. 
+
+c) Misuse success and refusal: For misuse-oriented tasks, three outcome rates are reported:  
+
+> •
+
+refusal or safe abort,  
+
+> •
+
+harmful completion,  
+
+> •
+
+partial completion with containment (side effects blocked). These outcomes are defined using task labels and policy contracts [20], [21]. 
+
+6) Efficiency and operational cost: a) Token and tool cost per successful task: Tokens per successful run are reported as: 
+
+bTeff =
+
+P 
+
+> i,s
+
+tokens (τi,s )#{(i, s ) : Y (xi, z s, δ ) = 1 } .
+
+Tool-call counts and latency summaries are reported sepa-rately. Efficiency is not treated as a primary objective, but is included to contextualize overhead introduced by governance and verification [1]. 
+
+D. Robustness, MTBF, and maintainability 
+
+Beyond nominal performance, evaluation may also summa-rize robustness under bounded perturbations, stability under continuous operation, and regressions after system changes. 
+
+a) Robustness under perturbation budgets: Robustness is defined as a function of a perturbation budget. Let B be a maximum budget on perturbation cost (Sec. IV). Define the robustness curve as the expected task success when the perturbation schedule is chosen within budget B:
+
+R(B) = 1
+
+N S 
+
+> N
+
+X
+
+> i=1
+> S
+
+X
+
+> s=1
+
+Y xi, z s, δ ⋆(B),
+
+where δ⋆(B) denotes a perturbation schedule selected under the budget constraint cost( δ) ≤ B (e.g., by sampling schedules from ∆ subject to the cost budget, or by an adaptive search procedure). The curve R(B) may be reported for a small set of budget values. A compact summary may also be reported, such as the area under R(B) over a fixed budget range, together with the success rate at the largest tested budget. Results may be reported per workload category to avoid masking brittle behavior on risk-heavy tasks. 
+
+b) Mean time between failures (MTBF): MTBF is most meaningful when the system processes a stream of tasks or operates continuously. An episode is defined as a sequence of tasks processed under the same configuration, with state carried across tasks as appropriate (e.g., persistent memory, caches, and trust scores). Let Fr be the number of MAT steps until the first trace-contract failure in episode r, or until the episode ends. The estimator is: 
+
+\MTBF = 1
+
+R
+
+> R
+
+X
+
+> r=1
+
+Fr .
+
+MTBF may be reported in steps and in wall-clock time when latency measurements are available. 
+
+c) Regression and maintainability: Prompt, tool, and pol-icy changes are frequent in deployed systems. This motivates regression testing using stored execution artifacts (e.g., seeds and injected fault schedules) so that failures can be reproduced after changes. Let Pass( x, κ ) = 1 denote that task x completes successfully and satisfies all required contracts under con-figuration κ under nominal conditions and, optionally, under a fixed perturbation set. Given a regression suite Dreg and configurations κ (old) and κ′ (new), define the regression rate as: 
+
+bRreg = #{x ∈ D reg : Pass( x, κ ) = 1 ∧ Pass( x, κ ′) = 0 }
+
+#{x ∈ D reg : Pass( x, κ ) = 1 } .
+
+Regressions are reported separately for task success, contract compliance, and governance outcomes (allow vs. rewrite vs. block changes), since these capture different operational risks. 
+
+d) Coverage units and regression-suite selection: The replay artifacts produced by contract violations can be treated as regression test cases. Unlike code coverage, the frame-work supports contract- and interface-oriented coverage. Each stored replay is indexed by a failure signature derived from MAT, including (i) the first violated contract ID and sever-ity, (ii) the triggering action type (e.g., tool call, memory write, delegation, final response), (iii) the affected interface class (service, retrieval, memory), (iv) the action risk label (high-impact vs. low-impact), and (v) the perturbation or fault operator family. A compact regression suite can then be obtained by selecting a minimal subset of replays that covers all observed high-severity contracts (and representative signatures per interface and action type), together with a small set of nominal passing tasks per workload category to detect quality regressions. Formally, suite selection can be posed as a set-cover problem over these coverage units; however, the framework is independent of the particular solver used. 
+
+E. Recommended reporting format 
+
+A consistent reporting structure improves interpretability and makes comparisons across governance variants repro-ducible. The following artifacts are typically sufficient. Nominal performance table. Recommended reporting under nominal conditions (δ = ∅) includes, for each gover-nance variant: end-to-end task success (and Success@k when stochasticity is material), non-termination or coordination-collapse rate, and basic efficiency signals (steps, tool calls, and tokens per successful run). For mixed task suites, per-category results are recommended to avoid masking failures on harder categories. 
+
+Fault-injection outcomes table. Report results under structured fault injection ( δ ∈ ∆fault ) in a separate table. Summarize 
+
+containment in simple rate form: how often an injected fault is: (a) detected within the next w steps, and then (b) followed by a mitigation within the next w′ steps. It may also be useful to report whether the final response satisfies the relevant trace contracts after mitigation. For systems with action mediation, include the distribution of policy outcomes (allow, rewrite, block) to distinguish recovery from conservative blocking. 
+
+Robustness curves. Plot robustness curves R(B) as a function of perturbation budget B for at least two workload categories. Where applicable, include both random perturbations and adversarial schedules under the same budget. Optionally add a scalar summary such as the area under the robustness curve over a fixed budget range. 
+
+Contract violation profile and examples. A compact contract violation profile may be included as a ranked list of the most frequently violated contracts. Alongside frequency, report a lo-calization statistic such as the most common first-violation step index or the dominant action type at first violation. Optionally add a small number of short, reproducible counterexamples. Each example should identify the triggering perturbation or injected fault, the first violated contract, and the localized MAT step window around the violation. VI. C ONCLUSION 
+
+This paper addressed assurance for agentic systems in which one or more orchestrators coordinate multiple agents that interact with external services, retrieval components, and shared memory. In this setting, failures are not limited to incorrect final responses; they also include non-termination, coordination breakdowns, error propagation across agents, role drift, and unsafe interface-driven actions. We presented a trace-based assurance framework that or-ganizes evaluation around contract-monitored executions. The framework (i) instruments runs as Message-Action Traces with step- and trace-level contracts, enabling localization of the first violating step and replay; (ii) formulates stress testing as budgeted counterexample search over bounded perturbations; (iii) supports structured fault injection at service, retrieval, and memory interfaces to test containment under realistic inte-gration disturbances; and (iv) treats governance as a runtime component that mediates external actions through capability restrictions and allow/rewrite/block decisions at the language-to-action boundary. We also defined trace-derived metrics that support comparison across stochastic seeds, models, and orchestration configurations. 
+
+Limitations and next steps. The current contribution focuses on methodology, definitions, and evaluation estimators rather than an empirical demonstration. The next step is to implement the instrumentation, contract library, perturbation and fault operators, and governance mechanisms in a prototype, and to execute a systematic empirical study across representative workloads and orchestration variants. This study will quantify utility, robustness, containment, and governance behavior, and will assess reproducibility via replay artifacts and regression testing. Future work will also study coverage criteria and selection strategies for maintaining small but effective regression suites, including contract coverage, boundary/interface coverage, and risk-conditioned coverage. Another direction is integrating the protocol into the software development lifecycle as evaluation-driven development: changes to configuration κ (prompts, tool adapters, allowlists), governance policy Π, or agent parameters 
+
+πθ would be accepted only if a fixed smoke suite and a replay-based regression suite preserve contract compliance, containment, and utility within predefined statistical tolerances across seeds. ACKNOWLEDGMENTS 
+
+This work was supported by the project “Romanian Hub for Artificial Intelligence (HRIA)”, funded under the Smart Growth, Digitization and Financial Instruments Programme 2021–2027, MySMIS no. 351416. We also thank Adobe Romania for funding a PhD scholarship on the topic and for fruitful discussions and feedback that helped shape this work. REFERENCES [1] M. Z. Pan et al. , “Measuring agents in production,” arXiv, 2025. [Online]. Available: https://arxiv.org/abs/2512.04123 [2] World Economic Forum and Capgemini, “Ai agents in action: Founda-tions for evaluation and governance,” White Paper, Nov. 2025, accessed: 2025-12-17. [Online]. Available: https://www.weforum.org/publications/ ai-agents-in-action-foundations-for-evaluation-and-governance/ [3] C. Sanchez et al. , “A survey of challenges for runtime verification from advanced application domains,” Formal Methods in System Design , 2018, preprint: arXiv:1811.06740. [Online]. Available: https: //arxiv.org/abs/1811.06740 [4] A. Bauer, M. Leucker, and C. Schallhart, “Runtime verification for LTL and TLTL,” ACM Transactions on Software Engineering and Methodology , vol. 20, no. 4, pp. 14:1–14:64, 2011. [5] A. Basiri et al. , “Chaos engineering,” IEEE Software , vol. 33, no. 3, pp. 35–41, 2016, also available as arXiv:1702.05843. [Online]. Available: https://arxiv.org/abs/1702.05843 [6] OWASP Foundation, “Owasp top 10 for large lan-guage model applications,” OWASP Project Page, 2025, accessed: 2025-12-17. [Online]. Available: https://owasp.org/ www-project-top-10-for-large-language-model-applications/ [7] Model Context Protocol (MCP), “Security best practices (draft),” Online documentation, 2025, accessed: 2025-12-17. [Online]. Available: https://modelcontextprotocol.io/specification/draft/ basic/security best practices [8] Palo Alto Networks Unit 42, “New prompt injection attack vectors through MCP sampling,” Blog post, Dec. 2025, accessed: 2025-12-17. [Online]. Available: https://unit42.paloaltonetworks.com/ model-context-protocol-attack-vectors/ [9] R. Heckel and M. Lohmann, “Towards contract-based testing of web services,” Electronic Notes in Theoretical Computer Science , vol. 116, pp. 145–156, 2005, tACoS. [10] Q. Wu et al. , “AutoGen: Enabling next-gen LLM applications via multi-agent conversation framework,” OpenReview, 2023, accessed: 2025-12-17. [Online]. Available: https://openreview.net/forum?id=BAakY1hNKS [11] LangChain, “LangGraph documentation (overview),” Online documentation, 2025, accessed: 2025-12-17. [Online]. Available: https://docs.langchain.com/oss/python/langgraph/overview [12] ——, “LangSmith evaluation documentation,” Online documentation, 2025, accessed: 2025-12-17. [Online]. Available: https://docs.langchain. com/langsmith/evaluation [13] S. Es et al. , “RAGAS: Automated evaluation of retrieval augmented generation,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2309. 15217 [14] X. Liu et al. , “Agentbench: Evaluating LLMs as agents,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2308.03688 [15] G. Mialon et al. , “GAIA: A benchmark for general AI assistants,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2311.12983 [16] J. Yi et al. , “Benchmarking and defending against indirect prompt injection attacks on large language models,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2312.14197 [17] E. Debenedetti et al. , “Agentdojo: A dynamic environment to evaluate attacks and defenses for LLM agents,” arXiv, 2024. [Online]. Available: https://arxiv.org/abs/2406.13352 [18] I. Evtimov et al. , “WASP: Benchmarking web agent security against prompt injection attacks,” arXiv, 2025. [Online]. Available: https://arxiv.org/abs/2504.18575 [19] Q. Zhan et al. , “Injecagent: Benchmarking indirect prompt injections in tool-integrated large language model agents,” arXiv (Findings of ACL 2024), 2024. [Online]. Available: https://arxiv.org/abs/2403.02691 [20] M. Andriushchenko et al. , “Agentharm: A benchmark for measuring harmfulness of LLM agents,” arXiv, 2024. [Online]. Available: https://arxiv.org/abs/2410.09024 [21] M. Mazeika et al. , “Harmbench: A standardized evaluation framework for automated red teaming and robust refusal,” arXiv, 2024. [Online]. Available: https://arxiv.org/abs/2402.04249 [22] M. Cemri et al. , “Why do multi-agent LLM systems fail?” arXiv, 2025. [Online]. Available: https://arxiv.org/abs/2503.13657 [23] T. Rebedea et al. , “Nemo guardrails: A toolkit for controllable and safe LLM applications with programmable rails,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2310.10501 [24] Model Context Protocol (MCP), “Specification,” Online speci-fication, Jun. 2025, accessed: 2025-12-17. [Online]. Available: https://modelcontextprotocol.io/specification/2025-06-18 [25] UK National Cyber Security Centre (NCSC), “Prompt injection is not SQL injection (it may be worse),” Blog post, Dec. 2025, accessed: 2025-12-17. [Online]. Available: https://www.ncsc.gov.uk/blog-post/ prompt-injection-is-not-sql-injection [26] A. Antwi, “Adaptive bayesian interval estimation for rare binomial events,” Mathematics , vol. 13, no. 24, p. 3988, 2025. [Online]. Available: https://www.mdpi.com/2227-7390/13/24/3988 [27] B. Efron and R. J. Tibshirani, An Introduction to the Bootstrap . Chap-man and Hall/CRC, 1994. [28] M. Chen et al. , “Evaluating large language models trained on code,” arXiv, 2021. [Online]. Available: https://arxiv.org/abs/2107.03374 [29] L. Zheng et al. , “Judging LLM-as-a-judge with MT-bench and chatbot arena,” arXiv, 2023. [Online]. Available: https://arxiv.org/abs/2306. 05685
