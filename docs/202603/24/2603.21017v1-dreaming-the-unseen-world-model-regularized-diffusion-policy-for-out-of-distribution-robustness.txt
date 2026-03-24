@@ -1,0 +1,542 @@
+Title: Dreaming the Unseen: World Model-regularized Diffusion Policy for Out-of-Distribution Robustness
+
+URL Source: https://arxiv.org/pdf/2603.21017v1
+
+Published Time: Tue, 24 Mar 2026 01:29:17 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# Dreaming the Unseen: World Model-regularized Diffusion Policy for Out-of-Distribution Robustness 
+
+Ziou Hu 1⋆, Xiangtong Yao 1⋆, Yuan Meng 1,Zhenshan Bing 2,1, and Alois Knoll 1 
+
+> 1
+
+School of Computation, Information and Technology, Technical University of Munich, Garching, Germany  
+
+> 2
+
+State Key Laboratory for Novel Software Technology and the School of Science and Technology, Nanjing University (Suzhou Campus), China 
+
+Abstract. Diffusion policies excel at visuomotor control but often fail catastrophically under severe out-of-distribution (OOD) disturbances, such as unexpected object displacements or visual corruptions. To ad-dress this vulnerability, we introduce the Dream Diffusion Policy (DDP) , a framework that deeply integrates a diffusion world model into the policy’s training objective via a shared 3D visual encoder. This co-optimization endows the policy with robust state-prediction capa-bilities. When encountering sudden OOD anomalies during inference, DDP detects the real-imagination discrepancy and actively abandons the corrupted visual stream. Instead, it relies on its internal “imagina-tion”—autoregressively forecasted latent dynamics—to safely bypass the disruption, generating imagined trajectories before smoothly realigning with physical reality. Extensive evaluations demonstrate DDP’s excep-tional resilience. Notably, DDP achieves a 73.8% OOD success rate on MetaWorld (vs. 23.9% without predictive imagination) and an 83.3% success rate under severe real-world spatial shifts (vs. 3.3% without pre-dictive imagination). Furthermore, as a stress test, DDP maintains a 76.7% real-world success rate even when relying entirely on open-loop imagination post-initialization. 
+
+Keywords: World Model · Diffusion Policy · Out-of-Distribution Ro-bustness 
+
+## 1 Introduction 
+
+Robotic manipulation in unstructured environments demands policies that can transform rich visual observations into precise, temporally extended motor com-mands. Recent visuomotor methods, like diffusion-based policies, have emerged as a compelling paradigm for this setting: instead of regressing a single action, they model action generation as a conditional denoising process [7, 20, 57] or via  
+
+> ⋆
+
+Equal contribution  
+
+> arXiv:2603.21017v1 [cs.RO] 22 Mar 2026 2Ziou Hu, Xiangtong Yao et al.
+
+flow matching [58]. These policies have demonstrated remarkable dexterity and robustness in intricate, high-dimensional robot manipulation tasks [7,19,37,47]. However, standard visuomotor imitation learning remains fundamentally brit-tle due to its strict reliance on continuous, uncorrupted visual streams. In real-world deployments, dynamic disturbances (e.g., severe object displacements or camera occlusions) instantly push observations into out-of-distribution (OOD) states, and without explicit physical reasoning, standard policies cannot recover from this massive covariate shift, inevitably leading to compounding errors and catastrophic failure [12,43,61]. Existing methods attempt to mitigate these shifts through various strategies, including domain randomization [38], test-time adap-tation [39, 53, 54], explicit expansion of training datasets with synthetic spatial perturbations [59], or the application of large pretrained visual models [11]. Other approaches enhance representational and physical priors [1, 21, 40, 45], or learn explicit inverse recovery policies [12,36]. While somewhat effective, these mitiga-tions typically introduce highly complex architectural pipelines and aggressively alter expert-derived actions during adaptation. This fundamentally compromises the core objective of imitation learning, as the high-fidelity skills carefully ex-tracted from experts are ultimately overwritten rather than preserved. To overcome these limitations, we rethink how agents handle corrupted visual states by drawing inspiration from human motor mastery. When environmental visual cues become chaotic or deceptive, the optimal human strategy is often to effectively close one’s eyes and rely on internal kinesthetic intuition, guided by a single, unwavering focal point. We translate this philosophy into robotic continuous control, arguing that a diffusion policy can be made substantially more resilient by endowing it with a built-in predictive capability. The natural technical counterpart to this internal intuition is a world model. Traditionally, these models predict future latent states to support planning [15], enable highly sample-efficient learning [35], and equip agents with crucial pre-dictive reasoning [18]. Diffusion-based world models have emerged as a powerful tool to flexibly forecast complex physical dynamics [3, 6], making them ideal candidates to provide predictive intuition. Yet, current methods typically treat them as weakly coupled auxiliary modules. Lacking a mechanism to dynamically substitute corrupted vision with imagined latents, these policies remain fatally tethered to deceptive observations and collapse under severe OOD shifts. To sus-tain control, the world model must transcend passive regularization and become a tightly integrated, active predictive intuition. We propose the Dream Diffusion Policy (DDP) to tackle severe out-of-distribution (OOD) disturbances. Rather than passively relying on vulnerable visual streams, DDP tightly couples a diffusion policy [7] with a predictive world model [10] via a shared 3D visual encoder . As the policy learns standard behavior cloning [7], the world model simultaneously predicts future observation latents. This shared representation captures robust geometric priors, empowering the world model to actively assist when physical observations become unreliable. During inference, DDP dynamically shifts between physical reality and internal “imagination.” By tracking targets and executing core actions entirely within Dream Diffusion Policy 3
+
+its hallucinated latent space, the robot safely bypasses corrupted vision and physically recovers the environment to an In-Distribution (ID) state. We extensively validate DDP across 10 MetaWorld [56] tasks, 3 complex Adroit [31] tasks, and 3 real-world Franka Panda tasks. While Adroit evalu-ations confirm our world model’s predictive stability in high-DoF continuous control, MetaWorld and real-robot experiments demonstrate DDP’s exceptional resilience to severe OOD disruptions—such as sudden displacements and com-plete visual occlusions. Notably, DDP achieves a 73 .8% OOD success rate on MetaWorld (vs. 23 .9% for a tracking-augmented baseline) and an 83 .3% suc-cess rate under severe real-world spatial shifts (vs. 3.3% ). Furthermore, as a stress test, DDP maintains a remarkable 76 .7% real-world success rate even when relying entirely on open-loop imagination post-initialization. In summary, our primary contributions are: 
+
+– World-Model-Regularized Training Pipeline: We propose the Dream Diffusion Policy, which co-optimizes behavior cloning and world-model ob-jectives via a shared 3D encoder. This unified representation allows the world model’s future predictions to directly regularize and guide policy inference. 
+
+– Robust Inference via Predictive Imagination: We design a novel, subtask-aware execution mechanism that actively detects OOD states via a highly intuitive real-imagination discrepancy ( DR−I ), bypasses corrupted vision using autoregressive imagination, and triggers a localized physical re-covery to the ID state to resume normal execution. 
+
+– State-of-the-Art OOD Robustness: We demonstrate that DDP signif-icantly outperforms state-of-the-art baselines under severe OOD conditions across both simulated and real-world tasks, maintaining exceptional resilience even when operating completely blind after initial observation. 
+
+## 2 Related Works 
+
+Diffusion Policy for Robotic Manipulation. By framing action generation as conditional denoising, diffusion models [20] effectively capture complex, multi-modal distributions in high-dimensional continuous control [7,57]. These policies achieve state-of-the-art results across diverse applications, including kinematics-aware [27], contact-rich [41, 48], and cross-manipulator tasks [34, 54]. Addition-ally, mechanisms like receding-horizon control and stochastic Langevin dynamics provide inherent robustness against minor physical perturbations and transient visual distractions in real-world deployments [7, 48]. 
+
+World Models for Decision Making and Robotics. World models learn internal representations to predict environmental dynamics and guide decision-making [9]. Pioneered by the Dreamer series [16–18], agents can master complex continuous control entirely within a learned latent imagination. This paradigm is now advancing embodied AI: models like NVIDIA Cosmos [2] enforce strict physical laws as “physical AI” brains, while architectures like DreamZero [55] jointly forecast future states and motor actions. Ultimately, integrating predic-4 Ziou Hu, Xiangtong Yao et al. 
+
+tive world models directly into control policies provides the crucial “imagination” required for robust robotic manipulation. 
+
+OOD Challenges and Mitigation Strategies. Deployed policies inevitably face Out-of-Distribution (OOD) shifts. Standard mitigations expand training diversity via domain randomization [38], synthetic trajectories [21], or rein-forcement learning (RL) [40]. However, these methods fail under severe con-ditions—like camera occlusions or target shifts—because they assume a con-tinuous visual stream. Without visual evidence, policies suffer from shortcut learning [13], fatally over-relying on proprioception for spatial localization. Fur-thermore, RL fine-tuning [6, 8] cannot reconstruct missing visual data at infer-ence, while heavy online pipelines [11] and video-diffusion reward models [22] are computationally prohibitive. While world models [15] and diffusion variants [10] forecast states to handle partial observability, current integrations treat them as weakly coupled auxil-iary modules that still collapse under severe shifts. To overcome this, we em-bed lightweight predictive capabilities directly into the policy. By co-optimizing a diffusion policy and world model via a shared-encoder regularizer, we avoid complex decoupled architectures and expensive RL fine-tuning [6]. This tight coupling empowers the policy to seamlessly “dream” missing visual context, sus-taining robust control even during severe sensor dropouts. 
+
+## 3 Methods 
+
+Building on DP3 [57], our Dream Diffusion Policy (DDP) utilizes a shared 3D encoder to extract unified geometric latent embeddings from point clouds and robot proprioception. These embeddings jointly condition both the Diffusion Pol-icy and the Diffusion World Model. During training, the World Model loss acts as a regularizer for the policy, embedding environmental kinematics and dynamics into the shared representation. During inference, this coupled architecture em-powers the agent to use “Imagination”—forecasting future observations—to sus-tain robust execution under Out-of-Distribution scenarios, as outlined in Fig. 1. 
+
+3.1 Action and Latent Embedding Chunking 
+
+Action chunking acts as policy compression in human motor control [24]. In robotic imitation learning, it better captures temporal dependencies [26] and mitigates compounding errors common in strictly autoregressive models [5]. Mo-tivated by this, we synchronize our policy and world model via explicit chunking: 
+
+Action Chunking: Our Diffusion Policy denoises a full trajectory over hori-zon H. To balance long-term consistency and local reactivity, the agent executes only a sub-sequence “chunk” of length N .
+
+Latent Embedding Observation Chunking: To enable forward-looking “imagination”, the World Model operates over the same chunk. Given M his-torical observations and the N -step planned action chunk, it predicts N future Dream Diffusion Policy 53D Diffusion  
+
+> Policy
+> 3D Diffusion
+> World Model
+> FiLM ... ... FiLM cat ... Shared
+> 3D Encoder
+> World Model Policy World Model Policy Policy Object Tracking
+> Dream Diffuson Policy OOD Detector
+> ... ...
+> (a) Dream Diffusion Policy(DDP) General Formulation (b) DDP Inference Stage
+> Proprioception Pointcloud
+> OOD Recovery
+
+Fig. 1: Overview of the Dream Diffusion Policy (DDP) framework. (a) Ashared 3D encoder extracts unified latent embeddings from point clouds and proprio-ception. These history latents jointly condition the Diffusion Policy to denoise action chunks, and the Diffusion World Model (via channel-wise concatenation) to forecast future latent states. (b) During inference stage, upon detecting an Out-of-Distribution anomaly, the system halts, tracks the object, and transitions into an imagination loop. The World Model autoregressively forecasts latent states to drive the policy’s action generation, safely bypassing corrupted observations until the recovery is triggered. 
+
+latent states in parallel. For continuous OOD rollouts, we apply a sliding win-dow: the final M predicted latents become the historical condition for the next cycle, tightly aligning planned actions with expected outcomes. 
+
+3.2 Diffusion Policy 
+
+Building upon standard DDPM [20], our diffusion policy πθ formulates action generation as a conditional denoising task, predicting an action sequence a0...H −1
+
+over horizon H. Following DP3 [57], we utilize a shared 3D encoder Eψ to process raw historical observations X0...M −1. This encoder extracts spatial features from geometric point clouds via PointNet and encodes proprioceptive states (e.g., end-effector pose) via an MLP, concatenating both streams to yield the unified context O0...M −1. During the forward diffusion process, Gaussian noise ϵp ∼N (0 , I) is added to the ground-truth actions to generate a noisy trajectory akp
+
+at a randomly sampled timestep kp ∼ U (1 , K ).The core of the policy is a 1D Conditional U-Net. The encoded history context 
+
+O0...M −1 serves as a global condition. It is injected into the intermediate residual blocks of the U-Net via Feature-wise Linear Modulation (FiLM) [30], allowing the visual state to guide the action denoising process effectively. The objective function for the policy is standard Behavior Cloning (BC) via noise matching: 
+
+LBC = Ea,X,ϵ p,k p
+
+
+
+ϵp − πθ
+
+
+
+akp
+
+> 0...H −1
+
+, k p, FiLM (O0...M −1)
+
+ 22
+
+
+
+(1) 6 Ziou Hu, Xiangtong Yao et al. 
+
+Algorithm 1: Dream Diffusion Policy Training 
+
+Input: Dataset D, Max steps K, 3D Encoder Eψ , Policy πθ , World Model Wϕ 
+
+> 1
+
+while not converged do 
+
+// 1. Sample Trajectories( M : observation steps, N : action steps, H: horizon)  
+
+> 2
+
+Sample (X0...M +N −1, a 0...H −1) ∼ D ;
+
+// 2. Encode Observations  
+
+> 3
+
+O0...M −1 ← Eψ (X0...M −1); 
+
+> 4
+
+OM ...M +N −1 ← Eψ (XM ...M +N −1);
+
+// 3. Diffusion Policy Loss  
+
+> 5
+
+kp ∼ U (1 , K ), ϵ p ∼ N (0 , I); 
+
+> 6
+
+akp 
+
+> 0...H −1
+
+← AddNoise (a0...H −1, ϵ p, k p); 
+
+> 7
+
+LBC ← MSE 
+
+
+
+ϵp, π θ (akp
+
+> 0...H −1
+
+, k p, FiLM (O0...M −1)) 
+
+
+
+;
+
+// 4. Diffusion World Model Loss  
+
+> 8
+
+kw ∼ U (1 , K ), ϵ w ∼ N (0 , I); 
+
+> 9
+
+Okw   
+
+> M ...M +N−1
+
+← AddNoise (OM ...M +N −1, ϵ w , k w ); 
+
+> 10
+
+Cwm ← cat (O0...M −1, O kw  
+
+> M ...M +N−1
+
+); 
+
+> 11
+
+LW M ← MSE (ϵw , Wϕ(Cwm , k w , FiLM (aM −1...M +N −2))) ;
+
+// 5. Optimization  
+
+> 12
+
+Ltotal ← L BC + λLW M ; 
+
+> 13
+
+Update ψ, θ, ϕ using ∇ψ,θ,ϕ Ltotal ;
+
+3.3 Diffusion World Model 
+
+Based on the framework in [10], our Diffusion World Model Wϕ predicts N -step future latent embeddings OM ...M +N −1. During training, the shared 3D encoder Eψ extracts these future targets, which are then corrupted with noise 
+
+ϵw at timestep kw to yield Okw  
+
+> M ...M +N−1
+
+. Because actions (directional controls) and observations (geometric context) possess fundamentally distinct properties, we deviate from the sampling-based “prefix-fixing” conditioning used in [10]. We argue that fixing initial states during reverse diffusion lacks the persistent grounding required for high-dimensional point cloud latents. Instead, we employ direct feature-level integration [32]. By repeating the historical latent xobs 
+
+across the temporal horizon and concatenating it channel-wise with the noisy samples, we formulate the input as: 
+
+Xin = Repeat (xobs , N ) ⊕ Xsample  (2) This ensures every convolutional layer in the 1D U-Net has immediate, contin-uous access to the historical structural context. Concurrently, the executed action sequence aM −1...M +N −2 serves as a global condition. As in the policy architecture, these action representations are fused with the diffusion timestep embeddings and injected via FiLM. The world model is optimized by minimizing the noise prediction error: 
+
+LW M = EO,a,ϵ w ,k w
+
+h
+
+∥ϵw − W ϕ (Cwm , k w, FiLM (aM −1...M +N −2)) ∥22
+
+i
+
+(3) Dream Diffusion Policy 7
+
+3.4 Training Objective 
+
+We jointly optimize the Diffusion Policy and World Model end-to-end. Using normalized expert demonstrations, the shared encoder Eψ extracts latent em-beddings for both historical context and future targets. The policy πθ learns to predict Gaussian noise added to the action horizon a0...H −1 conditioned on the history O0...M −1. Simultaneously, the world model Wϕ predicts the noise injected into future observation latents OM ...M +N −1, conditioned on the his-tory and executed actions. Following established regularization strategies [1,21], the world model acts as a geometric and dynamic regularizer. We update the network parameters (ψ, θ, ϕ ) via gradient descent using a combined loss: 
+
+Ltotal = LBC + λLW M  (4) where λ balances the two objectives. Finally, we apply an Exponential Moving Average (EMA) [29] to the model weights to stabilize convergence and enhance inference robustness (Algorithm 1). 
+
+3.5 Inference Stage 
+
+During inference, dynamic object displacements break the In-Distribution (ID) environment, triggering an Out-of-Distribution (OOD) state. To maintain spa-tial awareness during these disruptions, we integrate a 6D pose estimator (e.g., FoundationPose [44]). By combining this estimator with the World Model’s pre-dictive “imagination,” we introduce a hybrid mechanism of detection, recursive imagination, and physical recovery to safely bridge OOD gaps, as illustrated in the closed-loop workflow of Fig. 2. The pseudocode for closed-Loop inference is provided in Algorithm 2 in Appendix. 
+
+Subtask Definition For long-horizon manipulation, we define a subtask se-quence S = {S1, . . . , S J }, each targeting an object Cj . Lacking explicit dataset annotations, we bypass complex clustering and use simple expert heuristics for completion triggers (e.g., gripper closure for picking, allocated time for pouring). This flexibility allows DDP to solve complex, multi-stage challenges. 
+
+Real-Imagination Discrepancy as OOD Detector. Unlike methods relying on reconstruction errors [14, 23] or diffusion loss [25], we take a highly intuitive approach: detecting OOD anomalies via the latent discrepancy between the real observation Otreal = Eψ (Xtreal ) and the World Model’s prediction Otpred :
+
+DR−I (t) = ∥Otreal − Otpred ∥22 (5) Nominal actions maintain a low DR−I . When an external disturbance pushes 
+
+DR−I (t) above a threshold τdif f , an OOD event is flagged. To identify which 
+
+objects moved, we query the pose estimator, comparing current poses to expected ID states to isolate the displaced objects Cdisp .
+
+Simplified Object Tracking under OOD. Rather than relying on continu-ous tracking during chaotic displacements, we assume the displaced object Cj
+
+eventually settles into a static pose. Once motion ceases, we query the 6D pose 8 Ziou Hu, Xiangtong Yao et al. Subtask 1 Subtask 2 Subtask 
+
+> Object Base Policy ID Policy OOD Dream Policy OOD Recovery Action Object Displacement Tracking Action ID Start OOD Start subtask transition End-effector
+
+Fig. 2: Overview of the DDP workflow. Illustrating the closed-loop transitions between physical reality (ID) and internal imagination (OOD) across subtasks. 
+
+estimator for its new resting pose pCj ∈ SE (3) . By comparing this to its ex-pected ID pose pexp Cj , we compute a single static spatial displacement: 
+
+∆pCj = pCj − pexp Cj (6) To re-align the robot with the displaced target, we directly apply this offset as a compensatory tracking action for the end-effector, defined as atrack j = ∆pCj .
+
+Recursive Imagination for Action Generation To bypass corrupted phys-ical observations during an OOD state, we implement a recursive “wheel” mech-anism for imagined execution after tracking (Fig. 1(b)). Instead of using real visual inputs, the policy generates action chunks ( a0 . . . a N ) conditioned entirely on the previously predicted latent embedding. Concurrently, the Diffusion World Model uses this imagined latent and the newly predicted actions to forecast the 
+
+next latent state ( O0 . . . O M ). Autoregressively feeding these forecasts back into the policy sustains a coherent trajectory purely within the agent’s internal imag-ination, enabling safe task execution until target recovery is triggered. 
+
+Target-Specific Recovery. Since simultaneous global recovery is impracti-cal, we restore the environment iteratively. For an imagined subtask Sj tar-geting Cj ∈ C disp , we define a simple heuristic boolean trigger Tend (Sj ). Once 
+
+Tend (Sj ) = True, the agent applies an inverse spatial translation arec j = −∆pCj
+
+to realign the imagined trajectory with the physical object, removing Cj from 
+
+Cdisp . We then re-evaluate DR−I : if it remains above τdif f , the policy continues executing via imagination. Otherwise, the environment is fully recovered, and the policy reverts to the real visual latent Otreal for standard ID execution. 
+
+## 4 Experiments 
+
+4.1 Simulation Experiments Benchmarks and Datasets To evaluate the proposed method, we utilize two widely adopted continuous control simulation benchmarks: MetaWorld [56] and Adroit [31]. Specifically, we construct our evaluation pool using 10 MetaWorld Dream Diffusion Policy 9Pick Place 
+
+> puck: [-0.25, 0, 0]
+> Hammer
+> box: [0, 0.1, 0]
+> Drawer Open
+> drawer: [0, 0, 0.1]
+> Door Unlock
+> door: [0, 0.1, 0]
+> Button Press
+> button: [-0.25, 0, 0]
+> Assembly
+> peg: [-0.25, 0, 0]
+> Sweep
+> puck: [0.2, 0.1, 0]
+> Soccer
+> goal: [-0.2, 0.1, 0]
+> Push
+> puck: [-0.25, 0, 0]
+> Coffee Pull
+> machine: [-0.2, 0, 0]
+
+Fig. 3: Out-of-Distribution (OOD) spatial disturbances in MetaWorld. Yel-low dashed boxes highlight target objects, and solid arrows indicate the direction of dynamic displacements injected mid-task. The exact linear translation vectors (x, y, z )
+
+applied to shift each object out-of-distribution are detailed below. 
+
+tasks, ranging from simple to hard difficulties, to test general robotic manipula-tion capabilities. Additionally, to assess performance on highly complex dynam-ical systems, we select 3 tasks from the Adroit benchmark. 
+
+Model Setup The shared 3D visual encoder processes M = 2 observation steps, concatenating 64-dimensional features from both a PointNet (point cloud) and an MLP (proprioception) into a 128-dimensional unified latent embedding. Conditioned on this M = 2 history, the Diffusion Policy predicts an action horizon of H = 16 and executes an N = 8 step chunk. It employs a 1D U-Net with down-sampling channels of [256 , 512 , 1024] and a 128-dimensional diffusion step embedding. Concurrently, the Diffusion World Model uses a separate, identically parameterized 1D U-Net to predict N = 8 future latent embeddings conditioned on the M = 2 history and N = 8 planned actions. λ is set to 1. 
+
+Out-of-Distribution Setup To test robustness against spatial shifts, we eval-uate OOD performance exclusively in MetaWorld. During training, targets are randomized within a fixed In-Distribution area. For OOD inference, we introduce sudden mid-task displacements, moving objects entirely outside these training boundaries (Fig. 3). Applied as direct linear coordinate translations in MuJoCo, these shifts provide measurable disturbances to reliably evaluate recovery. 
+
+Training and Evaluation For a fair and rigorous comparison, we bench-mark our Dream Diffusion Policy (DDP) against two state-of-the-art baselines: DP3 [57] and FlowPolicy [58]. All models are trained for 500 epochs with 3 seeds (seed0, 1, 2) using a fixed dataset of 50 demonstrations per task. To ensure an equitable evaluation, the foundational policy architectures and core hyperparam-eters across all methods are kept strictly identical. During inference, we evaluate each method for 100 episodes per task, per seed, and calculate the average suc-cess rate. Our evaluation is systematically divided into the following phases: 10 Ziou Hu, Xiangtong Yao et al. 
+
+Table 1: Evaluation Results (Success Rate %). We report the In-Distribution (ID) and Out-of-Distribution (OOD) performance of the base policies, the tracking-augmented policies (DP3 ablation, Flow Policy, our DDP) under OOD, and the ro-bustness of DDP under various imagination substitution rates.                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+> Algorithm / Adroit MetaWorld Adroit MetaWorld Total Condition Door Hammer Pen Assembly Button Press Coffee Pull Door Unlock Drawer Open Hammer Pick Place Push Soccer Sweep Avg Avg Avg Base Policy (ID)
+> DP3 69 ±4 100 ±0 76 ±7100 ±0100 ±0 99 ±1 100 ±0 100 ±0 100 ±095 ±1 94 ±1 35 ±3 100 ±081.5 92.3 89.8 FlowPolicy 64 ±488 ±167 ±4100 ±0100 ±0 100 ±0 100 ±0 100 ±098 ±196 ±1 95 ±1 53 ±6 100 ±072.9 94.2 89.3
+> DDP (Ours) 63 ±399 ±171 ±2100 ±0100 ±0 100 ±0 100 ±0 100 ±0 100 ±095 ±1 93 ±1 42 ±7 100 ±077.8 93.0 89.5
+> Base Policy (OOD)
+> DP3 ---0±00±00±02±24±20±00±00±01±10±0-0.8 0.8 FlowPolicy ---0±011 ±50±053 ±14 0±01±10±00±02±20±0-6.7 6.7
+> DDP (Ours) ---0±00±00±05±53±01±10±00±04±20±0-1.3 1.3
+> Tracking-Augmented (OOD)
+> FlowPolicy ---0±013 ±20±041 ±50±00±00±00±00±00±0-5.4 5.4 DP3 (Ablation) ---0±093 ±323 ±4 59 ±16 3±21±013 ±13 9 ±316 ±4 22 ±14 -23.9 23.9
+> DDP (Ours) ---96 ±2100 ±0 94 ±374 ±4 100 ±0 100 ±039 ±5 39 ±6 17 ±479 ±7-73.8 73.8 DDP Imagination Interventions (ID) DDP (10% Imagined) 95 ±399 ±092 ±1100 ±0100 ±0 100 ±0 99 ±098 ±1100 ±093 ±3 93 ±2 40 ±3 100 ±095.2 92.3 93.0 DDP (50% Imagined) 96 ±198 ±287 ±399 ±0100 ±0 98 ±199 ±190 ±1100 ±081 ±6 91 ±2 39 ±398 ±194.0 89.4 90.5 DDP (Open-loop) 96 ±398 ±286 ±318 ±2100 ±0 54 ±397 ±148 ±399 ±021 ±3 38 ±3 42 ±397 ±193.2 61.4 68.7
+
+1. Base Policy Accuracy (ID & OOD): Evaluating standard In-Distribution and Out-of-distribution performance of DP3, FlowPolicy, and DDP. 2. Dream Diffusion Policy Accuracy (OOD): Evaluating DDP using our tracking, imagination and recovery mechanism under OOD conditions. 3. Ablation Tracking-Augmented Accuracy (OOD): To isolate the bene-fits of our World Model, we perform a direct ablation by applying the track-ing intervention to the base DP3 policy. We additionally evaluate FlowPolicy equipped with the same tracking mechanism for a broader comparison. 4. World Model Imagination Analysis (ID): To test the World Model’s reliability, we randomly replace real observation with imagined latents af-ter the initial chunk at 10% , 50% and 100% (open-loop imagined rollout) probabilities. 
+
+Results As shown in Tab. 1, standard base policies fail under severe OOD shifts. However, our tracking-augmented DDP effectively handles these disturbances, achieving a 73.8% average success rate on MetaWorld. Applying identical track-ing to the baselines yields lower success rates (23.9% for DP3, 5.4% for Flow-Policy). This proves tracking alone is insufficient; the Diffusion World Model’s coupled latents are crucial for robust task completion. Figure 4 illustrates DDP’s execution on the MetaWorld Assembly and Push tasks. In Assembly (2 subtasks), the second object peg is displaced Out-of-Distribution after the robot grasps the ring. After tracking this shift, DDP ex-ecutes a precise action to successfully insert the ring. In Push (2 subtasks), the first object puck is displaced before grasping. DDP tracks the shifted puck, ex-ecute actions via imagination, utilizes a localized recovery action to move the end-effector to ID position, and accurately pushes it to the target. For more comprehensive results, please refer to Sec. B in the Appendix. Furthermore, Tab. 1 demonstrates DDP’s resilience when replacing real ob-servations with imagined latents. On MetaWorld, DDP maintains near-baseline Dream Diffusion Policy 11 Assembly Push    
+
+> Base Policy Tracking Dream Policy Recovery Object Displacement
+> Fig. 4: DDP execution on MetaWorld Assembly and Push. Sequences show the transition from the ID Base Policy (green) to OOD tracking (yellow), bypassing visual shifts via the imagined Dream Policy (pink), and finally recovering to the target.
+
+accuracy at 10% (92.3%) and 50% (89.4%) substitution rates, remaining robust even at 100% (61.4%). On the complex Adroit benchmark, imagination actually 
+
+boosts success from a 77.8% baseline to 95.2% at 10% substitution. This con-firms the built-in World Model not only bridges visual gaps but also acts as a temporal smoother, stabilizing high-DoF continuous control. 
+
+4.2 Real World Experiments Real Robot Benchmark To evaluate physical efficacy and performance un-der OOD, we design three real-world manipulation tasks of varying complexity. During training, initial target positions are uniformly randomized along a 10 cm linear range to ensure baseline state variance. 
+
+– Press Button (Easy | 1 Subtask, 1 OOD Target): The robot closes its gripper to precisely press a button. Success requires depressing it exactly to the activation threshold, avoiding both incomplete contact (under-pressing) and excessive force (over-pressing). 
+
+– Pour Tea (Medium | 2 Subtasks, 1 OOD Target): The robot grasps a teapot, navigates to a cup, executes a pouring motion, and returns the teapot to the table. Success requires the spout to remain precisely aligned with the cup’s center during the entire pour. 
+
+– Stack Blocks (Hard | 2 Subtasks, 2 OOD Targets): The robot picks up a pink block and places it atop a green base block. Success requires the pink block to remain perfectly stable and balanced after the gripper releases. 
+
+Hardware and State Setup We deploy our framework on a Franka Emika Panda with a Robotiq 2F-85 gripper. An Intel RealSense L515 captures vi-sual observations, while a D455 camera continuously tracks objects. To ensure low latency, raw point clouds are downsampled via Farthest Point Sampling to 2048 points. Hardware setup is shown in Fig. 5. The proprioceptive state con-sists of the end-effector pose. The action space is formulated as 7-DoF relative commands ( ∆x, ∆y, ∆z , roll, pitch, yaw) resolved via the franky [33] inverse kinematics library, plus a binary gripper state (Close or Open). 
+
+Data Collection, Network Architecture and Compute We collect 25 ex-pert demonstrations per task via a scripted kinematic oracle that injects spa-12 Ziou Hu, Xiangtong Yao et al. Franka Emika Robotiq Gripper RealSense L515 RealSense D455    
+
+> Tea Cup Tracking Button Tracking Block 1 Tracking Block 2 Tracking
+> (a) Real-world experiment setup (b) Object-tracking for all tasks
+
+Fig. 5: Robot Setup and Objects Tracking. (a) is all the hardware for the real-world experiment. (b) shows the bounding box for object tracking across all tasks. 
+
+Table 2: Real Robot Evaluation Results (Success Rate %). We evaluate the baseline and our Dream Diffusion Policy (DDP) across three tasks (10 trials each) of varying difficulty under In-Distribution (ID) and Out-of-Distribution (OOD) settings.                      
+
+> Algorithm / Condition Press Button Pour Tea Stack Blocks Average Base Policy (ID)
+> DP3 100 90 90 93.3
+> DDP (Ours) 100 90 80 90.0 Tracking-Augmented (OOD)
+> DP3 (Ablation) 10 003.3
+> DDP (Ours) 100 90 60 83.3 Imagination Intervention (ID) DDP (Open-loop Imagination) 100 80 50 76.7
+
+tial variance to efficiently mimic human data distributions. For high-speed real-time control, we employ “Simple DDP”, a lightweight architecture inspired by DP3. It utilizes reduced-capacity 1D U-Nets with down-sampling dimensions of 
+
+[128 , 256 , 384] for the Diffusion Policy and [128 , 256 , 512] for the Diffusion World Model. Finally, we retain all sequence hyperparameters from simulation: M = 2 ,
+
+H = 16 , N = 8 , and λ = 1 . The models are trained for 2000 epochs on a NVIDIA 4090 GPU. During deployment, the DDP architecture is hosted on an NVIDIA 4070 GPU, with inference times of 40 ms for the diffusion policy and 70 ms for the world model. Concurrently, to guarantee robustness in real-time tracking, we utilize the FoundationPose++ [49] module, as shown in Fig. 5(b). For further comprehensive detail, please refer to Sec. C in the Appendix. 
+
+Results Fig. 10 in the Appendix illustrates the successful execution sequences of DDP under In-Distribution (ID) settings for the three real-world tasks: Press Button, Pour Tea, and Stack Blocks. To evaluate OOD robustness, target objects are abruptly moved completely outside the In-Distribution (ID) zone mid-task. As shown in Fig. 6, our OOD detector identifies these displacements by monitor-ing latent discrepancy in real-time, which quantifies the latent distance between actual visual observations and the policy’s imagined projections. Sudden dis-Dream Diffusion Policy 13 
+
+Fig. 6: OOD Detection via Real-Imagination Discrepancy. The detector suc-cessfully identifies anomalies when objects are accidentally shifted across three different tasks. An OOD state is triggered (shaded regions) when the latent discrepancy ( DR−I )exceeds a task-specific threshold τdif f . Specifically, we set τdif f = 0 .0002 for Stack Blocks, τdif f = 0 .0004 for Pour Tea, and τdif f = 0 .0012 for Press Button. Subtask 1 : Pick     
+
+> Subtask 2 : Place Object2 OOD Object1 OOD Object1 Tracking Dream Policy
+> Object2 Tracking Dream Policy
+> Recovery
+
+Stack Blocks Ablation: DP3+Tracking    
+
+> Subtask 1: Pick Ablation: DP3+Tracking Cup OOD and Tracking Dream Policy Recovery and Place
+
+Pour Tea Press Button       
+
+> Base Policy Button OOD Tracking Dream Policy Ablation: DP3+Tracking Drop
+> Overpress
+> Can’t Pick
+> Base Policy Tracking Dream Policy Recovery Object Displacement
+
+Fig. 7: Qualitative real-robot execution on Stack Blocks, Pour Tea, and Press Button tasks. DDP successfully tracks OOD objects, finishes the main ac-tions of subtasks via the imagined Dream Policy, and executes recover to achieve the remaining task success. In contrast, the tracking-augmented DP3 ablation fails across severe OOD scenarios. 14 Ziou Hu, Xiangtong Yao et al. (a) Occlusion scene (b) Stack Blocks (Left: DP3, right: DDP) (c) Pour Tea (Left: DP3, right: DDP) 
+
+Fig. 8: Qualitative results under visual occlusion. (a) A hand obstructs the camera mid-task. In (b) Stack Blocks and (c) Pour Tea, baseline DP3 fails due to visual corruption, whereas DDP seamlessly bypasses the occlusion using internal imagination. 
+
+placements cause the observed visual state to sharply deviate from the imagined trajectory, spiking the discrepancy above a threshold to reliably flag the OOD condition. As shown in Tab. 2, our tracking-augmented DDP achieves an 83.3% aver-age success rate, drastically outperforming the DP3 tracking ablation (3.3%). Figure 7 illustrates these execution differences. In the two-subtask Stack Blocks 
+
+sequence, DDP tracks OOD shifts for each object, finishes the remaining mo-tions via imagination, and triggers a precise physical recovery between subtasks based on the gripper stage; conversely, the DP3 ablation entirely fails to pick the displaced block. In Pour Tea , DDP tracks the shifted cup and seamlessly ex-ecutes pouring actions from imagination after picking the teapot, whereas DP3 accidentally drops the pot. For Press Button , DDP recovers to press the target precisely to its threshold, while the DP3 ablation fails by either under-pressing or over-pressing. Detailed failure mode illustration for each real-world task is provided Fig. 11. Furthermore, we test DDP’s reliance on its internal world model by executing tasks using 100% imagined latents after the first observation chunk (Open-loop Imagination). As detailed in Tab. 2, DDP maintains a remarkable 76.7% average success rate. This performance confirms that the network’s imagined represen-tations are stable and reliable for continuous real-world control. 
+
+Robustness to Visual Occlusion. To further evaluate DDP against severe visual occlusion, we block the camera mid-task. This creates a massive real-imagination discrepancy ( DR−I ), instantly triggering OOD mode. While the DP3 baseline fails when blinded, DDP safely bypasses the corruption to complete both Stack Blocks and Pour Tea purely via autoregressive imagination (Fig. 8). 
+
+## 5 Conclusion 
+
+We introduced the Dream Diffusion Policy (DDP) to enhance visuomotor ro-bustness against severe out-of-distribution (OOD) disturbances. Co-optimizing a diffusion policy and world model via a shared 3D encoder embeds predictive dy-namics directly into DDP’s representation. During inference, DDP detects OOD anomalies via a real-imagination discrepancy ( DR−I ). Rather than collapsing Dream Diffusion Policy 15 
+
+under corrupted vision, it safely bypasses these shifts using an autoregressive imagination loop—executing actions from latent forecasts before triggering a localized physical recovery. Evaluations confirm DDP significantly outperforms baselines specifically in OOD scenarios , maintaining a high success rate even under almost complete visual blindness where standard methods fail. 
+
+Limitations and Future Work. DDP has three main limitations: (1) It highly relies on external tracking modules, allowing drift to accumulate across multi-stage subtasks, (2) tasks must begin strictly In-Distribution (ID) to prop-erly anchor the initial observation, and (3) the inference mechanism struggles with compounding OOD events or low-level action disruptions (e.g., gripper slip-page). Addressing these dependencies remains a key direction for future research. Potential solutions, such as employing meta-reinforcement learning [4, 42, 50] to adaptively fine-tune the world model online, integrating the lifelong learning mechanism [28] to preserve and combine prior knowledge, or integrating low-level tactile feedback [46], could further enhance DDP’s resilience in real-world appli-cations. We also plan to extend DDP to more complex multi-object manipulation tasks and explore its integration with language-conditioned methods [51, 60] or large language models for higher-level reasoning and planning [52]. 
+
+## References 
+
+1. Ada, S.E., Oztop, E., Ugur, E.: Diffusion policies for out-of-distribution general-ization in offline reinforcement learning. IEEE Robotics and Automation Letters 
+
+9(4), 3116–3123 (2024) 2. Agarwal, N., Ali, A., Bala, M., Balaji, Y., Barker, E., Cai, T., Chattopadhyay, P., Chen, Y., Cui, Y., Ding, Y., et al.: Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575 (2025) 3. Alonso, E., Jelley, A., Micheli, V., Kanervisto, A., Storkey, A.J., Pearce, T., Fleuret, F.: Diffusion for world modeling: Visual details matter in atari. Advances in Neural Information Processing Systems 37 , 58757–58791 (2024) 4. Bing, Z., Koch, A., Yao, X., Huang, K., Knoll, A.: Meta-reinforcement learning via language instructions. In: 2023 IEEE International Conference on Robotics and Automation (ICRA). pp. 5985–5991. IEEE (2023) 5. Cen, J., Yu, C., Yuan, H., Jiang, Y., Huang, S., Guo, J., Li, X., Song, Y., Luo, H., Wang, F., et al.: Worldvla: Towards autoregressive action world model. arXiv preprint arXiv:2506.21539 (2025) 6. Chandra, A.L., Nematollahi, I., Huang, C., Welschehold, T., Burgard, W., Valada, A.: Diwa: Diffusion policy adaptation with world models. In: Conference on Robot Learning. pp. 3378–3400. PMLR (2025) 7. Chi, C., Xu, Z., Feng, S., Cousineau, E., Du, Y., Burchfiel, B., Tedrake, R., Song, S.: Diffusion policy: Visuomotor policy learning via action diffusion. The International Journal of Robotics Research 44 (10-11), 1684–1704 (2025) 8. Curtis, A., Li, E., Noseworthy, M., Gothoskar, N., Chitta, S., Li, H., Kaelbling, L.P., Carey, N.E.: Flow-based domain randomization for learning and sequenc-ing robotic skills. In: Forty-second International Conference on Machine Learning (2025), https://openreview.net/forum?id=9JQXuyzdGL 16 Ziou Hu, Xiangtong Yao et al. 9. Ding, J., Zhang, Y., Shang, Y., Zhang, Y., Zong, Z., Feng, J., Yuan, Y., Su, H., Li, N., Sukiennik, N., et al.: Understanding world or predicting future? a compre-hensive survey of world models. ACM Computing Surveys 58 (3), 1–38 (2025) 10. Ding, Z., Zhang, A., Tian, Y., Zheng, Q.: Diffusion world model: Future model-ing beyond step-by-step rollout for offline reinforcement learning. arXiv preprint arXiv:2402.03570 (2024) 11. Du, M., Song, S.: Dynaguide: Steering diffusion polices with active dynamic guid-ance. In: The Thirty-ninth Annual Conference on Neural Information Processing Systems (2025), https://openreview.net/forum?id=XOw7Yf8qN3 
+
+12. Gao, G.J., Li, T., Figueroa, N.: Out-of-distribution recovery with object-centric keypoint inverse policy for visuomotor imitation learning. In: 2025 IEEE/RSJ In-ternational Conference on Intelligent Robots and Systems (IROS). pp. 9816–9828. IEEE (2025) 13. Geirhos, R., Jacobsen, J.H., Michaelis, C., Zemel, R., Brendel, W., Bethge, M., Wichmann, F.A.: Shortcut learning in deep neural networks. Nature Machine In-telligence 2(11), 665–673 (2020) 14. Graham, M.S., Pinaya, W.H., Tudosiu, P.D., Nachev, P., Ourselin, S., Cardoso, J.: Denoising diffusion models for out-of-distribution detection. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 2948–2957 (2023) 15. Ha, D., Schmidhuber, J.: World models. arXiv preprint arXiv:1803.10122 (2018) 16. Hafner, D., Lillicrap, T., Ba, J., Norouzi, M.: Dream to control: Learning behaviors by latent imagination. arXiv preprint arXiv:1912.01603 (2019) 17. Hafner, D., Lillicrap, T., Norouzi, M., Ba, J.: Mastering atari with discrete world models. arXiv preprint arXiv:2010.02193 (2020) 18. Hafner, D., Pasukonis, J., Ba, J., Lillicrap, T.: Mastering diverse domains through world models. arXiv preprint arXiv:2301.04104 (2023) 19. He, C., Liu, X., Camps, G.S., Sartoretti, G., Schwager, M.: Demystifying diffusion policies: Action memorization and simple lookup table alternatives. arXiv preprint arXiv:2505.05787 (2025) 20. Ho, J., Jain, A., Abbeel, P.: Denoising diffusion probabilistic models. Advances in neural information processing systems 33 , 6840–6851 (2020) 21. Huang, D., Navab, N., Jiang, Z.: Improving robustness to out-of-distribution states in imitation learning via deep koopman-boosted diffusion policy. IEEE Transac-tions on Robotics 41 , 6680–6692 (2025) 22. Huang, T., Jiang, G., Ze, Y., Xu, H.: Diffusion reward: Learning rewards via condi-tional video diffusion. In: European Conference on Computer Vision. pp. 478–495. Springer (2024) 23. Isaku, E., Sartaj, H., Ali, S., Sanguino, B., Wang, T., Li, G., Zhang, H., Peyrucain, T.: Out of distribution detection in self-adaptive robots with ai-powered digital twins. arXiv preprint arXiv:2509.12982 (2025) 24. Lai, L., Huang, A.Z., Gershman, S.J.: Action chunking as policy compression. PsyArXiv (2022) 25. Lee, S.W., Kang, X., Kuo, Y.L.: Diff-dagger: Uncertainty estimation with diffu-sion policy for robotic manipulation. In: 2025 IEEE International Conference on Robotics and Automation (ICRA). pp. 4845–4852. IEEE (2025) 26. Liu, Y., Hamid, J.I., Xie, A., Lee, Y., Du, M., Finn, C.: Bidirectional decod-ing: Improving action chunking via guided test-time sampling. arXiv preprint arXiv:2408.17355 (2024) Dream Diffusion Policy 17 27. Ma, X., Patidar, S., Haughton, I., James, S.: Hierarchical diffusion policy for kinematics-aware multi-task robotic manipulation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 18081– 18090 (2024) 28. Meng, Y., Bing, Z., Yao, X., Chen, K., Huang, K., Gao, Y., Sun, F., Knoll, A.: Preserving and combining knowledge in robotic lifelong reinforcement learning. Nature Machine Intelligence 7(2), 256–269 (2025) 29. Morales-Brotons, D., Vogels, T., Hendrikx, H.: Exponential moving average of weights in deep learning: Dynamics and benefits. arXiv preprint arXiv:2411.18704 (2024) 30. Perez, E., Strub, F., De Vries, H., Dumoulin, V., Courville, A.: Film: Visual rea-soning with a general conditioning layer. In: Proceedings of the AAAI conference on artificial intelligence. vol. 32 (2018) 31. Rajeswaran, A., Kumar, V., Gupta, A., Vezzani, G., Schulman, J., Todorov, E., Levine, S.: Learning complex dexterous manipulation with deep reinforcement learning and demonstrations. arXiv preprint arXiv:1709.10087 (2017) 32. Saharia, C., Chan, W., Chang, H., Lee, C., Ho, J., Salimans, T., Fleet, D., Norouzi, M.: Palette: Image-to-image diffusion models. In: ACM SIGGRAPH 2022 confer-ence proceedings. pp. 1–10 (2022) 33. Schneider, T.: franky: High-level control library for franka robots. https:// github.com/TimSchneider42/franky (2024), version 1.1.3 34. Seo, M., Park, H.A., Yuan, S., Zhu, Y., Sentis, L.: Legato: Cross-embodiment imitation using a grasping tool. IEEE Robotics and Automation Letters 10 (3), 2854–2861 (2025). https://doi.org/10.1109/LRA.2025.3535182 
+
+35. Seo, Y., Hafner, D., Liu, H., Liu, F., James, S., Lee, K., Abbeel, P.: Masked world models for visual control. In: Conference on Robot Learning. pp. 1332–1344. PMLR (2023) 36. Sun, Z., Song, S.: Latent policy barrier: Learning robust visuomotor policies by staying in-distribution. arXiv preprint arXiv:2508.05941 (2025) 37. Tian, J., Wang, L., Zhou, S., Wang, S., Li, J., Sun, H., Tang, W.: Pdfactor: Learn-ing tri-perspective view policy diffusion field for multi-task robotic manipulation. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 15757–15767 (2025) 38. Tobin, J., Fong, R., Ray, A., Schneider, J., Zaremba, W., Abbeel, P.: Domain randomization for transferring deep neural networks from simulation to the real world. In: 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). pp. 23–30. IEEE (2017) 39. Wang, D., Shelhamer, E., Liu, S., Olshausen, B., Darrell, T.: Tent: Fully test-time adaptation by entropy minimization. In: International Conference on Learning Representations (ICLR) (2021) 40. Wang, D., Liu, C., Chang, F., Xu, Y.: Hierarchical diffusion policy: manipulation trajectory generation via contact guidance. IEEE Transactions on Robotics (2025) 41. Wang, D., Liu, C., Chang, F., Xu, Y.: Hierarchical diffusion policy: Manipulation trajectory generation via contact guidance. IEEE Transactions on Robotics 41 ,2086–2104 (2025). https://doi.org/10.1109/TRO.2025.3547272 
+
+42. Wang, M., Bing, Z., Yao, X., Wang, S., Kai, H., Su, H., Yang, C., Knoll, A.: Meta-reinforcement learning based on self-supervised task representation learning. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 37, pp. 10157– 10165 (2023) 18 Ziou Hu, Xiangtong Yao et al. 43. Wang, R., Zhuang, Z., Kragic, D., Pokorny, F.T.: Palm: Enhanced generaliz-ability for local visuomotor policies via perception alignment. arXiv preprint arXiv:2601.19514 (2026) 44. Wen, B., Yang, W., Kautz, J., Birchfield, S.: Foundationpose: Unified 6d pose esti-mation and tracking of novel objects. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 17868–17879 (2024) 45. Wu, S., Zhu, Y., Huang, Y., Zhu, K., Gu, J., Yu, J., Shi, Y., Wang, J.: Afforddp: Generalizable diffusion policy with transferable affordance. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 6971–6980 (2025) 46. Wu, Y., Chen, Z., Wu, F., Chen, L., Zhang, L., Bing, Z., Swikir, A., Haddadin, S., Knoll, A.: Tacdiffusion: Force-domain diffusion policy for precise tactile ma-nipulation. In: 2025 IEEE International Conference on Robotics and Automation (ICRA). pp. 11831–11837. IEEE (2025) 47. Wu, Y., Wang, H., Chen, Z., Pang, J., Xu, D.: On-device diffusion transformer policy for efficient robot manipulation. In: Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision. pp. 14073–14083 (2025) 48. Xue, H., Ren, J., Chen, W., Zhang, G., Fang, Y., Gu, G., Xu, H., Lu, C.: Reactive diffusion policy: Slow-fast visual-tactile policy learning for contact-rich manipula-tion. In: Proceedings of Robotics: Science and Systems (RSS) (2025) 49. Yan, W., Chu, J.: Foundationpose++: Simple tricks boost foundationpose perfor-mance in high-dynamic scenes. https://github.com/teal024/FoundationPose-plus-plus (2025), gitHub Repository 50. Yao, X., Bing, Z., Zhuang, G., Chen, K., Zhou, H., Huang, K., Knoll, A.: Learning from symmetry: Meta-reinforcement learning with symmetrical behaviors and lan-guage instructions. In: IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). pp. 5574–5581. IEEE (2023) 51. Yao, X., Blei, T., Meng, Y., Zhang, Y., Zhou, H., Bing, Z., Huang, K., Sun, F., Knoll, A.: Long-horizon language-conditioned imitation learning for robotic ma-nipulation. IEEE/ASME Transactions on Mechatronics pp. 1–12 (2025) 52. Yao, X., Zhou, H., Mees, O., Meng, Y., Xiao, T., Bisk, Y., Oh, J., Johns, E., Shridhar, M., Shah, D., et al.: Bridging language and action: A survey of language-conditioned robot manipulation. arXiv preprint arXiv:2312.10807 (2023) 53. Yao, X., Zhou, Y., Meng, Y., Dong, L., Hong, L., Zhang, Z., Bing, Z., Huang, K., Sun, F., Knoll, A.: Pick-and-place manipulation across grippers without retraining: A learning-optimization diffusion policy approach. arXiv preprint arXiv:2502.15613 (2025) 54. Yao, X., Zhou, Y., Meng, Y., Liu, Y., Dong, L., Zhang, Z., Bing, Z., Huang, K., Sun, F., Knoll, A.: Inference-stage adaptation-projection strategy adapts diffusion policy to cross-manipulators scenarios. arXiv preprint arXiv:2509.11621 (2025) 55. Ye, S., Ge, Y., Zheng, K., Gao, S., Yu, S., Kurian, G., Indupuru, S., Tan, Y.L., Zhu, C., Xiang, J., et al.: World action models are zero-shot policies. arXiv preprint arXiv:2602.15922 (2026) 56. Yu, T., Quillen, D., He, Z., Julian, R., Hausman, K., Finn, C., Levine, S.: Meta-world: A benchmark and evaluation for multi-task and meta reinforcement learning. In: Conference on robot learning. pp. 1094–1100. PMLR (2020) 57. Ze, Y., Zhang, G., Zhang, K., Hu, C., Wang, M., Xu, H.: 3d diffusion policy: Gener-alizable visuomotor policy learning via simple 3d representations. In: Proceedings of Robotics: Science and Systems (RSS) (2024) 58. Zhang, Q., Liu, Z., Fan, H., Liu, G., Zeng, B., Liu, S.: Flowpolicy: Enabling fast and robust 3d flow-based policy via consistency flow matching for robot manipulation. Dream Diffusion Policy 19 In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 39, pp. 14754–14762 (2025) 59. Zhang, X., Chang, M., Kumar, P., Gupta, S.: Diffusion meets dagger: Supercharg-ing eye-in-hand imitation learning. arXiv preprint arXiv:2402.17768 (2024) 60. Zhou, H., Bing, Z., Yao, X., Su, X., Yang, C., Huang, K., Knoll, A.: Language-conditioned imitation learning with base skill priors under unstructured data. IEEE Robotics and Automation Letters 9(11), 9805–9812 (2024) 61. Zhu, Y., Joshi, A., Stone, P., Zhu, Y.: Viola: Imitation learning for vision-based manipulation with object proposal priors. In: Conference on Robot Learning. pp. 1199–1210. PMLR (2023) 
+
+## Appendix 
+
+A Pseudocode for Closed-Loop Inference 
+
+To further clarify the transition between physical reality (In-Distribution) and in-ternal imagination (Out-of-Distribution), we provide the detailed pseudocode for the DDP inference stage in Algorithm 2. The algorithm highlights the real-time detection via latent discrepancy DR−I , the recursive action generation during the OOD state, and the target-specific recovery mechanism triggered at the end of each subtask. 
+
+B Details of Simulation OOD Experiments 
+
+In this section, we provide the exact details for the Out-of-Distribution (OOD) evaluation on the MetaWorld benchmark. We detail the mechanism for imple-menting object displacements, how the robot tracks these shifts in simulation, and the precise task-specific parameters (timing, displacement vectors, and tar-get objects). 
+
+Oracle State Transitions and OOD Implementation To explicitly isolate and highlight the predictive power of the World Model’s “imagination” capabil-ity, we simplify the simulation evaluation pipeline. Specifically, we intentionally bypass the automated DR−I OOD detector and the heuristic recovery triggers described in the main text. Instead, we implement a controlled Oracle Track-ing and State Transition Mechanism via direct MuJoCo backend manipula-tions. By hard-coding the exact timing of both the OOD anomaly injection and the physical recovery to specific action chunks, we ensure that the evaluation purely reflects the policy’s ability to execute manipulation actions via internal imagination, independent of external tracking accuracy or detection latency. During the pre-defined execution step (i.e., the specific “chunk” detailed in Tab. 3), the environment execution is temporarily paused, and a sudden spatial shift is injected. As illustrated in Fig. 9 for the remaining MetaWorld tasks, the implementation follows two main logic branches depending on the nature of the task: 20 Ziou Hu, Xiangtong Yao et al. Base Policy Tracking Dream Policy Recovery Object Displacement     
+
+> Button Press Coffee Pull Coffee Pull Drawer Open
+> Hammer Soccer
+> Sweep Pick Place
+
+Fig. 9: DDP execution on the MetaWorld benchmark (Remaining 8 tasks). 
+
+Sequences show the transition from the ID Base Policy (green) to OOD tracking (yel-low), bypassing visual shifts via the imagined Dream Policy (pink), and finally trigger-ing physical recovery (green dotted) to complete the target. 
+
+1. Single-Stage Tracking (Target-Centric Tasks): For tasks where the robot only needs to interact with the shifted object (e.g., Button Press , Drawer Open ), we simultaneously apply a coordinate translation vector ∆P = [ dx, dy, dz ]
+
+to both the target object’s body position ( sim.model.body_pos ) and the robot’s end-effector mock-up position ( data.mocap_pos ). By directly hard-coding this offset to the mocap , the robot instantly re-aligns its physical hand with the newly displaced object, maintaining the relative spatial geometry required for the in-ternal “imagined” execution. 
+
+2. Two-Stage Tracking and Recovery (Pick-and-Move Tasks): For multi-subtask challenges where an object is displaced but the final destination (goal) remains fixed (e.g., Pick Place , Push , Sweep , Coffee Pull ), the script executes a hard-coded two-stage intervention: 
+
+– Stage 1 (Track): At the specified anomaly chunk, the object and the robot’s end-effector are shifted by ∆P so the robot can successfully grasp the displaced object. (Note: For Pick Place , a “Safe Lift” logic is explicitly coded—lifting the arm 5cm, shifting it, and lowering it back—to prevent clipping through the table during teleportation). Dream Diffusion Policy 21 
+
+– Stage 2 (Recover and Policy Transition): At a strictly pre-defined subsequent chunk (representing the moment the object is securely grasped), a reverse offset −∆P is applied exclusively to the robot’s end-effector. This forces the robot to instantly “snap back” to the original ID area. Crucially, the Oracle then perfectly mimics the DR−I re-evaluation logic defined in the main text to determine the subsequent policy mode: 
+
+• For Pick Place , Push , and Sweep , bringing the grasped object back to the ID zone effectively restores global visual consistency. Consequently, the Oracle successfully re-anchors the environment and transitions the system back to the real visual stream ( ID Base Policy ). 
+
+• Conversely, for Coffee Pull , the recovery step only snaps the arm and the grasped mug back to the ID target zone, while the large coffee ma-chine is left permanently displaced. Because this leaves the global visual context strictly corrupted (which would naturally trigger DR−I > τ dif f 
+
+in reality), the Oracle enforces that the system must continue executing purely via internal hallucination ( OOD Dream Policy ) to safely finish placing the mug. 
+
+Task-Specific OOD Parameters The exact parameters for all 10 MetaWorld tasks are summarized in Tab. 3. The “Intervention Timing” refers to the specific action chunk index where the sudden displacement is injected. 
+
+Detailed Breakdown of Multi-Subtask Interventions: – Pick Place: At chunk 2, the Puck is shifted by [−0.2, −0.1, 0] . The robot performs a collision-free tracking maneuver. At chunk 6, the robot arm snaps back by [+0 .2, +0 .1, 0] to place the puck into the fixed goal, successfully recovering visual consistency and resuming the ID Base Policy .
+
+– Push: At chunk 2, the Puck is shifted by [−0.25 , 0, 0] . The robot tracks it. At chunk 6, the robot arm snaps back by [+0 .25 , 0, 0] to push the object toward the original fixed target, resuming the ID Base Policy .
+
+– Sweep: At chunk 2, the Puck is shifted by [+0 .2, +0 .1, 0] . The robot tracks it. At chunk 6, the robot arm snaps back by [−0.2, −0.1, 0] to sweep the object into the fixed hole, resuming the ID Base Policy .
+
+– Coffee Pull: At chunk 2, both the Mug and the Coffee Machine are shifted by [−0.2, 0, 0] , but the target placement zone remains fixed. At chunk 8, the robot arm snaps back by [+0 .2, 0, 0] to pull the mug into the correct target zone. Since the machine remains displaced (OOD), the agent continues executing via the OOD Dream Policy to complete the task. 
+
+C Further Details of Real-World Experiments 
+
+In this section, we provide additional configuration details for our real-world deployment, including the control hyper-parameters, visual processing pipeline, and the exact camera setup. 22 Ziou Hu, Xiangtong Yao et al. Stack Blocks Pour Tea Press Button     
+
+> Fig. 10: In-Distribution Scenarios. Real-world execution sequences demonstrating successful nominal manipulation for the Stack Blocks ,Pour Tea , and Press Button
+> tasks.
+
+Network Inference and Control Frequency To achieve responsive real-time control, we accelerate the reverse diffusion process during inference by employ-ing a fast-sampling scheduler (DDIM), reducing the denoising steps to K = 10 
+
+for both the Diffusion Policy and the Diffusion World Model. Despite this ac-celeration, running the dual-diffusion pipeline alongside high-fidelity 3D visual encoding, real-time 6D object tracking, and continuous OOD anomaly detection (DR−I ) is computationally intensive. Consequently, our overall system control frequency naturally bounds to 2 Hz. Notably, this rate identically matches the frequency of our human teleoperation data collection, naturally aligning the model’s temporal execution with the expert demonstrations. We intentionally accept this inference speed to prioritize the synchronous and stable execution of all heavy subsystems. This design choice directly aligns with our primary research objective: achieving reliable, highly accurate recovery from severe OOD disturbances, rather than optimizing for high-speed dynamic manipulation. Because our evaluated tasks (e.g., Stack Blocks , Pour Tea ) de-mand precise spatial reasoning and alignment rather than split-second reactive motions, the 2 Hz frequency proves entirely sufficient. Furthermore, the inher-ent temporal smoothing provided by our action chunking mechanism ( N = 8 
+
+executed steps per cycle) perfectly bridges the gap between consecutive network queries, yielding smooth, robust, and physically stable closed-loop execution. 
+
+Visual Processing and Point Cloud Downsampling The primary visual observation is captured via a static Intel RealSense L515 camera. To achieve the required real-time processing speed, we implement a highly efficient two-stage point cloud downsampling pipeline: Dream Diffusion Policy 23 Stack Blocks Pour Tea Press Button 
+
+Fig. 11: Failure modes of the DP3 tracking ablation. Real-world execution se-quences demonstrating how the baseline policy fails under severe Out-of-Distribution (OOD) spatial shifts, resulting in missing grasps, dropping objects, and imprecise press-ing (pressing the box after pressing the button). 
+
+1. Random Cropping: The raw depth camera captures approximately 240 , 000 
+
+points per frame. We first apply a random sub-sampling filter to drastically reduce this dense cloud to a manageable intermediate size of 10 , 000 points. 2. Farthest Point Sampling (FPS): We then apply FPS (accelerated via PyTorch3D) to extract a structurally uniform and geographically represen-tative final set of exactly 2, 048 points. This optimized two-stage pipeline executes in just ∼ 15 ms on the GPU, suc-cessfully feeding high-quality geometric features into the 3D encoder without introducing bottleneck latency. 24 Ziou Hu, Xiangtong Yao et al. 
+
+Algorithm 2: DDP Inference with Target-Specific Recovery 
+
+Input: Visual Encoder Eψ , Policy πθ , World Model Wϕ, Pose Estimator 
+
+Input: Subtasks S = {S1, . . . , S J }, Expected ID poses pexp , Threshold τdif f 
+
+1 OOD_Mode ← False , Cdisp ← ∅ , Ocurr ← Eψ (X0
+
+real );
+
+2 for subtask Sj ∈ S targeting object Cj do 
+
+3 while completion trigger Tend (Sj ) is False do 
+
+4 Otreal ← Eψ (Xtreal );
+
+// 1. OOD Detection & Tracking 
+
+5 if not OOD_Mode then 
+
+6 Otpred ← W ϕ(Ot−1
+
+real , at−1);
+
+7 DR−I (t) ← ∥ Otreal − Otpred ∥22;
+
+8 if DR−I (t) > τ dif f then 
+
+9 OOD_Mode ← True , Cdisp ← Identify displaced objects; 
+
+10 if Cj ∈ C disp then 
+
+11 Execute tracking action atrack j = pCj − pexp Cj ;
+
+12 Ocurr ← Otpred ; // Enter Imagination 
+
+13 else 
+
+14 Ocurr ← Otreal ; // Nominal ID Reality // 2. Action Execution & Recursive Imagination 
+
+15 at ∼ πθ (· | Ocurr ), Execute action chunk at;
+
+16 if OOD_Mode then 
+
+17 Ocurr ← W ϕ(Ocurr , at) ; // Autoregressive Forecast 
+
+18 t ← t + 1 ;
+
+// 3. Target-Specific Recovery 
+
+19 if OOD_Mode and Cj ∈ C disp then 
+
+20 Execute recovery action arec j = pCj − pexp Cj ;
+
+21 Cdisp ← C disp \ { Cj };
+
+// Re-evaluate ID State 
+
+22 DR−I (t) ← ∥ Eψ (Xtreal ) − W ϕ(Ocurr , at−1)∥22;
+
+23 if DR−I (t) ≤ τdif f then 
+
+24 OOD_Mode ← False ; // Return to Reality 
+
+Table 3: Detailed OOD Disturbance Parameters for MetaWorld Tasks. The displacement vector ∆P is represented as [dx, dy, dz ] in meters.

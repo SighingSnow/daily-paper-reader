@@ -1,0 +1,1478 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-24T20:30:53.919483+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 43,
+    "deep_cap": 7,
+    "deep_selected": 24,
+    "quick_candidates": 39,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.20278v1",
+      "title": "OpenResearcher: A Fully Open Pipeline for Long-Horizon Deep Research Trajectory Synthesis",
+      "abstract": "Training deep research agents requires long-horizon trajectories that interleave search, evidence aggregation, and multi-step reasoning. However, existing data collection pipelines typically rely on proprietary web APIs, making large-scale trajectory synthesis costly, unstable, and difficult to reproduce. We present OpenResearcher, a reproducible pipeline that decouples one-time corpus bootstrapping from multi-turn trajectory synthesis and executes the search-and-browse loop entirely offline using three explicit browser primitives: search, open, and find, over a 15M-document corpus. Using GPT-OSS-120B as the teacher model, we synthesize over 97K trajectories, including a substantial long-horizon tail with 100+ tool calls. Supervised fine-tuning a 30B-A3B backbone on these trajectories achieves 54.8\\% accuracy on BrowseComp-Plus, a +34.0 point improvement over the base model, while remaining competitive on BrowseComp, GAIA, and xbench-DeepSearch. Because the environment is offline and fully instrumented, it also enables controlled analysis, where our study reveals practical insights into deep research pipeline design, including data filtering strategies, agent configuration choices, and how retrieval success relates to final answer accuracy. We release the pipeline, synthesized trajectories, model checkpoints, and the offline search environment at https://github.com/TIGER-AI-Lab/OpenResearcher.",
+      "authors": [
+        "Zhuofeng Li",
+        "Dongfu Jiang",
+        "Xueguang Ma",
+        "Haoxiang Zhang",
+        "Ping Nie",
+        "Yuyu Zhang",
+        "Kai Zou",
+        "Jianwen Xie",
+        "Yu Zhang",
+        "Wenhu Chen"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-17T20:10:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.20278v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Research agents with search-and-browse loop for trajectory synthesis",
+      "llm_evidence_cn": "研究智能体使用搜索浏览循环合成轨迹",
+      "llm_evidence": "研究智能体使用搜索浏览循环合成轨迹",
+      "canonical_evidence": "研究智能体使用搜索浏览循环合成轨迹",
+      "llm_tldr_en": "Presents OpenResearcher pipeline for training deep research agents with search capabilities.",
+      "llm_tldr_cn": "提出OpenResearcher管道，用于训练具备搜索能力的深度研究智能体。",
+      "llm_tldr": "提出OpenResearcher管道，用于训练具备搜索能力的深度研究智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21430v1",
+      "title": "DomAgent: Leveraging Knowledge Graphs and Case-Based Reasoning for Domain-Specific Code Generation",
+      "abstract": "Large language models (LLMs) have shown impressive capabilities in code generation. However, because most LLMs are trained on public domain corpora, directly applying them to real-world software development often yields low success rates, as these scenarios frequently require domain-specific knowledge. In particular, domain-specific tasks usually demand highly specialized solutions, which are often underrepresented or entirely absent in the training data of generic LLMs. To address this challenge, we propose DomAgent, an autonomous coding agent that bridges this gap by enabling LLMs to generate domain-adapted code through structured reasoning and targeted retrieval. A core component of DomAgent is DomRetriever, a novel retrieval module that emulates how humans learn domain-specific knowledge, by combining conceptual understanding with experiential examples. It dynamically integrates top-down knowledge-graph reasoning with bottom-up case-based reasoning, enabling iterative retrieval and synthesis of structured knowledge and representative cases to ensure contextual relevance and broad task coverage. DomRetriever can operate as part of DomAgent or independently with any LLM for flexible domain adaptation. We evaluate DomAgent on an open benchmark dataset in the data science domain (DS-1000) and further apply it to real-world truck software development tasks. Experimental results show that DomAgent significantly enhances domain-specific code generation, enabling small open-source models to close much of the performance gap with large proprietary LLMs in complex, real-world applications. The code is available at: https://github.com/Wangshuaiia/DomAgent.",
+      "authors": [
+        "Shuai Wang",
+        "Dhasarathy Parthasarathy",
+        "Robert Feldt",
+        "Yinan Yu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-22T22:39:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.21430v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "autonomous coding agent for domain-specific code generation",
+      "llm_evidence_cn": "领域特定代码生成的自主编程智能体",
+      "llm_evidence": "领域特定代码生成的自主编程智能体",
+      "canonical_evidence": "领域特定代码生成的自主编程智能体",
+      "llm_tldr_en": "Proposes DomAgent, an autonomous coding agent leveraging knowledge graphs and case-based reasoning for domain-adapted code generation.",
+      "llm_tldr_cn": "提出利用知识图谱和案例推理的自主编程智能体生成领域适配代码。",
+      "llm_tldr": "提出利用知识图谱和案例推理的自主编程智能体生成领域适配代码。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15359v1",
+      "title": "NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation",
+      "abstract": "Social navigation requires robots to act safely in dynamic human environments. Effective behavior demands thinking ahead: reasoning about how the scene and pedestrians evolve under different robot actions rather than reacting to current observations alone. This creates a coupled prediction-planning challenge, where robot actions and human motion mutually influence each other. To address this challenge, we propose NavThinker, a future-aware framework that couples an action-conditioned world model with on-policy reinforcement learning. The world model operates in the Depth Anything V2 patch feature space and performs autoregressive prediction of future scene geometry and human motion; multi-head decoders then produce future depth maps and human trajectories, yielding a future-aware state aligned with traversability and interaction risk. Crucially, we train the policy with DD-PPO while injecting world-model think-ahead signals via: (i) action-conditioned future features fused into the current observation embedding and (ii) social reward shaping from predicted human trajectories. Experiments on single- and multi-robot Social-HM3D show state-of-the-art navigation success, with zero-shot transfer to Social-MP3D and real-world deployment on a Unitree Go2, validating generalization and practical applicability. Webpage: https://github.com/hutslib/NavThinker.",
+      "authors": [
+        "Tianshuai Hu",
+        "Zeying Gong",
+        "Lingdong Kong",
+        "XiaoDong Mei",
+        "Yiyi Ding",
+        "Qi Zeng",
+        "Ao Liang",
+        "Rong Li",
+        "Yangyi Zhong",
+        "Junwei Liang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-16T14:37:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.15359v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "action-conditioned world model for navigation",
+      "llm_evidence_cn": "用于导航的动作条件世界模型",
+      "llm_evidence": "用于导航的动作条件世界模型",
+      "canonical_evidence": "用于导航的动作条件世界模型",
+      "llm_tldr_en": "NavThinker couples action-conditioned world model with RL for social navigation planning.",
+      "llm_tldr_cn": "NavThinker将动作条件世界模型与RL结合用于社交导航规划。",
+      "llm_tldr": "NavThinker将动作条件世界模型与RL结合用于社交导航规划。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15583v1",
+      "title": "Grounding World Simulation Models in a Real-World Metropolis",
+      "abstract": "What if a world simulation model could render not an imagined environment but a city that actually exists? Prior generative world models synthesize visually plausible yet artificial environments by imagining all content. We present Seoul World Model (SWM), a city-scale world model grounded in the real city of Seoul. SWM anchors autoregressive video generation through retrieval-augmented conditioning on nearby street-view images. However, this design introduces several challenges, including temporal misalignment between retrieved references and the dynamic target scene, limited trajectory diversity and data sparsity from vehicle-mounted captures at sparse intervals. We address these challenges through cross-temporal pairing, a large-scale synthetic dataset enabling diverse camera trajectories, and a view interpolation pipeline that synthesizes coherent training videos from sparse street-view images. We further introduce a Virtual Lookahead Sink to stabilize long-horizon generation by continuously re-grounding each chunk to a retrieved image at a future location. We evaluate SWM against recent video world models across three cities: Seoul, Busan, and Ann Arbor. SWM outperforms existing methods in generating spatially faithful, temporally consistent, long-horizon videos grounded in actual urban environments over trajectories reaching hundreds of meters, while supporting diverse camera movements and text-prompted scenario variations.",
+      "authors": [
+        "Junyoung Seo",
+        "Hyunwook Choi",
+        "Minkyung Kwon",
+        "Jinhyeok Choi",
+        "Siyoon Jin",
+        "Gayoung Lee",
+        "Junho Kim",
+        "JoungBin Lee",
+        "Geonmo Gu",
+        "Dongyoon Han",
+        "Sangdoo Yun",
+        "Seungryong Kim",
+        "Jin-Hwa Kim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T17:46:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.15583v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "City-scale world model grounded in real-world metropolis",
+      "llm_evidence_cn": "基于真实城市的城市级世界模型",
+      "llm_evidence": "基于真实城市的城市级世界模型",
+      "canonical_evidence": "基于真实城市的城市级世界模型",
+      "llm_tldr_en": "Presents Seoul World Model, a city-scale world simulation grounded in real Seoul via retrieval-augmented conditioning.",
+      "llm_tldr_cn": "提出首尔世界模型，通过检索增强条件实现基于真实城市的城市级世界模拟。",
+      "llm_tldr": "提出首尔世界模型，通过检索增强条件实现基于真实城市的城市级世界模拟。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15759v1",
+      "title": "Simulation Distillation: Pretraining World Models in Simulation for Rapid Real-World Adaptation",
+      "abstract": "Simulation-to-real transfer remains a central challenge in robotics, as mismatches between simulated and real-world dynamics often lead to failures. While reinforcement learning offers a principled mechanism for adaptation, existing sim-to-real finetuning methods struggle with exploration and long-horizon credit assignment in the low-data regimes typical of real-world robotics. We introduce Simulation Distillation (SimDist), a sim-to-real framework that distills structural priors from a simulator into a latent world model and enables rapid real-world adaptation via online planning and supervised dynamics finetuning. By transferring reward and value models directly from simulation, SimDist provides dense planning signals from raw perception without requiring value learning during deployment. As a result, real-world adaptation reduces to short-horizon system identification, avoiding long-horizon credit assignment and enabling fast, stable improvement. Across precise manipulation and quadruped locomotion tasks, SimDist substantially outperforms prior methods in data efficiency, stability, and final performance. Project website and code: https://sim-dist.github.io/",
+      "authors": [
+        "Jacob Levy",
+        "Tyler Westenbroek",
+        "Kevin Huang",
+        "Fernando Palafox",
+        "Patrick Yin",
+        "Shayegan Omidshafiei",
+        "Dong-Ki Kim",
+        "Abhishek Gupta",
+        "David Fridovich-Keil"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-16T18:00:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.15759v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Pretraining latent world models with value models for sim-to-real transfer",
+      "llm_evidence_cn": "预训练潜在世界模型用于仿真到现实迁移",
+      "llm_evidence": "预训练潜在世界模型用于仿真到现实迁移",
+      "canonical_evidence": "预训练潜在世界模型用于仿真到现实迁移",
+      "llm_tldr_en": "Introduces SimDist framework that distills simulation priors into world models for rapid robot adaptation.",
+      "llm_tldr_cn": "提出SimDist框架，将仿真先验蒸馏到世界模型中实现快速机器人适应。",
+      "llm_tldr": "提出SimDist框架，将仿真先验蒸馏到世界模型中实现快速机器人适应。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17240v1",
+      "title": "GigaWorld-Policy: An Efficient Action-Centered World--Action Model",
+      "abstract": "World-Action Models (WAM) initialized from pre-trained video generation backbones have demonstrated remarkable potential for robot policy learning. However, existing approaches face two critical bottlenecks that hinder performance and deployment. First, jointly reasoning over future visual dynamics and corresponding actions incurs substantial inference overhead. Second, joint modeling often entangles visual and motion representations, making motion prediction accuracy heavily dependent on the quality of future video forecasts. To address these issues, we introduce GigaWorld-Policy, an action-centered WAM that learns 2D pixel-action dynamics while enabling efficient action decoding, with optional video generation. Specifically, we formulate policy training into two coupled components: the model predicts future action sequences conditioned on the current observation, and simultaneously generates future videos conditioned on the predicted actions and the same observation. The policy is supervised by both action prediction and video generation, providing richer learning signals and encouraging physically plausible actions through visual-dynamics constraints. With a causal design that prevents future-video tokens from influencing action tokens, explicit future-video generation is optional at inference time, allowing faster action prediction during deployment. To support this paradigm, we curate a diverse, large-scale robot dataset to pre-train an action-centered video generation model, which is then adapted as the backbone for robot policy learning. Experimental results on real-world robotic platforms show that GigaWorld-Policy runs 9x faster than the leading WAM baseline, Motus, while improving task success rates by 7%. Moreover, compared with pi-0.5, GigaWorld-Policy improves performance by 95% on RoboTwin 2.0.",
+      "authors": [
+        "Angen Ye",
+        "Boyuan Wang",
+        "Chaojun Ni",
+        "Guan Huang",
+        "Guosheng Zhao",
+        "Hao Li",
+        "Hengtao Li",
+        "Jie Li",
+        "Jindi Lv",
+        "Jingyu Liu",
+        "Min Cao",
+        "Peng Li",
+        "Qiuping Deng",
+        "Wenjun Mei",
+        "Xiaofeng Wang",
+        "Xinze Chen",
+        "Xinyu Zhou",
+        "Yang Wang",
+        "Yifan Chang",
+        "Yifan Li",
+        "Yukun Zhou",
+        "Yun Ye",
+        "Zhichao Liu",
+        "Zheng Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T00:52:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17240v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Action-centered World-Action Model for efficient robot policy learning",
+      "llm_evidence_cn": "面向高效机器人策略学习的动作中心世界-动作模型",
+      "llm_evidence": "面向高效机器人策略学习的动作中心世界-动作模型",
+      "canonical_evidence": "面向高效机器人策略学习的动作中心世界-动作模型",
+      "llm_tldr_en": "Introduces efficient action-centered world model for robot policy learning with decoupled dynamics.",
+      "llm_tldr_cn": "提出解耦动力学的动作中心世界模型，用于高效机器人策略学习。",
+      "llm_tldr": "提出解耦动力学的动作中心世界模型，用于高效机器人策略学习。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17375v1",
+      "title": "Stereo World Model: Camera-Guided Stereo Video Generation",
+      "abstract": "We present StereoWorld, a camera-conditioned stereo world model that jointly learns appearance and binocular geometry for end-to-end stereo video generation.Unlike monocular RGB or RGBD approaches, StereoWorld operates exclusively within the RGB modality, while simultaneously grounding geometry directly from disparity. To efficiently achieve consistent stereo generation, our approach introduces two key designs: (1) a unified camera-frame RoPE that augments latent tokens with camera-aware rotary positional encoding, enabling relative, view- and time-consistent conditioning while preserving pretrained video priors via a stable attention initialization; and (2) a stereo-aware attention decomposition that factors full 4D attention into 3D intra-view attention plus horizontal row attention, leveraging the epipolar prior to capture disparity-aligned correspondences with substantially lower compute. Across benchmarks, StereoWorld improves stereo consistency, disparity accuracy, and camera-motion fidelity over strong monocular-then-convert pipelines, achieving more than 3x faster generation with an additional 5% gain in viewpoint consistency. Beyond benchmarks, StereoWorld enables end-to-end binocular VR rendering without depth estimation or inpainting, enhances embodied policy learning through metric-scale depth grounding, and is compatible with long-video distillation for extended interactive stereo synthesis.",
+      "authors": [
+        "Yang-Tian Sun",
+        "Zehuan Huang",
+        "Yifan Niu",
+        "Lin Ma",
+        "Yan-Pei Cao",
+        "Yuewen Ma",
+        "Xiaojuan Qi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T05:42:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.17375v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "camera-conditioned stereo world model for video generation",
+      "llm_evidence_cn": "相机条件立体世界模型用于视频生成",
+      "llm_evidence": "相机条件立体世界模型用于视频生成",
+      "canonical_evidence": "相机条件立体世界模型用于视频生成",
+      "llm_tldr_en": "Presents StereoWorld, a stereo world model that jointly learns appearance and binocular geometry for end-to-end stereo video generation.",
+      "llm_tldr_cn": "提出StereoWorld立体世界模型，联合学习外观和双目几何进行视频生成。",
+      "llm_tldr": "提出StereoWorld立体世界模型，联合学习外观和双目几何进行视频生成。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17420v1",
+      "title": "From Digital Twins to World Models:Opportunities, Challenges, and Applications for Mobile Edge General Intelligence",
+      "abstract": "The rapid evolution toward 6G and beyond communication systems is accelerating the convergence of digital twins and world models at the network edge. Traditional digital twins provide high-fidelity representations of physical systems and support monitoring, analysis, and offline optimization. However, in highly dynamic edge environments, they face limitations in autonomy, adaptability, and scalability. This paper presents a systematic survey of the transition from digital twins to world models and discusses its role in enabling edge general intelligence (EGI). First, the paper clarifies the conceptual differences between digital twins and world models and highlights the shift from physics-based, centralized, and system-centric replicas to data-driven, decentralized, and agent-centric internal models. This discussion helps readers gain a clear understanding of how this transition enables more adaptive, autonomous, and resource-efficient intelligence at the network edge. The paper reviews the design principles, architectures, and key components of world models, including perception, latent state representation, dynamics learning, imagination-based planning, and memory. In addition, it examines the integration of world models and digital twins in wireless EGI systems and surveys emerging applications in integrated sensing and communications, semantic communication, air-ground networks, and low-altitude wireless networks. Finally, this survey provides a systematic roadmap and practical insights for designing world-model-driven edge intelligence systems in wireless and edge computing environments. It also outlines key research challenges and future directions toward scalable, reliable, and interoperable world models for edge-native agentic AI.",
+      "authors": [
+        "Jie Zheng",
+        "Dusit Niyato",
+        "Changyuan Zhao",
+        "Jiawen Kang",
+        "Jiacheng Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-18T06:54:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.17420v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Systematic survey of transition from digital twins to world models for edge intelligence",
+      "llm_evidence_cn": "从数字孪生到世界模型转型的系统综述，用于边缘智能",
+      "llm_evidence": "从数字孪生到世界模型转型的系统综述，用于边缘智能",
+      "canonical_evidence": "从数字孪生到世界模型转型的系统综述，用于边缘智能",
+      "llm_tldr_en": "Surveys the transition from digital twins to world models and their role in enabling edge general intelligence for 6G systems.",
+      "llm_tldr_cn": "综述从数字孪生到世界模型的转型及其在6G边缘通用智能中的作用。",
+      "llm_tldr": "综述从数字孪生到世界模型的转型及其在6G边缘通用智能中的作用。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17652v1",
+      "title": "VectorWorld: Efficient Streaming World Model via Diffusion Flow on Vector Graphs",
+      "abstract": "Closed-loop evaluation of autonomous-driving policies requires interactive simulation beyond log replay. However, existing generative world models often degrade in closed loop due to (i) history-free initialization that mismatches policy inputs, (ii) multi-step sampling latency that violates real-time budgets, and (iii) compounding kinematic infeasibility over long horizons. We propose VectorWorld, a streaming world model that incrementally generates ego-centric $64 \\mathrm{m}\\times 64\\mathrm{m}$ lane--agent vector-graph tiles during rollout. VectorWorld aligns initialization with history-conditioned policies by producing a policy-compatible interaction state via a motion-aware gated VAE. It enables real-time outpainting via solver-free one-step masked completion with an edge-gated relational DiT trained with interval-conditioned MeanFlow and JVP-based large-step supervision. To stabilize long-horizon rollouts, we introduce $Δ$Sim, a physics-aligned non-ego (NPC) policy with hybrid discrete--continuous actions and differentiable kinematic logit shaping. On Waymo open motion and nuPlan, VectorWorld improves map-structure fidelity and initialization validity, and supports stable, real-time $1\\mathrm{km}+$ closed-loop rollouts (\\href{https://github.com/jiangchaokang/VectorWorld}{code}).",
+      "authors": [
+        "Chaokang Jiang",
+        "Desen Zhou",
+        "Jiuming Liu",
+        "Kevin Li Sun"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-03-18T12:13:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.17652v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "streaming world model for autonomous driving simulation",
+      "llm_evidence_cn": "自动驾驶仿真的流式世界模型",
+      "llm_evidence": "自动驾驶仿真的流式世界模型",
+      "canonical_evidence": "自动驾驶仿真的流式世界模型",
+      "llm_tldr_en": "Proposes VectorWorld, an efficient streaming world model via diffusion flow on vector graphs for real-time autonomous driving simulation.",
+      "llm_tldr_cn": "提出基于向量图扩散流的高效流式世界模型用于自动驾驶仿真。",
+      "llm_tldr": "提出基于向量图扩散流的高效流式世界模型用于自动驾驶仿真。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18464v1",
+      "title": "AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models",
+      "abstract": "Reinforcement learning (RL) for large-scale Vision-Language-Action (VLA) models faces significant challenges in computational efficiency and data acquisition. We propose AcceRL, a fully asynchronous and decoupled RL framework designed to eliminate synchronization barriers by physically isolating training, inference, and rollouts. Crucially, AcceRL is the first to integrate a plug-and-play, trainable world model into a distributed asynchronous RL pipeline to generate virtual experiences. Experiments on the LIBERO benchmark demonstrate that AcceRL achieves state-of-the-art (SOTA) performance. Systematically, it exhibits super-linear scaling in throughput and highly efficient hardware utilization. Algorithmically, the world-model-augmented variant delivers unprecedented sample efficiency and robust training stability in complex control tasks.",
+      "authors": [
+        "Chengxuan Lu",
+        "Shukuan Wang",
+        "Yanjie Li",
+        "Wei Liu",
+        "Shiji Jin",
+        "Fuyuan Qian",
+        "Peiming Li",
+        "Baigui Sun",
+        "Yang Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-19T03:50:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.18464v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World model framework integrated into RL pipeline for VLA models",
+      "llm_evidence_cn": "集成到VLA模型RL流水线的世界模型框架",
+      "llm_evidence": "集成到VLA模型RL流水线的世界模型框架",
+      "canonical_evidence": "集成到VLA模型RL流水线的世界模型框架",
+      "llm_tldr_en": "Proposes distributed RL framework with trainable world model for vision-language-action models.",
+      "llm_tldr_cn": "提出带有可训练世界模型的分布式RL框架用于视觉-语言-动作模型。",
+      "llm_tldr": "提出带有可训练世界模型的分布式RL框架用于视觉-语言-动作模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18464v2",
+      "title": "AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models",
+      "abstract": "Reinforcement learning (RL) for large-scale Vision-Language-Action (VLA) models faces significant challenges in computational efficiency and data acquisition. We propose AcceRL, a fully asynchronous and decoupled RL framework designed to eliminate synchronization barriers by physically isolating training, inference, and rollouts. Crucially, AcceRL is the first to integrate a plug-and-play, trainable world model into a distributed asynchronous RL pipeline to generate virtual experiences. Experiments on the LIBERO~\\cite{liu2023libero} benchmark demonstrate that AcceRL achieves state-of-the-art (SOTA) performance. Systematically, it exhibits super-linear scaling in throughput and highly efficient hardware utilization. Algorithmically, the world-model-augmented variant delivers unprecedented sample efficiency and robust training stability in complex control tasks. Code is publicly available at https://github.com/distanceLu/AcceRL.",
+      "authors": [
+        "Chengxuan Lu",
+        "Shukuan Wang",
+        "Yanjie Li",
+        "Wei Liu",
+        "Shiji Jin",
+        "Fuyuan Qian",
+        "Peiming Li",
+        "Baigui Sun",
+        "Yang Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-19T03:50:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.18464v2",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Distributed RL framework integrating trainable world model for VLA models",
+      "llm_evidence_cn": "集成可训练世界模型的视觉-语言-动作模型分布式强化学习框架",
+      "llm_evidence": "集成可训练世界模型的视觉-语言-动作模型分布式强化学习框架",
+      "canonical_evidence": "集成可训练世界模型的视觉-语言-动作模型分布式强化学习框架",
+      "llm_tldr_en": "Proposes asynchronous RL framework with plug-and-play world model for VLA model training.",
+      "llm_tldr_cn": "提出集成即插即用世界模型的异步强化学习框架，用于VLA模型训练。",
+      "llm_tldr": "提出集成即插即用世界模型的异步强化学习框架，用于VLA模型训练。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19201v2",
+      "title": "OmniVTA: Visuo-Tactile World Modeling for Contact-Rich Robotic Manipulation",
+      "abstract": "Contact-rich manipulation tasks, such as wiping and assembly, require accurate perception of contact forces, friction changes, and state transitions that cannot be reliably inferred from vision alone. Despite growing interest in visuo-tactile manipulation, progress is constrained by two persistent limitations: existing datasets are small in scale and narrow in task coverage, and current methods treat tactile signals as passive observations rather than using them to model contact dynamics or enable closed-loop control explicitly. In this paper, we present \\textbf{OmniViTac}, a large-scale visuo-tactile-action dataset comprising $21{,}000+$ trajectories across $86$ tasks and $100+$ objects, organized into six physics-grounded interaction patterns. Building on this dataset, we propose \\textbf{OmniVTA}, a world-model-based visuo-tactile manipulation framework that integrates four tightly coupled modules: a self-supervised tactile encoder, a two-stream visuo-tactile world model for predicting short-horizon contact evolution, a contact-aware fusion policy for action generation, and a 60Hz reflexive controller that corrects deviations between predicted and observed tactile signals in a closed loop. Real-robot experiments across all six interaction categories show that OmniVTA outperforms existing methods and generalizes well to unseen objects and geometric configurations, confirming the value of combining predictive contact modeling with high-frequency tactile feedback for contact-rich manipulation. All data, models, and code will be made publicly available on the project website at https://mrsecant.github.io/OmniVTA.",
+      "authors": [
+        "Yuhang Zheng",
+        "Songen Gu",
+        "Weize Li",
+        "Yupeng Zheng",
+        "Yujie Zang",
+        "Shuai Tian",
+        "Xiang Li",
+        "Ce Hao",
+        "Chen Gao",
+        "Si Liu",
+        "Haoran Li",
+        "Yilun Chen",
+        "Shuicheng Yan",
+        "Wenchao Ding"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T17:52:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.19201v2",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Visuo-tactile world modeling with large-scale dataset for robotic manipulation",
+      "llm_evidence_cn": "视觉触觉世界建模及大规模数据集用于机器人操作",
+      "llm_evidence": "视觉触觉世界建模及大规模数据集用于机器人操作",
+      "canonical_evidence": "视觉触觉世界建模及大规模数据集用于机器人操作",
+      "llm_tldr_en": "Presents OmniViTac dataset and world model for contact-rich robotic manipulation tasks.",
+      "llm_tldr_cn": "提出OmniViTac数据集和世界模型用于接触丰富的机器人操作任务。",
+      "llm_tldr": "提出OmniViTac数据集和世界模型用于接触丰富的机器人操作任务。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19979v1",
+      "title": "X-World: Controllable Ego-Centric Multi-Camera World Models for Scalable End-to-End Driving",
+      "abstract": "Scalable and reliable evaluation is increasingly critical in the end-to-end era of autonomous driving, where vision--language--action (VLA) policies directly map raw sensor streams to driving actions. Yet, current evaluation pipelines still rely heavily on real-world road testing, which is costly, biased toward limited scenario coverage, and difficult to reproduce. These challenges motivate a real-world simulator that can generate realistic future observations under proposed actions, while remaining controllable and stable over long horizons. We present X-World, an action-conditioned multi-camera generative world model that simulates future observations directly in video space. Given synchronized multi-view camera history and a future action sequence, X-World generates future multi-camera video streams that follow the commanded actions. To ensure reproducible and editable scene rollouts, X-World further supports optional controls over dynamic traffic agents and static road elements, and retains a text-prompt interface for appearance-level control (e.g., weather and time of day). Beyond world simulation, X-World also enables video style transfer by conditioning on appearance prompts while preserving the underlying action and scene dynamics. At the core of X-World is a multi-view latent video generator designed to explicitly encourage cross-view geometric consistency and temporal coherence under diverse control signals. Experiments show that X-World achieves high-quality multi-view video generation with (i) strong view consistency across cameras, (ii) stable temporal dynamics over long rollouts, and (iii) high controllability with strict action following and faithful adherence to optional scene controls. These properties make X-World a practical foundation for scalable and reproducible evaluation.",
+      "authors": [
+        "Chaoda Zheng",
+        "Sean Li",
+        "Jinhao Deng",
+        "Zhennan Wang",
+        "Shijia Chen",
+        "Liqiang Xiao",
+        "Ziheng Chi",
+        "Hongbin Lin",
+        "Kangjie Chen",
+        "Boyang Wang",
+        "Yu Zhang",
+        "Xianming Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-20T14:23:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.19979v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Action-conditioned multi-camera generative world model for autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶的动作条件多摄像头生成式世界模型",
+      "llm_evidence": "用于自动驾驶的动作条件多摄像头生成式世界模型",
+      "canonical_evidence": "用于自动驾驶的动作条件多摄像头生成式世界模型",
+      "llm_tldr_en": "Presents X-World, a controllable multi-camera world model for scalable end-to-end driving evaluation and simulation.",
+      "llm_tldr_cn": "提出X-World，用于可扩展端到端驾驶评估的可控多摄像头世界模型。",
+      "llm_tldr": "提出X-World，用于可扩展端到端驾驶评估的可控多摄像头世界模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20048v1",
+      "title": "Structured Latent Dynamics in Wireless CSI via Homomorphic World Models",
+      "abstract": "We introduce a self-supervised framework for learning predictive and structured representations of wireless channels by modeling the temporal evolution of channel state information (CSI) in a compact latent space. Our method casts the problem as a world modeling task and leverages the Joint Embedding Predictive Architecture (JEPA) to learn action-conditioned latent dynamics from CSI trajectories. To promote geometric consistency and compositionality, we parameterize transitions using homomorphic updates derived from Lie algebra, yielding a structured latent space that reflects spatial layout and user motion. Evaluations on the DICHASUS dataset show that our approach outperforms strong baselines in preserving topology and forecasting future embeddings across unseen environments. The resulting latent space enables metrically faithful channel charts, offering a scalable foundation for downstream applications such as mobility-aware scheduling, localization, and wireless scene understanding.",
+      "authors": [
+        "Salmane Naoumi",
+        "Mehdi Bennis",
+        "Marwa Chafii"
+      ],
+      "primary_category": "eess.SP",
+      "categories": [
+        "eess.SP",
+        "cs.LG"
+      ],
+      "published": "2026-03-20T15:32:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.20048v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "explicitly frames wireless CSI prediction as world modeling task using JEPA",
+      "llm_evidence_cn": "明确将无线CSI预测建模为世界模型任务，使用JEPA架构",
+      "llm_evidence": "明确将无线CSI预测建模为世界模型任务，使用JEPA架构",
+      "canonical_evidence": "明确将无线CSI预测建模为世界模型任务，使用JEPA架构",
+      "llm_tldr_en": "Introduces self-supervised world model framework for learning predictive representations of wireless channels.",
+      "llm_tldr_cn": "引入自监督世界模型框架，学习无线信道的预测性表示。",
+      "llm_tldr": "引入自监督世界模型框架，学习无线信道的预测性表示。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20432v1",
+      "title": "Coding Agents are Effective Long-Context Processors",
+      "abstract": "Large Language Models (LLMs) have demonstrated remarkable progress in scaling to access massive contexts. However, the access is via the latent and uninterpretable attention mechanisms, and LLMs fail to effective process long context, exhibiting significant performance degradation as context length increases. In this work, we study whether long-context processing can be externalized from latent attention into explicit, executable interactions, by allowing coding agents to organize text in file systems and manipulate it using its native tools. We evaluate off-the-shelf frontier coding agents as the general interface for tasks that require processing long contexts, including long-context reasoning, retrieval-augmented generation, and open-domain question answering with large-scale corpus contains up to three trillion tokens. Across multiple benchmarks, these agents outperform published state-of-the-art by 17.3% on average. We attribute this efficacy to two key factors: native tool proficiency, which enables agents to leverage executable code and terminal commands rather than passive semantic queries, and file system familiarity, which allows them to navigate massive text corpora as directory structures. These findings suggest that delegating long-context processing to coding agents offers an effective alternative to semantic search or context window scaling, opening new directions for long-context processing in LLMs.",
+      "authors": [
+        "Weili Cao",
+        "Xunjian Yin",
+        "Bhuwan Dhingra",
+        "Shuyan Zhou"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-20T19:03:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.20432v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Evaluates coding agents as general interface for long-context processing tasks",
+      "llm_evidence_cn": "评估编码智能体作为长上下文处理任务的通用接口",
+      "llm_evidence": "评估编码智能体作为长上下文处理任务的通用接口",
+      "canonical_evidence": "评估编码智能体作为长上下文处理任务的通用接口",
+      "llm_tldr_en": "Demonstrates that coding agents effectively externalize long-context processing through explicit file system operations and tools.",
+      "llm_tldr_cn": "证明编码智能体通过文件系统操作和工具有效外化长上下文处理。",
+      "llm_tldr": "证明编码智能体通过文件系统操作和工具有效外化长上下文处理。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20633v1",
+      "title": "Seed1.8 Model Card: Towards Generalized Real-World Agency",
+      "abstract": "We present Seed1.8, a foundation model aimed at generalized real-world agency: going beyond single-turn prediction to multi-turn interaction, tool use, and multi-step execution. Seed1.8 keeps strong LLM and vision-language performance while supporting a unified agentic interface-search, code generation and execution, and GUI interaction. For deployment, it offers latency- and cost-aware inference, including configurable thinking modes and optimized visual encoding for images and video. We report evaluations on standard benchmarks and application-aligned workflows spanning foundational skills, multimodal understanding, and agentic behavior. Seed1.8 is released to support further research and development on interactive, real-world use cases.",
+      "authors": [
+        "Bytedance Seed"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-21T04:03:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.20633v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Foundation model supporting search, code generation, and agentic interfaces",
+      "llm_evidence_cn": "支持搜索、代码生成和智能体接口的基础模型",
+      "llm_evidence": "支持搜索、代码生成和智能体接口的基础模型",
+      "canonical_evidence": "支持搜索、代码生成和智能体接口的基础模型",
+      "llm_tldr_en": "Presents Seed1.8, a foundation model for generalized real-world agency with unified agentic capabilities.",
+      "llm_tldr_cn": "发布Seed1.8基础模型，支持搜索、代码执行和GUI交互等通用智能体能力。",
+      "llm_tldr": "发布Seed1.8基础模型，支持搜索、代码执行和GUI交互等通用智能体能力。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20670v1",
+      "title": "Towards Intelligent Geospatial Data Discovery: a knowledge graph-driven multi-agent framework powered by large language models",
+      "abstract": "The rapid growth in the volume, variety, and velocity of geospatial data has created data ecosystems that are highly distributed, heterogeneous, and semantically inconsistent. Existing data catalogs, portals, and infrastructures still rely largely on keyword-based search with limited semantic support, which often fails to capture user intent and leads to weak retrieval performance. To address these challenges, this study proposes a knowledge graph-driven multi-agent framework for intelligent geospatial data discovery, powered by large language models. The framework introduces a unified geospatial metadata ontology as a semantic mediation layer to align heterogeneous metadata standards across platforms and constructs a geospatial metadata knowledge graph to explicitly model datasets and their multidimensional relationships. Building on the structured representation, the framework adopts a multi-agent collaborative architecture to perform intent parsing, knowledge graph retrieval, and answer synthesis, forming an interpretable and closed-loop discovery process from user queries to results. Results from representative use cases and performance evaluation show that the framework substantially improves intent matching accuracy, ranking quality, recall, and discovery transparency compared with traditional systems. This study advances geospatial data discovery toward a more semantic, intent-aware, and intelligent paradigm, providing a practical foundation for next-generation intelligent and autonomous spatial data infrastructures and contributing to the broader vision of Autonomous GIS.",
+      "authors": [
+        "Ruixiang Liu",
+        "Zhenlong Li",
+        "Ali Khosravi Kazazi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-03-21T06:16:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.20670v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent framework for intelligent data discovery",
+      "llm_evidence_cn": "智能数据发现的多智能体框架",
+      "llm_evidence": "智能数据发现的多智能体框架",
+      "canonical_evidence": "智能数据发现的多智能体框架",
+      "llm_tldr_en": "A knowledge graph-driven multi-agent framework for intelligent geospatial data discovery.",
+      "llm_tldr_cn": "知识图谱驱动的多智能体框架用于智能地理空间数据发现。",
+      "llm_tldr": "知识图谱驱动的多智能体框架用于智能地理空间数据发现。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20933v1",
+      "title": "AC4A: Access Control for Agents",
+      "abstract": "Large Language Model (LLM) agents combine the chat interaction capabilities of LLMs with the power to interact with external tools and APIs. This enables them to perform complex tasks and act autonomously to achieve user goals. However, current agent systems operate on an all-or-nothing basis: an agent either has full access to an API's capabilities and a web page's content, or it has no access at all. This coarse-grained approach forces users to trust agents with more capabilities than they actually need for a given task.   In this paper, we introduce AC4A, an access control framework for agents. As agents become more capable and autonomous, users need a way to limit what APIs or portions of web pages these agents can access, eliminating the need to trust them with everything an API or web page allows. Our goal with AC4A is to provide a framework for defining permissions that lets agents access only the resources they are authorized to access. AC4A works across both API-based and browser-based agents. It does not prescribe what permissions should be, but offers a flexible way to define and enforce them, making it practical for real-world systems.   AC4A works by creating permissions granting access to resources, drawing inspiration from established access control frameworks like the one for the Unix file system. Applications define their resources as hierarchies and provide a way to compute the necessary permissions at runtime needed for successful resource access. We demonstrate the usefulness of AC4A in enforcing permissions over real-world APIs and web pages through case studies. The source code of AC4A is available at https://github.com/reSHARMA/AC4A",
+      "authors": [
+        "Reshabh K Sharma",
+        "Dan Grossman"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.PL"
+      ],
+      "published": "2026-03-21T20:23:06+00:00",
+      "link": "https://arxiv.org/pdf/2603.20933v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Access control framework specifically designed for LLM agents",
+      "llm_evidence_cn": "专为LLM智能体设计的访问控制框架",
+      "llm_evidence": "专为LLM智能体设计的访问控制框架",
+      "canonical_evidence": "专为LLM智能体设计的访问控制框架",
+      "llm_tldr_en": "AC4A provides fine-grained access control framework for limiting agent API and web page access.",
+      "llm_tldr_cn": "AC4A提供细粒度访问控制框架限制智能体API和网页访问。",
+      "llm_tldr": "AC4A提供细粒度访问控制框架限制智能体API和网页访问。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21017v1",
+      "title": "Dreaming the Unseen: World Model-regularized Diffusion Policy for Out-of-Distribution Robustness",
+      "abstract": "Diffusion policies excel at visuomotor control but often fail catastrophically under severe out-of-distribution (OOD) disturbances, such as unexpected object displacements or visual corruptions. To address this vulnerability, we introduce the Dream Diffusion Policy (DDP), a framework that deeply integrates a diffusion world model into the policy's training objective via a shared 3D visual encoder. This co-optimization endows the policy with robust state-prediction capabilities. When encountering sudden OOD anomalies during inference, DDP detects the real-imagination discrepancy and actively abandons the corrupted visual stream. Instead, it relies on its internal \"imagination\" (autoregressively forecasted latent dynamics) to safely bypass the disruption, generating imagined trajectories before smoothly realigning with physical reality. Extensive evaluations demonstrate DDP's exceptional resilience. Notably, DDP achieves a 73.8% OOD success rate on MetaWorld (vs. 23.9% without predictive imagination) and an 83.3% success rate under severe real-world spatial shifts (vs. 3.3% without predictive imagination). Furthermore, as a stress test, DDP maintains a 76.7% real-world success rate even when relying entirely on open-loop imagination post-initialization.",
+      "authors": [
+        "Ziou Hu",
+        "Xiangtong Yao",
+        "Yuan Meng",
+        "Zhenshan Bing",
+        "Alois Knoll"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-22T02:30:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.21017v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Diffusion world model framework for policy training with latent dynamics prediction",
+      "llm_evidence_cn": "用于策略训练的扩散世界模型框架，具备潜在动力学预测能力",
+      "llm_evidence": "用于策略训练的扩散世界模型框架，具备潜在动力学预测能力",
+      "canonical_evidence": "用于策略训练的扩散世界模型框架，具备潜在动力学预测能力",
+      "llm_tldr_en": "Proposes Dream Diffusion Policy integrating world model for OOD robustness in visuomotor control.",
+      "llm_tldr_cn": "提出融合世界模型的扩散策略，提升视觉运动控制的分布外鲁棒性。",
+      "llm_tldr": "提出融合世界模型的扩散策略，提升视觉运动控制的分布外鲁棒性。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21340v1",
+      "title": "ARYA: A Physics-Constrained Composable & Deterministic World Model Architecture",
+      "abstract": "This paper presents ARYA, a composable, physics-constrained, deterministic world model architecture built on five foundational principles: nano models, composability, causal reasoning, determinism, and architectural AI safety. We demonstrate that ARYA satisfies all canonical world model requirements, including state representation, dynamic prediction, causal and physical awareness, temporal consistency, generalization, learnability, and planning and control. Unlike monolithic foundation models, the ARYA foundation model implements these capabilities through a hierarchical system-of-system-of-systems of specialized nano models, orchestrated by AARA (ARYA Autonomous Research Agent), an always-on cognitive daemon that executes a continuous sense-decide-act-learn loop. The nano model architecture provides linear scaling, sparse activation, selective untraining, and sub-20-second training cycles, resolving the traditional tension between capability and computational efficiency. A central contribution is the Unfireable Safety Kernel: an architecturally immutable safety boundary that cannot be disabled or circumvented by any system component, including its own self-improvement engine. This is not a social or ethical alignment statement; it is a technical framework ensuring human control persists as autonomy increases. Safety is an architectural constraint governing every operation, not a policy layer applied after the fact. We present formal alignment between ARYA's architecture and canonical world model requirements, and report summarizing its state-of-the-art performance across 6 of 9 competitive benchmarks head-to-head with GPT-5.2, Opus 4.6, and V-JEPA-2. All with zero neural network parameters, across seven active industry domain nodes spanning aerospace, pharma manufacturing, oil and gas, smart cities, biotech, defense, and medical devices.",
+      "authors": [
+        "Seth Dobrin",
+        "Lukasz Chmiel"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.DC"
+      ],
+      "published": "2026-03-22T17:46:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.21340v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "ARYA is a composable physics-constrained deterministic world model architecture with state representation and planning",
+      "llm_evidence_cn": "ARYA是可组合的物理约束确定性世界模型架构，包含状态表示和规划能力",
+      "llm_evidence": "ARYA是可组合的物理约束确定性世界模型架构，包含状态表示和规划能力",
+      "canonical_evidence": "ARYA是可组合的物理约束确定性世界模型架构，包含状态表示和规划能力",
+      "llm_tldr_en": "ARYA presents a composable world model architecture using nano models orchestrated by an autonomous agent.",
+      "llm_tldr_cn": "ARYA提出基于纳米模型的可组合世界模型架构，由自主智能体协调。",
+      "llm_tldr": "ARYA提出基于纳米模型的可组合世界模型架构，由自主智能体协调。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21546v1",
+      "title": "What Do World Models Learn in RL? Probing Latent Representations in Learned Environment Simulators",
+      "abstract": "World models learn to simulate environment dynamics from experience, enabling sample-efficient reinforcement learning. But what do these models actually represent internally? We apply interpretability techniques--including linear and nonlinear probing, causal interventions, and attention analysis--to two architecturally distinct world models: IRIS (discrete token transformer) and DIAMOND (continuous diffusion UNet), trained on Atari Breakout and Pong. Using linear probes, we find that both models develop linearly decodable representations of game state variables (object positions, scores), with MLP probes yielding only marginally higher R^2, confirming that these representations are approximately linear. Causal interventions--shifting hidden states along probe-derived directions--produce correlated changes in model predictions, providing evidence that representations are functionally used rather than merely correlated. Analysis of IRIS attention heads reveals spatial specialization: specific heads attend preferentially to tokens overlapping with game objects. Multi-baseline token ablation experiments consistently identify object-containing tokens as disproportionately important. Our findings provide interpretability evidence that learned world models develop structured, approximately linear internal representations of environment state across two games and two architectures.",
+      "authors": [
+        "Xinyu Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T04:00:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.21546v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "probing latent representations in world models",
+      "llm_evidence_cn": "探测世界模型的潜在表示",
+      "llm_evidence": "探测世界模型的潜在表示",
+      "canonical_evidence": "探测世界模型的潜在表示",
+      "llm_tldr_en": "Applies interpretability techniques to probe what world models learn in RL environments.",
+      "llm_tldr_cn": "应用可解释性技术探测世界模型在RL环境中学到的内容。",
+      "llm_tldr": "应用可解释性技术探测世界模型在RL环境中学到的内容。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22212v1",
+      "title": "Omni-WorldBench: Towards a Comprehensive Interaction-Centric Evaluation for World Models",
+      "abstract": "Video--based world models have emerged along two dominant paradigms: video generation and 3D reconstruction. However, existing evaluation benchmarks either focus narrowly on visual fidelity and text--video alignment for generative models, or rely on static 3D reconstruction metrics that fundamentally neglect temporal dynamics. We argue that the future of world modeling lies in 4D generation, which jointly models spatial structure and temporal evolution. In this paradigm, the core capability is interactive response: the ability to faithfully reflect how interaction actions drive state transitions across space and time. Yet no existing benchmark systematically evaluates this critical dimension. To address this gap, we propose Omni--WorldBench, a comprehensive benchmark specifically designed to evaluate the interactive response capabilities of world models in 4D settings. Omni--WorldBench comprises two key components: Omni--WorldSuite, a systematic prompt suite spanning diverse interaction levels and scene types; and Omni--Metrics, an agent-based evaluation framework that quantifies world modeling capabilities by measuring the causal impact of interaction actions on both final outcomes and intermediate state evolution trajectories. We conduct extensive evaluations of 18 representative world models across multiple paradigms. Our analysis reveals critical limitations of current world models in interactive response, providing actionable insights for future research. Omni-WorldBench will be publicly released to foster progress in interactive 4D world modeling.",
+      "authors": [
+        "Meiqi Wu",
+        "Zhixin Cai",
+        "Fufangchen Zhao",
+        "Xiaokun Feng",
+        "Rujing Dang",
+        "Bingze Song",
+        "Ruitian Tian",
+        "Jiashu Zhu",
+        "Jiachen Lei",
+        "Hao Dou",
+        "Jing Tang",
+        "Lei Sun",
+        "Jiahong Wu",
+        "Xiangxiang Chu",
+        "Zeming Liu",
+        "Kaiqi Huang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-23T17:10:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.22212v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "comprehensive benchmark for world model evaluation",
+      "llm_evidence_cn": "世界模型综合评估基准",
+      "llm_evidence": "世界模型综合评估基准",
+      "canonical_evidence": "世界模型综合评估基准",
+      "llm_tldr_en": "Introduces Omni-WorldBench, a comprehensive interaction-centric evaluation benchmark for video-based world models.",
+      "llm_tldr_cn": "提出世界模型综合评估基准，专注于交互响应能力评测。",
+      "llm_tldr": "提出世界模型综合评估基准，专注于交互响应能力评测。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22281v1",
+      "title": "ThinkJEPA: Empowering Latent World Models with Large Vision-Language Reasoning Model",
+      "abstract": "Recent progress in latent world models (e.g., V-JEPA2) has shown promising capability in forecasting future world states from video observations. Nevertheless, dense prediction from a short observation window limits temporal context and can bias predictors toward local, low-level extrapolation, making it difficult to capture long-horizon semantics and reducing downstream utility. Vision--language models (VLMs), in contrast, provide strong semantic grounding and general knowledge by reasoning over uniformly sampled frames, but they are not ideal as standalone dense predictors due to compute-driven sparse sampling, a language-output bottleneck that compresses fine-grained interaction states into text-oriented representations, and a data-regime mismatch when adapting to small action-conditioned datasets. We propose a VLM-guided JEPA-style latent world modeling framework that combines dense-frame dynamics modeling with long-horizon semantic guidance via a dual-temporal pathway: a dense JEPA branch for fine-grained motion and interaction cues, and a uniformly sampled VLM \\emph{thinker} branch with a larger temporal stride for knowledge-rich guidance. To transfer the VLM's progressive reasoning signals effectively, we introduce a hierarchical pyramid representation extraction module that aggregates multi-layer VLM representations into guidance features compatible with latent prediction. Experiments on hand-manipulation trajectory prediction show that our method outperforms both a strong VLM-only baseline and a JEPA-predictor baseline, and yields more robust long-horizon rollout behavior.",
+      "authors": [
+        "Haichao Zhang",
+        "Yijiang Li",
+        "Shwai He",
+        "Tushar Nagarajan",
+        "Mingfei Chen",
+        "Jianglin Lu",
+        "Ang Li",
+        "Yun Fu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-03-23T17:59:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.22281v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Latent world models empowered by vision-language reasoning",
+      "llm_evidence_cn": "视觉语言推理增强的潜在世界模型",
+      "llm_evidence": "视觉语言推理增强的潜在世界模型",
+      "canonical_evidence": "视觉语言推理增强的潜在世界模型",
+      "llm_tldr_en": "Enhances latent world models with vision-language reasoning for long-horizon semantic prediction.",
+      "llm_tldr_cn": "用视觉语言推理增强潜在世界模型以实现长程语义预测。",
+      "llm_tldr": "用视觉语言推理增强潜在世界模型以实现长程语义预测。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22286v1",
+      "title": "WorldCache: Content-Aware Caching for Accelerated Video World Models",
+      "abstract": "Diffusion Transformers (DiTs) power high-fidelity video world models but remain computationally expensive due to sequential denoising and costly spatio-temporal attention. Training-free feature caching accelerates inference by reusing intermediate activations across denoising steps; however, existing methods largely rely on a Zero-Order Hold assumption i.e., reusing cached features as static snapshots when global drift is small. This often leads to ghosting artifacts, blur, and motion inconsistencies in dynamic scenes. We propose \\textbf{WorldCache}, a Perception-Constrained Dynamical Caching framework that improves both when and how to reuse features. WorldCache introduces motion-adaptive thresholds, saliency-weighted drift estimation, optimal approximation via blending and warping, and phase-aware threshold scheduling across diffusion steps. Our cohesive approach enables adaptive, motion-consistent feature reuse without retraining. On Cosmos-Predict2.5-2B evaluated on PAI-Bench, WorldCache achieves \\textbf{2.3$\\times$} inference speedup while preserving \\textbf{99.4\\%} of baseline quality, substantially outperforming prior training-free caching approaches. Our code can be accessed on \\href{https://umair1221.github.io/World-Cache/}{World-Cache}.",
+      "authors": [
+        "Umair Nawaz",
+        "Ahmed Heakl",
+        "Ufaq Khan",
+        "Abdelrahman Shaker",
+        "Salman Khan",
+        "Fahad Shahbaz Khan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-23T17:59:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.22286v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Accelerating video world models with caching framework",
+      "llm_evidence_cn": "用缓存框架加速视频世界模型",
+      "llm_evidence": "用缓存框架加速视频世界模型",
+      "canonical_evidence": "用缓存框架加速视频世界模型",
+      "llm_tldr_en": "Proposes WorldCache, a caching framework to accelerate video world model inference.",
+      "llm_tldr_cn": "提出WorldCache缓存框架加速视频世界模型推理。",
+      "llm_tldr": "提出WorldCache缓存框架加速视频世界模型推理。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.14941v1",
+      "title": "RS-WorldModel: a Unified Model for Remote Sensing Understanding and Future Sense Forecasting",
+      "abstract": "Remote sensing world models aim to both explain observed changes and forecast plausible futures, two tasks that share spatiotemporal priors. Existing methods, however, typically address them separately, limiting cross-task transfer. We present RS-WorldModel, a unified world model for remote sensing that jointly handles spatiotemporal change understanding and text-guided future scene forecasting, and we build RSWBench-1.1M, a 1.1 million sample dataset with rich language annotations covering both tasks. RS-WorldModel is trained in three stages: (1) Geo-Aware Generative Pre-training (GAGP) conditions forecasting on geographic and acquisition metadata; (2) synergistic instruction tuning (SIT) jointly trains understanding and forecasting; (3) verifiable reinforcement optimization (VRO) refines outputs with verifiable, task-specific rewards. With only 2B parameters, RS-WorldModel surpasses open-source models up to 120$ \\times $ larger on most spatiotemporal change question-answering metrics. It achieves an FID of 43.13 on text-guided future scene forecasting, outperforming all open-source baselines as well as the closed-source Gemini-2.5-Flash Image (Nano Banana).",
+      "authors": [
+        "Linrui Xu",
+        "Zhongan Wang",
+        "Fei Shen",
+        "Gang Xu",
+        "Huiping Zhuang",
+        "Ming Li",
+        "Haifeng Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-16T07:45:15+00:00",
+      "link": "https://arxiv.org/pdf/2603.14941v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "RS-WorldModel introduces RSWBench-1.1M dataset with 1.1 million samples for world model training",
+      "llm_evidence_cn": "RS-WorldModel引入包含110万样本的RSWBench-1.1M数据集用于世界模型训练",
+      "llm_evidence": "RS-WorldModel引入包含110万样本的RSWBench-1.1M数据集用于世界模型训练",
+      "canonical_evidence": "RS-WorldModel引入包含110万样本的RSWBench-1.1M数据集用于世界模型训练",
+      "llm_tldr_en": "RS-WorldModel unifies remote sensing understanding and forecasting with a 1.1M sample dataset.",
+      "llm_tldr_cn": "RS-WorldModel统一遥感理解与预测，构建110万样本数据集。",
+      "llm_tldr": "RS-WorldModel统一遥感理解与预测，构建110万样本数据集。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.14938v1",
+      "title": "FAR-Drive: Frame-AutoRegressive Video Generation in Closed-Loop Autonomous Driving",
+      "abstract": "Despite rapid progress in autonomous driving, reliable training and evaluation of driving systems remain fundamentally constrained by the lack of scalable and interactive simulation environments. Recent generative video models achieve remarkable visual fidelity, yet most operate in open-loop settings and fail to support fine-grained frame-level interaction between agent actions and environment evolution. Building a learning-based closed-loop simulator for autonomous driving poses three major challenges: maintaining long-horizon temporal and cross-view consistency, mitigating autoregressive degradation under iterative self-conditioning, and satisfying low-latency inference constraints. In this work, we propose FAR-Drive, a frame-level autoregressive video generation framework for autonomous driving. We introduce a multi-view diffusion transformer with fine-grained structured control, enabling geometrically consistent multi-camera generation. To address long-horizon consistency and iterative degradation, we design a two-stage training strategy consisting of adaptive reference horizon conditioning and blend-forcing autoregressive training, which progressively improves consistency and robustness under self-conditioning. To meet low-latency interaction requirements, we further integrate system-level efficiency optimizations for inference acceleration. Experiments on the nuScenes dataset demonstrate that our method achieves state-of-the-art performance among existing closed-loop autonomous driving simulation approaches, while maintaining sub-second latency on a single GPU.",
+      "authors": [
+        "Yaoru Li",
+        "Federico Landi",
+        "Marco Godi",
+        "Xin Jin",
+        "Ruiju Fu",
+        "Yufei Ma",
+        "Muyang Sun",
+        "Heyu Si",
+        "Qi Guo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T07:40:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.14938v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "closed-loop world model simulator for autonomous driving",
+      "llm_evidence_cn": "自动驾驶闭环世界模型仿真器",
+      "llm_evidence": "自动驾驶闭环世界模型仿真器",
+      "canonical_evidence": "自动驾驶闭环世界模型仿真器",
+      "llm_tldr_en": "Proposes FAR-Drive, a frame-level autoregressive video generation model for closed-loop autonomous driving simulation.",
+      "llm_tldr_cn": "提出帧级自回归视频生成模型用于自动驾驶闭环仿真。",
+      "llm_tldr": "提出帧级自回归视频生成模型用于自动驾驶闭环仿真。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.15599v1",
+      "title": "SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval",
+      "abstract": "Recent conversational memory systems invest heavily in LLM-based structuring at ingestion time and learned retrieval policies at query time. We show that neither is necessary. SmartSearch retrieves from raw, unstructured conversation history using a fully deterministic pipeline: NER-weighted substring matching for recall, rule-based entity discovery for multi-hop expansion, and a CrossEncoder+ColBERT rank fusion stage -- the only learned component -- running on CPU in ~650ms. Oracle analysis on two benchmarks identifies a compilation bottleneck: retrieval recall reaches 98.6%, but without intelligent ranking only 22.5% of gold evidence survives truncation to the token budget. With score-adaptive truncation and no per-dataset tuning, SmartSearch achieves 93.5% on LoCoMo and 88.4% on LongMemEval-S, exceeding all known memory systems under the same evaluation protocol on both benchmarks while using 8.5x fewer tokens than full-context baselines.",
+      "authors": [
+        "Jesper Derehag",
+        "Carlos Calva",
+        "Timmy Ghiurau"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-16T17:53:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.15599v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "conversational memory retrieval system with deterministic search pipeline",
+      "llm_evidence_cn": "具有确定性搜索流程的对话记忆检索系统",
+      "llm_evidence": "具有确定性搜索流程的对话记忆检索系统",
+      "canonical_evidence": "具有确定性搜索流程的对话记忆检索系统",
+      "llm_tldr_en": "Proposes SmartSearch, a deterministic pipeline for conversational memory retrieval that outperforms LLM-based structuring approaches.",
+      "llm_tldr_cn": "提出SmartSearch，一种确定性对话记忆检索流程，优于基于LLM的结构化方法。",
+      "llm_tldr": "提出SmartSearch，一种确定性对话记忆检索流程，优于基于LLM的结构化方法。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.14948v1",
+      "title": "Bridging Scene Generation and Planning: Driving with World Model via Unifying Vision and Motion Representation",
+      "abstract": "End-to-end autonomous driving aims to generate safe and plausible planning policies from raw sensor input. Driving world models have shown great potential in learning rich representations by predicting the future evolution of a driving scene. However, existing driving world models primarily focus on visual scene representation, and motion representation is not explicitly designed to be planner-shared and inheritable, leaving a schism between the optimization of visual scene generation and the requirements of precise motion planning. We present WorldDrive, a holistic framework that couples scene generation and real-time planning via unifying vision and motion representation. We first introduce a Trajectory-aware Driving World Model, which conditions on a trajectory vocabulary to enforce consistency between visual dynamics and motion intentions, enabling the generation of diverse and plausible future scenes conditioned on a specific trajectory. We transfer the vision and motion encoders to a downstream Multi-modal Planner, ensuring the driving policy operates on mature representations pre-optimized by scene generation. A simple interaction between motion representation, visual representation, and ego status can generate high-quality, multi-modal trajectories. Furthermore, to exploit the world model's foresight, we propose a Future-aware Rewarder, which distills future latent representation from the frozen world model to evaluate and select optimal trajectories in real-time. Extensive experiments on the NAVSIM, NAVSIM-v2, and nuScenes benchmarks demonstrate that WorldDrive achieves leading planning performance among vision-only methods while maintaining high-fidelity action-controlled video generation capabilities, providing strong evidence for the effectiveness of unifying vision and motion representation for robust autonomous driving.",
+      "authors": [
+        "Xingtai Gui",
+        "Meijie Zhang",
+        "Tianyi Yan",
+        "Wencheng Han",
+        "Jiahao Gong",
+        "Feiyang Tan",
+        "Cheng-zhong Xu",
+        "Jianbing Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T07:59:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.14948v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Driving world model unifying vision and motion representation",
+      "llm_evidence_cn": "统一视觉与运动表示的驾驶世界模型",
+      "llm_evidence": "统一视觉与运动表示的驾驶世界模型",
+      "canonical_evidence": "统一视觉与运动表示的驾驶世界模型",
+      "llm_tldr_en": "Presents WorldDrive, a framework coupling scene generation and planning via unified vision-motion representation.",
+      "llm_tldr_cn": "提出WorldDrive框架，通过统一视觉-运动表示连接场景生成与规划。",
+      "llm_tldr": "提出WorldDrive框架，通过统一视觉-运动表示连接场景生成与规划。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.16860v1",
+      "title": "DreamPlan: Efficient Reinforcement Fine-Tuning of Vision-Language Planners via Video World Models",
+      "abstract": "Robotic manipulation requires sophisticated commonsense reasoning, a capability naturally possessed by large-scale Vision-Language Models (VLMs). While VLMs show promise as zero-shot planners, their lack of grounded physical understanding often leads to compounding errors and low success rates when deployed in complex real-world environments, particularly for challenging tasks like deformable object manipulation. Although Reinforcement Learning (RL) can adapt these planners to specific task dynamics, directly fine-tuning VLMs via real-world interaction is prohibitively expensive, unsafe, and sample-inefficient. To overcome this bottleneck, we introduce DreamPlan, a novel framework for the reinforcement fine-tuning of VLM planners via video world models. Instead of relying on costly physical rollouts, DreamPlan first leverages the zero-shot VLM to collect exploratory interaction data. We demonstrate that this sub-optimal data is sufficient to train an action-conditioned video generation model, which implicitly captures complex real-world physics. Subsequently, the VLM planner is fine-tuned entirely within the \"imagination\" of this video world model using Odds Ratio Policy Optimization (ORPO). By utilizing these virtual rollouts, physical and task-specific knowledge is efficiently injected into the VLM. Our results indicate that DreamPlan bridges the gap between semantic reasoning and physical grounding, significantly improving manipulation success rates without the need for large-scale real-world data collection. Our project page is https://psi-lab.ai/DreamPlan/.",
+      "authors": [
+        "Emily Yue-Ting Jia",
+        "Weiduo Yuan",
+        "Tianheng Shi",
+        "Vitor Guizilini",
+        "Jiageng Mao",
+        "Yue Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-17T17:59:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.16860v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Video world models for reinforcement fine-tuning of VLM planners",
+      "llm_evidence_cn": "用于视觉语言规划器强化微调的视频世界模型",
+      "llm_evidence": "用于视觉语言规划器强化微调的视频世界模型",
+      "canonical_evidence": "用于视觉语言规划器强化微调的视频世界模型",
+      "llm_tldr_en": "Introduces a framework using video world models to efficiently fine-tune VLMs as robotic planners.",
+      "llm_tldr_cn": "提出利用视频世界模型高效微调视觉语言模型作为机器人规划器的框架。",
+      "llm_tldr": "提出利用视频世界模型高效微调视觉语言模型作为机器人规划器的框架。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.15722v1",
+      "title": "A Framework and Prototype for a Navigable Map of Datasets in Engineering Design and Systems Engineering",
+      "abstract": "The proliferation of data across the system lifecycle presents both a significant opportunity and a challenge for Engineering Design and Systems Engineering (EDSE). While this ``digital thread'' has the potential to drive innovation, the fragmented and inaccessible nature of existing datasets hinders method validation, limits reproducibility, and slows research progress. Unlike fields such as computer vision and natural language processing, which benefit from established benchmark ecosystems, engineering design research often relies on small, proprietary, or ad-hoc datasets. This paper addresses this challenge by proposing a systematic framework for a ``Map of Datasets in EDSE.'' The framework is built upon a multi-dimensional taxonomy designed to classify engineering datasets by domain, lifecycle stage, data type, and format, enabling faceted discovery. An architecture for an interactive discovery tool is detailed and demonstrated through a working prototype, employing a knowledge graph data model to capture rich semantic relationships between datasets, tools, and publications. An analysis of the current data landscape reveals underrepresented areas (``data deserts'') in early-stage design and system architecture, as well as relatively well-represented areas (``data oases'') in predictive maintenance and autonomous systems. The paper identifies key challenges in curation and sustainability and proposes mitigation strategies, laying the groundwork for a dynamic, community-driven resource to accelerate data-centric engineering research.",
+      "authors": [
+        "H. Sinan Bank",
+        "Daniel R. Herber"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CE",
+        "cs.DB",
+        "cs.DL"
+      ],
+      "published": "2026-03-16T17:08:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.15722v1",
+      "tags": [
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Framework for organizing datasets in engineering design",
+      "llm_evidence_cn": "工程设计领域数据集组织框架",
+      "llm_evidence": "工程设计领域数据集组织框架",
+      "canonical_evidence": "工程设计领域数据集组织框架",
+      "llm_tldr_en": "Proposes navigable map framework for organizing fragmented engineering design datasets.",
+      "llm_tldr_cn": "提出用于组织碎片化工程设计数据集的可导航地图框架。",
+      "llm_tldr": "提出用于组织碎片化工程设计数据集的可导航地图框架。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.15359v2",
+      "title": "NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation",
+      "abstract": "Social navigation requires robots to act safely in dynamic human environments. Effective behavior demands thinking ahead: reasoning about how the scene and pedestrians evolve under different robot actions rather than reacting to current observations alone. This creates a coupled prediction-planning challenge, where robot actions and human motion mutually influence each other. To address this challenge, we propose NavThinker, a future-aware framework that couples an action-conditioned world model with on-policy reinforcement learning. The world model operates in the Depth Anything V2 patch feature space and performs autoregressive prediction of future scene geometry and human motion; multi-head decoders then produce future depth maps and human trajectories, yielding a future-aware state aligned with traversability and interaction risk. Crucially, we train the policy with DD-PPO while injecting world-model think-ahead signals via: (i) action-conditioned future features fused into the current observation embedding and (ii) social reward shaping from predicted human trajectories. Experiments on single- and multi-robot Social-HM3D show state-of-the-art navigation success, with zero-shot transfer to Social-MP3D and real-world deployment on a Unitree Go2, validating generalization and practical applicability. Webpage: https://hutslib.github.io/NavThinker.",
+      "authors": [
+        "Tianshuai Hu",
+        "Zeying Gong",
+        "Lingdong Kong",
+        "XiaoDong Mei",
+        "Yiyi Ding",
+        "Qi Zeng",
+        "Ao Liang",
+        "Rong Li",
+        "Yangyi Zhong",
+        "Junwei Liang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-16T14:37:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.15359v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "NavThinker couples action-conditioned world model with RL for prediction and planning",
+      "llm_evidence_cn": "NavThinker将动作条件世界模型与强化学习结合用于预测与规划",
+      "llm_evidence": "NavThinker将动作条件世界模型与强化学习结合用于预测与规划",
+      "canonical_evidence": "NavThinker将动作条件世界模型与强化学习结合用于预测与规划",
+      "llm_tldr_en": "NavThinker uses action-conditioned world models for coupled prediction-planning in social navigation.",
+      "llm_tldr_cn": "NavThinker使用动作条件世界模型实现社交导航的预测规划耦合。",
+      "llm_tldr": "NavThinker使用动作条件世界模型实现社交导航的预测规划耦合。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.16871v1",
+      "title": "WorldCam: Interactive Autoregressive 3D Gaming Worlds with Camera Pose as a Unifying Geometric Representation",
+      "abstract": "Recent advances in video diffusion transformers have enabled interactive gaming world models that allow users to explore generated environments over extended horizons. However, existing approaches struggle with precise action control and long-horizon 3D consistency. Most prior works treat user actions as abstract conditioning signals, overlooking the fundamental geometric coupling between actions and the 3D world, whereby actions induce relative camera motions that accumulate into a global camera pose within a 3D world. In this paper, we establish camera pose as a unifying geometric representation to jointly ground immediate action control and long-term 3D consistency. First, we define a physics-based continuous action space and represent user inputs in the Lie algebra to derive precise 6-DoF camera poses, which are injected into the generative model via a camera embedder to ensure accurate action alignment. Second, we use global camera poses as spatial indices to retrieve relevant past observations, enabling geometrically consistent revisiting of locations during long-horizon navigation. To support this research, we introduce a large-scale dataset comprising 3,000 minutes of authentic human gameplay annotated with camera trajectories and textual descriptions. Extensive experiments show that our approach substantially outperforms state-of-the-art interactive gaming world models in action controllability, long-horizon visual quality, and 3D spatial consistency.",
+      "authors": [
+        "Jisu Nam",
+        "Yicong Hong",
+        "Chun-Hao Paul Huang",
+        "Feng Liu",
+        "JoungBin Lee",
+        "Jiyoung Kim",
+        "Siyoon Jin",
+        "Yunsung Lee",
+        "Jaeyoon Jung",
+        "Suhwan Choi",
+        "Seungryong Kim",
+        "Yang Zhou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T17:59:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.16871v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Interactive gaming world model with camera pose representation",
+      "llm_evidence_cn": "基于相机姿态表示的交互式游戏世界模型",
+      "llm_evidence": "基于相机姿态表示的交互式游戏世界模型",
+      "canonical_evidence": "基于相机姿态表示的交互式游戏世界模型",
+      "llm_tldr_en": "Presents WorldCam, using camera pose as unifying representation for action control and 3D consistency in world models.",
+      "llm_tldr_cn": "提出WorldCam，以相机姿态作为统一表示实现世界模型的动作控制与3D一致性。",
+      "llm_tldr": "提出WorldCam，以相机姿态作为统一表示实现世界模型的动作控制与3D一致性。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.16091v1",
+      "title": "CounterRefine: Answer-Conditioned Counterevidence Retrieval for Inference-Time Knowledge Repair in Factual Question Answering",
+      "abstract": "In factual question answering, many errors are not failures of access but failures of commitment: the system retrieves relevant evidence, yet still settles on the wrong answer. We present CounterRefine, a lightweight inference-time repair layer for retrieval-grounded question answering. CounterRefine first produces a short answer from retrieved evidence, then gathers additional support and conflicting evidence with follow-up queries conditioned on that draft answer, and finally applies a restricted refinement step that outputs either KEEP or REVISE, with proposed revisions accepted only if they pass deterministic validation. In effect, CounterRefine turns retrieval into a mechanism for testing a provisional answer rather than merely collecting more context. On the full SimpleQA benchmark, CounterRefine improves a matched GPT-5 Baseline-RAG by 5.8 points and reaches a 73.1 percent correct rate, while exceeding the reported one-shot GPT-5.4 score by roughly 40 points. These findings suggest a simple but important direction for knowledgeable foundation models: beyond accessing evidence, they should also be able to use that evidence to reconsider and, when necessary, repair their own answers.",
+      "authors": [
+        "Tianyi Huang",
+        "Ying Kai Deng"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T03:27:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.16091v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Retrieval-based QA with follow-up queries for evidence gathering",
+      "llm_evidence_cn": "基于检索的问答系统，使用后续查询收集证据",
+      "llm_evidence": "基于检索的问答系统，使用后续查询收集证据",
+      "canonical_evidence": "基于检索的问答系统，使用后续查询收集证据",
+      "llm_tldr_en": "An inference-time repair layer for retrieval-grounded QA using answer-conditioned counterevidence retrieval.",
+      "llm_tldr_cn": "基于答案条件反证检索的推理时修复层，用于检索增强问答。",
+      "llm_tldr": "基于答案条件反证检索的推理时修复层，用于检索增强问答。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.16862v1",
+      "title": "Chronos: Temporal-Aware Conversational Agents with Structured Event Retrieval for Long-Term Memory",
+      "abstract": "Recent advances in Large Language Models (LLMs) have enabled conversational AI agents to engage in extended multi-turn interactions spanning weeks or months. However, existing memory systems struggle to reason over temporally grounded facts and preferences that evolve across months of interaction and lack effective retrieval strategies for multi-hop, time-sensitive queries over long dialogue histories. We introduce Chronos, a novel temporal-aware memory framework that decomposes raw dialogue into subject-verb-object event tuples with resolved datetime ranges and entity aliases, indexing them in a structured event calendar alongside a turn calendar that preserves full conversational context. At query time, Chronos applies dynamic prompting to generate tailored retrieval guidance for each question, directing the agent on what to retrieve, how to filter across time ranges, and how to approach multi-hop reasoning through an iterative tool-calling loop over both calendars. We evaluate Chronos with 8 LLMs, both open-source and closed-source, on the LongMemEvalS benchmark comprising 500 questions spanning six categories of dialogue history tasks. Chronos Low achieves 92.60% and Chronos High scores 95.60% accuracy, setting a new state of the art with an improvement of 7.67% over the best prior system. Ablation results reveal the events calendar accounts for a 58.9% gain on the baseline while all other components yield improvements between 15.5% and 22.3%. Notably, Chronos Low alone surpasses prior approaches evaluated under their strongest model configurations.",
+      "authors": [
+        "Sahil Sen",
+        "Elias Lumer",
+        "Anmol Gulati",
+        "Vamse Kumar Subbiah"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-17T17:59:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.16862v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Conversational AI agents with temporal-aware memory framework",
+      "llm_evidence_cn": "具有时间感知记忆框架的对话智能体",
+      "llm_evidence": "具有时间感知记忆框架的对话智能体",
+      "canonical_evidence": "具有时间感知记忆框架的对话智能体",
+      "llm_tldr_en": "Introduces Chronos framework for conversational agents with structured event retrieval.",
+      "llm_tldr_cn": "提出Chronos框架，支持对话智能体的结构化事件检索。",
+      "llm_tldr": "提出Chronos框架，支持对话智能体的结构化事件检索。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17240v2",
+      "title": "GigaWorld-Policy: An Efficient Action-Centered World--Action Model",
+      "abstract": "World-Action Models (WAM) initialized from pre-trained video generation backbones have demonstrated remarkable potential for robot policy learning. However, existing approaches face two critical bottlenecks that hinder performance and deployment. First, jointly reasoning over future visual dynamics and corresponding actions incurs substantial inference overhead. Second, joint modeling often entangles visual and motion representations, making motion prediction accuracy heavily dependent on the quality of future video forecasts. To address these issues, we introduce GigaWorld-Policy, an action-centered WAM that learns 2D pixel-action dynamics while enabling efficient action decoding, with optional video generation. Specifically, we formulate policy training into two coupled components: the model predicts future action sequences conditioned on the current observation, and simultaneously generates future videos conditioned on the predicted actions and the same observation. The policy is supervised by both action prediction and video generation, providing richer learning signals and encouraging physically plausible actions through visual-dynamics constraints. With a causal design that prevents future-video tokens from influencing action tokens, explicit future-video generation is optional at inference time, allowing faster action prediction during deployment. To support this paradigm, we curate a diverse, large-scale robot dataset to pre-train an action-centered video generation model, which is then adapted as the backbone for robot policy learning. Experimental results on real-world robotic platforms show that GigaWorld-Policy runs 9x faster than the leading WAM baseline, Motus, while improving task success rates by 7%. Moreover, compared with pi-0.5, GigaWorld-Policy improves performance by 95% on RoboTwin 2.0.",
+      "authors": [
+        "Angen Ye",
+        "Boyuan Wang",
+        "Chaojun Ni",
+        "Guan Huang",
+        "Guosheng Zhao",
+        "Hao Li",
+        "Hengtao Li",
+        "Jie Li",
+        "Jindi Lv",
+        "Jingyu Liu",
+        "Min Cao",
+        "Peng Li",
+        "Qiuping Deng",
+        "Wenjun Mei",
+        "Xiaofeng Wang",
+        "Xinze Chen",
+        "Xinyu Zhou",
+        "Yang Wang",
+        "Yifan Chang",
+        "Yifan Li",
+        "Yukun Zhou",
+        "Yun Ye",
+        "Zhichao Liu",
+        "Zheng Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T00:52:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17240v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "World-Action Model for robot policy learning with efficient action decoding",
+      "llm_evidence_cn": "世界-动作模型用于机器人策略学习，支持高效动作解码",
+      "llm_evidence": "世界-动作模型用于机器人策略学习，支持高效动作解码",
+      "canonical_evidence": "世界-动作模型用于机器人策略学习，支持高效动作解码",
+      "llm_tldr_en": "An action-centered world model enabling efficient policy learning with optional video generation.",
+      "llm_tldr_cn": "以动作为中心的世界模型，支持高效策略学习和可选视频生成。",
+      "llm_tldr": "以动作为中心的世界模型，支持高效策略学习和可选视频生成。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.16415v1",
+      "title": "IndexRAG: Bridging Facts for Cross-Document Reasoning at Index Time",
+      "abstract": "Multi-hop question answering (QA) requires reasoning across multiple documents, yet existing retrieval-augmented generation (RAG) approaches address this either through graph-based methods requiring additional online processing or iterative multi-step reasoning. We present IndexRAG, a novel approach that shifts cross-document reasoning from online inference to offline indexing. IndexRAG identifies bridge entities shared across documents and generates bridging facts as independently retrievable units, requiring no additional training or fine-tuning. Experiments on three widely-used multi-hop QA benchmarks (HotpotQA, 2WikiMultiHopQA, MuSiQue) show that IndexRAG improves F1 over Naive RAG by 4.6 points on average, while requiring only single-pass retrieval and a single LLM call at inference time. When combined with IRCoT, IndexRAG outperforms all graph-based baselines on average, including HippoRAG and FastGraphRAG, while relying solely on flat retrieval. Our code will be released upon acceptance.",
+      "authors": [
+        "Zhenghua Bao",
+        "Yi Shi"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-03-17T11:51:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.16415v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "RAG-based retrieval for multi-hop QA",
+      "llm_evidence_cn": "基于RAG的多跳问答检索",
+      "llm_evidence": "基于RAG的多跳问答检索",
+      "canonical_evidence": "基于RAG的多跳问答检索",
+      "llm_tldr_en": "IndexRAG shifts cross-document reasoning to offline indexing for efficient multi-hop QA retrieval.",
+      "llm_tldr_cn": "IndexRAG将跨文档推理移至离线索引阶段，实现高效多跳问答检索。",
+      "llm_tldr": "IndexRAG将跨文档推理移至离线索引阶段，实现高效多跳问答检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

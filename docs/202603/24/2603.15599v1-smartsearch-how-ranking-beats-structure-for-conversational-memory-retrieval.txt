@@ -1,0 +1,418 @@
+Title: SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval
+
+URL Source: https://arxiv.org/pdf/2603.15599v1
+
+Published Time: Tue, 17 Mar 2026 04:18:28 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+Jesper Derehag 1 Carlos Calva 1 Timmy Ghiurau 1
+
+## Abstract 
+
+Recent conversational memory systems invest heavily in LLM-based structuring at ingestion time and learned retrieval policies at query time. We show that neither is necessary. SmartSearch retrieves from raw, unstructured conversation his-tory using a fully deterministic pipeline: NER-weighted substring matching for recall, rule-based entity discovery for multi-hop expansion, and a CrossEncoder+ColBERT rank fusion stage— the only learned component—running on CPU in ∼650 ms. Oracle analysis on two bench-marks identifies a compilation bottleneck : re-trieval recall reaches 98.6%, but without intel-ligent ranking only 22.5% of gold evidence sur-vives truncation to the token budget. With score-adaptive truncation and no per-dataset tuning, SmartSearch achieves 93.5% on LoCoMo and 88.4% on LongMemEval-S, exceeding all known memory systems under the same evaluation proto-col on both benchmarks while using 8.5 × fewer tokens than full-context baselines. 
+
+## 1. Introduction 
+
+Large language model agents that maintain conversations over days or weeks face a fundamental challenge: context windows, even at 100K+ tokens (Anthropic, 2024; Reid et al., 2024), cannot encompass the full history of extended interactions. Recent memory systems address this through increasingly sophisticated architectures that deploy LLMs at two stages: 1. Memory structuring (ingestion time): Before any query arrives, systems use LLMs or learned mod-els to reorganize raw conversation into structured representations—consolidating episodes into abstract MemCells (Hu et al., 2026), clustering traces into nar-rative themes (Shu et al., 2026), maintaining dual-layer abstractions (Xia et al., 2026), or learning skill-based memory operations (Zhang et al., 2026a). This pre-processing is computationally expensive, but its cost       
+
+> 1Midbrain. Correspondence to: Jesper Derehag <jes-per@midbrain.ai>.
+
+is amortized and rarely reported alongside per-query token counts, making systems appear cheaper at query time than they are in total. 2. Query-time retrieval: At query time, many systems use LLMs to generate search queries, route across memory tiers, or iteratively refine results (Lewis et al., 2020; Gao et al., 2024). Each LLM call adds substan-tial latency and cost. Learned routing policies (Zhang et al., 2026b) require training data and GPU inference during search. SmartSearch does neither. It operates on raw, unstructured conversation history—no consolidation, no clustering, no abstraction layers—and performs search with no LLM in the loop. The motivation is a simple observation: when LLM agents are given shell access to search a filesystem (the setup that produces the strongest memory retrieval results), their search behavior is overwhelmingly deterministic—extract entities from the query, search for substrings, read the results. If the search strategy is deterministic, why pay for an LLM to execute it? We test this hypothesis directly. SmartSearch’s entire re-trieval pipeline is deterministic at search time: 1. Query understanding without LLMs: SpaCy NER/POS tagging extracts and weights search terms di-rectly from the query. No query generation, no learned embeddings, no API calls. 2. Multi-hop expansion without learned policies: 
+
+When the first retrieval hop returns results, rule-based NER discovers new entities (e.g., a person’s name men-tioned in a retrieved passage), which seed subsequent hops. No reinforcement learning, no trained router— just deterministic entity extraction on retrieved text. 3. Retrieval without GPU: NER-weighted substring matching handles 98.9% of oracle traces, running on CPU in milliseconds. The only ML component is a CrossEncoder reranker (mxbai-rerank-large-v1 , 435M parameters, De-BERTaV3) fused with ColBERT (Khattab & Zaharia, 2020) via Reciprocal Rank Fusion (RRF), applied after retrieval is 1
+
+> arXiv:2603.15599v1 [cs.LG] 16 Mar 2026 SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval
+
+complete to prioritize passages before token-budget trunca-tion. Both models are small enough to run on CPU; since they score independently, they execute in parallel with wall-clock latency ∼650 ms per query—no GPU required. On the LoCoMo benchmark, this architecture achieves 91.9% accuracy with 3,141 average tokens—8.5 × fewer than full-context baselines while scoring 14.8 pp higher. Or-acle analysis reveals why: raw retrieval recall is already 98.6%, but without intelligent ranking only 22.5% of gold evidence survives truncation to the token budget. The reranker bridges this compilation bottleneck .We make three contributions: 1. An LLM-free multi-hop retrieval architecture that uses NER-weighted substring matching for recall, rule-based entity discovery for hop expansion, and a lightweight CrossEncoder+ColBERT rank fusion stage as the only learned component. Both rerankers are small enough to run on CPU and score independently, enabling parallel execution ( ∼650 ms wall-clock, no GPU). Linguistic term weighting (POS/NER) replaces corpus-statistical weighting (BM25/IDF), and all ev-idence is collected in a single pass before any model inference. We further show that the oracle-derived insight—that substring matching resolves 98.9% of queries and learned tool routing is degenerate—enables a fully index-free variant that drops all precomputed indices (Section 3.4), operating on raw text files with 
+
+grep as the sole retrieval primitive. 2. Empirical validation on two benchmarks showing 91.9% accuracy on LoCoMo (Maharana et al., 2024) (∼9K-token conversations) with 8.5 × token efficiency versus full-context baselines, and competitive results on LongMemEval-S (Wu et al., 2024) ( ∼115K-token conversations), where the index-free variant with query expansion exceeds the indexed baseline. Systematic ablation across 27 configurations on LoCoMo traces the 7.2 pp improvement from baseline to final system. 3. A compilation bottleneck analysis demonstrating that the primary accuracy limiter is not retrieval quality but post-retrieval ranking—an insight confirmed on both short and long conversations, explaining why sophisti-cated search policies yield diminishing returns while query expansion and reranker quality yield large gains. 
+
+## 2. Related Work 
+
+2.1. Long-Context Memory Systems 
+
+A defining feature of recent memory systems is that they in-vest significant computation before any query arrives, using LLMs or learned models to restructure raw conversation into representations optimized for retrieval. This preprocessing cost is amortized across queries and typically unreported, so systems that appear to use few tokens at query time may rely on expensive ingestion pipelines. 
+
+LLM-structured memory: EverMemOS (Hu et al., 2026) uses an LLM agent to consolidate episodic memory into MemCells (atomic facts) and MemScenes (episode sum-maries), then performs agentic multi-round retrieval (BM25 + vector + exact match) at query time—achieving 92.3% on LoCoMo. Memora (Xia et al., 2026) maintains a dual-layer abstraction: LLM-generated abstract indices for routing and concrete memory values for detail. M2A (Feng et al., 2026) combines raw message logs with LLM-generated seman-tic memory. In each case, the LLM does the heavy lifting of deciding what is worth remembering and how to orga-nize it —a form of pre-query intelligence that is invisible in per-query token counts. 
+
+ML-structured memory: TraceMem (Shu et al., 2026) ap-plies hierarchical clustering to organize conversation traces into topological themes. MemSkill (Zhang et al., 2026a) learns to select and evolve memory skills (extraction, con-solidation, pruning). BudgetMem (Zhang et al., 2026b) learns routing policies across tiered memory modules with reinforcement learning. Locas (Lu et al., 2026) attaches parameter-efficient memory to FFN blocks. These ap-proaches use smaller ML models rather than full LLMs for structuring, but still require task-specific training data and GPU inference during ingestion or search. 
+
+Parametric memory: LongMem (Wang et al., 2023) aug-ments LLMs with learnable memory modules that absorb conversation into model parameters. These approaches re-quire careful regularization to prevent catastrophic forget-ting (Kirkpatrick et al., 2017). 
+
+SmartSearch’s position: SmartSearch operates on raw, unstructured conversation with no ingestion-time processing. The entire retrieval loop is deterministic; the only learned component is a CrossEncoder+ColBERT reranker applied 
+
+after retrieval to prioritize passages before truncation. The question is whether careful search and ranking over raw text can match systems that invest in structuring the memory itself. 
+
+2.2. Retrieval Methods Keyword search: Substring-based exact matching is fast but brittle. BM25 (Robertson & Zaragoza, 2009) provides probabilistic ranking and is the standard for keyword re-trieval. 
+
+Dense retrieval: Embedding-based methods such as DPR (Karpukhin et al., 2020) and ColBERT (Khattab & Zaharia, 2020) bridge vocabulary gaps but are slower and require pre-computed indices. Recent work (Li et al., 2026) 2SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+shows that listwise reranking with lightweight models out-performs pointwise scoring. 
+
+Hybrid approaches: Recent systems combine keyword and dense retrieval (Bruch et al., 2023; Luan et al., 2021). SmartSearch follows this trend with substring matching for recall and ColBERT for the vocabulary-gap tail, but replaces BM25’s corpus-statistical term weighting with linguistic weighting via NER/POS. 
+
+2.3. Multi-Hop Retrieval and Question Answering 
+
+Multi-hop reasoning has been studied extensively in open-domain QA. HotpotQA (Yang et al., 2018) established the benchmark for multi-hop questions requiring reasoning over multiple documents. Subsequent work developed iterative retrieval strategies: IRCoT (Trivedi et al., 2023) interleaves chain-of-thought reasoning with retrieval, using the LLM to generate intermediate queries. ITER-RETGEN (Shao et al., 2023) iteratively retrieves and generates to refine answers. Self-Ask (Press et al., 2023) decomposes complex questions into sub-questions answered sequentially. ReAct (Yao et al., 2023) combines reasoning traces with action steps for multi-hop retrieval. These approaches share a common pattern: they use the LLM as a query generator within the retrieval loop, effec-tively giving the LLM shell-like access to a search backend. Yet examining what the LLM actually does in this loop— extract entities from the query, search for them, read results, extract new entities—reveals that the behavior is largely de-terministic. SmartSearch replaces the LLM with rule-based NER over retrieved text, achieving multi-hop expansion at zero inference cost. Oracle analysis (Section 3.2) confirms this suffices: 97% of LoCoMo queries resolve in a single hop. 
+
+2.4. Retrieval-Augmented Generation 
+
+RAG (Lewis et al., 2020) established the paradigm of aug-menting LLMs with retrieved evidence. DPR (Karpukhin et al., 2020) introduced dense passage retrieval using dual encoders. Subsequent work has scaled RAG to long-context settings (Gao et al., 2024), introduced more sophisticated retrieval strategies (Asai et al., 2024), and explored active re-trieval where the model decides when to retrieve (Jiang et al., 2023). SmartSearch operates within the RAG paradigm but replaces the neural retriever with deterministic tools. 
+
+2.5. Reranking Cross-encoder reranking: Models like ms-marco-MiniLM-L-12-v2 (Reimers & Gurevych, 2019) score query-document pairs directly, achieving state-of-the-art ranking quality. These models are fine-tuned on MS MARCO (Nguyen et al., 2016), a large-scale passage ranking dataset. Li et al. (2026) show that ranking plays a critical role in long-context retrieval, validating Smart-Search’s use of reranking as a core component. 
+
+Listwise ranking: Recent work (Li et al., 2026) shows that ranking across entire candidate sets (listwise) outperforms pointwise ranking for long-context dialogue. 
+
+## 3. Method 
+
+SmartSearch is a retrieve-then-rank pipeline that operates on raw conversation text with no LLM in the retrieval loop (Fig-ure 1). The design has four stages: (1) parse the query into NER/POS-weighted terms, (2) retrieve candidates via sub-string matching with optional multi-hop expansion, (3) rank via CrossEncoder+ColBERT fusion, and (4) truncate to to-ken budget. Stages 1–2 are fully deterministic; Stage 3 is the only learned component. 
+
+3.1. Evaluation 
+
+We evaluate on two benchmarks: LoCoMo-10 (Maharana et al., 2024) (a 10-conversation, 1,540-question subset of the full 50-conversation LoCoMo dataset, ∼9K tokens per conversation, 4 non-adversarial question categories) and 
+
+LongMemEval-S (Wu et al., 2024) (500 questions across 
+
+∼115K-token conversation histories, 6 of 7 question types excluding abstention). LoCoMo provides passage-level gold evidence; on LongMemEval-S, per-passage gold labels were derived from per-turn answer annotations (479 questions with gold, median 2 gold passages). Unless noted, LoCoMo uses gpt-4o-mini as both answer LLM and judge (binary J-score); LongMemEval-S ablation studies use Claude Sonnet 4.6 as answer LLM and gpt-4o-mini as judge. Main results (Table 7) use gpt-4.1-mini as answer LLM and gpt-4o-mini as judge, matching the protocol of Hu et al. (2026) and Xia et al. (2026). 
+
+Cross-framework alignment. Published LoCoMo num-bers are not directly comparable because evaluation frame-works differ along multiple axes (Zheng et al., 2023; Wang et al., 2024): (i) answer LLM (gpt-4o-mini vs. gpt-4.1-mini), (ii) judge model and prompt (binary J-score vs. 7-step chain-of-thought rubric), (iii) answer prompt (direct vs. CoT), and (iv) dataset split (LoCoMo-10 vs. LoCoMo-5). The full-context baseline alone shifts from 77.1% to 91.2% across frameworks—a 14 pp swing with no retrieval change. Given these discrepancies, we report LoCoMo results under both our protocol and EverMemOS’s (Hu et al., 2026) protocol separately and never compare numbers across them. 
+
+3.2. Oracle Trace Derivation 
+
+To determine the minimum-cost retrieval strategy for each question, we model the retrieval space as a directed graph where nodes are search states and edges are (tool, term-3SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 1. Parse       
+
+> SpaCy NER/POS
+> Query
+> Weighted terms PROPN 3.0 | NOUN 2.0 | VERB 1.0 | NER +1.0
+> 2. Retrieve
+> Substring matching + multi-hop entity expansion
+> Semantic search fallback (1% of queries)
+> ∼400+ candidates
+> 3. Rank
+> CrossEncoder
+> mxbai-large-v1 435M, DeBERTaV3
+> ColBERT
+> answerai-small-v1 110M
+> parallel on CPU, ∼650 ms
+> RRF: Pwr/(k+ rank r)
+> 4. Truncate
+> Token budget fixed or score-adaptive
+> 3,141 avg tokens
+> Answer LLM
+> gpt-4o-mini
+> multi-hop
+
+Figure 1. SmartSearch pipeline. Stages 1–2 are fully deterministic; Stage 3 (Rank) is the only learned component, running two models in parallel on CPU. Dashed arrow: optional multi-hop entity expansion (3% of queries). 
+
+Table 1. Oracle trace analysis (LoCoMo, 1,317 traces) and ranking effect on both benchmarks. Mean gold rank: average position of the first gold passage among grep candidates. 
+
+Property LoCoMo LME-S 
+
+Hop distribution (oracle, LoCoMo only) 
+
+Single-hop 97.0% —Two-hop 2.8% —Three-hop 0.2% —
+
+Tool selection (oracle, LoCoMo only) 
+
+Resolved by grep 98.9% —Resolved by semantic search 1.0% —Resolved by grep (AND mode) 0.1% —
+
+Ranking effect 
+
+Total passages 601 494 Grep candidates 431 120 Mean gold rank (no reranker) 195 47 Mean gold rank (with CE) 8 2
+
+subset) actions with unit cost. Dijkstra’s algorithm yields the shortest path covering the gold evidence passages Gq —the optimal trace. The oracle never sees gold answers , only gold evidence passages , preventing answer leakage. We run oracle derivation on LoCoMo (Maharana et al., 2024), where passage-level gold annotations are available for 1,536 questions (1,317 successful traces, 85.7%). Table 1 summarizes the properties that motivate the pipeline design: retrieval is single-hop and grep-dominated, and the accuracy limiter is ranking, not search. The ranking effect generalizes across both benchmarks. 
+
+3.3. Parse and Retrieve Parse. SpaCy en_core_web_sm (Honnibal et al., 2020) extracts terms via POS tagging and NER. Terms are weighted by linguistic specificity: proper nouns (3.0) >
+
+nouns (2.0) > verbs (1.0), with a +1.0 bonus for named entities. This replaces BM25’s corpus-statistical weighting (IDF) with a linguistic signal: a speaker name appearing frequently in the conversation (low IDF) receives the highest weight because it is a proper noun and named entity. 
+
+Retrieve. The recall stage uses exact substring matching (grep ) over the NER-weighted terms. Substring match-ing has perfect recall for any passage containing the query term; precision is deferred entirely to ranking. For the 3% of queries requiring multiple hops, entity expansion runs SpaCy NER on retrieved passages to discover entities absent from the original query, then searches again with the new terms. A dense retrieval model serves as a fallback for the 
+
+∼1% of queries where substring matching fails due to vo-cabulary gaps (we use ColBERT (Khattab & Zaharia, 2020), but any embedding model filling this slot would suffice). 
+
+3.4. Query Expansion 
+
+Grep’s limitation is exact-match: when the query uses “ run ”and the corpus says “ ran ,” grep misses the match. Rather than morphological expansion (tested and rejected—noisy candidates cascade through multi-hop), SmartSearch uses two expansion mechanisms: • Entity discovery: After each hop, SpaCy NER ex-tracts person, organization, location, and event names from retrieved passages. New entities not in the origi-nal query become search terms (weight 2.5) for subse-quent hops. • Pseudo-relevance feedback (PRF): After main search hops, a PRF hop extracts frequent content words (nouns and proper nouns in ≥2 of the top-10 passages) and runs one additional grep pass with low match weight (0.5). These mechanisms produce an index-free variant that drops semantic retrieval entirely—no embedding index, no in-verted index—leaving grep as the sole retrieval primitive and a single CrossEncoder as the sole ranker. 
+
+3.5. Rank 
+
+Without reranking, the first gold passage sits at mean rank 195 (LoCoMo) or 47 (LME-S) among grep candidates—far beyond any reasonable token budget. CE reranking pushes gold to rank 8 and 2 respectively (Table 1). This compilation bottleneck motivates ranking as the core learned component. 4SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+The candidate set is scored by two complementary models running in parallel on CPU: • CrossEncoder: mxbai-rerank-large-v1 
+
+(435M, DeBERTaV3 (He et al., 2023)), fine-tuned on MS MARCO (Nguyen et al., 2016). Pointwise scoring via Sentence-Transformers (Reimers & Gurevych, 2019). • ColBERT: Late-interaction scoring (Khattab & Za-haria, 2020). Spearman ρ of 0.19–0.62 with the CrossEncoder, indicating complementary failure modes. Rankings are fused via Reciprocal Rank Fusion: RRF (d) = P 
+
+> r
+
+wr /(k + rank r (d)) with k=60 , wCE =0 .7, wCB =0 .3.Wall-clock time is max( CE , ColBERT ) ≈ 650 ms on CPU; no GPU required. 
+
+3.6. Truncate 
+
+The fused ranking must be truncated before the answer LLM sees it. The simplest strategy is a fixed word budget : include passages in rank order until a word limit is exhausted (de-fault 2,000 words, yielding 3,141 avg tokens on LoCoMo). This works well on short conversations where the budget covers most of the ranked list, but becomes a binding con-straint on longer corpora: on LongMemEval-S ( ∼115K to-kens), the budget fills entirely and session diversity—critical for temporal and multi-session questions—is limited by the fixed cutoff. An alternative is score-adaptive truncation . Given the CrossEncoder scores from the ranking stage, we define a fractional threshold τ = α · max d(CE (q, d )) , where 
+
+α ∈ (0 , 1) is a hyperparameter. Passages scoring below 
+
+τ are pruned before the budget is applied. The intuition is query-adaptive allocation: queries with a strong top match and steep score drop-off (easy queries) receive compact context, while queries with flat score curves (hard queries) retain more passages. To avoid over-pruning from long-tailed candidate sets, the threshold is applied after a top-K
+
+pre-selection step (e.g., K=60 by RRF score), restricting pruning to the high-scoring head. The choice between fixed-budget and score-adaptive trun-cation is a precision–coverage tradeoff that interacts with corpus scale. On short conversations, the fixed budget is near-optimal because few low-relevance passages enter the context. On longer conversations, score-adaptive truncation with a raised budget ceiling (e.g., 3,500 words) can improve session diversity without proportionally increasing noise. We evaluate both strategies in Section 4.3. 
+
+3.7. Experimental Setup 
+
+We evaluate SmartSearch predominantly through ablation: starting from the full pipeline, we isolate each stage’s con-            
+
+> Table 2. Ablation structure and naming scheme. Configura-tions are composites of retrieval, rank, and budget choices (e.g.,
+> I0-R5-B0 ). Section 4 tables vary one dimension and hold the others constant.
+> Stage Indexed Index-free
+> Retrieve InIF n
+> Rank
+> No reranker R0 . . . CrossEncoder + RRF Rn
+> Truncate
+> No budget B0 Fixed budget B1 Score-adaptive ( αthreshold) B2
+
+tribution by removing or substituting components. Table 2 summarizes the configurations compared in Section 4. All share the same Parse stage (SpaCy NER/POS weighting). The indexed pipeline uses ColBERT for both retrieval and ranking; the index-free variants drop ColBERT entirely, compensating with query expansion to broaden grep recall. The ranking ablation (Section 4.2) traces CrossEncoder model quality from no reranker (R0) through the final CrossEncoder + RRF configuration (R n). The truncation ablation (Section 4.3) compares fixed-budget and score-adaptive strategies. A full system configuration is a com-posite of these choices—for example, I0-R4-B1 denotes indexed retrieval, the fourth reranker variant, and fixed bud-get. The full configuration grid is in Appendix A. 
+
+## 4. Experiments 
+
+4.1. Experiments – Parse and Retrieve 
+
+The oracle analysis (Table 1) already motivates a grep-first architecture: 98.9% of traces resolve via exact sub-string matching, and only 1.0% require semantic retrieval. This means dropping the embedding index forfeits at most marginal recall. On LoCoMo, the index-free pipeline matches the indexed one closely (budget recall 0.960 vs. 0.967; J-score 91.0% vs. 91.9%); on LongMemEval-S the gap widens (78.4% vs. 81.2%) but the bottleneck remains ranking (mean gold rank 47 → 2 with a CrossEncoder; Table 1), not retrieval. 4.1.1. Q UERY EXPANSION 
+
+However, grep is exact-match: when the query says “ run ”and the corpus says “ ran ,” grep misses it. Morphologi-cal expansion (lemmatization, inflection lists) was tested and rejected—it introduces noisy candidates that cascade through multi-hop, degrading precision more than it helps recall. Instead, SmartSearch compensates with two term-5SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval                                                                     
+
+> Table 3. Query expansion ablation. ∆relative to the index-free baseline. Expansion is neutral on short conversations but strongly positive on long ones.
+> LoCoMo LME-S ID Config Acc. ∆Acc. ∆
+> I0-R5-B1 Indexed 91.9 —81.2 —IF0-R4-B1 Index-free 91.0 —78.4 —IF1-R4-B1 + PRF 90.9 −0.1 84.4 +6.0 IF2-R4-B1 + entity discovery 91.0 +0.1 79.8 +1.4 IF3-R4-B1 + both 90.7 −0.3 87.6 +9.2
+> Table 4. Ranking pipeline ablation on LoCoMo. Each row changes one factor. †Answer-prompt change, not a reranker change. Full 27-configuration table in Appendix A.
+> ID Configuration Acc. Tok. ∆
+> I0-R0-B1 No reranker 76.8 1,547 —I0-R1-B1 + MiniLM-L-12 (33M) 84.7 1,547 +7.9 I0-R1-B1 †+ Inference prompt †86.4 1,691 +1.7 I0-R2-B1 bge-base (278M) 88.6 3,203 +2.2 I0-R3-B1 bge-large (560M) 90.7 3,192 +2.1 I0-R4a-B1 + ColBERT RRF 91.2 3,196 +0.5
+> I0-R5-B1 mxbai-large + CB RRF 91.9 3,141 +0.7
+
+expansion mechanisms described in Section 3.4: pseudo-relevance feedback (PRF) and entity discovery. Both operate 
+
+after initial retrieval, broadening coverage without inflat-ing the first-hop candidate set. The result is an index-free pipeline—no embedding index, no inverted index—whose sole retrieval primitive is grep , with all precision deferred to the CrossEncoder ranker. Table 3 reveals a striking interaction between expansion and corpus scale. Expansion is scale-dependent: on short conversations (Lo-CoMo, ∼9K tokens) it is neutral ( ±0.3 pp), because the original query terms already cover most relevant passages. On long conversations (LongMemEval-S, ∼115K tokens), combined expansion yields +9.2 pp—super-additive over the individual mechanisms—with the largest gains on tem-poral questions (+12.8 pp), which require passages from multiple sessions to establish chronology. The index-free pipeline with expansion surpasses the indexed baseline (without expansion) by 6.4 pp on LongMemEval-S. When both pipelines use expansion, the gap narrows to 0.8 pp (Ta-ble 7), confirming that the expansion mechanisms—not the retrieval modality—drive the gains at scale. 
+
+4.2. Experiments – Rank 
+
+Table 4 traces the 15.1 pp improvement from no-reranker baseline to the final system on LoCoMo. Swapping MiniLM (33M) for bge-base (278M) yields +3.9 pp; upgrading to bge-large (560M) yields +6.0 pp to-tal. A controlled experiment at fixed budget attributes 63% of the bge-base gain to model quality and 37% to addi-tional context from threshold removal. Architecture matters more than scale: mxbai-base (184M, DeBERTaV3) recovers 89.0% of gold passages at top-62 versus bge-large (560M, XLM-R) at 87.4% (Appendix B). Fusing CrossEncoder with ColBERT via RRF adds +1.2 pp; their union recovers 92.2% of gold vs. 87.4% or 84.4% alone. Three-way RRF and score fusion underperform two-model RRF despite offline proxies predicting +1.7–2.7 pp (Appendix C). 
+
+4.3. Experiments – Truncate 
+
+4.3.1. T OKEN BUDGET 
+
+Table 5 (top) shows the effect of a single fixed word bud-get applied identically to both benchmarks. On LoCoMo, budget recall plateaus early: doubling the budget from 2K to 4K gains only +2.1 pp recall. On LongMemEval-S, the same budgets yield steeper gains (+12.3 pp from 1K to 4K), because the longer conversations contain more candidate passages competing for the budget. A fixed budget forces a tradeoff: 2K is near-optimal for LoCoMo (min recall .928, bottlenecked by LME-S) while 4K lifts LME-S to .973 but wastes tokens on LoCoMo where recall already plateaued. 4.3.2. S CORE -A DAPTIVE TRUNCATION 
+
+Score-adaptive truncation ( τ = α · max d CE (q, d ), applied after top-K pre-selection) replaces per-dataset budget tun-ing with a single universal configuration. Table 5 (bottom) sweeps α at a fixed budget ceiling of 4,000 words and top-
+
+K=60 , isolating the threshold effect. The adaptive threshold acts as query-dependent allocation: it automatically assigns fewer tokens to short conversations (where the candidate set is compact) and more to long ones (where broader coverage is needed). Evaluated as a single universal configuration, α=0 .03 achieves a worst-case re-call of .945 (LoCoMo) at an average of 2,891 tokens across both benchmarks. The closest fixed budget, 2K, uses fewer average tokens (2,705) but has a worse floor: .928 (LME-S). At α=0 .05 , the adaptive approach uses fewer average to-kens (2,470) than fixed 2K while still raising the recall floor to .936. The mechanism is near Pareto-optimal when the objective is maximizing worst-case recall across datasets at a given average token budget. 
+
+Negative results. Two alternative truncation strategies were tested and rejected. Cumulative-score pruning (removing passages once the running CE score sum exceeds a fixed ratio) costs −2.3 pp on LoCoMo: unlike the fractional α
+
+threshold, the fixed ratio cutoff does not adapt to per-query score distributions and prunes too aggressively. MMR di-6SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+Table 5. Truncation ablation (I0-R5 pipeline, simulated from offline score matrix). Top: fixed word budget; recall plateaus on LoCoMo but keeps improving on LME-S. Bottom: score-adaptive truncation with fixed budget ceiling 4,000 and top-K=60 , sweeping α; the threshold adaptively allocates fewer tokens on short corpora and more on long ones. All deltas relative to budget 1K / α=0 baseline. 
+
+LoCoMo LME-S Budget α Tokens Recall Tokens Recall 
+
+Fixed budget 
+
+1,000 — 1,458 .927 1,133 .850 2,000 — 2,967 (+104%) .958 (+3.1%) 2,443 (+116%) .928 (+7.8%) 
+
+3,000 — 4,495 (+208%) .972 (+4.5%) 3,740 (+230%) .959 (+10.9%) 
+
+4,000 — 6,038 (+314%) .979 (+5.2%) 5,043 (+345%) .973 (+12.3%) 
+
+Score-adaptive ( τ = α · max CE , budget 4K, top-K=60 )
+
+4,000 0.01 2,759 (+89%) .953 (+2.6%) 4,313 (+281%) .972 (+12.2%) 
+
+4,000 0.03 2,277 (+56%) .945 (+1.8%) 3,505 (+209%) .966 (+11.6%) 
+
+4,000 0.05 1,952 (+34%) .936 (+0.9%) 2,987 (+164%) .953 (+10.3%) 
+
+4,000 0.10 1,458 (+0%) .922 (−0.5%) 2,256 (+99%) .928 (+7.8%) 
+
+versity reranking before truncation also fails: CLS embed-dings have only 0.008 cosine gap between same-topic and different-topic passages, providing no useful diversity sig-nal. 
+
+4.4. Main Results 
+
+4.4.1. L OCOMO
+
+Table 6 reports performance under both evaluation frame-works (Section 3.1). Because published systems use incom-patible protocols (Section 7.2), the two groups should not be compared across the dividing line. 
+
+Overall accuracy. Under the EverMemOS protocol, Smart-Search achieves 93.5%, exceeding EverMemOS (92.3%) by 1.2 pp despite using no memory structuring and no LLM in the retrieval loop. Under the MemOS protocol, SmartSearch reaches 91.9% indexed and 91.0% index-free, exceeding the next-best system (Memora, 86.3%) by 5.6 pp. The index-free variant loses only 0.9 pp relative to the indexed pipeline, consistent with the oracle finding that 98.9% of queries resolve via grep (Table 1). 
+
+Category breakdown. The strongest category is open-ended questions (95.4–96.7%), where SmartSearch exceeds all competitors by >20 pp. Memory consolidation systems (EverMemOS 70.8%, Memora 59.4%) discard conversa-tional texture—tone, hedging, tangents—that open-ended questions probe; SmartSearch retrieves raw passages, pre-serving this context. Multi-hop accuracy (86.6–91.3%) is competitive with EverMemOS (91.1%), confirming that rule-based entity expansion substitutes for learned multi-hop policies on short conversations. 
+
+Weakness: temporal reasoning. SmartSearch trails Ever-MemOS by ∼10 pp on temporal questions (79.2–80.2% vs. 89.7%). Failure analysis (Appendix D) shows this gap is predominantly LLM inference failures—the gold evidence is present in context, but the answer LLM fails to synthesize correct temporal orderings, not a retrieval shortcoming. 
+
+Token efficiency. SmartSearch uses 3,141 tokens on average—8.5 × fewer than full-context (26,792) while scor-ing 14.8 pp higher under the MemOS protocol. Under the EverMemOS protocol, full-context reaches 91.2% with 20,281 tokens; SmartSearch exceeds it by 2.3 pp at 6.5 ×
+
+fewer tokens. 4.4.2. L ONG MEM EVAL -S Table 7 reports performance on LongMemEval-S ( ∼115K-token conversations, 500 questions, 6 of 7 question types excluding abstention). All systems use gpt-4.1-mini as the answer LLM and gpt-4o-mini as the judge; SmartSearch uses the same answer prompt as EverMemOS (Hu et al., 2026) and Memora (Xia et al., 2026). 
+
+Overall accuracy. SmartSearch achieves 88.4% (index-free) and 87.6% (indexed), both exceeding Memora (87.4%) and EverMemOS (83.0%) under uniform evaluation con-ditions. The 0.8 pp gap between index-free and indexed confirms that query expansion substitutes effectively for dense retrieval even on long conversations. Both variants use the same expansion mechanisms (PRF and entity dis-covery); the indexed pipeline adds ColBERT reranking via RRF but gains little additional recall. 
+
+Category breakdown. SmartSearch leads on multi-session (84.2%, +6.0 pp over Memora), single-session-preference (96.7%), and single-session-user (100.0%). Multi-session questions require evidence spanning multiple conversation sessions; the super-additive expansion effect (+9.2 pp, Ta-ble 3) is driven largely by this category, where PRF and entity discovery surface passages from sessions the original query terms do not reach. 
+
+Weakness: temporal reasoning. As on LoCoMo, temporal 7SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+Table 6. LoCoMo accuracy (%). Results under two incompatible evaluation protocols should not be compared across groups. aHu et al. (2026). bXia et al. (2026). †Within 1.1 pp of EverMemOS despite no memory system. 
+
+System Overall 1-hop M-hop Temp. Open Tokens 
+
+EverMemOS protocol (gpt-4.1-mini answer+judge, 7-step CoT) 
+
+SmartSearch (indexed) 93.5 91.1 91.3 80.2 96.7 3,141 EverMemOS a 92.3 96.1 91.1 89.7 70.8 2,298 Full-context a† 91.2 94.9 90.4 88.0 71.9 20,281 Zep a 85.2 90.8 81.9 77.3 75.0 1,411 MemOS a 80.8 85.4 79.4 75.1 64.6 2,498 
+
+MemOS protocol (gpt-4o-mini answer+judge, binary J-score) 
+
+SmartSearch (indexed) 91.9 91.8 86.6 79.2 95.4 3,141 SmartSearch (index-free) 91.0 91.1 86.0 75.0 94.6 3,122 Memora b 86.3 91.8 78.7 86.6 59.4 ∼8,500 Full-context 77.1 72.3 55.1 63.5 88.6 26,792 
+
+Table 7. LongMemEval-S accuracy (%). All systems use gpt-4.1-mini as answer LLM and gpt-4o-mini as judge. aHu et al. (2026). bXia et al. (2026). 
+
+System Ovr. KU MS SA SP SU TR Tok. SmartSearch (index-free) 88.4 93.6 84.2 85.7 96.7 100.0 82.7 3,392 SmartSearch (indexed) 87.6 92.3 79.7 87.5 96.7 95.7 86.5 3,393 Memora b 87.4 97.4 78.2 78.6 83.3 98.6 89.5 ∼2,900 EverMemOS a 83.0 89.7 73.7 85.7 93.3 97.1 77.4 2,800 MemOS a 77.8 74.3 70.7 67.9 96.7 95.7 77.4 1,400 Nemori b 74.6 79.5 55.6 92.9 86.7 90.0 72.2 ∼4,300 Mem0 a 66.4 66.7 63.2 26.8 90.0 82.9 72.2 1,100 Full-context b 65.6 76.9 51.1 98.2 16.7 85.7 60.2 ∼115k Zep a 63.8 74.4 47.4 75.0 53.3 92.9 54.1 1,600 MemU a 38.4 41.0 42.1 19.6 76.7 67.1 17.3 500 KU = knowledge-update, MS = multi-session, SA = single-session-assistant, SP = single-session-preference, SU = single-session-user, TR = temporal-reasoning. 
+
+reasoning remains the most challenging category. The index-free variant scores 82.7%, trailing Memora by 6.8 pp; the indexed variant narrows this to 3.0 pp (86.5%), suggesting that ColBERT retrieves additional temporally relevant pas-sages that grep misses. Memora’s LLM-structured memory preserves temporal metadata explicitly, while SmartSearch relies on raw passage timestamps that the answer LLM must interpret. 
+
+Token efficiency. SmartSearch uses 3,392 tokens—34 ×
+
+fewer than full-context ( ∼115K) while scoring 22.8 pp higher. Even compared to systems with comparable token budgets (EverMemOS at 2,800 tokens, Memora at ∼2,900), SmartSearch achieves higher accuracy with only modestly more context, suggesting that the additional tokens carry high-quality evidence rather than noise. 
+
+## 5. Discussion 
+
+5.1. Score-Adaptive Truncation Enables a Single Configuration Across Scales 
+
+SmartSearch’s pipeline shares the same core hyperparam-eters on both benchmarks: identical NER/POS weights and the same CrossEncoder+ColBERT RRF fusion. Score-adaptive truncation ( α=0 .03 , budget ceiling 4K, top-K=60 )provides a mechanism for deploying a single universal con-figuration without per-dataset budget tuning. The adaptive threshold automatically allocates fewer tokens on LoCoMo (∼9K-token conversations) and more on LongMemEval-S ( ∼115K-token conversations), tracking corpus difficulty rather than corpus length (Section 4.3). This contrasts with fixed-budget approaches that force a precision–coverage tradeoff between short and long conversations. 
+
+5.2. The Compilation Bottleneck Generalizes Across Scales 
+
+On LoCoMo, oracle analysis shows 98.6% retrieval recall with only 22.5% of gold evidence surviving truncation to 8SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+the token budget. On LongMemEval-S, the same pattern holds: the indexed and index-free pipelines differ by only 0.023 in budget recall, but gold density differs 2 ×. In both cases, the evidence is found; the challenge is surfacing the right passages through a finite token budget. This explains why reranker quality (+6.0 pp) and rank fusion (+1.2 pp) are the highest-leverage interventions (Table 4), while tool selection and index sophistication yield diminishing returns. 
+
+5.3. Query Expansion Compensates for Index-Free Retrieval at Scale 
+
+On short conversations, the index-free variant loses only 0.9 pp to the indexed pipeline (91.0% vs. 91.9% on Lo-CoMo), because the original query terms already cover most relevant passages. On long conversations the gap re-mains small: index-free reaches 88.4% vs. 87.6% indexed on LongMemEval-S (Table 7), with both variants using the same expansion mechanisms. The ablation study (Table 3) confirms that the combined expansion effect (+9.2 pp) is super-additive over the individual mechanisms (+6.0 pp and +1.4 pp), with the largest gains on multi-session questions that require evidence from sessions the original query terms do not reach. 
+
+5.4. Open-Ended Queries Expose a Weakness in Structured Memory 
+
+SmartSearch scores 95.4–96.7% on open-ended questions, exceeding all competitors by >20 pp (EverMemOS 70.8%, Memora 59.4%). Memory consolidation distills conver-sation into atomic facts or abstract summaries, discarding conversational texture—tone, hedging, tangential remarks— that open-ended questions probe. SmartSearch retrieves raw passages, preserving this context at no additional engineer-ing cost. 
+
+5.5. Temporal Reasoning Remains the Main Gap 
+
+SmartSearch trails the best competitor on temporal ques-tions by ∼10 pp on LoCoMo (80.2% vs. EverMemOS 89.7%) and ∼7 pp on LongMemEval-S (82.7% vs. Mem-ora 89.5%). These systems explicitly preserve temporal metadata through LLM-structured memory. Failure analysis (Appendix D) attributes the LoCoMo gap predominantly to LLM inference failures—the gold evidence is present, but the answer LLM fails to synthesize correct temporal orderings. On LongMemEval-S, expansion partially closes the gap: the baseline scores 67.7% on temporal questions, with expansion lifting it to 80.5% by surfacing passages from different sessions that establish chronology. 
+
+## 6. Future Work 
+
+The compilation bottleneck (Section 3.2) suggests that the largest remaining gains lie not in retrieval but in how re-trieved passages are filtered and compressed before the an-swer LLM sees them. 
+
+Passage deduplication. Retrieved passages frequently over-lap when multiple search terms match the same conversation region. Deduplicating or merging near-identical passages before ranking would reduce redundancy in the context window, allowing the token budget to cover more distinct evidence. The cross-encoder and ColBERT embeddings already computed during ranking could serve as similarity features for deduplication at negligible additional cost. 
+
+Context compression. Token-level compression— removing low-importance words within passages, strip-ping image descriptions, abbreviating speaker names and timestamps—can reduce token cost without losing gold pas-sages. Preliminary experiments show 10% reduction at zero gold loss from format-level changes alone. More aggressive query-conditioned pruning (retaining only words relevant to the specific question) remains unexplored. 
+
+## 7. Threats to Validity 
+
+7.1. Benchmark Limitations 
+
+Results are reported on two benchmarks: LoCoMo-10 (Ma-harana et al., 2024) (a 10-conversation subset of the full 50-conversation LoCoMo dataset, ∼9K tokens each, 1,540 questions across 4 non-adversarial categories) and LongMemEval-S (Wu et al., 2024) (500 questions across 
+
+∼115K-token human-authored conversation histories, 6 of 7 question types excluding abstention). While these cover a 12 × range in conversation length and diverse question types, both have properties that may favor our approach: • Synthetic vs. semi-structured conversations: Lo-CoMo’s dialogues are LLM-generated and may con-tain more regular, keyword-rich language than real human conversations, benefiting exact-match retrieval. LongMemEval-S conversations are human-authored but follow structured session formats. • Named entity density: Both benchmarks involve con-sistent character naming, making NER-based term ex-traction unusually effective. Real conversations may use nicknames, pronouns, or indirect references more frequently. • Corpus size: LoCoMo conversations are ∼9K tokens; LongMemEval-S reaches ∼115K tokens. Substring matching may not scale to corpora orders of magni-tude larger, where inverted indices or embedding-based retrieval become necessary. 9SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+• Question distribution: 97% of LoCoMo oracle traces are single-hop. LongMemEval-S includes more multi-session and temporal questions, but we lack oracle traces to quantify its hop distribution. The two benchmarks partially address each other’s limita-tions: LoCoMo’s short conversations are complemented by LongMemEval-S’s long conversations, and the oracle analysis on LoCoMo is validated by retrieval metrics on LongMemEval-S. The fact that score-adaptive truncation enables a single hyperparameter configuration to achieve competitive results on both benchmarks (Section 4.4) pro-vides some evidence of generalization across scales, but both are English-only conversational memory tasks. Gen-eralization to other domains (e.g., document search, code retrieval) or languages remains untested. 
+
+7.2. Cross-Paper Comparison Challenges 
+
+A significant threat to the validity of any comparative claims is that published systems use incompatible evaluation protocols . Our investigation of the literature revealed sub-stantial inconsistencies, consistent with broader concerns about LLM-based evaluation reliability (Zheng et al., 2023; Chiang & Lee, 2023; Wang et al., 2024): • Different LLM judges: Systems use GPT-4, GPT-4o-mini, GPT-3.5-turbo, or open-source models as judges. The choice of judge can shift accuracy by 5–10 percent-age points on identical retrieval output (Zheng et al., 2023). • Different judge prompts: Even with the same judge model, prompts vary from strict factual matching to lenient semantic similarity to multi-criteria rubrics. Wang et al. (2024) demonstrate that prompt wording alone can change outcomes by 8–15%. • Different accuracy metrics: Papers report exact match, fuzzy match, LLM-judge binary, Likert scale, or F1—sometimes without specifying which. The Lo-CoMo paper itself (Maharana et al., 2024) defines mul-tiple evaluation modes, and downstream work selects different subsets. • Different dataset splits: Some systems evaluate on the full LoCoMo dataset (50 conversations), others on the LoCoMo-10 subset (10 conversations, 1,540 questions) or LoCoMo-5. Sample sizes range from 
+
+∼600 to ∼1,540, affecting both scores and statistical power. We mitigate this threat through two strategies. On LoCoMo, we report results under both the EverMemOS protocol (gpt-4.1-mini answer+judge, 7-step CoT rubric) and the MemOS protocol (gpt-4o-mini answer+judge, binary J-score), and never compare numbers across protocol groups (Table 6). On LongMemEval-S, all systems—including SmartSearch— use the same answer LLM (gpt-4.1-mini), the same judge (gpt-4o-mini), and the same answer prompt, enabling direct comparison (Table 7). We encourage future work to adopt standardized evaluation protocols or, at minimum, to report the judge model, prompt, metric, and dataset split used. 
+
+## 8. Conclusion 
+
+SmartSearch achieves 91.9% accuracy on LoCoMo—93.5% under aligned evaluation—using a fully deterministic re-trieval loop and a CrossEncoder+ColBERT rank fusion stage as the only learned component, all on CPU in ∼650 ms. On LongMemEval-S, SmartSearch reaches 88.4% (index-free) and 87.6% (indexed), exceeding all published memory systems under identical evaluation conditions (Table 7). Or-acle analysis on LoCoMo and retrieval metrics on both benchmarks confirm that the dominant gain comes from reranker quality and query expansion, not search sophistica-tion: the compilation bottleneck persists across conversation scales from ∼9K to ∼115K tokens. These findings challenge four assumptions in recent work: 1. LLMs are needed in the retrieval loop: Determin-istic NER-based entity discovery provides multi-hop expansion without learned policies or LLM calls. 2. Multi-hop reasoning requires complex machinery: 
+
+97% of queries resolve in one hop; entity discovery handles the remaining 3% with simple rules. 3. Retrieval quality is the bottleneck: Compilation (ranking and truncation) matters more than search sophistication—on both short and long conversations. 4. Precomputed indices are necessary: The index-free variant (Section 3.4) shows that grep with query ex-pansion matches indexed retrieval, eliminating all em-bedding stores and vector databases at a cost of −0.9 pp on LoCoMo and +0.8 pp on LongMemEval-S (Ta-ble 7). SmartSearch’s contribution is not architectural novelty but a proof point: careful engineering of deterministic components—with ML applied surgically at the ranking stage—can match or exceed systems built on learned poli-cies at a fraction of the cost. 
+
+## Acknowledgments 
+
+Writing assistance was provided by a large language model; all claims, experiments, and conclusions are the sole respon-sibility of the authors. 10 SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+## References 
+
+Maharana, A., Lee, D.-H., Tulyakov, S., Bansal, M., Barbi-eri, F., & Fang, Y. (2024). Evaluating Very Long-Term Conversational Memory of LLM Agents. Proceedings of the 62nd Annual Meeting of the Association for Compu-tational Linguistics (ACL) , pp. 15521–15544. Wu, D., Wang, H., Yu, W., Zhang, Y., Chang, K.-W., & Yu, D. (2024). LongMemEval: Benchmarking Chat As-sistants on Long-Term Interactive Memory. Proceedings of the Thirteenth International Conference on Learning Representations (ICLR) .Xia, M., Zhang, X., Dixit, S., Harimurugan, P., Wang, R., Ruhle, V., Sim, R., Bansal, C., & Rajmohan, S. (2026). Memora: A Harmonic Memory Representation Balancing Abstraction and Specificity. arXiv preprint 
+
+arXiv:2602.03315. Hu, C., Gao, X., Zhou, Z., Xu, D., Bai, Y., Li, X., Zhang, H., Li, T., Zhang, C., Bing, L., & Deng, Y. (2026). Ever-MemOS: A Self-Organizing Memory Operating System for Structured Long-Horizon Reasoning. arXiv preprint 
+
+arXiv:2601.02163. Shu, Y., Liu, P., & Zhang, T. (2026). TraceMem: Weaving Narrative Memory Schemata from User Conversational Traces. arXiv preprint arXiv:2602.09712. Zhang, H., Long, Q., & Bao, J. (2026a). MemSkill: Learn-ing and Evolving Memory Skills for Self-Evolving Agents. arXiv preprint arXiv:2602.02474. Zhang, H., Yue, H., Feng, T., Long, Q., Bao, J., Jin, B., Zhang, W., Li, X., You, J., Qin, C., & Wang, W. (2026b). Learning Query-Aware Budget-Tier Routing for Runtime Agent Memory. arXiv preprint arXiv:2602.06025. Feng, J., Xu, B., Chen, J., Dai, M., Wu, C., Li, H., Zeng, B., Xie, Y., Liang, H., Lu, M., & Zhang, W. (2026). M2A: Multimodal Memory Agent with Dual-Layer Hy-brid Memory for Long-Term Personalized Interactions. 
+
+arXiv preprint arXiv:2602.07624. Lu, S., Liang, Z., Ma, D., Wang, Y., Mi, H., & Yu, D. (2026). Locas: Your Models are Principled Initializers of Locally-Supported Parametric Memories. arXiv preprint 
+
+arXiv:2602.05085. Wang, W., Dong, L., Cheng, H., Liu, X., Yan, X., Gao, J., & Wei, F. (2023). Augmenting Language Models with Long-Term Memory. Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL) ,pp. 1–14. He, P., Gao, J., & Chen, W. (2023). DeBERTaV3: Improv-ing DeBERTa using ELECTRA-Style Pre-Training with Gradient-Disentangled Embedding Sharing. Proceedings of the Eleventh International Conference on Learning Representations (ICLR) .Li, Y., Li, J., & Yu, M. (2026). Query-focused and Memory-aware Reranker for Long Context Processing. arXiv preprint arXiv:2602.12192. Reimers, N. & Gurevych, I. (2019). Sentence-BERT: Sen-tence Embeddings using Siamese BERT-Networks. Pro-ceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pp. 3982–3992. Nguyen, T., Rosenberg, M., Song, X., Gao, J., Tiwary, S., Majumder, R., & Deng, L. (2016). MS MARCO: A Human Generated MAchine Reading COmprehension Dataset. Proceedings of the Workshop on Cognitive Com-putation , NeurIPS 2016. Robertson, S. & Zaragoza, H. (2009). The Probabilistic Relevance Framework: BM25 and Beyond . Foundations and Trends in Information Retrieval, 3(4):333–389. Karpukhin, V., O˘ guz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., & Yih, W.-t. (2020). Dense Passage Re-trieval for Open-Domain Question Answering. Proceed-ings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pp. 6769–6781. Khattab, O. & Zaharia, M. (2020). ColBERT: Efficient and Effective Passage Search via Contextualized Late Inter-action over BERT. Proceedings of the 43rd International ACM SIGIR Conference , pp. 39–48. Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W.-t., Rock-täschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. Advances in Neural Information Processing Sys-tems (NeurIPS) , 33:9459–9474. Bruch, S., Gai, S., & Ingber, A. (2023). An Analysis of Fusion Functions for Hybrid Retrieval. ACM Transactions on Information Systems , 42(1):1–35. Nan, J., Ma, W., Wu, W., & Chen, Y. (2025). Nemori: Self-Organizing Agent Memory Inspired by Cognitive Science. 
+
+arXiv preprint arXiv:2508.03341. Luan, Y., Eisenstein, J., Toutanova, K., & Collins, M. (2021). Sparse, Dense, and Attentional Representations for Text Retrieval. Transactions of the Association for Computa-tional Linguistics , 9:329–345. Gao, Y., Xiong, Y., Goel, A., Truong, D., Li, Z., Ke, G., Okhonko, D., Edunov, S., & Gupta, R. (2024). Retrieval-Augmented Generation for Large Language Models: A Survey. arXiv preprint arXiv:2312.10997. 11 SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+Asai, A., Wu, Z., Wang, Y., Sil, A., & Hajishirzi, H. (2024). Self-RAG: Learning to Retrieve, Generate, and Cri-tique through Self-Reflection. Proceedings of the Twelfth International Conference on Learning Representations (ICLR) .Jiang, Z., Xu, F. F., Gao, L., Sun, Z., Liu, Q., Dwivedi-Yu, J., Yang, Y., Callan, J., & Neubig, G. (2023). Active Re-trieval Augmented Generation. Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pp. 7969–7992. Yang, Z., Qi, P., Zhang, S., Bengio, Y., Cohen, W. W., Salakhutdinov, R., & Manning, C. D. (2018). HotpotQA: A Dataset for Diverse, Explainable Multi-hop Ques-tion Answering. Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pp. 2369–2380. Trivedi, H., Balasubramanian, N., Khot, T., & Sabharwal, A. (2023). Interleaving Retrieval with Chain-of-Thought Reasoning for Knowledge-Intensive Multi-Step Ques-tions. Proceedings of the 61st Annual Meeting of the Asso-ciation for Computational Linguistics (ACL) , pp. 10014– 10037. Shao, Z., Gong, Y., Shen, Y., Huang, M., Duan, N., & Chen, W. (2023). Enhancing Retrieval-Augmented Large Lan-guage Models with Iterative Retrieval-Generation Syn-ergy. Findings of the Association for Computational Lin-guistics: EMNLP 2023 , pp. 9248–9274. Press, O., Zhang, M., Min, S., Schmidt, L., Smith, N. A., & Lewis, M. (2023). Measuring and Narrowing the Compo-sitionality Gap in Language Models. Findings of the As-sociation for Computational Linguistics: EMNLP 2023 ,pp. 5687–5711. Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing Reasoning and Acting in Language Models. Proceedings of the Eleventh International Conference on Learning Representations (ICLR) .Anthropic. (2024). The Claude Model Family: Claude 3 Opus, Sonnet, and Haiku. Technical Report , Anthropic. Reid, M., Savinov, N., Teber, D., et al. (2024). Gemini 1.5: Unlocking Multimodal Understanding across Millions of Tokens of Context. arXiv preprint arXiv:2403.05530. Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J., Des-jardins, G., Rusu, A. A., Milan, K., Quan, J., Ramalho, T., Grabska-Barwinska, A., Hassabis, D., Clopath, C., Kumaran, D., & Hadsell, R. (2017). Overcoming Catas-trophic Forgetting in Neural Networks. Proceedings of the National Academy of Sciences , 114(13):3521–3526. Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. Advances in Neural Information Processing Systems (NeurIPS) ,36:46595–46623. Chiang, C.-H. & Lee, H.-y. (2023). Can Large Language Models Be an Alternative to Human Evaluations? Pro-ceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL) , pp. 15607–15631. Wang, Y., Yu, Z., Zeng, Z., Yang, L., Wang, C., Chen, H., Jiang, C., Xie, R., Wang, J., Xie, X., Zi, W., Gong, Y., Zhai, J., & Xue, H. (2024). PandaLM: An Automatic Evaluation Benchmark for LLM Instruction Tuning Opti-mization. Proceedings of the Twelfth International Con-ference on Learning Representations (ICLR) .Honnibal, M., Montani, I., Van Landeghem, S., & Boyd, A. (2020). spaCy: Industrial-Strength Natural Lan-guage Processing in Python. Software , DOI: 10.5281/zen-odo.1212303. 12 SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+## A. Full Ablation Results 
+
+Table 8 reports all configurations evaluated during devel-opment. Baseline: ms-marco-MiniLM-L-12-v2 (33M), threshold= −4, 2,000-token budget. Evaluations use gpt-4o-mini on LoCoMo-10 (1,540 questions) unless noted. 
+
+Key observations. (1) Phase 1 ablations yield at most +1.6 pp (inference prompt, A3); gains are not additive (A2+A3 < A3 alone). (2) Reranker model quality dom-inates: MiniLM (33M) → bge-base (278M) → bge-large (560M) → mxbai-large-v1 (435M) accounts for the full +7.2 pp. A controlled experiment (I0-R2-B1 at budget=1K vs. 2K) attributes 63% of the bge-base gain to model qual-ity and 37% to additional context from threshold removal. (3) Two-model RRF adds +0.5–1.2 pp; three-model fusion (I0-R4b-B1) and score-based fusion (I0-R4c-B1) do not improve further. 
+
+## B. Cross-Encoder Model Comparison 
+
+Table 9 compares seven cross-encoder models on gold pas-sage recovery at the top-62 cutoff (the average passage count within the 2,000-word budget). 
+
+Architecture matters more than scale. The DeBERTaV3 family (mxbai) consistently outperforms XLM-RoBERTa (bge) at comparable or smaller sizes: mxbai-base (184M, 89.0%) beats bge-large (560M, 87.4%) despite being 3 ×
+
+smaller. DeBERTaV3’s disentangled attention (He et al., 2023) likely handles coreference and indirect references— common in conversational text—more effectively than stan-dard self-attention. 
+
+ColBERT is complementary. Despite lower individual recovery (84.4%), ColBERT’s late-interaction scoring pro-duces rankings with Spearman ρ of 0.19–0.62 against point-wise cross-encoders. The union of mxbai-large-v1 and Col-BERT recovers 92.2% of gold passages, exceeding either alone (90.9% and 84.4%). 
+
+## C. Offline Proxy vs. Live Evaluation Disconnect 
+
+Offline gold-passage metrics systematically overpredict live accuracy gains for architectural changes while accurately predicting gains from model swaps. When the change reshuffles passage order across multiple rankers (I0-R4b-B1, I0-R4c-B1), the proxy overestimates gains because gold passages that enter the context window may land in low-attention positions. For drop-in model swaps (I0-R5-B1), the proxy is accurate because passage ordering patterns are preserved. Offline simulation is reliable for model selection within a fixed architecture but not for comparing fusion strategies. 
+
+## D. Failure Mode Analysis 
+
+We classified all 125 errors from the final indexed configu-ration (1,415/1,540 correct) into four categories: • LLM inference failure (59%): Gold evidence is present in context, but gpt-4o-mini fails to synthesize the correct answer. Common patterns: ignoring tempo-ral ordering, conflating similar entities, hallucinating details absent from context. • Reranker/budget failure (24%): Gold evidence is retrieved but ranked below the budget cutoff. • Search miss (12%): Gold evidence is not retrieved. Primarily vocabulary-gap cases where query and cor-pus use different phrasings. • No evidence in corpus (5%): The LoCoMo annotation references information not present in the conversation, likely annotation artifacts. The dominant failure mode shifted from retrieval (67% of failures at baseline) to LLM inference (59% in the final system). The remaining accuracy ceiling is set primarily by the answer LLM, not the retrieval pipeline. 13 SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval 
+
+Table 8. Complete ablation results on LoCoMo (1,540 questions, gpt-4o-mini judge). ∆ is change vs. baseline (84.7%). Experiments grouped by phase. Baseline: MiniLM-L-12 reranker, threshold= −4, 2,000-word budget. 
+
+ID Configuration Overall 1-hop M-hop Temp. Open Tokens ∆
+
+Phase 1: Search & prompt ablations 
+
+Base MiniLM-L-12, thresh= −4, budget=2K 84.7 84.4 76.9 69.8 89.5 1,547 —A1v1 Cumulative-score pruning (ratio=0.20) 82.4 81.2 75.7 66.7 87.2 677 −2.3 A1v2 Score-floor pruning (score >0) 81.2 79.4 74.8 66.7 85.9 688 −3.6 A2 Date-aware search 85.3 86.2 77.6 70.8 89.5 1,547 +0.5 A3 Inference reasoning prompt 86.4 87.2 78.2 71.9 90.8 1,691 +1.6 A2+A3 Date search + prompt 86.0 86.2 78.5 71.9 90.4 1,691 +1.2 A3+B0 Prompt + budget=3K 85.8 86.2 77.9 71.9 90.4 1,980 +1.1 I0-R1-B1-3k Budget=3,000 85.2 87.2 78.5 66.7 89.2 1,836 +0.5 I0-R1-B1-4k Budget=4,000 85.2 86.9 77.3 68.8 89.5 2,033 +0.5 C1+C2 Timestamp + speaker compress 85.3 85.8 77.9 67.7 90.0 1,396 +0.6 A3+C2 Prompt + speaker abbrev 86.2 86.2 78.2 74.0 90.6 1,698 +1.4 A3+C1C2 Prompt + full compression 86.1 87.2 77.6 75.0 90.2 1,540 +1.4 
+
+Phase 2: Reranker model improvements 
+
+I0-R2-B1k bge-base (278M), budget=1K 87.1 82.3 82.2 72.9 92.3 1,671 +2.4 I0-R2-B1 bge-base (278M), no thresh, budget=2K 88.6 85.1 83.5 77.1 93.0 3,203 +3.8 I0-R3-B1 bge-large (560M), no thresh, budget=2K 90.7 90.4 86.9 76.0 93.8 3,192 +5.9 
+
+Phase 2: Rank fusion 
+
+I0-R4a-B1 bge-large + ColBERT RRF (k=60, w=0.7) 91.2 91.8 85.0 78.1 94.8 3,196 +6.4 I0-R4a-eq-B1 bge-large + ColBERT RRF (w=0.5) 91.0 90.1 85.7 79.2 94.6 3,213 +6.2 I0-R4b-B1 mxbai-base + bge-large + ColBERT 3-way 91.0 90.1 87.9 76.0 94.3 3,175 +6.3 I0-R4c-B1 zscore+product fusion 3-model 90.8 91.5 82.9 80.2 94.9 3,199 +6.1 
+
+I0-R5-B1 mxbai-large-v1 + ColBERT RRF 91.9 91.8 86.6 79.2 95.4 3,141 +7.2 
+
+I0-R6-B1 mxbai-large-v2 + ColBERT RRF 91.2 91.8 86.0 76.0 94.6 3,088 +6.4 
+
+Table 9. Cross-encoder gold passage recovery at top-62 budget cutoff. 2,345 gold passages across 1,540 questions. Latency measured on CPU (single-threaded); in the full system, CrossEncoder and ColBERT run in parallel (wall-clock = max( CE , ColBERT )). 
+
+Model Params Gold top-62 Recovery (%) Median rank Latency 
+
+ms-marco-MiniLM-L-12-v2 33M 1,949 83.1 3 ∼130 ms mxbai-rerank-xsmall-v1 71M 1,998 85.2 3 ∼168 ms mxbai-rerank-base-v1 184M 2,087 89.0 2 ∼182 ms bge-reranker-base 278M 1,852 79.0 5 ∼340 ms ColBERT v2 — 1,979 84.4 4 ∼500 ms bge-reranker-large 560M 2,050 87.4 3 ∼908 ms 
+
+mxbai-rerank-large-v1 435M 2,131 90.9 2 ∼645 ms mxbai-rerank-large-v2 1.5B 2,157 92.0 2 ∼2,500 ms 
+
+Table 10. Offline proxy predictions vs. live accuracy for three configurations on the I0-R3-B1 (bge-large, 560M) baseline. Proxy 
+
+∆: predicted gain from offline gold-passage simulation. Live ∆:measured accuracy change. Fusion strategies (I0-R4b-B1, I0-R4c-B1) show large proxy-live gaps; model swaps (I0-R5-B1) do not. 
+
+Config Proxy ∆ Live ∆ Gap 
+
+I0-R4b-B1 (3-way RRF) +1.8 pp +0.4 pp 1.4 pp I0-R4c-B1 (score fusion) +2.7 pp +0.2 pp 2.5 pp I0-R5-B1 (model swap) +1.2 pp +1.2 pp 0.0 pp 
+
+14

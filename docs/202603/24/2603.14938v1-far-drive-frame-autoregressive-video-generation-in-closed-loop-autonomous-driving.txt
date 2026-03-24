@@ -1,0 +1,415 @@
+Title: FAR-Drive: Frame-AutoRegressive Video Generation in Closed-Loop Autonomous Driving
+
+URL Source: https://arxiv.org/pdf/2603.14938v1
+
+Published Time: Tue, 17 Mar 2026 06:24:36 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# FAR-Drive: Frame-AutoRegressive Video Generation in Closed-Loop Autonomous Driving 
+
+Yaoru Li 1,2, Federico Landi 2, Marco Godi 2, Xin Jin 2, Ruiju Fu 2,
+
+Yufei Ma 2, Muyang Sun 2, Heyu Si 1,2, and Qi Guo 2† 
+
+> 1
+
+Zhejiang University  
+
+> 2
+
+Huawei  
+
+> †
+
+Corresponding author 
+
+liyaoru@zju.edu.cn, {federico.landi1, marco.godi3, guoqi39}@huawei.com 
+
+Abstract. Despite rapid progress in autonomous driving, reliable train-ing and evaluation of driving systems remain fundamentally constrained by the lack of scalable and interactive simulation environments. Recent generative video models achieve remarkable visual fidelity, yet most op-erate in open-loop settings and fail to support fine-grained frame-level interaction between agent actions and environment evolution. Build-ing a learning-based closed-loop simulator for autonomous driving poses three major challenges: maintaining long-horizon temporal and cross-view consistency, mitigating autoregressive degradation under iterative self-conditioning, and satisfying low-latency inference constraints. In this work, we propose FAR-Drive , a Frame-level Auto Regressive video gen-eration framework for autonomous driving. We introduce a multi-view diffusion transformer with fine-grained structured control, enabling geo-metrically consistent multi-camera generation. To address long-horizon consistency and iterative degradation, we design a two-stage training strategy consisting of adaptive reference horizon conditioning and blend-forcing autoregressive training, which progressively improves consistency and robustness under self-conditioning. To meet low-latency interaction requirements, we further integrate system-level efficiency optimizations for inference acceleration. Experiments on the nuScenes dataset demon-strate that our method achieves state-of-the-art performance among ex-isting closed-loop autonomous driving simulation approaches, while main-taining sub-second latency on a single GPU. 
+
+Keywords: Autonomous Driving · Closed-loop Simulation · Autore-gressive Video Generation 
+
+## 1 Introduction 
+
+Autonomous driving has progressed rapidly with advances in perception, predic-tion, and control [17]. Early systems adopt modular pipelines [37], while recent end-to-end approaches directly map sensory inputs to driving actions [1, 3, 28]. Despite these developments, reliable training and evaluation of driving systems 
+
+> arXiv:2603.14938v1 [cs.CV] 16 Mar 2026
+
+2 Y. Li et al. Closed-loop Simulation     
+
+> Autonomous Driving
+> Observation
+> Action
+> Adaptive Reference
+> Horizon Conditioning Blend-Forcing
+> Long-horizon Consistency
+> Autoregressive Degradation
+> Low-latency Interaction Inference Acceleration
+> 1*32*32
+> VAE
+> Historical Frames
+> Position
+> Velocity
+> Acceleration
+> Higher-level
+> Information
+> Learn α
+> Gen Latent
+> 1-α
+> GT Latent
+> Blend Latent
+> Autoregressive Training Compression
+> Latent KV Cache
+> Control Cache Cache Diffusion Denoising
+> Step Reduction
+> Train
+> Inference Stabilization
+
+Fig. 1: Overview of FAR-Drive framework for autonomous driving closed-loop simu-lation. Given driving agent actions, the simulator generates temporally and geometri-cally consistent multi-view video in an interactive rollout manner. Three core challenges of closed-loop generation are highlighted in different colors: long-horizon consistency, autoregressive degradation, and low-latency interaction. Adaptive reference-horizon conditioning, blend-forcing training, and system-level efficiency optimizations corre-spond to these challenges, with colors indicating the associated solutions. 
+
+remain constrained by the lack of scalable and interactive simulation environ-ments. Simulation plays a critical role in autonomous driving research [11], as real-world data collection is costly and limited in rare or safety-critical scenarios which are often more informative and decisive than routine driving data. Recent advances in generative video models [12, 29, 30, 43] have demonstrated the abil-ity to synthesize high-quality videos, providing a promising technical foundation for learning-based autonomous driving simulation. While public datasets [4, 40, 47] provide large-scale annotated driving logs, they are intrinsically open-loop: recorded sensor streams are fixed and cannot respond to hypothetical agent actions. As a result, models trained or evaluated in open-loop settings often suf-fer from compounding errors when deployed in interactive environments, where small deviations can accumulate over time and lead to catastrophic failures. This gap between open-loop training and closed-loop deployment has been widely rec-ognized as a key challenge in building reliable autonomous driving systems. Closed-loop simulation methods [16,36,49] aim to bridge this gap by enabling an agent to interact with a simulated environment, observe the consequences of its actions, and adapt its behavior accordingly. Beyond learning and evalua-tion, such closed-loop capability is also essential for safety analysis, as it allows precise re-simulation of traffic accidents and abnormal driving behaviors, en-abling systematic diagnosis of failure cases and verification that similar errors do not recur in future deployments. However, building a learning-based closed-loop simulator for autonomous driving remains fundamentally challenging due FAR-Drive 3
+
+to the intrinsic autoregressive nature of interactive simulation. In a closed-loop setting, future observations are generated step by step and fed back as inputs for subsequent prediction. Frame-level autoregressive rollout introduces two tightly coupled challenges: long-horizon consistency and autoregressive degradation. Long-horizon consistency is a prerequisite for reliable simulation. Unlike open-loop generation, closed-loop simulators must maintain temporally coher-ent and geometrically aligned multi-view observations over extended horizons. Even minor inconsistencies can accumulate over time, leading to drifting scene layouts, physically implausible motion patterns, or broken cross-view correspon-dences. These artifacts directly undermine downstream perception and planning modules, rendering visually plausible but temporally unstable models unsuitable for interactive simulation. Beyond consistency, autoregressive generation suffers from iterative degradation. Errors in early predicted frames propagate through conditioning, progressively shifting the model away from the ground-truth data distribution. This train–test distribution mismatch, commonly referred to as exposure bias [2], becomes particularly severe in long-horizon rollouts, where compounding errors lead to quality collapse. While self-conditioning strategies [10, 24] partially alleviate the train–test discrepancy, purely self-conditioning of-ten amplifies distribution drift and destabilizes generation over time. In addition to these modeling challenges, practical deployment further im-poses low-latency constraints. Since the simulated environment must evolve syn-chronously with agent actions, inference latency directly limits interaction fre-quency. Although diffusion distillation techniques such as distribution matching distillation (DMD [51, 52]) improve efficiency, closed-loop generation also ex-hibits intrinsic redundancies beyond what diffusion distillation alone addresses. Achieving both long-horizon stability and interactive inference speed thus re-quires coordinated design across training strategy and system-level optimization. Motivated by these observations, we propose a unified framework that jointly addresses temporal consistency, autoregressive degradation, and low-latency in-ference requirements for closed-loop autonomous driving simulation as shown in Fig. 1. In contrast to prior methods that condition solely on a single preceding frame [49], we argue that from a physical perspective, a single frame provides only positional information, whereas two frames enable velocity estimation, and three or more frames facilitate the inference of acceleration and higher-order motion dynamics. To leverage this insight, we introduce adaptive reference-horizon con-ditioning, which dynamically expands the temporal conditioning window during training. To mitigate autoregressive degradation and stabilize training against the distribution drift introduced by purely self-forcing [24], we devise a blend-forcing strategy that gradually interpolates between ground-truth and generated frames during training, improving robustness while preserving generation stabil-ity. Furthermore, to address the critical challenge of low-latency interaction, we move beyond optimizing solely via sampling step distillation. Instead, we incor-porate a high-compression variational autoencoder (VAE [27]) alongside control state and latent caching mechanisms to significantly accelerate inference. Our method achieves a favorable trade-off between simulation fidelity and computa-4 Y. Li et al. 
+
+tional efficiency, rendering it highly suitable for closed-loop autonomous driving simulations. Our core contributions are summarized as follows: 
+
+– We propose FAR-Drive , a controllable multi-view diffusion transformer framework for frame-level autoregressive video generation in closed-loop au-tonomous driving simulation, enabling low-latency, long-horizon, and geo-metrically consistent multi-view synthesis under structured scene constraints. 
+
+– We introduce a two-stage training strategy tailored for autoregressive simu-lation, including (i) adaptive reference-horizon conditioning to enhance long-horizon consistency, and (ii) blend-forcing training to mitigate autoregressive degradation while maintaining robustness under self-conditioning. 
+
+– We develop a set of inference optimizations to significantly reduce rollout latency for autoregressive generation as an engineering contribution. 
+
+– Extensive experiments demonstrate superior performance, validating the ef-fectiveness of our framework for autonomous driving closed-loop simulation. 
+
+## 2 Related Works 
+
+Conditional Video Generation for Autonomous Driving. Conditional video generation has recently emerged as a promising paradigm for autonomous driving [15, 41, 48], enabling the synthesis of future visual observations condi-tioned on scene context, sensor inputs, or structured representations. Early works on learning-based visual simulation can be broadly categorized into two direc-tions. One line of research leverages volumetric or occupancy-based intermedi-ate representations to enable controllable multi-view generation, often relying on heavy 3D supervision to ensure geometric consistency [18, 31, 32, 35, 50]. In parallel, another line of work moves toward generation in single-view settings, reducing dependence on explicit volumetric representations and improving vi-sual fidelity and temporal coherence [9, 16, 23, 26, 44, 53]. More recent methods further incorporate multi-view constraints and structured scene representations to enhance cross-view consistency and controllability in complex urban environ-ments [14, 33, 45, 46, 54, 55]. Despite these advances, most existing approaches remain primarily designed for open-loop generation or fixed-horizon prediction, where future observations are synthesized without explicit modeling of step-wise interaction between agent actions and environment dynamics. 
+
+Video Generation in Closed-loop. Video generation in closed-loop settings has recently attracted increasing attention, particularly for learning-based simu-lators and world models in autonomous driving [8,16,22,36,49]. In this paradigm, generative models iteratively predict future observations conditioned on past vi-sual states and agent actions, enabling interactive environment evolution. Re-cent works explore closed-loop multi-view generative simulators that integrate perception, prediction, and generation within a single framework, demonstrat-ing promising performance in interactive simulation. However, many existing approaches adopt coarse-grained interaction abstractions, generating multiple future frames per interaction step [49]. Such designs improve short-term stabil-ity but reduce temporal granularity of action feedback, limiting the simulator’s FAR-Drive 5
+
+ability to model fine-grained bidirectional coupling between driving behavior and visual dynamics. In contrast, we focus on frame-level autoregressive generation, where each simulation step corresponds to a single action-conditioned update. 
+
+## 3 FAR-Drive Framework 
+
+We design a unified framework aiming to enable fine-grained, frame-level au-toregressive closed-loop simulation for autonomous driving, which integrates (i) a multiview causal multi-modal diffusion transformer (MMDiT [12, 38]) back-bone for coherent visual generation, (ii) a control-aware architecture for inject-ing structured driving constraints, and (iii) a two-stage training strategy that improves long-horizon consistency while mitigating autoregressive degradation. 
+
+3.1 Problem Definition 
+
+We study fine-grained, high-fidelity, frame-level autoregressive video generation for closed-loop autonomous driving simulation. The objective is to learn a gener-ative model that predicts future multi-view visual observations under structured scene constraints. Let V ∈ N denote the number of camera views mounted on the ego vehicle. At time step t, the multi-view observation is defined as 
+
+Xt = {x(v) 
+
+> t
+
+}Vv=1 , (1) where each x(v) 
+
+> t
+
+∈ RH×W ×C is an RGB image. Instead of conditioning on the full history, we use a variable-length reference index set Ht ⊆ { 1, . . . , t } and denote the selected observations as XHt = {Xi | i ∈ H t}. During training, Ht
+
+is determined by the strategy described in Sec. 3.3, while at inference time it is configurable to control the temporal conditioning horizon. At each time step t,structured scene information is extracted and used as control signals, including camera parameters Pt = {P(v) 
+
+> t
+
+}Vv=1 with P(v) 
+
+> t
+
+∈ R3×7, object-level 3D bounding boxes Bt = {b(n) 
+
+> t
+
+}Nt
+
+> n=1
+
+, an ego-centric bird’s eye view (BEV) representation 
+
+Et ∈ RHe×We×Ce , the ego vehicle relative motion Mt ∈ R4×4, represented as a homogeneous transformation matrix with respect to the first frame, and a text caption c. We collectively denote the structured control state as Ct =
+
+{Pt, Bt, Et, Mt, c}. Given XHt and Ct, we learn an autoregressive generative model Fθ that predicts the next-step multi-view observation: 
+
+ˆXt+1 = Fθ
+
+ XHt , Ct
+
+. (2) By iteratively feeding generated observations back into the reference set and updating the structured control state, this formulation supports frame-level au-toregressive rollout and enables long-horizon closed-loop simulation. 6 Y. Li et al. BEV Projection     
+
+> Bbox Projection
+> Bbox Encoder
+> Convolutional Encoder
+> Motion Encoder
+> Text Encoder Camera
+> Encoder
+> Scene Prompt
+> Input Latents
+> Control DiT Block Backbone DiT Block
+> Backbone DiT Block Control DiT Block
+> Blocks... Blocks...
+> Output
+> Backbone DiT Block
+> Caption:"day, sunny..." Backbone DiT
+> Multi-View Reference Frames
+> Future Frame Noise Latents Control DiT
+
+Fig. 2: Overview of the proposed multi-view MMDiT architecture. Reference frames and noise latents are fed into the backbone DiT while structured controls including projected 3D bounding boxes and BEV maps are first encoded by a convolutional encoder and then processed by a control DiT conditioned on the same latent inputs. All control signals are additionally aggregated into a unified scene prompt, which is injected into every layer of both the backbone and control DiTs. The outputs of each Control DiT block are injected into the corresponding backbone DiT blocks through zero-initialized projection layers (dashed arrows). Since the Control DiT has fewer layers than the backbone, control injection is applied only to the early backbone blocks. 
+
+3.2 Controllable Multi-view DiT Architecture 
+
+To enable temporally consistent, geometrically aligned, and structurally con-trollable multi-view video generation for closed-loop simulation, we design a controllable multi-view MMDiT architecture as shown in Fig. 2, which explicitly conditions video generation on diverse control signals and reference frames. The framework supports multiple controllable dimensions, allowing the simulated en-vironment to evolve causally in response to the actions of driving agents. 
+
+Multi-view Attention. To model coherent multi-view visual observations, we adopt a unified text-image-video-to-video (TIV2V) MMDiT as the backbone. FAR-Drive 7
+
+Let h ∈ RB×V ×T ×H′×W ′×C′
+
+denote the latent representation at a given DiT block, where B is the batch size, V the number of camera views, T the temporal length, and H′, W ′, C ′ the spatial resolution and channel dimension, respectively. To enable temporal modeling, we reshape the tokens as h′ ∈ RB×V ×(T H ′W ′)×C′
+
+and apply standard self-attention over each video sequence independently for each camera view. Subsequently, to enable cross-view interaction, we reshape the tokens as h′ ∈ RB×T ×(V H ′W ′)×C′
+
+and apply self-attention over the panoramic spatial tokens from all views at each timestep, similar to DIVE [25]. However, in contrast to DIVE which relies on bidirectional attention for unconditional or non-autoregressive generation, our implementation operates within a causal MMDiT framework tailored for autoregressive video synthesis, ensuring temporal consistency and future-frame masking during training and inference. More details can be found in the supplementary material. 
+
+Control encoders. We adopt a control processing design similar to Magic-Drive [15]. Text, camera parameters, ego-motion, and 3D bounding boxes (Bboxes) are first encoded by modality-specific encoders and fused into a unified scene prompt. In parallel, spatial control signals, including projected Bboxes and BEV maps, are rendered into image-aligned representations and processed by a con-volutional encoder before being fed into the control DiT. 
+
+DiT-based control. To inject structured control signals into video genera-tion in a fine-grained manner, we adopt a dual-MMDiT architecture inspired by ControlNet-style conditioning [5]. The model consists of a backbone MMDiT 
+
+B responsible for primary video generation and a structurally identical control MMDiT C dedicated to processing external control inputs ( e.g ., road layouts and bbox sketches). While both branches share the same architecture, they maintain separate parameters during training. Let x(l) and c(l) denote the hidden states of the backbone and control branches at layer l, respectively, and let u repre-sent the encoded control signal. The control branch is initialized by injecting the control signal through a zero-initialized projection Proj l(·) and adding it to the backbone input: 
+
+c(0) = x(0) + Proj 0(u),c(l+1) = C(l)(c(l)),x(l+1) = B(l)(x(l)) + Proj l(c(l)),
+
+(3) In this design, each control block produces two effects: its standard output is propagated to the next control block, while a zero-initialized residual projection of the same hidden state is injected into the corresponding backbone block. The zero initialization ensures that, at the beginning of training, the control branch does not perturb the pretrained backbone behavior. As training progresses, the control pathway gradually learns to modulate generation in a layer-wise manner, enabling precise structural conditioning while preserving the generative capacity and stability of the backbone MMDiT. 
+
+Dense road layout and bbox sketch projections. To construct spatially explicit control inputs for multiview generation, we follow a layout projection strategy similar to DriveArena [49]. Specifically, we explicitly project the BEV 8 Y. Li et al. 
+
+road layout and 3D object bounding boxes into each camera view based on known camera intrinsics and extrinsics. These projections produce per-view lay-out canvases that provide dense spatial guidance for lane structure and object placement. The projections are concatenated on channels and encoded with a causal 3D convolutional encoder before entering the control MMDiT. 
+
+3.3 Training 
+
+We train the proposed frame-level autoregressive model using a two-stage train-ing strategy designed to jointly improve long-horizon consistency and mitigate autoregressive degradation. Let Fθ denote the parameterized generative model defined in Section 3.1. Following standard practice in flow-based generative mod-eling [34], we optimize θ by minimizing a flow matching loss of the form 
+
+LFM (θ) = Ex, t 
+
+h
+
+∥uθ (zt, t ) − u∗(zt, t )∥22
+
+i
+
+, (4) where x denotes a data sample, t ∈ [0 , 1] is a continuous time parameter, and 
+
+zt is sampled from the probability path induced by x at time t. Here, uθ is the learned velocity field and u∗ is the target flow defined by the data distribution. 
+
+Stage I: Adaptive Reference-Horizon Conditioning. In the first stage, we introduce an Adaptive Reference-Horizon Conditioning (ARHC) strategy to enhance temporal consistency. Given a target video sequence of fixed length L,we sample an integer conditioning length l ∈ { 0, 1, . . . , L − 1} and condition the model on the first l frames to predict the remaining L − l frames. Formally, the training objective in this stage is: 
+
+LARHC (θ) = El, t 
+
+h
+
+∥uθ (zt, t | X1: l) − u∗(zt, t | X1: l)∥22
+
+i
+
+, (5) where the flow matching loss is computed over the target segment Xl+1: L con-ditioned on X1: l. The special cases l = 0 , l = 1 , and l > 1 correspond to text-to-video, image-to-video, and video-to-video generation, respectively, allowing the model to be trained under multiple conditioning regimes within a unified framework. This multi-task conditioning encourages the model to exploit frame-to-frame dependencies and learn robust temporal dynamics, thereby improving consistency in autoregressive generation. 
+
+Stage II: Blend-Forcing Autoregressive Training. In the second stage, we propose Blend-Forcing , a hybrid autoregressive training strategy inspired by self-forcing [24] and resample-forcing [19], to alleviate exposure bias [2] while preserving generation quality close to the ground-truth distribution. While self-conditioning reduces the discrepancy between training and inference, fully rely-ing on generated frames often leads to collapse over long rollouts. Blend-Forcing introduces a controlled transition between ground-truth conditioning and model-generated conditioning. Given the ground-truth initial frame, the model performs autoregressive rollout. At each time step i, once a frame ˆXi is generated, it is im-mediately blended with the corresponding ground-truth latent Xi to construct FAR-Drive 9
+
+the conditioning input for subsequent prediction. Specifically, let X1: L denote the ground-truth latent sequence. For each time step i, we define the blended latent as  ˜Xi = α ˆXi + (1 − α)Xi, (6) where α ∈ [0 , 1] controls the degree of self-conditioning. The blended sequence 
+
+˜X1: t is used as conditioning input for predicting the next frame. The training objective is formulated as 
+
+LBF (θ) = Et
+
+
+
+uθ (zt, t | ˜X1: t) − u∗(zt, t | ˜X1: t) 22
+
+
+
+. (7) To ensure temporal consistency between generated conditioning frames and ground-truth supervision, the autoregressive rollout is initialized using image-to-video conditioning, such that the starting scene matches the ground-truth sequence. Moreover, due to the explicit spatial control provided by projected bounding boxes and road layout representations, the blended latents preserve geometric alignment with the ground-truth trajectory while gradually incorpo-rating model-generated dynamics. This property enables stable multi-step au-toregressive inference and forms a bridge between the ground-truth and model-generated distributions. Training begins with α = 0 , corresponding to full ground-truth conditioning. The value of α is then increased linearly over training iter-ations, progressively introducing generated content into the conditioning signal. This gradual transition improves robustness to iterative self-conditioning while maintaining visual fidelity and temporal stability. 
+
+3.4 Inference Acceleration 
+
+To meet the stringent low-latency interaction requirements of closed-loop simu-lation, we incorporate a series of scenario-specific engineering optimizations to reduce inference latency during autoregressive rollout. 
+
+Sampling Step Reduction. We train the model using a standard larger num-ber of denoising steps and directly employ a reduced number of sampling steps during inference for acceleration. Empirically, we observe that before blend-forcing training, inference with a small number of denoising steps produces overly noisy frames, and the noise accumulates rapidly under autoregressive roll-out, leading to severe degradation over long horizons. However, after applying blend-forcing training, the model becomes more robust to self-conditioned inputs and reduced-step inference no longer causes progressive quality collapse. Conse-quently, we can adopt fewer sampling steps during deployment to substantially reduce latency, without requiring an additional distillation stage. 
+
+Frame-Level VAE Design. To support frame-level controllability, we adopt a VAE architecture with spatial-only compression [6], using a 1 × 32 × 32 compres-sion ratio over the temporal and spatial dimensions. In contrast to commonly used 4 × 8 × 8 video VAEs that compress along the temporal axis, this design avoids temporal entanglement across frames and allows efficient per-frame gen-eration while preserving inference throughput. 10 Y. Li et al. 
+
+Latent Caching for Reference Frames. During autoregressive inference, gen-eration at time t + 1 conditions on a configurable reference set XHt. Instead of recomputing all reference features, we adopt a KV-cache-style mechanism for causal attention. Specifically, the VAE latents of reference frames are encoded once and their corresponding attention keys and values are cached. During sub-sequent autoregressive steps, only the newly generated frame contributes fresh queries, while cached keys and values from XHt are directly reused for causal attention. This avoids redundant feature encoding and repeated attention com-putation over historical frames, substantially reducing rollout latency. 
+
+Condition Caching Across Diffusion Steps. For each target frame Xt+1 ,multiple denoising steps are required. In standard diffusion pipelines, the cost of encoding control conditions is typically negligible compared to iterative de-noising, making caching less critical. However, in our setting, structured control inputs ( e.g ., road layouts and object projections) require relatively heavy encod-ing, introducing non-trivial overhead. Since the control state Ct+1 remains fixed throughout the denoising trajectory, we encode it once and cache the resulting features, reusing them across all diffusion steps. This engineering optimization significantly reduces inference time without affecting generation quality. 
+
+## 4 Experiments 
+
+We conduct a series of experiments to systematically evaluate the proposed 
+
+FAR-Drive framework, aiming to answer the following questions: (1) Can frame-level autoregressive modeling maintain strong performance compared with ex-isting driving video generation methods? (Sec. 4.2) (2) Can the proposed blend-forcing autoregressive training strategy enable stable and consistent long-horizon rollout? (Sec. 4.3) (3) Can the model operate under low-latency constraints while preserving generation quality? (Sec. 4.3) 
+
+4.1 Experimental Setup Data. We conduct experiments on the NuScenes [4] dataset. A total of 1,000 driving scenes are used in our study, including 850 scenes for training and 150 scenes for evaluation. Each scene provides synchronized multi-view camera streams, 3D object annotations, ego-centric BEV representations, and a global text description of the driving scenario. All models are trained on the training split and evaluated on the held-out validation split. 
+
+Model. We adopt a pretrained MMDiT built upon the Stable Diffusion 3 (SD3 [12]) architecture as our generative backbone modified to handle sequences of frames as in Sec. 3.2, and train it under our structured autoregressive closed-loop framework using the strategy described in Sec. 3.3. To enable autoregressive rollout over time, we modify the original bidirectional attention in DiT into a causal attention mechanism along the temporal dimension, ensuring that each target frame only attends to past observations. FAR-Drive 11                                           
+
+> Table 1: Quantitative comparison on multi-view autonomous driving video generation under different autoregressive (AR) units. AR Unit denotes the number of frames gen-erated per forward pass: AR Unit = 1 corresponds to strict frame-level autoregressive rollout, while larger values indicate chunk-wise AR generation. Our methods generate 16 frames so AR Unit = 16 corresponds to single-shot generation. For AR generation we use 3 sampling steps per frame, while single-shot generation uses 30 sampling steps.
+> Method AR Unit FVD ↓mAP ↑mIoU ↑
+> MagicDrive [15] 60 217.94 11.49 18.27 MagicDrive [15] 16 218.12 11.86 18.34 MagicDrive3D [13] 16 210.40 12.05 18.27 MagicDrive-V2 [14] 241 94.84 18.17 20.40 DreamForge (DiT) [36] 5103.61 19.17 34.36 DreamForge (SD1.5) [36] 5233.20 22.52 32.98
+> FAR-Drive (AR Generation) 194.69 27.39 36.35
+> FAR-Drive (Single-shot Generation) 16 84.71 28.58 38.62
+
+Metrics. We evaluate Fréchet Inception Distance (FID) [20], Fréchet Video Distance (FVD) [42], mean Average Precision (mAP), and mean Intersection-over-Union (mIoU). FID measures frame-level distribution alignment in a deep feature space, while FVD extends this formulation to video features and captures temporal coherence. Object-mAP evaluates semantic consistency of detected dy-namic objects, and Map-mIoU quantifies structural alignment in BEV space. 
+
+4.2 Main Results 
+
+Table 1 compares our method with prior approaches under different autoregres-sive (AR) generation units. Existing MagicDrive [13–15] series models exhibit limited structural fidelity even when increasing the AR unit. MagicDrive-V2 im-proves temporal coherence with a long generation horizon, but still lags behind in object- and map-level consistency. DreamForge [36] built on a DiT backbone achieves stronger structural metrics, yet remains inferior to our approach. Our method consistently outperforms all competitors across FVD, mAP, and mIoU. Notably, even under strict frame-level autoregressive generation (AR unit = 1) and in a few-shot setting (sampling steps = 3), it surpasses prior methods that operate on longer generation units, demonstrating that fine-grained autoregres-sive modeling does not degrade overall generation quality. Under single-shot 16-frame generation, the model achieves the best overall performance, also thanks to the increased temporal window size and 30 diffusion sampling steps. Overall, the results validate that explicitly modeling structured control signals and enforc-ing frame-level consistency significantly improves both visual-temporal quality and geometric alignment, which are critical for reliable closed-loop autonomous driving simulation. Table 2 compares existing methods under different design choices, includ-ing volumetric supervision, multi-view support, video generation, and whether 12 Y. Li et al. 
+
+Table 2: Quantitative comparison of multi-view video generation on the nuScenes val-idation set. Methods are grouped according to whether they (i) avoid heavy volumetric intermediate representations, (ii) support multi-view generation, (iii) generate video sequences, and (iv) operate without first-frame conditioning. For AR generation we use 20 sampling steps per frame, while single-shot generation uses 30 sampling steps.                                                                                                                                                                        
+
+> Method Volumetric Condition-Free Multi-view Video 1st-Frame Condition-Free FID ↓FVD ↓
+> X-Scene [50] ✗✓✗✓11.29 -OccScene [32] ✗✓✓✓11.87 -WoVoGen [35] ✗✓✓✓27.60 417.70 UniScene [31] ✗✓✓✓6.45 71.94 DiST-4D [18] ✗✓✓✓7.40 25.55 DriveGAN [26] ✓✗✓✓73.40 502.30 DriveDreamer [44] ✓✗✓✓26.80 353.20 DriveDreamer [44] ✓✗✓✗14.90 340.80 DrivingGPT [9] ✓✗✓✓12.78 142.61 DrivingWorld [23] ✓✗✓✓7.40 90.90 Vista [16] ✓✗✓✓6.90 89.40 Epona [53] ✓✗✓✓7.50 82.80 BEVControl [48] ✓✓✗✓24.85 -BEVGen [41] ✓✓✗✓25.54 -MagicDrive [15] ✓✓✗✓16.20 -DriveDreamer-2 [54] ✓✓✓✗11.20 55.70 OmniNWM [33] ✓✓✓✗5.45 23.63 MagicDrive [15] ✓✓✓✓18.75 218.12 GenAD [55] ✓✓✓✓15.40 184.00 Panacea [46] ✓✓✓✓16.96 139.00 Drive-WM [45] ✓✓✓✓15.80 122.70 DriveDreamer-2 [54] ✓✓✓✓25.00 105.10 MagicDrive-V2 [14] ✓✓✓✓20.91 94.84
+> FAR-Drive (Single-shot Generation) ✓✓✓✗8.60 46.99
+> FAR-Drive (Single-shot Generation) ✓✓✓✓13.24 84.71
+> FAR-Drive (AR Generation) ✓✓✓✓11.92 82.78
+
+they operate in a first-frame condition-free manner. Our model satisfies all these properties while maintaining competitive performance in both FID and FVD. For this comparison, we use a 20-step autoregressive model as it provides the best performance for image and video quality. Only OmniNWM [33] achieves better metrics in the first-frame conditioned setting, using an 11B-parameter model compared to our 3.7B-parameter model. Notably, first-frame condition-ing constrains subsequent rollout and often keeps generated trajectories close to ground truth, which is why many prior works adopt image-to-video settings for first-frame generation [33, 54]. In contrast, first-frame condition-free generation imposes a stricter requirement and better reflects realistic closed-loop simulation. 
+
+4.3 Ablation Studies Blend-Forcing Autoregressive Training. Fig. 3 presents FID and FVD mea-sured at different autoregressive rollout lengths before and after blend-forcing training. Without blend-forcing, both FID and FVD increase steadily as the roll-out length grows, indicating progressive quality degradation as generation pro-ceeds. In contrast, after applying blend-forcing, FID and FVD remain largely sta-ble across extended generation lengths, with only minor fluctuations as the num-ber of generated frames increases. This result demonstrates that blend-forcing FAR-Drive 13 16 32 64 96 128 160 192 229          
+
+> Rollout Length (frames)
+> 0
+> 25
+> 50
+> 75
+> 100
+> FID
+> 16 32 64 96 128 160 192 229
+> Rollout Length (frames)
+> 0
+> 100
+> 200
+> 300
+> 400
+> FVD
+> Before blend-forcing After blend-forcing
+> Fig. 3: Ablation on the proposed blend-forcing on long-horizon generation. We evaluate FID and FVD (lower is better) at different rollout lengths from 16 to 229 frames.
+
+effectively stabilizes long-horizon autoregressive rollout and prevents quality col-lapse beyond the short training horizon. Fig. 4 presents a qualitative comparison of long-horizon generation results before and after blend-forcing training. While both models produce visually plausible initial frames, the model trained with-out blend-forcing exhibits severe quality degradation at the end of the rollout, including structural collapse, blur, and cross-view inconsistency. In contrast, the Blend-Forcing model maintains stable scene layout, object integrity, and multi-view coherence throughout the entire sequence, demonstrating its effectiveness in mitigating autoregressive degradation over long horizons. It is worth noting that our model is trained with at most 8 autoregressive steps (frames), yet re-mains stable when rolled out to 229 frames during inference. In contrast, prior self-conditioning-based approaches report that rollout length is typically con-strained by the training horizon, and generation quality deteriorates rapidly when extrapolating beyond it [10, 24]. The ability of blend-forcing to general-ize far beyond the training rollout length further highlights its effectiveness in stabilizing long-horizon autoregressive simulation. 
+
+Inference Efficiency Optimization. Table 3 analyzes the impact of sampling steps, classifier-free guidance (CFG [21]), and KV cache on both generation quality and inference latency. Notably, Our model can generate six synchronized camera views at a resolution of 576 × 1024 with second-level latency per frame, reaching sub-second latency under typical configurations on a single GPU, which represents strong efficiency compared with prior driving simulators that operate at lower resolutions [35] or single-view generation [16]. Reducing the number of denoising steps substantially accelerates inference while maintaining compet-itive visual and structural metrics, indicating that our model remains stable under significant step reduction. Enabling KV cache yields a notable reduction in inference time without affecting generation quality, validating that condition frames caching is an effective system-level optimization, while applying condition caching across diffusion steps further provides a consistent reduction in latency. Using CFG (scale=2) slightly improves performance but significantly increases computational cost compared to disabling CFG (scale=1), since it requires an additional unconditional forward pass. Therefore, avoiding CFG provides a bet-14 Y. Li et al. (b) After blend -forcing training 
+
+(a) Before blend -forcing training 
+
+Fig. 4: Qualitative comparison of long-horizon autoregressive generation before and after Blend-Forcing training. We generate a 229-frame six-view sequence and visualize the first frame (left) and the last frame (right). More cases in supplementary material. 
+
+Table 3: Ablation on inference configurations including diffusion sampling steps, classifier-free guidance (CFG), KV cache and condition cache (Cond. Cache). We re-port inference latency per iteration (s/it) measured on NPU and H200 GPU.                                                                                           
+
+> Sampling Steps KV Cache CFG-Free Cond. Cache FID ↓FVD ↓mAP ↑mIoU ↑NPU Time GPU Time
+> 1✓✓✓25.94 139.53 27.33 36.52 1.09 s/it 0.84 s/it 2✓✓✓18.44 99.95 27.54 36.42 1.35 s/it 0.98 s/it 3✓✓✓17.35 94.69 27.39 36.35 1.63 s/it 1.15 s/it 4✓✓✓16.44 91.11 27.38 36.31 1.82 s/it 1.28 s/it 5✓✓✓15.81 90.03 27.29 36.26 2.12 s/it 1.43 s/it 20 ✓✓✓11.92 82.78 26.96 36.25 5.75 s/it 3.36 s/it 20 ✗✓✓11.85 80.53 26.88 36.28 8.90 s/it 8.15 s/it 20 ✗✗✓12.01 86.10 28.13 36.33 17.15 s/it 15.42 s/it 20 ✗✗✗12.01 86.10 28.13 36.33 20.05 s/it 15.94 s/it
+
+ter trade-off for low-latency rollout. Overall, the results demonstrate that our framework supports flexible quality–efficiency trade-offs and can operate under low-latency constraints required by closed-loop autonomous driving simulation. 
+
+## 5 Conclusion 
+
+We presented FAR-Drive , a frame-level autoregressive multi-view generative framework for closed-loop autonomous driving simulation. Starting from a DiT backbone, we extend it to the multi-view setting and introduce a dual-DiT con-trol architecture that injects structured driving signals for fine-grained controlla-bility. To bridge the gap between training and inference in long-horizon rollout, we further introduce a two-stage training strategy combining adaptive reference-horizon conditioning and blend-forcing autoregressive training. Together with FAR-Drive 15 
+
+tailored inference optimizations, the framework achieves stable long-horizon gen-eration while satisfying low-latency requirements for interactive simulation. Ex-periments show that our method outperforms prior multi-view driving genera-tion approaches in visual fidelity, temporal coherence, and structural consistency, while supporting strict frame-level autoregressive rollout, which is crucial for re-liable closed-loop autonomous driving simulation. We hope this work provides a practical step toward controllable, high-fidelity generative simulators for scalable training and evaluation of next-generation autonomous driving systems. 
+
+## References 
+
+1. Bansal, M., Krizhevsky, A., Ogale, A.: Chauffeurnet: Learning to drive by imitating the best and synthesizing the worst. arXiv preprint arXiv:1812.03079 (2018) 2. Bengio, S., Vinyals, O., Jaitly, N., Shazeer, N.: Scheduled sampling for sequence prediction with recurrent neural networks. Advances in neural information pro-cessing systems (2015) 3. Bojarski, M., Del Testa, D., Dworakowski, D., Firner, B., Flepp, B., Goyal, P., Jackel, L.D., Monfort, M., Muller, U., Zhang, J., et al.: End to end learning for self-driving cars. arXiv preprint arXiv:1604.07316 (2016) 4. Caesar, H., Bankiti, V., Lang, A.H., Vora, S., Liong, V.E., Xu, Q., Krishnan, A., Pan, Y., Baldan, G., Beijbom, O.: nuscenes: A multimodal dataset for autonomous driving. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (2020) 5. Chen, J., Wu, Y., Luo, S., Xie, E., Paul, S., Luo, P., Zhao, H., Li, Z.: Pixart-delta: Fast and controllable image generation with latent consistency models. arXiv preprint arXiv:2401.05252 (2024) 6. Chen, J., Cai, H., Chen, J., Xie, E., Yang, S., Tang, H., Li, M., Lu, Y., Han, S.: Deep compression autoencoder for efficient high-resolution diffusion models. arXiv preprint arXiv:2410.10733 (2024) 7. Chen, K., Gao, R., Hong, L., Xu, H., Jia, X., Caesar, H., Dai, D., Liu, B., Tsishkou, D., Xu, S., et al.: Multimodal perception and comprehension of corner cases in autonomous driving (2024) 8. Chen, R., Wu, Z., Liu, Y., Guo, Y., Ni, J., Xia, H., Xia, S.: Unimlvg: Unified frame-work for multi-view long video generation with comprehensive control capabilities for autonomous driving. arXiv preprint arXiv:2412.04842 (2024) 9. Chen, Y., Wang, Y., Zhang, Z.: Drivinggpt: Unifying driving world modeling and planning with multi-modal autoregressive transformers. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (2025) 10. Cui, J., Wu, J., Li, M., Yang, T., Li, X., Wang, R., Bai, A., Ban, Y., Hsieh, C.J.: Self-forcing++: Towards minute-scale high-quality video generation. arXiv preprint arXiv:2510.02283 (2025) 11. Dosovitskiy, A., Ros, G., Codevilla, F., Lopez, A., Koltun, V.: Carla: An open urban driving simulator. In: Conference on robot learning (2017) 12. Esser, P., Kulal, S., Blattmann, A., Entezari, R., Müller, J., Saini, H., Levi, Y., Lorenz, D., Sauer, A., Boesel, F., Podell, D., Dockhorn, T., English, Z., Rom-bach, R.: Scaling rectified flow transformers for high-resolution image synthesis. In: International Conference on Machine Learning (2024) 16 Y. Li et al. 13. Gao, R., Chen, K., Li, Z., Hong, L., Li, Z., Xu, Q.: Magicdrive3d: Controllable 3d generation for any-view rendering in street scenes. arXiv preprint arXiv:2405.14475 (2024) 14. Gao, R., Chen, K., Xiao, B., Hong, L., Li, Z., Xu, Q.: Magicdrive-v2: High-resolution long video generation for autonomous driving with adaptive control. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (2025) 15. Gao, R., Chen, K., Xie, E., Hong, L., Li, Z., Yeung, D.Y., Xu, Q.: Magicdrive: Street view generation with diverse 3d geometry control. arXiv preprint arXiv:2310.02601 (2023) 16. Gao, S., Yang, J., Chen, L., Chitta, K., Qiu, Y., Geiger, A., Zhang, J., Li, H.: Vista: A generalizable driving world model with high fidelity and versatile controllability. Advances in Neural Information Processing Systems (2024) 17. Grigorescu, S., Trasnea, B., Cocias, T., Macesanu, G.: A survey of deep learning techniques for autonomous driving. Journal of field robotics (2020) 18. Guo, J., Ding, Y., Chen, X., Chen, S., Li, B., Zou, Y., Lyu, X., Tan, F., Qi, X., Li, Z., et al.: Dist-4d: Disentangled spatiotemporal diffusion with metric depth for 4d driving scene generation. arXiv preprint arXiv:2503.15208 (2025) 19. Guo, Y., Yang, C., He, H., Zhao, Y., Wei, M., Yang, Z., Huang, W., Lin, D.: End-to-end training for autoregressive video diffusion via self-resampling. arXiv preprint arXiv:2512.15702 (2025) 20. Heusel, M., Ramsauer, H., Unterthiner, T., Nessler, B., Hochreiter, S.: Gans trained by a two time-scale update rule converge to a local nash equilibrium. Advances in neural information processing systems (2017) 21. Ho, J., Salimans, T.: Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598 (2022) 22. Hu, A., Russell, L., Yeo, H., Murez, Z., Fedoseev, G., Kendall, A., Shotton, J., Corrado, G.: Gaia-1: A generative world model for autonomous driving. arXiv preprint arXiv:2309.17080 (2023) 23. Hu, X., Yin, W., Jia, M., Deng, J., Guo, X., Zhang, Q., Long, X., Tan, P.: Driv-ingworld: Constructing world model for autonomous driving via video gpt. arXiv preprint arXiv:2412.19505 (2024) 24. Huang, X., Li, Z., He, G., Zhou, M., Shechtman, E.: Self forcing: Bridging the train-test gap in autoregressive video diffusion. arXiv preprint arXiv:2506.08009 (2025) 25. Jiang, J., Hong, G., Zhou, L., Ma, E., Hu, H., Zhou, X., Xiang, J., Liu, F., Yu, K., Sun, H., et al.: Dive: Dit-based video generation with enhanced control. arXiv preprint arXiv:2409.01595 (2024) 26. Kim, S.W., Philion, J., Torralba, A., Fidler, S.: Drivegan: Towards a controllable high-quality neural simulation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (2021) 27. Kingma, D.P., Welling, M.: Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114 (2013) 28. Kiran, B.R., Sobh, I., Talpaert, V., Mannion, P., Al Sallab, A.A., Yogamani, S., Pérez, P.: Deep reinforcement learning for autonomous driving: A survey. IEEE transactions on intelligent transportation systems (2021) 29. Kong, W., Tian, Q., Zhang, Z., Min, R., Dai, Z., Zhou, J., Xiong, J., Li, X., Wu, B., Zhang, J., Wu, K., Lin, Q., Yuan, J., Long, Y., Wang, A., Wang, A., Li, C., Huang, D., Yang, F., Tan, H., Wang, H., Song, J., Bai, J., Wu, J., Xue, J., Wang, J., Wang, K., Liu, M., Li, P., Li, S., Wang, W., Yu, W., Deng, X., Li, Y., Chen, FAR-Drive 17 Y., Cui, Y., Peng, Y., Yu, Z., He, Z., Xu, Z., Zhou, Z., Xu, Z., Tao, Y., Lu, Q., Liu, S., Zhou, D., Wang, H., Yang, Y., Wang, D., Liu, Y., Jiang, J., Zhong, C.: Hunyuanvideo: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 (2025) 30. Labs, B.F., Batifol, S., Blattmann, A., Boesel, F., Consul, S., Diagne, C., Dockhorn, T., English, J., English, Z., Esser, P., Kulal, S., Lacey, K., Levi, Y., Li, C., Lorenz, D., Müller, J., Podell, D., Rombach, R., Saini, H., Sauer, A., Smith, L.: Flux.1 kontext: Flow matching for in-context image generation and editing in latent space. arXiv preprint arXiv:2506.15742 (2025) 31. Li, B., Guo, J., Liu, H., Zou, Y., Ding, Y., Chen, X., Zhu, H., Tan, F., Zhang, C., Wang, T., et al.: Uniscene: Unified occupancy-centric driving scene generation. In: Proceedings of the Computer Vision and Pattern Recognition Conference (2025) 32. Li, B., Jin, X., Wang, J., Shi, Y., Sun, Y., Wang, X., Ma, Z., Xie, B., Ma, C., Yang, X., et al.: Occscene: Semantic occupancy-based cross-task mutual learning for 3d scene generation. IEEE Transactions on Pattern Analysis and Machine Intelligence (2025) 33. Li, B., Ma, Z., Du, D., Peng, B., Liang, Z., Liu, Z., Ma, C., Jin, Y., Zhao, H., Zeng, W., et al.: Omninwm: Omniscient driving navigation world models. arXiv preprint arXiv:2510.18313 (2025) 34. Lipman, Y., Chen, R.T., Ben-Hamu, H., Nickel, M., Le, M.: Flow matching for generative modeling. arXiv preprint arXiv:2210.02747 (2022) 35. Lu, J., Huang, Z., Yang, Z., Zhang, J., Zhang, L.: Wovogen: World volume-aware diffusion for controllable multi-camera driving scene generation. In: European Con-ference on Computer Vision (2024) 36. Mei, J., Hu, T., Yang, X., Wen, L., Yang, Y., Wei, T., Ma, Y., Dou, M., Shi, B., Liu, Y.: Dreamforge: Motion-aware autoregressive video generation for multi-view driving scenes. arXiv preprint arXiv:2409.04003 (2024) 37. Paden, B., Čáp, M., Yong, S.Z., Yershov, D., Frazzoli, E.: A survey of motion planning and control techniques for self-driving urban vehicles. IEEE Transactions on intelligent vehicles (2016) 38. Peebles, W., Xie, S.: Scalable diffusion models with transformers. In: International Conference on Computer Vision (2023) 39. Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., Zhou, Y., Li, W., Liu, P.J.: Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of machine learning research (2020) 40. Sun, P., Kretzschmar, H., Dotiwalla, X., Chouard, A., Patnaik, V., Tsui, P., Guo, J., Zhou, Y., Chai, Y., Caine, B., et al.: Scalability in perception for autonomous driving: Waymo open dataset. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (2020) 41. Swerdlow, A., Xu, R., Zhou, B.: Street-view image generation from a bird’s-eye view layout. IEEE Robotics and Automation Letters (2024) 42. Unterthiner, T., Van Steenkiste, S., Kurach, K., Marinier, R., Michalski, M., Gelly, S.: Towards accurate generative models of video: A new metric & challenges. arXiv preprint arXiv:1812.01717 (2018) 43. Wan, T.: Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 (2025) 44. Wang, X., Zhu, Z., Huang, G., Chen, X., Lu, J.: Drivedreamer: Towards real-world-driven world models for autonomous driving. ECCV (2024) 45. Wang, Y., He, J., Fan, L., Li, H., Chen, Y., Zhang, Z.: Driving into the future: Mul-tiview visual forecasting and planning with world model for autonomous driving. 18 Y. Li et al. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (2024) 46. Wen, Y., Zhao, Y., Liu, Y., Jia, F., Wang, Y., Luo, C., Zhang, C., Wang, T., Sun, X., Zhang, X.: Panacea: Panoramic and controllable video generation for autonomous driving. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (2024) 47. Xiao, P., Shao, Z., Hao, S., Zhang, Z., Chai, X., Jiao, J., Li, Z., Wu, J., Sun, K., Jiang, K., et al.: Pandaset: Advanced sensor suite dataset for autonomous driving. In: 2021 IEEE international intelligent transportation systems conference (ITSC) (2021) 48. Yang, K., Ma, E., Peng, J., Guo, Q., Lin, D., Yu, K.: Bevcontrol: Accurately controlling street-view elements with multi-perspective consistency via bev sketch layout. arXiv preprint arXiv:2308.01661 (2023) 49. Yang, X., Wen, L., Wei, T., Ma, Y., Mei, J., Li, X., Lei, W., Fu, D., Cai, P., Dou, M., et al.: Drivearena: A closed-loop generative simulation platform for autonomous driving. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (2025) 50. Yang, Y., Liang, A., Mei, J., Ma, Y., Liu, Y., Lee, G.H.: X-scene: Large-scale driv-ing scene generation with high fidelity and flexible controllability. arXiv preprint arXiv:2506.13558 (2025) 51. Yin, T., Gharbi, M., Park, T., Zhang, R., Shechtman, E., Durand, F., Freeman, B.: Improved distribution matching distillation for fast image synthesis. In: Annual Conference on Neural Information Processing Systems (2024) 52. Yin, T., Gharbi, M., Zhang, R., Shechtman, E., Durand, F., Freeman, W.T., Park, T.: One-step diffusion with distribution matching distillation. In: Conference on Computer Vision and Pattern Recognition (2024) 53. Zhang, K., Tang, Z., Hu, X., Pan, X., Guo, X., Liu, Y., Huang, J., Yuan, L., Zhang, Q., Long, X.X., et al.: Epona: Autoregressive diffusion world model for autonomous driving. arXiv preprint arXiv:2506.24113 (2025) 54. Zhao, G., Wang, X., Zhu, Z., Chen, X., Huang, G., Bao, X., Wang, X.: Drivedreamer-2: Llm-enhanced world models for diverse driving video generation. In: Proceedings of the AAAI Conference on Artificial Intelligence (2025) 55. Zheng, W., Song, R., Guo, X., Zhang, C., Chen, L.: Genad: Generative end-to-end autonomous driving. In: European Conference on Computer Vision (2024) FAR-Drive 19 
+
+## Appendix A Model 
+
+Our model contains approximately 3.7B parameters in total, including a pre-trained generative backbone, a control branch for structured condition injection, and several lightweight embedding and projection modules. 
+
+Backbone MMDiT. Our model is built upon a pretrained video generative backbone based on the MMDiT architecture of Stable Diffusion 3 [12], contain-ing approximately 2.5B parameters. The model follows a diffusion transformer design and supports multimodal conditioning, accepting text, image, and video inputs and generating video sequences in the latent space. The backbone consists of 28 MMDiT blocks with a hidden dimension of 1792 and 14 attention heads. 
+
+Causal Conversion of Pretrained DiT. To support autoregressive video generation, we convert the original bidirectional attention in the pretrained DiT into causal attention along the temporal dimension during the causal finetuning phase described in Sec. C. Specifically, tokens of each target frame are only allowed to attend to tokens from previous frames, preventing information leakage from future frames during generation. 
+
+Cross-View Attention. The cross-view attention mechanism in our model is inspired by DIVE [25], which operates independently of temporal constraints and is unrelated to causal attention. Each cross-view attention block is initialized with the weights of the previous causal video block, and the output is zero-initialized to preserve the backbone logic at initialization. In our architecture, causal attention blocks and cross-view attention blocks are interleaved across layers as shown in Fig. 5, with one cross-view attention block inserted after every four backbone causal attention blocks, which allows the model to progressively learn both temporal dependencies and multi-view interactions in parallel. These modules introduce approximately 0.3B additional parameters. 
+
+Control Branch Architecture. We introduce an additional control DiT branch to inject structured control conditions into the generative process. Empirically, we find that the control branch does not require the same depth as the back-bone. As demonstrated in Fig. 5, compared to 7 backbone MMDiT units, we use only 3 control MMDiT units in our model. As a result, the control branch influences only the first few layers of the backbone through the control injection mechanism. The control branch contains approximately 0.8B parameters. In addition, several lightweight auxiliary modules contribute roughly 0.1B 
+
+parameters. Overall, the full model contains approximately 3.7B parameters. 
+
+## B Data 
+
+B.1 Dataset Format 
+
+We use NuScenes [4] dataset for training and evaluation. After applying standard preprocessing steps commonly used in prior works [15], each training sample contains the following components: 20 Y. Li et al. Multiview Control DiT Block 
+
+> Video Control DiT Block
+> Video Control DiT Block
+> Video Control DiT Block
+> Video Control DiT Block
+> Multiview Backbone DiT Block
+> Multiview Reshape
+> Video Reshape
+> Video Backbone DiT Block
+> Video Backbone DiT Block
+> Video Backbone DiT Block
+> Video Backbone DiT Block
+> Multiview Reshape
+> Video Reshape
+> to next block…
+> from previous block…
+
+𝑥  𝑥 c𝑦 𝑣𝑖𝑑𝑒𝑜 𝑦 𝑚𝑢𝑙𝑡𝑖𝑣𝑖𝑒𝑤  𝑦 𝑐  
+
+> 𝑣𝑖𝑑𝑒𝑜
+
+𝑦 𝑐 
+
+> 𝑚𝑢𝑙𝑡𝑖𝑣𝑖𝑒𝑤
+
+𝐵 , 𝑉 , 𝑇 ′𝐻 ′𝑊 ′ , 𝐶 → [𝐵 , 𝑇 ′, (𝑉 𝐻 ′𝑊 ′), 𝐶 ]
+
+𝐵 , 𝑇′ , 𝑉 𝐻 ′𝑊 ′ , 𝐶 → [𝐵 , 𝑉 , (𝑇′ 𝐻 ′𝑊 ′), 𝐶 ]
+
+> Video Reshape:
+> Multiview Reshape:
+
+Fig. 5: Our model architecture consists of 7 backbone units (each containing 4 back-bone MMDiT blocks and 1 cross-view attention block) and 3 control units. We have provided a detailed description of a single backbone unit and its corresponding control unit. In this design, every four backbone blocks are alternately arranged with a cross-view attention block. 
+
+Multi-view Video. For each scene we use 6 synchronized camera streams over 16 frames. The RGB images are encoded into a latent representation using a pretrained VAE, which serves as the input and prediction target of the DiT. The latent tensor therefore represents a temporally downsampled and spatially compressed version of the original multi-view video. 
+
+Camera Parameters. Each camera is associated with its intrinsic and ex-trinsic parameters. The camera intrinsics describe the projection from camera coordinates to the image plane, while the extrinsics specify the camera pose with respect to the ego vehicle and global coordinate system through a rotation and translation. These parameters are used to maintain geometric consistency across camera views. 
+
+BEV Semantic Map. Bird’s-eye-view (BEV) semantic map of the environment centered at the ego vehicle. The BEV map contains multiple binary channels rep-resenting different map elements such as road regions and pedestrian crossings. This representation provides a compact spatial description of the scene layout. FAR-Drive 21 
+
+Bounding Boxes. Dynamic agents in the scene are represented using 3D bound-ing boxes together with object category labels. Each box is represented by its 3D pose and size and can be converted to its eight vertices. Additional masks indicate whether a box corresponds to a valid object or padding. The categories cover common traffic participants such as vehicles, pedestrians, bicycles, and traffic cones. 
+
+Text Caption. Each scene is associated with a natural language description summarizing the driving scenario. During training, the captions are encoded using a pretrained text encoder to obtain token-level embeddings, which are used as conditioning inputs for the generative model. 
+
+Ego-Motion. We represent the ego vehicle motion using a sequence of relative ego poses between frames. Each pose consists of a 3D rotation and translation describing the transformation from the initial coordinate frame to the current frame. This motion representation is used to capture the temporal evolution of the camera rig. 
+
+B.2 Data Processing 
+
+Following common practices in diffusion-based video generation, we encode im-ages and text into latent representations before training. For text conditioning, we use the T5-XXL text encoder from the T5 family [39]. The input captions are tokenized and converted into token-level embeddings which are used as condi-tioning inputs for the DiT backbone. For visual inputs, we adopt the 1 × 32 × 32 
+
+VAE from the DC-AE [6] implementation provided in Diffusers. All images are first resized to a resolution of 576 × 1024 , preserving the original aspect ratio of the NuScenes images ( 900 × 1600 ), so no cropping is required. The resized frames are then encoded into latent representations using the VAE. After en-coding, each frame is represented as a latent feature map with spatial resolution 
+
+18 × 32 , which serves as the input and prediction target of the diffusion trans-former during training and inference. In addition to VAE encoding, we project the BEV road layout and 3D object bounding boxes into each camera view using annotations provided by the NuScenes dataset together with the cam-era calibration parameters like lidar projections, following a standard projection pipeline [49]. 
+
+## C Training 
+
+The training process consists of three stages. We first pretrain our model with bidirectional attention for 10,000 iterations to initialize the generative backbone. Next, the model is finetuned using causal attention for 20,000 iterations to enable autoregressive video generation. Finally, we perform blend-forcing autoregressive training for 7,000 iterations to improve long-horizon stability. Unless otherwise specified, we use a batch size of 64 and a learning rate of 8 × 10 −5.22 Y. Li et al. (b) After blend -forcing training (a) Before blend -forcing training  
+
+> Fig. 6: Qualitative comparison of long-horizon autoregressive generation before (part a) and after (part b) blend-forcing training. We generate a 229-frame six-view sequence and visualize the first frame (left of each part) and the last frame (right of each part).
+
+Adaptive Reference-Horizon Conditioning. For a training sequence of 16 frames, we condition the generation of future frames on a variable number of pre-ceding reference frames. Specifically, frames 0-15 can be used as reference frames to condition the prediction of subsequent frames. The input latents therefore con-sist of a mixture of clean reference-frame latents and noisy target-frame latents. We design a sampling strategy to select the number of reference frames with a biased distribution, giving higher probability to short horizons (e.g., 1-3 frames), which are more common in autoregressive rollout. 
+
+Blend-Forcing Autoregressive Training. During training, the blending co-efficient α increases linearly over time to gradually transition from ground-truth conditioning to model-generated conditioning. The exact growth rate of α is set to 1 × 10 −4 thus will be capped at 1 after 10,000 steps, while training typically converges around 7,000 steps in practice. To keep the model generation quality stable, we perform a step of standard flow matching [34] training as described in Sec. 3.3 for every step of blend-forcing. To improve the robustness, we randomly increase the length of the generated sequence up to 16 frames to increase the level of degradation on the generated conditioning data during training, while still using only the last 8 frames as mentioned Sec 4.3. 
+
+## D Evaluation 
+
+We follow the inference and evaluation settings described in the main paper. Specifically, we compute mAP and mIoU following the evaluation protocol used in the ECCV CODA workshop [7], which has been widely adopted in recent autonomous driving simulation and generation works. 
+
+## E Additional Qualitative Results 
+
+In addition to the examples presented in Sec. 4.3, we provide additional qualita-tive results in Fig. 6 covering more scenarios. Video demonstrations are included FAR-Drive 23 
+
+in the supplementary material to better illustrate the generated multi-view driv-ing scenes. While our model generates videos at a resolution of 1024 × 576 , the supplementary videos are released at a reduced resolution due to the file size limitations of the ECCV submission system. 
+
+## F Discussion and Future Directions 
+
+We outline several promising future directions for extending the proposed FAR-Drive framework. First, future work could further improve long-horizon spa-tiotemporal consistency and overall video quality in autoregressive generation. Possible directions include stronger temporal modeling and improved training strategies for autoregressive MMDiTs, which may enable stable generation over substantially longer driving sequences while preserving global scene coherence. Second, improving inference efficiency remains an important direction for inter-active simulation. Potential approaches include model compression techniques such as knowledge distillation and lightweight architectural modifications, which could reduce the computational cost of diffusion inference and enable generation speeds approaching real-time operation ( e.g ., around 10 frames per second). Finally, an important next step is to integrate generative simulators with real autonomous driving pipelines. The proposed FAR-Drive environment could serve as a closed-loop training platform where autonomous driving agents in-teract with generated scenes, enabling large-scale policy training and evaluation within controllable simulated environments. Studying how policies trained in such generative environments transfer to real-world driving performance would provide valuable insights for future autonomous driving systems.
