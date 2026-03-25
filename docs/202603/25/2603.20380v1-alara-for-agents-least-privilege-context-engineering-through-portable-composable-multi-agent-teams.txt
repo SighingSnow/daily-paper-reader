@@ -1,0 +1,320 @@
+Title: ALARA for Agents: Least-Privilege Context Engineering Through Portable Composable Multi-Agent Teams
+
+URL Source: https://arxiv.org/pdf/2603.20380v1
+
+Published Time: Tue, 24 Mar 2026 00:11:35 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# ALARA for Agents: Least-Privilege Context Engineering Through Portable Composable Multi-Agent Teams 
+
+Christopher J. Agostino ∗, Nayan D’Souza ∗† ,
+
+∗NPC Worldwide , Bloomington, IN, USA Email: cjp.agostino@gmail.com 
+
+†Department of Linguistics, Indiana University , Bloomington, IN, USA 
+
+Abstract —Industry practitioners and academic re-searchers regularly use multi-agent systems to accel-erate their work, yet the frameworks through which these systems operate do not provide a simple, unified mechanism for scalably managing the critical aspects of the agent harness, impacting both the quality of individual human-agent interactions and the capacity for practitioners to coordinate toward common goals through shared agent infrastructure. Agent frameworks have enabled increasingly sophisticated multi-agent systems, but the behavioral specifications that define what these agents can do remain fragmented across prose instruction files, framework-internal configura-tion, and mechanisms like MCP servers that operate separately from individual agent definitions, making these specifications difficult to share, version, or collab-oratively maintain across teams and projects. Applying the ALARA principle from radiation safety (exposures kept as low as reasonably achievable) to agent context, we introduce a declarative context-agent-tool (CAT) data layer expressed through interrelated files that scope each agent’s tool access and context to the mini-mum its role requires, and npcsh , a command-line shell for executing it. Because the system parses and enforces these files structurally, modifying an agent’s tool list produces a guaranteed behavioral change rather than a suggestion the model may or may not follow. We evaluate 22 locally-hosted models from 0.6B to 35B parameters across 115 practical tasks spanning file operations, web search, multi-step scripting, tool chain-ing, and multi-agent delegation, characterizing which model families succeed at which task categories and where they break down across ∼2500 total executions. The framework and benchmark are open source at https://github.com/NPC-Worldwide/npcsh. 
+
+Index Terms —human-agent interaction, multi-agent systems, composable automation, agent evaluation, co-creative systems 
+
+I. Introduction 
+
+Multi-agent systems built on large language models have become everyday tools for practitioners across software development, research, and creative work, and as these systems have grown more sophisticated, the infrastructure surrounding them (the agent harness that governs tool ac-cess, behavioral boundaries, and inter-agent coordination) has become a distinct engineering concern [1]. Practition-ers who want to specify what their agents can do, what tools they have access to, and how they should coordinate currently express these specifications through a combi-nation of prose instruction files (Cursor’s .cursorrules ,Claude Code’s CLAUDE.md , Aider’s convention files [2], the emerging AGENTS.md standard), programmatic frame-work code (LangGraph [3], AutoGen [4], CrewAI [5]), and tool registration protocols like MCP servers. Each of these mechanisms addresses a piece of the harness, but they do not compose with each other: prose files rely on interpretive compliance that cannot be guaranteed in principle, given that meaning-production in language models is contextual in the formal sense, generated in the act of interpretation rather than retrieved from pre-existing associations [6]–[9], framework code embeds be-havioral specification in application logic that is difficult to inspect or modify without deep expertise, and MCP servers scope tool access to the server rather than to individual agents. The result is that the aspects of the harness most consequential for the quality of human-agent interaction are fragmented across mechanisms that cannot be validated programmatically and are difficult for teams of practitioners to collaboratively maintain. The empirical evidence for the cost of this fragmentation has accumulated from several directions. Language model performance on retrieval tasks degrades significantly when relevant information appears in the middle of the con-text window, with the lowest accuracy at precisely the positions where accumulated conversation history pushes the behavioral instructions that an agent most needs to follow [10]. An analysis of 1,600 execution traces across seven multi-agent frameworks found that specification and system design failures account for 44% of all breakdowns, making underspecification, rather than model capability or network failures, the plurality failure mode [11], [12]. From the security side, work on privilege control for LLM agents has identified over-privileged tool access as the structural enabler of prompt injection attacks: agents given access to tools they do not need for a given role create attack surface that injected content can exploit [13]. The Prompt Flow Integrity work reaches the same con-clusion: in a system that combines untrusted data with privileged tools, least privilege enforcement is necessary 
+
+> arXiv:2603.20380v1 [cs.MA] 20 Mar 2026
+
+but inherently unreliable when implemented through prose instructions [14]. The plan-then-execute pattern resists injection because the agent commits to a tool plan be-fore processing untrusted content, leaving no interpretive surface for injected frames to act on [15]. Taken together, these findings identify the prose interface between a hu-man’s specification of agent behavior and the model’s enactment of it as the common origin of both capability degradation and security vulnerabilities. The principle that the exposure of a system to risk should be kept as low as reasonably achievable, codified by the International Commission on Radiological Protection in 1977 [16] and formalized by the US Nuclear Regu-latory Commission as a continuing optimization toward the minimum that the purpose of the activity actually demands [17], predates the modern internet but maps directly onto the problem of agent tool access, where its structural analog in computer security (least privilege, the restriction of access to the minimum necessary to accom-plish assigned tasks [18]) has already been identified as the necessary response to the over-privileged tool catalogs that enable prompt injection [13]–[15]. The constraint in both formulations holds regardless of what the agent interprets or misinterprets from its context, because tools not present in an agent’s schema cannot be invoked through a schema entry that was never provided, and experiments on tool catalog size confirm the practical stakes: tool invocation accuracy falls from ∼95% to ∼25% as catalog size grows from one to eight [19], with the degradation concentrated in the space between what a model is given access to and what it should actually be using. The accumulation of transient, unauditable configura-tion artifacts across agentic systems [20] resembles the problem that Infrastructure as Code solved for deployment through the introduction of declarative specification files that a system could parse and enforce rather than prose that a human would read and enact. In this work, we introduce a declarative context-agent-tool (CAT) data layer that expresses the agent harness through interrelated files scoping each agent’s tool access and context to the minimum its role requires, and npcsh , a command-line shell for executing it. The remainder of the paper describes the design of the framework (Section II) and presents a 115-task benchmark evaluated across 22 locally-hosted models from 0.6B to 35B parameters, with trace-level analysis of 2,530 task executions characterizing when and how agent reliability breaks down across model families, task categories, and retry strategies (Section II-F). 
+
+II. Design and Methods 
+
+Scoping each agent’s tool access and context to the minimum its role requires demands a specification format that a system can parse and enforce structurally rather than one that relies on interpretive compliance. We de-scribe below the declarative data layer through which we represent the agent harness (Section II-A) and the file types that compose it (Sections II-B–II-E). 
+
+A. The CAT Data Layer 
+
+We represent the agent harness through three interre-lated file types: context files that scope shared resources and designate orchestrators, NPC files that define indi-vidual agents with their model configurations and tool permissions, and Jinxes (Jinja Execution templates) that specify the tools themselves as executable YAML defini-tions. The relationships among these file types are shown in Figure 1. Context files sit at the team level and de-termine which agent serves as orchestrator and what sub-teams exist within the hierarchy. Each NPC file references a subset of Jinxes from the available catalog, and because Jinxes can invoke other Jinxes as execution steps, the tool layer forms a directed acyclic graph of composable capabilities. Because the entire specification consists of files on disk rather than framework-internal state, the same directory transfers without modification across every interface the system provides, including an interactive shell (npcsh ), an API server ( npc serve ), a desktop application (npcts ), a browser-based IDE ( incognide ), and direct Python import.                                                  
+
+> sub-team/
+> team/
+> context
+> orchestrator
+> agent a
+> agent b
+> context
+> sub orch
+> specialist
+> python
+> chat sh web search screenshot
+> react delegate computer use
+> Fig. 1. The CAT data layer. Left: context files (orange) scope teams of NPCs (blue). Right: Jinxes (green) compose as a DAG rooted at python . Level-1 Jinxes ( chat ,sh ,web search ,screenshot )each use python as their engine. Level-2 Jinxes combine level-1steps: react chains chat +python ,computer use chains
+> chat +screenshot +sh , and delegate uses chat +sh . Shared parents (e.g. chat used by all three composites) make the graph a DAG rather than a tree. Dashed arrows show tool-catalog assignment to NPCs.
+
+B. Jinxes 
+
+A Jinx is a YAML file specifying a name, a natural-language description, typed inputs, and a sequence of execution steps, where each step names an engine ( python ,
+
+bash , llm , or another Jinx) and contains Jinja-templated code rendered with input values at execution time. We derive tool-calling schemas directly from the Jinx’s inputs and description, so the file serves as both the definition and the executable artifact, eliminating the schema-definition layer where drift between specification and behavior accu-mulates in programmatic frameworks. Because tool-use capability varies substantially across model families and cannot be assumed from parameter count or benchmark performance on other tasks [21], we use the Jinx to provide deterministic scaffolding (execu-tion order, data flow between steps, error handling) that bounds the interpretive surface to individual steps where model-driven interpretation adds value. Where the ReAct pattern treats reasoning traces and tool actions as a unified loop [22], we decompose this loop into a deterministic skeleton whose interpretive demands are scoped to individ-ual steps. When a step names another Jinx as its engine, that Jinx expands in place with arguments substituted and results threading through shared context, so that single-agent workflows compose into directed acyclic execution graphs from individually simple files (Figure 1, green nodes). In practice, a research pipeline chains hypothesis generation, sub-agent search, iterative writing, and review-revision cycles as a single Jinx whose steps invoke other Jinxes three levels deep, and a desktop automation work-flow chains screenshot capture, vision analysis, and action execution in a deterministic loop. In both cases the user who wants to understand what the system does reads the top-level file, and the user who wants to change it edits one step. Because Jinxes execute through prompt-based flows rather than requiring native function-calling support, they work with any model regardless of whether it implements structured tool calling, which enables agent workflows on small locally-hosted models that would otherwise be excluded from tool-using architectures entirely. The same Jinx that a user invokes as a slash command serves as the tool-call target when an agent selects it during reasoning, presenting an interactive interface when a human invokes it directly and executing the same code with the same parameters when an agent calls it autonomously [23]. A correction made to a Jinx propagates to every agent that uses it, providing the kind of unified human-agent tool definition that declarative agent specification has been identified as requiring [24]. We organize Jinxes in a categorized directory hierarchy and reference them by name through template resolution rather than by path, so that reorganizing the capability taxonomy does not break agent definitions. 
+
+C. NPCs 
+
+An NPC file defines an agent through a name, a natural-language directive, a model and provider specification, and a Jinx list that simultaneously constitutes the tool catalog and the permission set. We use the Jinx list to scope each agent to the minimum set of tools its role requires, an intervention motivated by the finding that tool selection accuracy undergoes a structural phase transition as catalog size grows [19], [25] and that agents operating with the smallest set of high-signal tokens outperform those given overlapping tools [1]. The Jinx list enforces its constraint structurally rather than interpretively. A prose instruction file can request that an agent limit itself to certain tools, but the model is free to ignore or misinterpret the instruction, and at-tention dilution makes this increasingly likely over long contexts [10]; tools not on the Jinx list do not exist in the agent’s schema, and no amount of prompt injection or attention drift can invoke what was never provided. The security literature arrives at this conclusion through analysis of attack surfaces [13]–[15], and we implement it through the definition format rather than through a separate enforcement layer. The same mechanism operationalizes autonomy as a continuous design parameter. An NPC with a narrow Jinx list and no delegation tool operates at low autonomy, one with the delegation Jinx and a broad catalog operates at higher autonomy, and the user repositions any agent on this spectrum by editing a YAML list. That high automa-tion and high user control are independently achievable rather than opposed [26] is what the NPC file makes concrete, operationalizing the automation taxonomy [27] and the autonomy levels that require explicit tradeoffs at each stage [28] through a mechanism simple enough that users actually edit it, addressing the gap that existing co-creative systems leave open [29]. 
+
+D. Teams 
+
+A team is a directory containing NPC files, a Jinxes subdirectory, and a context file designating the orches-trator and configuring shared resources. Role specializa-tion and focused context produce gains across multi-agent systems [30]–[33], and separating planning, calling, and summarizing into focused roles substantially improves performance in the sub-24B range [34]; in this frame-work, decomposition is reorganization, because moving NPC files into subdirectories, each with its own context file and orchestrator, creates sub-teams whose internal complexity is invisible to the top-level router. When the top-level orchestrator routes to a sub-team it sees only the sub-team’s description rather than the full persona descriptions and tool catalogs of every agent within it, keeping the routing decision tractable for small models whose context budgets are constrained and preventing context from the wrong scope from entering the routing decision. Loss of conversation history is a top failure mode in existing multi-agent frameworks [11], and the sub-team boundary addresses it by construction. We implement del-egation between NPCs as a Jinx rather than a framework primitive, so that the user modifies completion criteria, feedback mechanisms, and iteration limits by editing a file, and the same delegation Jinx serves both human-invoked and agent-invoked paths. 
+
+E. Skills 
+
+Skills are Jinxes that deliver instructional content rather than execute code, providing agents with methodology and domain knowledge through the same tool mechanism used for any other capability. Because they are Jinxes, skills appear in agent tool catalogs alongside executable tools and are assigned through the same Jinx list. We implement section-level retrieval within skills so that an agent requests only the portion of a methodology docu-ment it needs rather than loading the full file into con-text, managing the token budget under which contextual interpretation must operate. 
+
+F. Benchmark 
+
+Existing agentic benchmarks (SWE-bench [35], Hu-manEval [36], Terminal-Bench [37], AgentBench [38]) re-port scores that conflate model reasoning with framework orchestration [39], are highly sensitive to unreported im-plementation details [40], and in the case of SWE-bench reflect data quality problems in a substantial fraction of passes [41]. Enterprise applications introduce requirements (high reliability, auditable traces, complex interaction patterns) that existing benchmarks rarely address [42], and benchmarks calibrated for frontier models produce uniformly low scores against 1B–35B models, obscuring whether the framework’s tool orchestration and error re-covery are functioning at all. We designed a benchmark of 115 tasks spanning 13 capability categories, each specifying a natural-language instruction and a verification command that checks filesystem state. Tasks range from single-tool invocations through multi-step sequencing to delegation chains and tool composition, extending beyond code-focused tasks to include web search, multi-agent delegation, and tool chaining. The design is framework-agnostic: the same instructions and verification commands can evaluate any agent system that accepts natural-language input, en-abling cross-framework comparison holding the model con-stant. 
+
+III. Results 
+
+We evaluated 22 locally-hosted models from 9 model families, spanning 0.6B to 35B parameters, all running via Ollama on consumer hardware with a 360-second timeout per task and up to 5 retry attempts with error feedback. Table I presents overall scores and Figure 2 shows score as a function of parameter count. We extract per-task trace data from the 2,530 task executions: attempt counts, tool call counts, and task durations split by success and failure. Cloud-hosted frontier models (GPT-4o, Claude Sonnet, Gemini Pro) score above 90% on these same tasks, confirming that the benchmark measures model capability rather than limitations of the declarative scaffolding. Within-family scaling is monotonic, but between-family differences dominate (Figure 2). The between-family vari-ance exceeds the within-family variance at every param-eter count where multiple families overlap, indicating that the quality of tool-use training varies enough across families to overwhelm order-of-magnitude differences in parameter count. Tool use is a trained capability [21], and these results show that models trained for it achieve                                                               
+
+> TABLE I
+> Benchmark results across model families.
+> Family Model Params Score Qwen3.5 0.8b 0.8B 12/115 (10%) 2b 2B 72/115 (63%) 4b 4B 67/115 (58%) 9b 9B 90/115 (78%) 35b 35B 101/115 (88%) Qwen3 0.6b 0.6B 5/115 (4%) 1.7b 1.7B 32/115 (28%) 4b 4B 84/115 (73%) 8b 8B 75/115 (65%) 30b 30B 93/115 (81%) GLM 4.7-flash 9B 92/115 (80%) GPT-OSS 20b 20B 84/115 (73%) Gemma3 4b 4B 30/115 (26%) 12b 12B 67/115 (58%) 27b 27B 65/115 (57%) Mistral small3.2 24B 62/115 (54%) ministral-3 3B 49/115 (43%) Llama 3.2:3b 3B 17/115 (15%) 3.1:8b 8B 50/115 (43%) Phi phi4 14B 51/115 (44%) OLMo2 7b 7B 6/115 (5%) 13b 13B 37/115 (32%) 0.5 124816 32
+
+Parameters (B)         
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Score (%)
+> Qwen3.5
+> Qwen3
+> GLM
+> GPT-OSS
+> Gemma3
+> Mistral
+> Llama
+> Phi
+> OLMo2
+> Fig. 2. Benchmark score versus parameter count across model families.
+
+scores at 4B that models not trained for it fail to reach at 27B. Models below 3B can parse the agentic prompt and occasionally select the correct tool but cannot reliably form arguments or sequence multi-step operations. Cross-referencing benchmark scores with MMLU reveals a linear relationship ( r ≈ 0.8, p < 10 −3) between gen-eral capability and agentic performance (Figure 3). The outliers from this trend identify models whose training transfers disproportionately well or poorly to tool-use scenarios, consistent with the BFCL finding that single-turn accuracy and multi-turn reliability diverge in ways general benchmarks do not predict [43]. The mean number of tool calls per task is a stronger 50 55 60 65 70 75 80 85 
+
+Intelligence (MMLU %) 
+
+0
+
+20 
+
+40 
+
+60 
+
+80    
+
+> Agency (npcsh Score %)
+> qwen3:0.6b
+> qwen3:1.7b
+> qwen3:4b
+> qwen3:8b
+> qwen3:30b
+> gemma3:4b
+> gemma3:12b
+> gemma3:27b
+> llama3.2:3b
+> llama3.1:8b phi4
+> olmo2:7b
+> olmo2:13b
+> r= 0.83
+> 1= 13.5%
+> Qwen3
+> Gemma3
+> Llama
+> Phi
+> OLMo2
+
+Fig. 3. Agency (npcsh score) versus intelligence (MMLU). The regression line ( r ≈ 0.8) with 1 σ band; outliers beyond 1 σ are labeled. 
+
+predictor of benchmark score ( r ≈ 0.7, p < 10 −3) than either mean task duration ( r ≈ 0.3) or mean attempt count ( r ≈ 0.5), shown in Figure 4. Higher-scoring models make more tool calls rather than spending more time or retrying more often. The relationship between tool use on successful versus failed tasks reveals two behav-ioral clusters: models that use substantially more tools when failing (persisting without convergence) and models that use more tools when succeeding (genuine multi-step problem solving with fast failure exits). Pass rates below 50% for leading models on realistic multi-turn tasks [44] indicate that reliability under sustained tool engagement is the operative bottleneck. 0 2 4 6 8 10 12 
+
+Mean tool calls per task 
+
+0
+
+20 
+
+40 
+
+60 
+
+80 
+
+100   
+
+> Agency (npcsh Score %)
+> gemma3:12b
+> gemma3:27b
+> gemma3:4b
+> glm-4.7-flash
+> gpt-oss:20b
+> llama3.1:8b
+> llama3.2:3b
+> ministral-3
+> mistral-small3.2
+> olmo2:13b
+> olmo2:7b
+> phi4
+> qwen3.5:0.8b
+> qwen3.5:2b
+> qwen3.5:35b
+> qwen3.5:4b
+> qwen3.5:9b
+> qwen3:0.6b
+> qwen3:1.7b
+> qwen3:30b
+> qwen3:4b
+> qwen3:8b
+> r= 0.71
+> 1= 17.9%
+> Gemma3
+> GLM
+> GPT-OSS
+> Llama
+> Mistral
+> OLMo2
+> Phi
+> Qwen3.5
+> Qwen3
+
+Fig. 4. Mean tool calls per task versus agency score ( r ≈ 0.7). 
+
+Across all models, ∼80% of successful task completions occur on the first attempt. The correlation between first-attempt success rate and retry gain is positive ( r ≈ 0.5, 
+
+p < 0.05), suggesting that retries help only when the model can learn from error feedback. Retry value varies by an order of magnitude across task categories (Figure 5): web search gains ∼20 percentage points from retries, tool-chain ∼15, multi-step and text ∼15 each, while delegation gains ∼3. For categories where the marginal gain per retry is low, the accumulated context from prior failures may actively degrade performance through loss of conversation history, failure mode 1.4 in the MAST taxonomy [11]. 0 10 20 30 40 50 60 70 80 
+
+Pass rate (%) 
+
+> delegation
+> python
+> git
+> data
+> scripting
+> system
+> debug
+> file-ops
+> shell
+> text
+> multi-step
+> tool-chain
+> web-search
+> +3%
+> +6%
+> +7%
+> +8%
+> +8%
+> +9%
+> +9%
+> +12%
+> +13%
+> +15%
+> +15%
+> +17%
+> +21%
+> First attempt
+> Retry gain
+
+Fig. 5. First-attempt pass rate (green) and additional gain from retries (orange) by task category. 
+
+The 13 task categories span from file operations (∼80% mean pass rate) and shell tasks ( ∼75%) through web search (∼55%) to scripting (∼30%) and delega-tion ( ∼20%). The difficulty ordering holds across model families but the magnitude of degradation varies (Fig-ure 6). Delegation is the hardest category for every model, and categories requiring multi-step reasoning are difficult across all families while categories requiring only correct tool invocation are easy. 
+
+IV. Discussion 
+
+The between-family variance in agentic capability, which exceeds the within-family variance at every overlapping parameter count, confirms that tool-use reliability is a distinct trained capability that general benchmarks un-derpredict [43], [45]. The same pattern has been found in the sub-24B range [34], where separating planning, calling, and summarizing into focused roles produced substantial gains. Our delegation results, which show the highest failure rate and the lowest retry gain of any category, are consistent with the 44% specification-and-design failure rate in the MAST taxonomy [11], suggesting that the failures we observe in delegation are primarily specification failures rather than capability failures. qwen3.5:35b                                                                                                                                                                                                                                                                                  
+
+> qwen3:30b
+> glm-4.7-flash
+> qwen3.5:9b
+> gpt-oss:20b
+> qwen3:4b
+> qwen3:8b
+> qwen3.5:2b
+> qwen3.5:4b
+> gemma3:12b
+> gemma3:27b
+> mistral-small3.2
+> phi4
+> llama3.1:8b
+> ministral-3
+> olmo2:13b
+> qwen3:1.7b
+> gemma3:4b
+> llama3.2:3b
+> qwen3.5:0.8b
+> olmo2:7b
+> qwen3:0.6b
+> file-ops
+> shell
+> system
+> web-search
+> git
+> text
+> tool-chain
+> multi-step
+> python
+> data
+> debug
+> scripting
+> delegation
+> 100% 100% 100% 100% 100% 100% 90% 90% 100% 90% 100% 60% 100% 100% 100% 80% 80% 60% 20% 30% 30% 10%
+> 100% 90% 100% 100% 100% 80% 80% 60% 100% 60% 90% 100% 90% 100% 70% 60% 80% 60% 60% 20% 0% 0%
+> 100% 100% 100% 90% 90% 90% 70% 80% 70% 90% 70% 90% 60% 90% 60% 50% 70% 50% 20% 30% 20% 20%
+> 100% 100% 100% 80% 60% 100% 0% 100% 40% 100% 100% 80% 0% 40% 100% 80% 20% 20% 0% 20% 0% 0%
+> 90% 80% 50% 60% 80% 90% 90% 80% 60% 60% 90% 80% 60% 0% 40% 70% 20% 40% 40% 0% 10% 0%
+> 80% 70% 70% 60% 80% 100% 80% 70% 70% 90% 80% 70% 40% 50% 0% 30% 20% 30% 10% 0% 0% 10%
+> 80% 100% 100% 80% 0% 100% 0% 100% 40% 60% 60% 0% 0% 60% 20% 20% 40% 20% 0% 40% 0% 0%
+> 60% 70% 50% 70% 40% 60% 70% 60% 60% 50% 50% 30% 50% 50% 0% 20% 0% 30% 20% 10% 0% 10%
+> 100% 60% 100% 90% 100% 50% 100% 30% 50% 30% 10% 30% 40% 10% 60% 0% 0% 0% 0% 0% 0% 0%
+> 60% 60% 50% 40% 60% 40% 40% 20% 40% 50% 70% 50% 40% 40% 90% 10% 20% 10% 0% 0% 0% 0%
+> 100% 100% 90% 100% 90% 40% 70% 60% 60% 30% 0% 40% 0% 10% 0% 0% 0% 0% 0% 0% 0% 0%
+> 100% 60% 80% 80% 70% 70% 60% 50% 10% 20% 10% 30% 30% 0% 10% 0% 0% 0% 0% 0% 0% 0%
+> 60% 80% 60% 60% 0% 40% 0% 40% 20% 40% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0% 0%
+
+# 0.0 
+
+# 0.2 
+
+# 0.4 
+
+# 0.6 
+
+# 0.8 
+
+# 1.0 
+
+> Pass Rate
+
+Fig. 6. Pass rate by model and task category. Models ordered by overall score (left to right); categories by mean difficulty (top to bottom). 
+
+The category-level variation in retry value has prac-tical implications for retry policy. For categories where accumulated context from prior failures actively degrades performance (failure mode 1.4 in [11]), the rational policy is to restart with a clean context rather than retry. The positive correlation between first-attempt success rate and retry gain ( r ≈ 0.5) is opposite to what a ceiling-effect model would predict, and suggests that retries help only when the model has sufficient baseline capability to learn from error feedback. The τ -bench results support this interpretation: pass rates below 50% under sustained tool engagement indicate a reliability bottleneck distinct from single-call accuracy [44]. The Jinx-list scoping approach extends the declarative specification work of DSPy [46] and ADL [24] through a shell interface and filesystem organization. That the con-text engineering [20] and Unix philosophy [47] literatures arrive at the same architectural argument independently supports the IaC analogy. Independent security analy-ses [13]–[15] each arrive at tool-level constraint enforce-ment as a necessary mechanism; the connection to the ICRP’s ALARA formulation [16] and NIST’s least priv-ilege [18] is structural rather than metaphorical, as both describe the same optimization of minimizing exposure to the level the task actually requires. The co-creative design of the NPC file, in which the Jinx list is both the tool catalog and the permission set, addresses the gaps identified in concrete mechanisms for shared agency [29], following the mixed-initiative frame-work of [23] and the finding of [26] that high automation and high user control are jointly achievable. Guidelines call for transparency and correctability [48]; the Jinx list provides both through a file the user can read and edit. For organizational deployment, the filesystem-organized con-figuration addresses lifecycle management requirements identified [49], [50]. The degradation we observe as tool catalog size in-creases is predicted by the contextuality established by semantic Bell inequality violations in LLMs [6]–[9], which show that meaning-production in these systems is gener-ated in the act of interpretation rather than retrieved from pre-existing associations. This provides an information-theoretic basis for why prose-based behavioral constraints cannot be guaranteed to produce the intended behavior regardless of scale, and why structural enforcement at the schema level is necessary. 
+
+V. Conclusions 
+
+In this work, we introduced a declarative context-agent-tool (CAT) data layer for scoping agent tool access and context, and evaluated it across 22 locally-hosted models and 2,530 task executions. We summarize the main results. 1) The CAT data layer, consisting of context files, NPC definitions, and Jinxes, enforces tool access constraints structurally rather than interpretively. Tools not present in an agent’s Jinx list do not exist in its schema and cannot be invoked regardless of prompt content. 2) Between-family differences in agentic capability dominate within-family scaling, confirming that tool-use reliability is a distinct trained capability. Models trained for tool use achieve scores at 4B parameters that models not trained for it fail to reach at 27B. 3) MMLU and agentic performance correlate ( r ≈ 0.8), but outliers identify models whose training transfers disproportionately well or poorly to tool-use scenar-ios. 4) Tool call volume is the strongest predictor of agentic performance ( r ≈ 0.7), stronger than task duration (r ≈ 0.3) or attempt count ( r ≈ 0.5). 5) ∼80% of successful completions occur on the first attempt. Retry value varies by an order of magnitude across task categories, from ∼20 percentage points for web search to ∼3 for delegation, arguing for category-aware resource allocation. 6) Delegation is the hardest category for every model. The low retry gain for delegation suggests that accu-mulated context from prior failures degrades rather than aids convergence. 7) The framework and benchmark are open source at https://github.com/NPC-Worldwide/npcsh. 
+
+References 
+
+[1] Anthropic, “Building effective agents,” 2024. [Online]. Available: https://www.anthropic.com/research/building-effective-agents [2] P. Gauthier, “Aider,” 2023. [Online]. Available: https://github. com/paul-gauthier/aider [3] H. Chase, “Langchain,” 2022. [Online]. Available: https: //github.com/langchain-ai/langchain [4] Q. Wu et al. , “Autogen: Enabling next-gen LLM applications via multi-agent conversation,” 2023. [5] J. ao Moura, “Crewai,” 2024. [Online]. Available: https: //github.com/crewai/crewai [6] C. J. Agostino, Q. Le Thien, M. Apsel, D. Pak, E. Lesyk, and A. Majumdar, “A quantum semantic framework for natural language processing,” in International Conference on Quan-tum Artificial Intelligence and Natural Language Processing .Springer, 2025, pp. 134–155. [7] C. J. Agostino et al. , “The production of meaning in the pro-cessing of natural language,” in Proc. HAXD , 2026, submitted. [8] P. Trouillas, A Quantum Theory of Syntax . Nova Science Publishers, 2024. [9] C. K. Thomas and M. Chen, “Fundamental limits of quantum semantic communication via sheaf cohomology,” arXiv preprint arXiv:2601.10958 , 2026. [10] N. F. Liu, K. Lin, J. Hewitt, A. Paranjape, M. Bevilacqua, F. Petroni, and P. Liang, “Lost in the middle: How language models use long contexts,” Trans. Assoc. Comput. Linguist. ,vol. 12, pp. 157–173, 2024, arXiv:2307.03172. [11] M. Cemri, M. Z. Pan, S. Yang, L. A. Agrawal, B. Chopra, R. Tiwari, K. Keutzer, A. Parameswaran, D. Klein, K. Ram-chandran, M. Zaharia, J. E. Gonzalez, and I. Stoica, “Why do multi-agent LLM systems fail?” in Proc. NeurIPS Datasets and Benchmarks , 2025, arXiv:2503.13657. [12] A. Chan et al. , “Harms from increasingly agentic algorithmic systems,” in Proc. FAccT , 2023. [13] T. Shi, J. He, Z. Wang, L. Wu, H. Li, W. Guo, and D. Song, “Progent: Programmable privilege control for LLM agents,” 2025. [14] others, “Prompt flow integrity to prevent privilege escalation in LLM agents,” 2025. [15] F. Tram` er et al. , “Design patterns for securing LLM agents against prompt injections,” 2025. [16] ICRP, “Recommendations of the international commission on radiological protection,” ICRP Publication 26, Annals of the ICRP , vol. 1, no. 3, 1977. [17] U.S. Nuclear Regulatory Commission, “ALARA.” [On-line]. Available: https://www.nrc.gov/reading-rm/basic-ref/ glossary/alara.html [18] National Institute of Standards and Technology, “Least privilege,” nIST SP 800-53 Rev. 5. [Online]. Available: https://csrc.nist.gov/glossary/term/least privilege [19] Y. Shen et al. , “Taskbench: Benchmarking large language mod-els for task automation,” in Proc. NeurIPS , 2024. [20] X. Xu et al. , “Everything is context: Agentic file system abstrac-tion for context engineering,” 2025. [21] T. Schick, J. Dwivedi-Yu, R. Dess` ı, R. Raileanu, M. Lomeli, L. Zettlemoyer, N. Cancedda, and T. Scialom, “Toolformer: Language models can teach themselves to use tools,” in Proc. NeurIPS , 2023. [22] S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y. Cao, “ReAct: Synergizing reasoning and acting in language models,” in Proc. ICLR , 2023. [23] E. Horvitz, “Principles of mixed-initiative user interfaces,” in 
+
+Proc. CHI . ACM, 1999, pp. 159–166. [24] S. Zeng and X. Yan, “ADL: A declarative language for agent-based chatbots,” 2025. [25] X. Li, “When single-agent with skills replace multi-agent sys-tems and when they fail,” 2026. [26] B. Shneiderman, Human-Centered AI . Oxford University Press, 2022. [27] R. Parasuraman, T. B. Sheridan, and C. D. Wickens, “A model for types and levels of human interaction with automation,” 
+
+IEEE Trans. Syst. Man Cybern. A , vol. 30, no. 3, pp. 286–297, 2000. [28] K. Feng et al. , “Levels of autonomy for AI agents,” 2025. [29] S. Zhang et al. , “Exploring collaboration patterns and strategies in human-AI co-creation through the lens of agency: A scop-ing review of the top-tier HCI literature,” Proc. ACM Hum.-Comput. Interact. , 2025, arXiv:2507.06000. [30] S. Hong et al. , “MetaGPT: Meta programming for a multi-agent collaborative framework,” in Proc. ICLR , 2024. [31] W. Chen et al. , “Agentverse: Facilitating multi-agent collabora-tion and exploring emergent behaviors,” in Proc. ICLR , 2024. [32] Z. Liu et al. , “A dynamic LLM-powered agent network for task-oriented agent collaboration,” in Proc. COLM , 2024. [33] C. Qian et al. , “ChatDev: Communicative agents for software development,” in Proc. ACL , 2024. [34] W. Shen et al. , “Small LLMs are weak tool learners: A multi-LLM agent,” in Proc. EMNLP , 2024, pp. 16 658–16 680. [35] C. E. Jimenez et al. , “SWE-bench: Can language models resolve real-world GitHub issues?” in Proc. ICLR , 2024. [36] M. Chen et al. , “Evaluating large language models trained on code,” 2021. [37] M. A. Merrill et al. , “Terminal-bench,” 2026. [38] Y. Liu et al. , “Agentbench: Evaluating LLMs as agents,” in 
+
+Proc. ICLR , 2024. [39] S. Kapoor et al. , “AI agents that matter,” Trans. Mach. Learn. Res. , 2025. [40] S. Biderman et al. , “Lessons from the trenches on reproducible evaluation of language models,” 2024. [41] R. Aleithan et al. , “SWE-Bench+: Enhanced coding benchmark for LLMs,” 2024. [42] “Evaluation and benchmarking of LLM agents: A survey,” in 
+
+Proc. KDD , 2025, arXiv:2507.21504. [43] S. G. Patil, H. Mao et al. , “The berkeley function calling leaderboard (BFCL): From tool use to agentic evaluation of large language models,” in Proc. ICML , 2025. [44] S. Yao, N. Shinn, P. Razavi, and K. Narasimhan, “ τ -bench: A benchmark for tool-agent-user interaction in real-world do-mains,” 2024. [45] S. G. Patil et al. , “Gorilla: Large language model connected with massive APIs,” in Proc. NeurIPS , 2024. [46] O. Khattab et al. , “DSPy: Compiling declarative language model calls into self-improving pipelines,” in Proc. ICLR , 2024. [47] D. B. Piskala, “From everything-is-a-file to files-are-all-you-need: How unix philosophy informs the design of agentic AI systems,” 2026. [48] S. Amershi et al. , “Guidelines for human-AI interaction,” in 
+
+Proc. CHI . ACM, 2019. [49] C. Lopes et al. , “Engineering AI agents for clinical workflows: A case study in architecture, MLOps, and governance,” in Proc. CAIN , 2026. [50] D. Kreuzberger, N. K¨ uhl, and S. Hirschl, “Machine learning operations (MLOps): Overview, definition, and architecture,” 
+
+IEEE Access , vol. 11, pp. 31 866–31 879, 2023.

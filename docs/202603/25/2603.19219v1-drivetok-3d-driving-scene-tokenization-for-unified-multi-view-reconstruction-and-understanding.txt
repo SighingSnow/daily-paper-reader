@@ -1,0 +1,470 @@
+Title: DriveTok: 3D Driving Scene Tokenization for Unified Multi-View Reconstruction and Understanding
+
+URL Source: https://arxiv.org/pdf/2603.19219v1
+
+Published Time: Fri, 20 Mar 2026 01:36:21 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# DriveTok: 3D Driving Scene Tokenization for Unified Multi-View Reconstruction and Understanding 
+
+Dong Zhuo 1,∗, Wenzhao Zheng 1,∗,†, Sicheng Zuo 1
+
+Siming Yan 2, Lu Hou 2, Jie Zhou 1, and Jiwen Lu 1 
+
+> 1
+
+Tsinghua University 2 Yinwang Intelligent Technology Co. Ltd. Page: https://paryi555.github.io/DriveTok/ 
+
+Code: https://github.com/paryi555/DriveTok Unified           
+
+> Scene
+> Tokens
+> 3D Point Reconstruction
+> 3D Occupancy Prediction 2D Semantic Prediction
+> 2D Image Reconstruction
+> 3D Scene Encoder
+> Multi -View Decoder
+> Vision -Only
+> Multi -view
+> Inputs
+
+Fig. 1: We propose our DriveTok for multi-view scene reconstruction and under-standing. Multi-view images are processed by a 3D scene encoder to produce unified scene tokens, independent of camera layout and resolution. A spatial-aware multi-view decoder renders predictions in both image and occ spaces. Through joint multi-task training, our scene tokens encode rich textural, semantic, and geometric information. 
+
+Abstract. With the growing adoption of vision-language-action mod-els and world models in autonomous driving systems, scalable image tokenization becomes crucial as the interface for the visual modality. However, most existing tokenizers are designed for monocular and 2D scenes, leading to inefficiency and inter-view inconsistency when applied to high-resolution multi-view driving scenes. To address this, we propose DriveTok, an efficient 3D driving scene tokenizer for unified multi-view reconstruction and understanding. DriveTok first obtains semantically rich visual features from vision foundation models and then transforms them into the scene tokens with 3D deformable cross-attention. For de-coding, we employ a multi-view transformer to reconstruct multi-view features from the scene tokens and use multiple heads to obtain RGB, depth, and semantic reconstructions. We also add a 3D head directly on the scene tokens for 3D semantic occupancy prediction for better spatial awareness. With the multiple training objectives, DriveTok learns unified scene tokens that integrate semantic, geometric, and textural informa-tion for efficient multi-view tokenization. Extensive experiments on the widely used nuScenes dataset demonstrate that the scene tokens from DriveTok perform well on image reconstruction, semantic segmentation, depth prediction, and 3D occupancy prediction tasks.  
+
+> ∗
+
+Equal contributions. † Project leader.  
+
+> arXiv:2603.19219v1 [cs.CV] 19 Mar 2026 2D. Zhuo et al.
+
+## 1 Introduction 
+
+The field of autonomous driving is undergoing a shift from a perception-centric pipeline toward a reasoning-based pipeline for complex driving scenes [32,41,54]. This transition is largely driven by vision-language-action models (VLAs) [23,27, 45, 63, 64] and world models [15, 27, 48, 50, 59, 61], which are increasingly applied to enhance the cognitive capabilities of autonomous systems. A central challenge in this evolution is how to represent the sensor inputs with comprehensive (i.e., low-level information for reconstruction) yet also semanti-cally rich (i.e., high-level information for understanding) representations. This information is critical to allowing large models to reason about possible events, interpret context, and respond robustly to unforeseen situations [38]. This makes the design of a good visual scene tokenizer important for driving systems. How-ever, most existing visual tokenizers focus on monocular and generic-domain im-age reconstruction and usually tokenize inputs into per-image 2D patch tokens. They cannot capture the spatial 3D information that is vital for driving. Also, autonomous vehicles are typically equipped with surrounding high-resolution cameras, and per-image tokenization leads to a large set of tokens and thus inefficiency for the subsequent large models. To address these challenges, we propose DriveTok, an efficient 3D scene tok-enizer tailored for autonomous driving systems. DriveTok utilizes a unified scene representation to transform inputs from multiple high-resolution cameras into a fixed number of geometry-aware scene tokens. These scene tokens are agnostic to image resolution and camera count, ensuring consistent multi-view reasoning and efficient visual tokenization. Semantic-rich visual features are first extracted us-ing a pre-trained vision foundation model, then mapped to 3D space through 3D deformable cross-attention. For decoding, a multi-view transformer reconstructs RGB, depth, and semantic maps, while an additional 3D head directly predicts 3D semantic occupancy from the scene tokens. These multi-task objectives en-able DriveTok to learn unified scene tokens that encode semantic, geometric, and textural information. Extensive experiments on the nuScenes dataset [2] validate the effectiveness of these tokens across image reconstruction, semantic segmentation, depth prediction, and 3D occupancy prediction tasks. 
+
+## 2 Related Work 
+
+Scene Representations for Autonomous Driving. Conventional methods employs depth maps to represent structural information for downstream driving tasks [4, 12, 36, 37, 49, 62]. They fail to capture an explicit 3D scene layout, limit-ing cross-view geometric consistency and global planning. To obtain an explicit 3D scene representation from multi-camera images, some methods proposed to lift image features to the Bird’s-Eye-View (BEV) [17, 28, 34]. For example, Lift-Splat-Shoot (LSS) [34] back-projects per-pixel distributions to 3D then aggre-gates in BEV. BEVFormer [29] introduces spatio-temporal transformers with multi-scale deformable attention to sample informative regions efficiently. They DriveTok for Scene Understanding 3
+
+improve 3D spatial awareness and downstream detection/segmentation, espe-cially in surround-view setups. Beyond a single top-down plane, TPVFormer [20] augments BEV with two orthogonal vertical planes (Tri-Perspective View) to better capture fine 3D structures that a single BEV plane struggles to encode. Recent methods model scenes as sparse sets of parametric primitives that emphasize objects while avoiding dense volumetric grids. GaussianFormer [21] proposed to represent scenes with sparse 3D semantic Gaussians to predict 3D occupancy more efficiently than voxel grids. QuadricFormer [65] further replaces Gaussians with the more flexible superquadrics, leveraging richer shape priors to improve efficiency. However, most existing 3D scene representations often focus on optimizing the performance on specific tasks, which deviates from the emerg-ing demand to learn comprehensive (i.e., for reconstruction) yet semantically rich (i.e., for understanding) scene tokens. 
+
+Visual Tokenizers. Recent advancements in visual tokenization have pri-marily focused on compressing images into discrete or continuous latent tokens for downstream generation and reconstruction. Pioneering approaches like VQ-VAE [44] and and VQ-GAN [9] introduce quantized latent spaces optimized for high-fidelity image generation. More recent works, including SEED [10], TiTok [57] and Janus [53], push toward autoregressive or unified multimodal frameworks, enabling tasks like image generation or instruction-following. Other innovations such as MetaMorph [43], VA-VAE [55], and FlowMo [39] improve re-construction and alignment by incorporating foundation models, diffusion priors, or optimization techniques. However, most existing tokenizers are trained on generic web-scale datasets and operate in a per-image fashion, without accounting for the spatial con-sistency and geometric structure crucial in autonomous driving. As a result, they struggle with domain shift and lack the ability to model cross-view 3D layouts. Although recent works such as BEV-VAE [5] and triplane-based repre-sentations [22] have explored geometry-aware latent spaces for driving scenes, they remain limited in semantic richness and scene-level understanding. BEV-VAE encodes low-resolution multi-view inputs into BEV-aligned latent features, capturing geometry but neglecting fine-grained semantics. The triplane-based tokenizer achieves efficient multi-camera representation through 3D volumetric encoding but focuses primarily on policy learning without explicit semantic mod-eling. In contrast, our DriveTok introduces a unified scene tokenization frame-work designed for multi-view driving scenes. By transforming multi-view inputs into resolution- and camera-agnostic scene tokens using 3D deformable attention, DriveTok ensures strong spatial awareness. Its joint training over image-space and 3D-space objectives leads to semantic-rich scene tokens that better align with downstream vision-language models for holistic understanding and reason-ing in autonomous driving scenes. 
+
+## 3 Proposed Approach 
+
+The overall architecture of our method is illustrated in Fig. 3. Our framework consists of three main modules: a semantic-aware scene encoder, a spatial-aware 4 D. Zhuo et al. Multi-view Images   
+
+> Scene Queries
+> Encoder
+> Decoder
+> Unified Scene
+> Tokens
+> View Tokens
+> Multi-Task Outputs
+> Fig. 2: Illustration of DriveTok. DriveTok processes multi-view images and scene queries through an encoder-decoder architecture to produce unified scene tokens and generate diverse autonomous driving scene reconstruction and understanding outputs.
+
+multi-view transformer, and a set of task heads. This pipeline produces unified scene tokens that integrate appearance, semantics, and geometry from inputs, paving the way for unified autonomous driving. 
+
+3.1 3D Driving Scene Tokenization 
+
+Conventional image tokenizers typically operate in the 2D image space, com-pressing individual images Ii ∈ RH×W ×3 into latent or discrete sequences Zi ∈
+
+RL×d optimized for image-level reconstruction or generation, Where L is the length of sequence and d is the embedding dimension. However, when applied to autonomous driving, this per-image formulation is fundamentally limited. Multi-camera inputs {Ii}Ni=1 are processed independently, neglecting their shared 3D structure and resulting in view-inconsistent tokens {Zi}Ni=1 that lack spatial alignment and semantic grounding. Moreover, tokenizing each high-resolution image separately incurs computational cost proportional to O(N · H · W ) and re-dundant representations in overlapping regions, making it inefficient and poorly scalable for dense, multi-view driving scenes. To address these limitations, we propose a 3D driving scene tokenization framework as shown in Fig. 2, which lifts multi-view image features into a unified 3D space to generate compact scene tokens B. Image features extracted from a vision foundation model are projected into a global scene grid Q using geometry-aware sampling, where information from all camera views is aggregated. These scene tokens are spatially consistent, resolution-agnostic, and encode a com-bination of semantic, geometric, and visual cues, enhanced through our joint multi-task training strategy. Our approach ensures coherent cross-view under-standing and produces a compact, structured representation that is decoupled from both input resolution and the number of cameras. 
+
+3.2 Vision Foundation Model as Scene Encoder 
+
+As evidenced by [60], building an image tokenizer on top of a pretrained vision foundation model leads to stronger semantic representations. Such semantics are essential for autonomous driving systems to achieve robust scene understanding and to support safer, more human-aligned decision making. Accordingly, we DriveTok for Scene Understanding 5Scene   
+
+> Queries
+> 3D  Deformable  Attention
+> Unified Scene
+> Tokens
+> Learnable PE
+> MLP
+> Ray Maps
+> Spatial-Aware Multi-View
+> Decoder
+> Scene Tokens
+> Visibility-Guided
+> Scene-View Attention
+> View Attention
+> Scene Attention
+> View Tokens  Scene Tokens
+> ×L
+> Joint Training Tasks
+> View Tokens
+> 2D Embedding
+> DINO
+> v3
+> Multi-scale Feature
+> FPN
+> Multi-View Feature Encoder
+> Multi-view Images
+> Cameras
+
+Fig. 3: Overview of DriveTok. Surround-view images are encoded by a 3D scene encoder. view tokens (with learnable and Plücker-ray embeddings) and scene tokens interact through a spatial-aware multi-view transformer with visibility-guided scene-view attention. Joint pretraining uses image reconstruction, depth prediction, semantic prediction, and occupancy prediction. 
+
+adopt a pretrained vision foundation model as our image encoder to ensure strong generalization and semantic richness in the extracted features. Specifically, given surround-view images {Ii}Ni=1 at time t, we extract seman-tically and texturally rich per-camera features using a pretrained vision founda-tion backbone and an FPN [30], producing Fi = ImageEnc (Ii) ∈ RHf ×Wf ×C ,which serve as the basis for generating the unified scene representation. We then map these features into a fixed scene grid Q = {qij |i = 1 , ..., W b, j = 1 , ..., H b}
+
+using a scene query lifter followed by [29] with multi-scale deformable attention, which leverages the intrinsic/extrinsic of each camera to sample informative im-age regions for every scene query. Concretely, let X = ( x, y, z, 1) ⊤ denote a 3D point in the LiDAR/ego frame associated with qij and height bin z, For camera i with pose [Ri|ti] and intrinsics Ki , the 3D-to-2D projection is 
+
+˜ui = Ki [ Ri | ti ] X, ui = ˜ui, 0
+
+˜ui, 2
+
+, v i = ˜ui, 1
+
+˜ui, 2
+
+, (1) and we aggregate features at sub-pixel locations via bilinear sampling ϕ(Fi, u i, v i).The scene representation for cell qij is then obtained by deformable cross-attention over K learned offsets per camera: 
+
+bij =
+
+> N
+
+X
+
+> i=1
+> K
+
+X
+
+> k=1
+
+αij i,k ϕ(Fi, u ij i,k , v ij i,k ), (2) where αij i,k are attention weights produced by scene encoder and depend on the query/content features and geometry. Because the scene grid size (Hb, W b) is fixed (e.g., Hb=128, Wb=128), the number of resulting scene tokens Nb = Hb ×Wb is decoupled from both the num-ber of cameras N and the input resolution H × W , yielding a consistent token budget across rigs and image sizes. Finally, we enrich scene queries with posi-tional encodings over the physical range to encode metric coordinates. The result 6 D. Zhuo et al. 
+
+is the geometry-aware scene tokens B ∈ RHb×Wb×Cb that preserve high-level se-mantics from the foundation backbone while remaining camera- and resolution-agnostic, ready to be consumed by our spatial-aware multi-view transformer. 
+
+3.3 Spatial-Aware Multi-View Decoder 
+
+To enable structured interaction between the unified scene tokens and per-camera view tokens, we introduce the spatial-aware multi-view transformer. Un-like conventional dense cross-attention that treats all token pairs equally, our transformer employs the visibility constraint to ensure that only physically vis-ible scene regions interact with the corresponding camera views. Specifically, our spatial-aware multi-view transformer establishes visibility-guided scene-view attention between the scene tokens and the view tokens within a standard ViT [8] framework. Each scene token represents an ego-centric spatial cell, while each view token is initialized from its 2D positional embedding E plus a Plücker embedding P of the corresponding viewing ray in the ego frame: 
+
+vi,p = E2D  
+
+> i,p
+
++ P ℓi,p 
+
+, (3) where i indexes the camera and p indexes the image patch. The plücker ray 
+
+ℓi,p = ( ˆd, m ) encodes the ray that starts at the camera center and passes through patch p:
+
+ℓi,p = PlückerRay  Ki, R i, t i, ˜ui,p 
+
+, (4) 
+
+P ℓi,p 
+
+ = MLP  [ˆdi,p ; mi,p ]. (5) By injecting ℓi,p , we distinguish tokens from different viewpoints that may share similar 2D appearance and provides a camera-aware geometric prior, which im-proves cross-view disambiguation and alignment with the 3D space. To ensure physically meaningful communication between these two token types, we introduce a visibility-based attention mask M that masks out impos-sible scene-view correspondences. Let the scene tokens be 
+
+B = [ b1, b2, . . . , bNb ] ∈ RNb×D , (6) and the concatenated view tokens from all cameras be 
+
+V = [ v1,1, . . . , vi,p , . . . , vN,N p ] ∈ RNv ×D , (7) where N is the number of camera views, Np = Hp × Wp is the number of image patches per view, Nb and Nv denote the total numbers of scene and view tokens, respectively. For each camera i and scene cell j, we precompute a binary visibility mask 
+
+M :
+
+Mi,j =
+
+(
+
+1, if scene cell j is visible in camera i, 
+
+0, otherwise.  (8) DriveTok for Scene Understanding 7
+
+This mask is applied symmetrically to both view →scene and scene →view direc-tions, while the scene →scene and view →view directions remain unmasked. Within each ViT block, the visibility-aware multi-head self-attention is com-puted as 
+
+Attn( Q, K, V, M) = softmax 
+
+ QK ⊤
+
+√d ⊙ M
+
+
+
+V. (9) After passing through L stacked transformer layers, the updated token se-quence becomes 
+
+[B′, V′] = Transformer L([ B, V], M). (10) This architecture enables bi-directional, geometry-consistent information ex-change: scene tokens aggregate view-specific details from the cameras that ob-serve them, while view tokens are enriched with scene-level spatial context re-flecting the true 3D layout of the driving scene. Consequently, the resulting uni-fied scene tokens maintain both semantic and geometric consistency across all camera views, forming a coherent spatial foundation for downstream perception and reasoning tasks. 
+
+3.4 Unified Reconstruction and Understanding 
+
+We utilize a joint task training strategy to enrich the unified scene tokens with texture, semantics, and 3D geometry. These unified scene tokens provide VLMs with dense and well-structured perceptual input for safer and more accurate decision-making. We adopt three image-space tasks: image reconstruction, depth prediction, and semantic prediction, as well as an occupancy prediction task and a semantic regularization for scene tokens. The image space tasks utilize a DPT [36] decoder that upsamples per camera view tokens to the native image resolution, while the occupancy prediction task employs a convolutional head to generate occupancy logits from scene tokens. The semantic regularization term explicitly injects semantic information into the scene tokens, promoting semantic structure learning in the latent space. 
+
+Image Reconstruction. Given the updated view tokens V , the DPT head predicts per camera RGB images ˆI. The reconstruction loss combines pixel-level fidelity, perceptual similarity, and adversarial training: 
+
+Lrgb = λpix ∥ˆI − I∥1 + λperc LLPIPS + λadv LGAN , (11) where ∥ · ∥ 1 denotes the L1 distance evaluated over valid pixels, LLPIPS is the learned perceptual image patch similarity loss, and LGAN is the adversarial loss computed via a discriminator following [9]. In our implementation, we set the balancing weights to λpix = 1 .0, λperc = 1 .0, and λadv = 0 .3.
+
+Depth Prediction. Public driving datasets [2,11] rarely provide dense per-pixel depth ground truth. The sparsity limits pixel-wise supervision, encourages texture copying artifacts, and leaves monocular depth with unresolved metric 8 D. Zhuo et al. 
+
+scale, which is known to bottleneck downstream perception and planning quality. We first obtain dense pseudo depth for each pixel using MoGe-2 [47], which predicts metric-scale monocular geometry. We then project these LiDAR points onto each image plane to obtain sparse metric samples that anchor the pseudo labels. To reconcile the two, we estimate a global scale and shift per image using ROE [46], which down-weights outliers from occlusions and sensor noise and produces stable alignment. The aligned pseudo depth dalign serves as the supervision target for a DPT-style depth head. The depth head predicts ˆd and is trained with a Charbonnier term and a gradient consistency regularizer that preserves sharp boundaries: 
+
+Ldepth =
+
+q
+
+( ˆd − dalign )2 + ϵ2 + γ∇
+
+X
+
+> a∈{ x,y }
+
+q
+
+(∇a ˆd − ∇ adalign )2 + ϵ2, (12) where ϵ = 0 .001 is the Charbonnier constant, γ∇ is the weight of the gradient-consistency term, ∇a denotes the discrete image gradient along direction a ∈{x, y }, and the summation aggregates horizontal and vertical components. 
+
+Semantic Prediction. We obtain semantic supervision by projecting Li-DARSeg labels onto the image plane, which produces sparse yet precise per pixel ground truth. The DPT decoder outputs per pixel logits and we use cross-entropy with an ignore mask so that only pixels covered by the LiDARSeg projection contribute to the loss: 
+
+Lsem = CE( ˆS, Y ; ignore _label = 255) , (13) where ˆS are the logits from decoder, Y are sparse projected labels, and ignore label masks pixels without supervision. 
+
+Occupancy Prediction. To further enhance the geometric and semantic expressiveness of our unified scene representation, we incorporate an additional occupancy prediction objective [20] during training. This task complements the image-space objectives by encouraging the scene tokens to reason about the 3D structure of the driving environment. Specifically, the scene tokens B are decoded by a 3D occupancy head Docc to predict voxel-wise semantic occupancy logits 
+
+ˆO ∈ RX×Y ×Z×C . The occupancy prediction is optimized with a combination of the cross-entropy loss and the Lovász-Softmax loss, formulated as: 
+
+Locc = LCE ( ˆO, O ) + λLovász LLovász ( ˆO, O ), (14) where O denotes the ground-truth occupancy labels, λLovász is set to 0.2. Jointly optimizing the occupancy and image-space tasks enables the scene tokens to capture richer 3D spatial and semantic relationships, thereby facilitating more holistic scene understanding. 
+
+Semantic Regularization. Conventional perception methods in autonomous driving apply supervision only on the model outputs, neglecting the semantic structure of the underlying scene representation. Apart from image-space and 3D occupancy supervisions, we further regularize the scene tokens by aligning them with explicit semantic information to avoid structure corruption in the DriveTok for Scene Understanding 9
+
+Table 1: Comparison of image tokenizers on nuScenes dataset. ‡ denotes VQGAN was trained on Imagenet [7], † indicates trained on OpenImages [25]. Tok. denotes the tokenization stage only (w/o decoder). Method Input PSNR ↑ SSIM ↑ Latency (Tok./Full) ↓ Peak Memory (Tok./Full) ↓                                                                  
+
+> VQGAN ‡[9] 256 ×256 24.41 0.674 63.31 ms / 77.06 ms 1440.7 MB / 1608.9 MB ViT-VQGAN [56] 256 ×256 26.96 0.763 59.23 ms / 117.36 ms 1354.4 MB / 1445.1 MB
+> VQGAN †[9] 256 ×256 26.77 0.756 63.34 ms / 115.17 ms 1440.7 MB / 1605.8 MB FlowMo-Lo [39] 256 ×256 23.11 0.696 248.04 ms / 5555.78 ms 8434.8 MB / 8464.5 MB FlowMo-Hi [39] 256 ×256 27.91 0.793 259.70 ms / 5562.63 ms 8436.6 MB / 8466.6 MB BEV-VAE [5] 6×256 ×256 26.32 0.746 – / – – / –
+> DriveTok 6×256 ×256 27.13 0.723 21.86 ms / 267.82 ms 3957.95 MB / 7921.09 MB
+> DriveTok 6×256 ×704 27.89 0.747 87.96 ms / 382.51 ms 4423.73 MB / 8456.09 MB
+
+latent space. To elaborate, we first derive the ground truth semantic labels for scene tokens by projecting semantic occupancy labels to the latent space with importance weighting for different semantic classes. Then we regularize the scene tokens with Lreg consisting of the cross entropy loss and the Lovász-Softmax loss, which shares the same form as Eq. (14) but in the latent space of scene tokens. 
+
+Total Training Objective. The overall training loss is defined as: 
+
+Ltotal = λrgb Lrgb + λdepth Ldepth + λsem Lsem + λocc Locc + λreg Lreg . (15) We set λrgb to 10.0 and λocc to 5.0, while λdepth to 0.2, λsem to 0.1 and λreg to 3.0. We think the main contribution of our method is the formulation of this unified scene tokenizer, paving the way for new generative paradigms for au-tonomous driving. For some components (e.g., BEV queries), we employ simple yet effective designs to instantiate our formulation. We adopt new designs (e.g., visibility-aware attention) when existing techniques cannot well fit. 
+
+## 4 Experiments 
+
+4.1 Implementation Details 
+
+Dataset and Inputs. We train DriveTok on nuScenes [2] dataset using 6 surround-ing cameras. All images are resized to 256 × 704, and these settings are shared across training and evaluation. For supervision, depth is produced per pixel by MoGe-2 [47] and then aligned to metric scale via a robust ROE scale–shift fit using sparse LiDAR depths projected to the image plane. The aligned depth serves as the training target. For semantic labels, we project nuScenes-lidarseg annotations onto each camera to obtain sparse yet precise per-pixel supervision, with an ignore_mask = 255 applied to unlabeled pixels. Additionally, we employ semantic occupancy labels from SurroundOcc [52] for supervision on occupancy prediction task. 
+
+Model and Training Setup. The pretrained visual foundation backbone is a pretrained DINOv3-ViTB [42] with patch size 16, producing a 4-level feature pyramid with channel widths {768 , 768 , 768 , 768 }. A 4-level FPN fuses these fea-tures and outputs a C = 768 feature map that is lifted by a BEVFormer-style 10 D. Zhuo et al. 
+
+Table 2: Comparison of different monocular depth estimator on nuScenes dataset. We utilize the projected lidar points as ground-truth. Method Input absrel ↓ δ < 1.25 ↑ latency ↓ Peak Memory ↓                                     
+
+> UniDepthV2-B [35] 256 ×704 0.52 0.30 62.45 ms 2194.65 MB
+> UniDepthV2-L [35] 256 ×704 0.40 0.31 100.45 ms 3902.32 MB DepthPro [1] 256 ×704 0.26 0.47 5179.93 ms 30559.55 MB Metric3D-V2 [16] 256 ×704 0.28 0.69 403.49 ms 2982.53 MB
+> DriveTok 6×256 ×704 0.08 0.93 383.53 ms 8562.64 MB
+
+module to a 128 × 128 BEV grid ( Cb = 768 ). The BEV region of interest is fixed to pc_range = [ −51 .2m, −51 .2m, −5.0m, 51 .2m, 51 .2m, 3.0m] in the lidar co-ordinate frame, and we use 8 vertical bins for visibility checks. The spatial-aware multi-view transformer follows a ViT-Base configuration for scene ↔ view to-ken interaction. All image-space task heads adopt a DPT-style decoder that converts tokens to dense pixels. Moreover, we employ a convolution-based oc-cupancy head that lifts BEV features into 3D voxels for occupancy prediction. The total number of trainable parameters is approximately 280M. For optimization, we use AdamW [31] with learning rate 1 × 10 −4, weight decay 0.01, β = (0 .9, 0.999) . Global gradient clipping is set to 35.0. A cosine learning-rate schedule with warmup drives updates in steps using the exact num-ber of iterations per epoch. To accelerate training and reduce consumption, we enable FlashAttention-2 [6] and train in BFloat16 precision. The model is trained for about 400k iterations on 8 × A800 GPUs. 
+
+Evaluation and Metrics. All tasks are evaluated on the nuScenes [2] val-idation set. For image reconstruction task, we use Peak Signal-to-Noise Ratio (PSNR) and Structural Similarity Index (SSIM) as quantitative measures of reconstruction quality. For depth prediction task, We utilize the aligned dense depth as ground-truth, and we report the absolute relative error (AbsRel) and the percentage of pixels satisfying δ < 1.25 as evaluation metrics. For semantic prediction task, since most existing methods employ dense pseudo-labels generated by segmentation models such as SAM [24], while our goal is to enrich the scene tokens with semantic awareness rather than achieve dense segmentation accuracy, we supervise the model only with sparse LiDARSeg ground truth. To verify that our unified scene tokens encode meaningful semantic information, we provide qualitative visualization results in Sec. 4.5. Finally, for the 3D occupancy prediction task, evaluation is conducted on the SurroundOcc using the same metrics as in [21], namely mIoU and IoU, to measure both semantic and geometric prediction quality. 
+
+4.2 Image Reconstruction 
+
+We compared DriveTok with representative image tokenizers to assess whether our method encodes multi-view inputs into unified scene tokens that preserve fine-grained appearance information. As shown in Tab. 1, our method achieves performance comparable to all baselines across all six cameras, demonstrating that DriveTok can be adapted to multi-view inputs in autonomous driving. Ad-ditionally, we present qualitative results of our method in Fig. 5. DriveTok re-DriveTok for Scene Understanding 11 
+
+Table 3: Comparison of different multi-view depth predictors on the nuScenes dataset. We utilize the projected lidar points as ground-truth. Method absrel ↓ δ < 1.25 ↑ Method absrel ↓ δ < 1.25 ↑
+
+SurroundDepth [51] 0.28 0.66 Dist4D [13] 0.39 0.58 R3D3 [40] 0.25 0.73 OmniNWM [26] 0.23 0.81 SelfOcc [19] 0.23 0.75 DriveTok 0.08 0.93 Table 4: 3D semantic occupancy prediction results on nuScenes.                                                                              
+
+> Method IoU mIoU
+> ■ barrier
+> ■ bicycle
+> ■ bus
+> ■ car
+> ■ const. veh.
+> ■ motorcycle
+> ■ pedestrian
+> ■ traffic cone
+> ■ trailer
+> ■ truck
+> ■ drive. suf.
+> ■ other flat
+> ■ sidewalk
+> ■ terrain
+> ■ manmade
+> ■ vegetation MonoScene [3] 23.96 7.31 4.03 0.35 8.00 8.04 2.90 0.28 1.16 0.67 4.01 4.35 27.72 5.20 15.13 11.29 9.03 14.86 Atlas [33] 28.66 15.00 10.64 5.68 19.66 24.94 8.90 8.84 6.47 3.28 10.42 16.21 34.86 15.46 21.89 20.95 11.21 20.54 BEVFormer [29] 30.50 16.75 14.22 6.58 23.46 28.28 8.66 10.77 6.64 4.05 11.20 17.78 37.28 18.00 22.88 22.17 13.80 22.21 TPVFormer [20] 30.86 17.10 15.96 5.31 23.86 27.32 9.79 8.74 7.09 5.20 10.97 19.22 38.87 21.25 24.26 23.15 11.73 20.81 OccFormer [58] 31.39 19.03 18.65 10.41 23.92 30.29 10.31 14.19 13.59 10.13 12.49 20.77 38.78 19.79 24.19 22.21 13.48 21.35 SurroundOcc [52] 31.49 20.30 20.59 11.68 28.0630.86 10.70 15.14 14.0912.0614.3822.26 37.29 23.70 24.49 22.77 14.89 21.86 GaussianFormer [21] 29.83 19.10 19.52 11.26 26.11 29.78 10.47 13.83 12.58 8.67 12.74 21.57 39.63 23.28 24.46 22.99 9.59 19.12 GaussianFormer-2 [18] 30.56 20.02 20.15 12.99 27.61 30.23 11.19 15.31 12.64 9.63 13.31 22.26 39.68 23.47 25.62 23.20 12.25 20.73 QuadricFormer [65] 31.22 20.12 19.58 13.11 27.27 29.64 11.2516.26 12.65 9.15 12.51 21.24 40.20 24.34 25.69 24.24 12.95 21.86
+> DriveTok 33.32 20.06 20.04 9.81 26.11 27.87 11.14 13.44 9.52 8.65 12.67 20.44 41.7925.3127.6826.3716.5923.57
+
+constructs textures and preserves cross-view consistency at overlapping fields of view. These observations highlight the advantage of adopting a unified scene representation for surround-view scenarios. 
+
+4.3 Depth Prediction 
+
+We evaluated the effectiveness of DriveTok in learning depth-aware representa-tions that capture both metric scale and scene geometry from multi-view inputs. We compared DriveTok with representative monocular depth estimation meth-ods and multi-view depth predictors. As shown in Tab. 2 and Tab. 3, DriveTok achieves the lowest AbsRel and the highest δ < 1.25 among all compared meth-ods. These results demonstrate that the unified scene tokens effectively capture both local geometry and global scene structure, forming a reliable geometric foundation for downstream perception tasks. Moreover, we further project the predicted surround-view depth into the world coordinate system to obtain 3D reconstructed point clouds, as illustrated in Fig. 5, which further verifies the superiority of our method in maintaining geometry consistency. 
+
+4.4 Occupancy Prediction 
+
+We further evaluated our DriveTok by testing its capability on occupancy predic-tion task, which directly measures how well the learned tokens capture geometric and semantic structure of the driving scene. Specifically, We compared our Driv-eTok against recent occupancy predition models, including BEVFormer [17], GaussianFormer [21] and Quadricformer [65]. The quantitative results summa-rized in Tab. 4 show that our DriveTok achieves performance comparable to state-of-the-art methods under the same setting, highlighting its superior ability to learn rich spatial and semantic information from multi-view inputs. 12 D. Zhuo et al. GT Pred. GT Pred.  
+
+> Fig. 4: Visualizations of BEV scene tokens and images. We visualize the BEV feature maps with PCA, the ground truth labels for semantic regularization and the decoded images v.s. ground truth images. The PCA result clearly shows that our BEV scene tokens not only learns the complex textures but also models the semantic structure of the driving scenes, avoiding radial patterns in conventional methods.
+
+4.5 Semantic Prediction 
+
+To further verify whether our scene tokens encode semantic information, we con-ducted qualitative visualizations on the semantic prediction task, as shown in Fig. 5. Although trained only with sparse LiDARSeg labels, DriveTok success-fully predicts coherent semantic layouts that align well with object semantics and scene geometry. The predictions remain consistent across adjacent viewpoints, indicating that our scene tokens capture strong cross-view semantic correspon-dences. The model also preserves clear object boundaries even in cluttered en-vironments. Moreover, DriveTok reliably differentiates complex scene elements such as sidewalks, vegetation, and distant structures. 
+
+4.6 Ablation Study Visualizations. We visualize the BEV feature maps with principle component analysis, the groundtruth labels for semantic regularization and the decoded images v.s. ground truth images in Fig. 4. The proposed semantic regulariza-tion successfully injects explicit semantic structure into the BEV latent space, avoiding the radial patterns common in conventional perception methods. DriveTok for Scene Understanding 13 
+
+Table 5: Ablation on visibility-guided attention. Removing visibility guidance degrades spatial reasoning, causing scene tokens to overfit image textures. Setting Texture Geometry & Semantics PSNR ↑ SSIM ↑ IoU ↑ mIoU ↑
+
+w/o Geo-Attn 29.98 0.798 5.32 0.59 
+
+w/ Geo-Attn 28.84 0.770 12.81 3.84 Table 6: Ablation study on the joint task training strategy. Different combi-nations of reconstruction, depth, semantic, and occupancy objectives reveal a trade-off between texture quality and geometry-semantic understanding, where stronger multi-task supervision improves occupancy prediction performance. Setting Tasks Texture Geometry & Semantics Recon. Depth Sem. Occ. PSNR ↑ SSIM ↑ IoU ↑ mIoU ↑                          
+
+> Image Tokenizer ✓28.84 0.770 12.81 3.84 Geometry-Aware Model ✓✓28.52 0.764 20.72 9.36 Scene-Understanding Model ✓✓✓28.06 0.756 24.05 11.68 Unified Model ✓✓✓✓27.89 0.747 33.32 20.06
+
+Visibility-Guided Attention. To assess the effectiveness of the visibility-guided attention in our spatially aware multi-view decoder, we conducted an ablation study in which we removed the visibility mask and allowed each scene token to attend to all view tokens unconditionally. Specifically, we adopted a two-stage training protocol. We first pretrained the scene tokens using only the image reconstruction task. After pretraining, we froze all components except the occupancy head and fine-tuned solely on the 3D occupancy prediction task to evaluate whether the visibility-guided attention forces the scene tokens to en-code geometric information. As illustrated in Tab. 5, removing visibility-guided attention eliminates the local geometric inductive bias, causing scene tokens to overfit image textures rather than learn meaningful spatial structure. Such texture-biased tokens fail to support reliable 3D understanding in autonomous driving. In contrast, visibility-guided attention serves as an effective regular-izer that prevents overfitting and enforces physically valid interactions, thereby encouraging the model to encode spatial information. 
+
+Joint Task Training Strategy. To validate the effectiveness of our joint task training strategy, we trained the scene tokens under different combinations of training objectives and then fine-tuned the occupancy head and measured the performance of occupancy prediction. The results in Tab. 6 show that the image reconstruction task encourages the scene tokens to retain low-level texture in-formation from the input images, while the depth and semantic prediction tasks enable the scene tokens to capture rich 3D spatial structure and semantic cues, allowing the model to better perceive and understand the surrounding environ-ment and thus support 3D reasoning for autonomous driving. Finally, although incorporating the occupancy prediction task degrades the image reconstruction quality, it further enhances the spatial and semantic information encoded in the scene tokens, a trade-off that we consider worthwhile. 14 D. Zhuo et al. Input  
+
+> Image
+> Recon.
+> Semantic
+> Prediction
+> Depth
+> Prediction
+> Point
+> Cloud
+> Occupancy
+> Prediction
+> Fig. 5: Visualizations of DriveTok in different tasks. We provide a holistic vi-sualization of our DriveTok in diverse autonomous driving scene reconstruction and understanding tasks. They show that DriveTok effectively represents the overall 3D environment by constructing scene tokens, thereby maintaining strong multi-view con-sistency. Through joint task training, the learned scene tokens not only capture texture details in the image space but also achieve a deeper perception and understanding.
+
+## 5 Conclusion and Discussions 
+
+In this work, we introduced DriveTok, a unified scene tokenizer for multi-view driving scene reconstruction and understanding. DriveTok produces compact scene tokens that simultaneously encode texture, geometry, and semantics via the joint task training strategy. Our spatial-aware multi-view decoder, equipped with visibility-guided attention, enables geometry-consistent interaction between scene tokens and visual tokens. Extensive experiments on nuScenes [2] demon-strate that DriveTok achieves competitive image reconstruction quality and state-of-the-art 3D semantic occupancy performance under the same frozen-backbone setting. Moreover, DriveTok attains the best results on the metric depth prediction task, validating the effectiveness of our tokenization framework. 
+
+Future Directions . We envision DriveTok as a general visual interface for vision-language(-action) models and driving world models. The unified scene to-kens offer a compact yet semantically rich representation that can be readily con-sumed by large models for downstream tasks such as open-ended driving question answering, counterfactual reasoning, multi-step planning, and video prediction. Integrating DriveTok with VLAs and world models could enable more scalable training and facilitate closed-loop policy learning where high-level reasoning and low-level perception share a common spatial memory. Moreover, extending our framework to incorporate temporal modeling, additional sensor modalities (e.g., LiDAR or radar), and generative capabilities (e.g., scene editing or future syn-thesis) is a promising direction for building holistic driving foundation models. DriveTok for Scene Understanding 15 
+
+## References 
+
+1. Bochkovskii, A., Delaunoy, A., Germain, H., Santos, M., Zhou, Y., Richter, S.R., Koltun, V.: Depth pro: Sharp monocular metric depth in less than a second. arXiv preprint arXiv:2410.02073 (2024) 2. Caesar, H., Bankiti, V., Lang, A.H., Vora, S., Liong, V.E., Xu, Q., Krishnan, A., Pan, Y., Baldan, G., Beijbom, O.: nuscenes: A multimodal dataset for autonomous driving. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 11621–11631 (2020) 3. Cao, A.Q., De Charette, R.: Monoscene: Monocular 3d semantic scene completion. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 3991–4001 (2022) 4. Chang, J.R., Chen, Y.S.: Pyramid stereo matching network. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 5410–5418 (2018) 5. Chen, Z., Zhao, H.: Bev-vae: Multi-view image generation with spatial consistency for autonomous driving. arXiv preprint arXiv:2507.00707 (2025) 6. Dao, T.: Flashattention-2: Faster attention with better parallelism and work par-titioning. arXiv preprint arXiv:2307.08691 (2023) 7. Deng, J., Dong, W., Socher, R., Li, L.J., Li, K., Fei-Fei, L.: Imagenet: A large-scale hierarchical image database. In: 2009 IEEE conference on computer vision and pattern recognition. pp. 248–255. Ieee (2009) 8. Dosovitskiy, A.: An image is worth 16x16 words: Transformers for image recogni-tion at scale. arXiv preprint arXiv:2010.11929 (2020) 9. Esser, P., Rombach, R., Ommer, B.: Taming transformers for high-resolution image synthesis. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 12873–12883 (2021) 10. Ge, Y., Ge, Y., Zeng, Z., Wang, X., Shan, Y.: Planting a seed of vision in large language model. arxiv 2023. arXiv preprint arXiv:2307.08041 11. Geiger, A., Lenz, P., Stiller, C., Urtasun, R.: Vision meets robotics: The kitti dataset. The international journal of robotics research 32 (11), 1231–1237 (2013) 12. Godard, C., Mac Aodha, O., Firman, M., Brostow, G.J.: Digging into self-supervised monocular depth estimation. In: Proceedings of the IEEE/CVF in-ternational conference on computer vision. pp. 3828–3838 (2019) 13. Guo, J., Ding, Y., Chen, X., Chen, S., Li, B., Zou, Y., Lyu, X., Tan, F., Qi, X., Li, Z., et al.: Dist-4d: Disentangled spatiotemporal diffusion with metric depth for 4d driving scene generation. arXiv preprint arXiv:2503.15208 (2025) 14. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 770–778 (2016) 15. Hu, A., Russell, L., Yeo, H., Murez, Z., Fedoseev, G., Kendall, A., Shotton, J., Corrado, G.: Gaia-1: A generative world model for autonomous driving. arXiv preprint arXiv:2309.17080 (2023) 16. Hu, M., Yin, W., Zhang, C., Cai, Z., Long, X., Chen, H., Wang, K., Yu, G., Shen, C., Shen, S.: Metric3d v2: A versatile monocular geometric foundation model for zero-shot metric depth and surface normal estimation. IEEE Transactions on Pattern Analysis and Machine Intelligence (2024) 17. Huang, J., Huang, G., Zhu, Z., Ye, Y., Du, D.: Bevdet: High-performance multi-camera 3d object detection in bird-eye-view. arXiv preprint arXiv:2112.11790 (2021) 16 D. Zhuo et al. 18. Huang, Y., Thammatadatrakoon, A., Zheng, W., Zhang, Y., Du, D., Lu, J.: Gaussianformer-2: Probabilistic gaussian superposition for efficient 3d occupancy prediction. In: Proceedings of the Computer Vision and Pattern Recognition Con-ference. pp. 27477–27486 (2025) 19. Huang, Y., Zheng, W., Zhang, B., Zhou, J., Lu, J.: Selfocc: Self-supervised vision-based 3d occupancy prediction. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 19946–19956 (2024) 20. Huang, Y., Zheng, W., Zhang, Y., Zhou, J., Lu, J.: Tri-perspective view for vision-based 3d semantic occupancy prediction. In: Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition. pp. 9223–9232 (2023) 21. Huang, Y., Zheng, W., Zhang, Y., Zhou, J., Lu, J.: Gaussianformer: Scene as gaus-sians for vision-based 3d semantic occupancy prediction. In: European Conference on Computer Vision. pp. 376–393. Springer (2024) 22. Ivanovic, B., Saltori, C., You, Y., Wang, Y., Luo, W., Pavone, M.: Efficient multi-camera tokenization with triplanes for end-to-end driving. arXiv preprint arXiv:2506.12251 (2025) 23. Jiang, A., Gao, Y., Sun, Z., Wang, Y., Wang, J., Chai, J., Cao, Q., Heng, Y., Jiang, H., Dong, Y., et al.: Diffvla: Vision-language guided diffusion planning for autonomous driving. arXiv preprint arXiv:2505.19381 (2025) 24. Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., Xiao, T., Whitehead, S., Berg, A.C., Lo, W.Y., et al.: Segment anything. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 4015–4026 (2023) 25. Kuznetsova, A., Rom, H., Alldrin, N., Uijlings, J., Krasin, I., Pont-Tuset, J., Ka-mali, S., Popov, S., Malloci, M., Kolesnikov, A., et al.: The open images dataset v4: Unified image classification, object detection, and visual relationship detection at scale. International journal of computer vision 128 (7), 1956–1981 (2020) 26. Li, B., Ma, Z., Du, D., Peng, B., Liang, Z., Liu, Z., Ma, C., Jin, Y., Zhao, H., Zeng, W., et al.: Omninwm: Omniscient driving navigation world models. arXiv preprint arXiv:2510.18313 (2025) 27. Li, Y., Shang, S., Liu, W., Zhan, B., Wang, H., Wang, Y., Chen, Y., Wang, X., An, Y., Tang, C., et al.: Drivevla-w0: World models amplify data scaling law in autonomous driving. arXiv preprint arXiv:2510.12796 (2025) 28. Li, Y., Ge, Z., Yu, G., Yang, J., Wang, Z., Shi, Y., Sun, J., Li, Z.: Bevdepth: Acquisition of reliable depth for multi-view 3d object detection. In: Proceedings of the AAAI conference on artificial intelligence. vol. 37, pp. 1477–1485 (2023) 29. Li, Z., Wang, W., Li, H., Xie, E., Sima, C., Lu, T., Yu, Q., Dai, J.: Bevformer: learning bird’s-eye-view representation from lidar-camera via spatiotemporal trans-formers. IEEE Transactions on Pattern Analysis and Machine Intelligence (2024) 30. Lin, T.Y., Dollár, P., Girshick, R., He, K., Hariharan, B., Belongie, S.: Feature pyramid networks for object detection. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 2117–2125 (2017) 31. Loshchilov, I., Hutter, F.: Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 (2017) 32. Mao, J., Qian, Y., Ye, J., Zhao, H., Wang, Y.: Gpt-driver: Learning to drive with gpt. arXiv preprint arXiv:2310.01415 (2023) 33. Murez, Z., As, T.v., Bartolozzi, J., Sinha, A., Badrinarayanan, V., Rabinovich, A.: Atlas: End-to-end 3d scene reconstruction from posed images. In: ECCV. pp. 414–431 (2020) 34. Philion, J., Fidler, S.: Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unprojecting to 3d. In: European conference on computer vision. pp. 194–210. Springer (2020) DriveTok for Scene Understanding 17 35. Piccinelli, L., Sakaridis, C., Yang, Y.H., Segu, M., Li, S., Abbeloos, W., Van Gool, L.: Unidepthv2: Universal monocular metric depth estimation made simpler. arXiv preprint arXiv:2502.20110 (2025) 36. Ranftl, R., Bochkovskiy, A., Koltun, V.: Vision transformers for dense prediction. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 12179–12188 (2021) 37. Ranftl, R., Lasinger, K., Hafner, D., Schindler, K., Koltun, V.: Towards robust monocular depth estimation: Mixing datasets for zero-shot cross-dataset transfer. IEEE transactions on pattern analysis and machine intelligence 44 (3), 1623–1637 (2020) 38. Sani, D., Anand, S.: Graph-based multi-modal sensor fusion for autonomous driv-ing. arXiv preprint arXiv:2411.03702 (2024) 39. Sargent, K., Hsu, K., Johnson, J., Fei-Fei, L., Wu, J.: Flow to the mode: Mode-seeking diffusion autoencoders for state-of-the-art image tokenization. arXiv preprint arXiv:2503.11056 (2025) 40. Schmied, A., Fischer, T., Danelljan, M., Pollefeys, M., Yu, F.: R3d3: Dense 3d reconstruction of dynamic scenes from multiple cameras. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 3216–3226 (2023) 41. Shao, H., Hu, Y., Wang, L., Song, G., Waslander, S.L., Liu, Y., Li, H.: Lmdrive: Closed-loop end-to-end driving with large language models. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 15120– 15130 (2024) 42. Siméoni, O., Vo, H.V., Seitzer, M., Baldassarre, F., Oquab, M., Jose, C., Khali-dov, V., Szafraniec, M., Yi, S., Ramamonjisoa, M., et al.: Dinov3. arXiv preprint arXiv:2508.10104 (2025) 43. Tong, S., Fan, D., Li, J., Xiong, Y., Chen, X., Sinha, K., Rabbat, M., LeCun, Y., Xie, S., Liu, Z.: Metamorph: Multimodal understanding and generation via instruction tuning. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 17001–17012 (2025) 44. Van Den Oord, A., Vinyals, O., et al.: Neural discrete representation learning. Advances in neural information processing systems 30 (2017) 45. Wang, H.S., Zhu, X., Peh, L.S., Malik, S.: Orion: A power-performance simulator for interconnection networks. In: 35th Annual IEEE/ACM International Sympo-sium on Microarchitecture, 2002.(MICRO-35). Proceedings. pp. 294–305. IEEE (2002) 46. Wang, R., Xu, S., Dai, C., Xiang, J., Deng, Y., Tong, X., Yang, J.: Moge: Unlock-ing accurate monocular geometry estimation for open-domain images with optimal training supervision. In: Proceedings of the Computer Vision and Pattern Recog-nition Conference. pp. 5261–5271 (2025) 47. Wang, R., Xu, S., Dong, Y., Deng, Y., Xiang, J., Lv, Z., Sun, G., Tong, X., Yang, J.: Moge-2: Accurate monocular geometry with metric scale and sharp details. arXiv preprint arXiv:2507.02546 (2025) 48. Wang, X., Zhu, Z., Huang, G., Chen, X., Zhu, J., Lu, J.: Drivedreamer: Towards real-world-drive world models for autonomous driving. In: European conference on computer vision. pp. 55–72. Springer (2024) 49. Wang, Y., Chao, W.L., Garg, D., Hariharan, B., Campbell, M., Weinberger, K.Q.: Pseudo-lidar from visual depth estimation: Bridging the gap in 3d object detection for autonomous driving. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 8445–8453 (2019) 18 D. Zhuo et al. 50. Wang, Y., He, J., Fan, L., Li, H., Chen, Y., Zhang, Z.: Driving into the future: Mul-tiview visual forecasting and planning with world model for autonomous driving. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 14749–14759 (2024) 51. Wei, Y., Zhao, L., Zheng, W., Zhu, Z., Rao, Y., Huang, G., Lu, J., Zhou, J.: Sur-rounddepth: Entangling surrounding views for self-supervised multi-camera depth estimation. In: Conference on robot learning. pp. 539–549. PMLR (2023) 52. Wei, Y., Zhao, L., Zheng, W., Zhu, Z., Zhou, J., Lu, J.: Surroundocc: Multi-camera 3d occupancy prediction for autonomous driving. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 21729–21740 (2023) 53. Wu, C., Chen, X., Wu, Z., Ma, Y., Liu, X., Pan, Z., Liu, W., Xie, Z., Yu, X., Ruan, C., et al.: Janus: Decoupling visual encoding for unified multimodal understanding and generation. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 12966–12977 (2025) 54. Xu, Z., Zhang, Y., Xie, E., Zhao, Z., Guo, Y., Wong, K.Y.K., Li, Z., Zhao, H.: Drivegpt4: Interpretable end-to-end autonomous driving via large language model. IEEE Robotics and Automation Letters (2024) 55. Yao, J., Yang, B., Wang, X.: Reconstruction vs. generation: Taming optimization dilemma in latent diffusion models. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 15703–15712 (2025) 56. Yu, J., Li, X., Koh, J.Y., Zhang, H., Pang, R., Qin, J., Ku, A., Xu, Y., Baldridge, J., Wu, Y.: Vector-quantized image modeling with improved vqgan. arXiv preprint arXiv:2110.04627 (2021) 57. Yu, Q., Weber, M., Deng, X., Shen, X., Cremers, D., Chen, L.C.: An image is worth 32 tokens for reconstruction and generation. Advances in Neural Information Processing Systems 37 , 128940–128966 (2024) 58. Zhang, Y., Zhu, Z., Du, D.: Occformer: Dual-path transformer for vision-based 3d semantic occupancy prediction. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 9433–9443 (2023) 59. Zhao, G., Wang, X., Zhu, Z., Chen, X., Huang, G., Bao, X., Wang, X.: Drivedreamer-2: Llm-enhanced world models for diverse driving video generation. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 39, pp. 10412–10420 (2025) 60. Zheng, A., Wen, X., Zhang, X., Ma, C., Wang, T., Yu, G., Zhang, X., Qi, X.: Vision foundation models as effective visual tokenizers for autoregressive image generation. arXiv preprint arXiv:2507.08441 (2025) 61. Zheng, W., Xia, Z., Huang, Y., Zuo, S., Zhou, J., Lu, J.: Doe-1: Closed-loop au-tonomous driving with large world model. arXiv preprint arXiv:2412.09627 (2024) 62. Zhou, T., Brown, M., Snavely, N., Lowe, D.G.: Unsupervised learning of depth and ego-motion from video. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 1851–1858 (2017) 63. Zhou, X., Han, X., Yang, F., Ma, Y., Knoll, A.C.: Opendrivevla: Towards end-to-end autonomous driving with large vision language action model. arXiv preprint arXiv:2503.23463 (2025) 64. Zhou, Z., Cai, T., Zhao, S.Z., Zhang, Y., Huang, Z., Zhou, B., Ma, J.: Autovla: A vision-language-action model for end-to-end autonomous driving with adaptive reasoning and reinforcement fine-tuning. arXiv preprint arXiv:2506.13757 (2025) 65. Zuo, S., Zheng, W., Han, X., Yang, L., Pan, Y., Lu, J.: Quadricformer: Scene as su-perquadrics for 3d semantic occupancy prediction. arXiv preprint arXiv:2506.10977 (2025) DriveTok for Scene Understanding 19 
+
+## A Architecture and Implementation Details 
+
+This section provides more implementation details of the proposed architec-ture, including 3D scene encoder, spatial-aware multi-view decoder, task-specific heads, and the implementation of our visibility-guided scene-view attention. 
+
+A.1 3D Scene Encoder Visual Foundation Model and Feature Sizes. The 3D scene encoder is responsible for transforming multi-view image observations into unified scene tokens suitable for downstream 3D reasoning. We adopt a pretrained DINOv3-ViTB [42] backbone, followed by an FPN [30] to build a multi-scale pyramid from surround-view images. Concretely, for an input of 256 ×704, the backbone generates three multi-scale feature maps. The FPN fuses these features and outputs four feature levels to the BEV lifting stage. The BEV module expects a shared embedding channel (we set Cbev = 256 ) and four feature levels, consistent with our encoder configuration. 
+
+Scene Encoding. We define the BEV space as a uniform 3D grid spanning 
+
+[−51 .2, 51 .2] × [−51 .2, 51 .2] × [−5.0, 3.0] meters in the real world. The scene grid dimensions (default 200 × 200 × 16 ) determine the number of cells along each axis and allow us to convert grid indices directly into metric coordinates. These coordinates are fed into the BEV positional encoder, where each cell center is encoded using sinusoidal Fourier features and then linearly projected to the BEV feature dimension. This yields the learnable positional embeddings added to the BEV queries before entering the transformer. The scene encoder receives (i) the BEV queries with positional embeddings and (ii) multi-view image features from four pyramid levels. Before fusion, we attach learned camera embeddings and pyramid-level embeddings to each feature map. The image features are then flattened across views and pyramid levels, and the associated spatial shapes and level start indices are provided to the deformable attention module, which produces the final scene tokens. 
+
+A.2 Spatial-Aware Multi-View Decoder 
+
+To mitigate the computational overhead of the multi-view decoder when dealing with long sequences, we first patchify the input BEV features of size 128 ×
+
+128 × 256 following the ViT paradigm [8]. This process yields scene tokens with a reduced spatial resolution of 32 × 32 and an embedding dimension of 768 .Subsequently, our spatial-aware multi-view decoder is a ViT-Base [8] run on a concatenated token sequence: [CLS ]|| BEV (32 × 32) || VIEW (6 × 16 × 44) .
+
+View Tokens. View tokens are constructed by starting with a learned mask token for each patch, to which a 2D view positional grid and a learned per-camera embedding are added. For each patch center, Plücker rays are computed using the camera intrinsics and extrinsics, processed with a small MLP, and fused into the view token through a linear projection. 
+
+Scene and View Attention. Scene ↔ Scene (BEV self-attention) is al-ways enabled to promote global spatial context in BEV, while V iew ↔ V iew 20 D. Zhuo et al. 
+
+Fig. 6: Visualization of visibility-guided mask. Each color corresponds to the region in the BEV plane that is visible from a particular camera, forming six wedge-shaped sectors that meet at the ego-vehicle center. The black region at the center corresponds to areas not visible to any camera. In addition, any colors outside these six primary sectors represent boundary zones where multiple camera frustums overlap. Input
+
+Image
+
+Recon.
+
+Depth
+
+Prediction
+
+Point
+
+Cloud
+
+Occupancy
+
+Prediciton
+
+Semantic
+
+Prediction
+
+Fig. 7: Visualizations of DriveTok in different tasks. Each column corresponds to a different autonomous driving scenario, including challenging night-time scenes. These results illustrate that DriveTok can generate coherent 2D and 3D predictions across diverse tasks from our unified scene tokens. 
+
+(image self-attention) is likewise always enabled across all cameras and patches to encourage cross-view appearance priors. DriveTok for Scene Understanding 21 
+
+Visibility-Guided Scene ↔View Attention. Scene ↔ V iew is selectively enabled through a visibility-guided mask: we first compute a boolean tensor 
+
+M ∈ { 0, 1}B×Nc×Nb by projecting BEV cell centers into each camera, marking a cell as visible if any height slice lies in front of the camera and falls within the image. This mask is then used to inject an additive bias into the Scene ↔
+
+V iew attention logits (in both directions), where entries with M = 0 indicate that the attention weight between the scene token and the corresponding view should be zero, and the entire mechanism provides hard, geometry-consistent sparsity. We also provide a visualization of our visibility-guided mask in Figure 6. The visualization verifies that the resulting visibility mask captures single-view coverage and non-visible regions, thereby enforcing geometry-consistent sparsity for visibility-guided Scene ↔ V iew attention. 
+
+A.3 Joint Task Heads RGB Reconstruction Head. The ViewTokenDecoder adopts a DPT [36] ar-chitecture. Tokens are reshaped into the patch grid and projected to 256 chan-nels with lightweight deblocking. A single-scale feature pyramid is constructed through strided convolutions, yielding four levels {256 , 512 , 1024 , 1024 } that are refined in a top-down manner using DPT FeatureFusionBlocks. The fused rep-resentation is progressively upsampled with additional deblocking to recover full resolution, and a final convolutional head produces the 3-channel RGB output. 
+
+Depth Prediction Head. The DepthAdaptor applies a residual MLP to the view tokens and predicts per-camera affine parameters (a, b) to correct monocular scale and shift, after which a second ViewTokenDecoder produces a single-channel depth map using a Softplus activation. The final aligned depth is computed as a · pred + b.
+
+Semantics Prediction Head. A third ViewTokenDecoder with the same architecture is employed for the auxiliary prediction task, producing 17 output channels. Its output remains as raw logits, and the ignore label (255) is excluded during training. 
+
+Occupancy Prediction Head. The OccAdaptor maps BEV tokens into a 2D feature plane using LayerNorm and a linear projection, followed by lightweight depthwise–pointwise convolutions to produce a 256-channel feature map at 128 2.The OccHead upsamples this map with a stride-aligned transposed-convolution stack, while a height-conditioning module provides FiLM parameters across eight vertical slices to lift the 2D features into a 3D volume. Optional 3D refinement blocks further process the volume, and a final 1 × 1 × 1 classifier predicts 18 classes. The resulting dense volume is then resampled to the target 200 ×200 ×16 
+
+occupancy grid. 
+
+A.4 Inference Time and Memory Usage of Modules 
+
+To evaluate the efficiency of DriveTok, we measured the average runtime and memory consumption of each module during forward inference on a single NVIDIA A800 80GB GPU, as shown in Table 7. In particular, our scene tokenization module is highly efficient ( ∼ 80-90 ms per scene), enabling real-time processing 22 D. Zhuo et al. 
+
+Table 7: Average runtime and GPU memory usage of each DriveTok module during forward inference. Module Avg. time (ms) Peak GPU memory (MB)                     
+
+> Image Backbone 13.56 3747.24 FPN 2.01 3771.46 BEV Encoder 72.39 4423.73 Spatial-Aware Decoder 225.85 6476.74 RGB Head 68.70 8456.09 Depth Head 69.72 8562.64 Sem Head 69.18 8652.19 Occ Head 150.35 7802.53
+> Scene Tokenization 87.96 4423.73
+> Total 671.76 8652.19
+
+of surround-view images and producing compact scene tokens that are rich in texture, geometric, and semantic information. Such a lightweight yet expressive representation makes it especially promising for future integration with large language models (LLMs) and vision–language models (VLMs) in autonomous driving systems to support low-latency reasoning. 
+
+## B More Visualization Results 
+
+We now provide more visualization results, including challenging night-time sce-narios as shown in Figure 7, to better demonstrate the robustness of our ap-proach. We also provide a demo video in the supplementary material. 
+
+## C Dense Depth Annotation 
+
+Public driving datasets such as nuScenes [2] provide only sparse LiDAR depth, which is insufficient for supervising dense, per-pixel geometry. We obtain dense metric depth by combining monocular predictions with sparse LiDAR supervi-sion. Specifically, MoGe-2 [47] produces a dense pseudo depth map ˜d. Sparse LiDAR points are projected onto the image plane to provide metric samples 
+
+dlidar . We then align ˜d to metric scale using a robust affine fit (ROE): 
+
+(a⋆, b ⋆) = arg min 
+
+> a,b
+
+X
+
+> i∈Ω
+
+ρ
+
+
+
+a ˜di + b − dlidar 
+
+> i
+
+
+
+, (16) yielding the final aligned dense depth 
+
+dalign  
+
+> i
+
+= a⋆ ˜di + b⋆. (17) This aligned depth serves as the supervision target for training. DriveTok for Scene Understanding 23 
+
+Table 8: Ablation study on backbone configuration. We compare our DriveTok (equipped with ResNet-101) against state-of-the-art methods using the same backbone. Note that DriveTok uses a significantly lower input resolution ( 256 × 704 ) compared to the baselines ( 896 × 1600 ) yet achieves competitive results. The red percentages denote the performance drop when switching from DINOv3 to ResNet-101. Method Backbone Input IOU ↑ mIOU ↑ PSNR ↑ SSIM ↑ absrel ↓ δ < 1.25 ↑                                                        
+
+> BEVFormer [29] ResNet-101 896 ×1600 30.50 16.75 ----GaussianFormer [21] ResNet-101 896 ×1600 29.83 19.10 ----GaussianFormer-2 [18] ResNet-101 896 ×1600 30.56 20.02 ----QuadricFormer [65] ResNet-101 896 ×1600 31.22 20.12 ----
+> DriveTok ResNet-101 256 ×704 32.23 ( ↓3.2%) 18.83( ↓6.1%) 25.94( ↓6.9%) 0.698( ↓6.6%) 0.10( ↓25.0%) 0.88( ↓5.4%)
+> DriveTok DINOv3 256 ×704 33.32 20.06 27.89 0.747 0.08 0.93
+
+Table 9: Latency and memory comparison with Occ models. 
+
+Method Backbone IOU ↓ mIOU ↓ Latency ↓ Peak Memory ↓
+
+GaussianFormer [21] ResNet-101 29.83 19.10 372 ms 6229 MB GaussianFormer-2 [18] ResNet-101 30.56 20.02 451 ms 4535 MB DriveTok ResNet-101 32.23 18.83 238 ms 7803 MB 
+
+## D More Ablation Studies 
+
+D.1 Impact of Backbone 
+
+To validate that the performance gains stem from our proposed architectural design rather than solely the powerful backbone, we conduct an ablation study by replacing the DINOv3 [42] encoder with ResNet-101 [14], aligning with the configuration of baseline methods. As presented in Table 8, we strictly limit the input resolution of DriveTok to 256 × 704 , which is significantly lower than the 
+
+896 × 1600 resolution used by competing methods. Despite the reduced input information and a standard backbone, our DriveTok (ResNet-101) still demon-strates competitive performance. 
+
+D.2 Efficiency Analysis 
+
+We compare the inference latency and memory consumption of DriveTok against state-of-the-art occupancy prediction methods in Table 9. All models use the same ResNet-101 backbone for a fair comparison. While maintaining high-speed inference, our model also achieves competitive performance.

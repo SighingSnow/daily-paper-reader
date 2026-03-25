@@ -6,130 +6,97 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-24
-- 运行时间：2026-03-24 21:06:38 UTC
+- 最新运行日期：2026-03-25
+- 运行时间：2026-03-25 20:07:02 UTC
 - 运行状态：成功
-- 本次总论文数：36
-- 精读区：24
+- 本次总论文数：25
+- 精读区：13
 - 速读区：12
 
 ### 今日简报（AI）
-今日精读36篇前沿论文，OpenResearcher与DomAgent以满分表现引领AI智能体与代码生成新风向。
-重点推荐OpenResearcher的全开放研究管线与DomAgent基于知识图谱的代码生成，两者均展现了极高的应用潜力。
-建议关注AI如何通过全开放管线实现科研自动化，并探索知识图谱在专业编程中的落地应用。
-- 详情：[/202603/24/README](/202603/24/README)
+今日研读25篇前沿论文，EVA与OmniVTA以9.0高分领跑，聚焦机器人世界模型新突破。
+重点推荐EVA实现视频模型与机器人动作的精准对齐，以及OmniVTA在接触丰富操作中的触觉建模方案。
+建议关注具身智能前沿，看世界模型如何让机器人学会“手眼协调”与精细操作。
+- 详情：[/202603/25/README](/202603/25/README)
 
 ### 精读区论文标签
-1. [OpenResearcher: A Fully Open Pipeline for Long-Horizon Deep Research Trajectory Synthesis](/202603/24/2603.20278v1-openresearcher-a-fully-open-pipeline-for-long-horizon-deep-research-trajectory-synthesis)  
-   标签：评分：10.0/10、query:agent
-   evidence：研究智能体使用搜索浏览循环合成轨迹
-2. [DomAgent: Leveraging Knowledge Graphs and Case-Based Reasoning for Domain-Specific Code Generation](/202603/24/2603.21430v1-domagent-leveraging-knowledge-graphs-and-case-based-reasoning-for-domain-specific-code-generation)  
-   标签：评分：10.0/10、query:agent
-   evidence：领域特定代码生成的自主编程智能体
-3. [NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation](/202603/24/2603.15359v1-navthinker-action-conditioned-world-models-for-coupled-prediction-and-planning-in-social-navigation)  
+1. [EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards](/202603/25/2603.17808v1-eva-aligning-video-world-models-with-executable-robot-actions-via-inverse-dynamics-rewards)  
    标签：评分：9.0/10、query:wmodel
-   evidence：用于导航的动作条件世界模型
-4. [Grounding World Simulation Models in a Real-World Metropolis](/202603/24/2603.15583v1-grounding-world-simulation-models-in-a-real-world-metropolis)  
+   evidence：机器人视频世界模型与逆动力学
+2. [OmniVTA: Visuo-Tactile World Modeling for Contact-Rich Robotic Manipulation](/202603/25/2603.19201v1-omnivta-visuo-tactile-world-modeling-for-contact-rich-robotic-manipulation)  
    标签：评分：9.0/10、query:wmodel
-   evidence：基于真实城市的城市级世界模型
-5. [Simulation Distillation: Pretraining World Models in Simulation for Rapid Real-World Adaptation](/202603/24/2603.15759v1-simulation-distillation-pretraining-world-models-in-simulation-for-rapid-real-world-adaptation)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：预训练潜在世界模型用于仿真到现实迁移
-6. [GigaWorld-Policy: An Efficient Action-Centered World--Action Model](/202603/24/2603.17240v1-gigaworld-policy-an-efficient-action-centered-world--action-model)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：面向高效机器人策略学习的动作中心世界-动作模型
-7. [Stereo World Model: Camera-Guided Stereo Video Generation](/202603/24/2603.17375v1-stereo-world-model-camera-guided-stereo-video-generation)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：相机条件立体世界模型用于视频生成
-8. [From Digital Twins to World Models:Opportunities, Challenges, and Applications for Mobile Edge General Intelligence](/202603/24/2603.17420v1-from-digital-twins-to-world-modelsopportunities-challenges-and-applications-for-mobile-edge-general-intelligence)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：从数字孪生到世界模型转型的系统综述，用于边缘智能
-9. [VectorWorld: Efficient Streaming World Model via Diffusion Flow on Vector Graphs](/202603/24/2603.17652v1-vectorworld-efficient-streaming-world-model-via-diffusion-flow-on-vector-graphs)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：自动驾驶仿真的流式世界模型
-10. [AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models](/202603/24/2603.18464v1-accerl-a-distributed-asynchronous-reinforcement-learning-and-world-model-framework-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：集成到VLA模型RL流水线的世界模型框架
-11. [AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models](/202603/24/2603.18464v2-accerl-a-distributed-asynchronous-reinforcement-learning-and-world-model-framework-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：集成可训练世界模型的视觉-语言-动作模型分布式强化学习框架
-12. [OmniVTA: Visuo-Tactile World Modeling for Contact-Rich Robotic Manipulation](/202603/24/2603.19201v2-omnivta-visuo-tactile-world-modeling-for-contact-rich-robotic-manipulation)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：视觉触觉世界建模及大规模数据集用于机器人操作
-13. [X-World: Controllable Ego-Centric Multi-Camera World Models for Scalable End-to-End Driving](/202603/24/2603.19979v1-x-world-controllable-ego-centric-multi-camera-world-models-for-scalable-end-to-end-driving)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：用于自动驾驶的动作条件多摄像头生成式世界模型
-14. [Structured Latent Dynamics in Wireless CSI via Homomorphic World Models](/202603/24/2603.20048v1-structured-latent-dynamics-in-wireless-csi-via-homomorphic-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：明确将无线CSI预测建模为世界模型任务，使用JEPA架构
-15. [Coding Agents are Effective Long-Context Processors](/202603/24/2603.20432v1-coding-agents-are-effective-long-context-processors)  
+   evidence：视觉触觉世界建模与大规模数据集
+3. [Exploring the Agentic Frontier of Verilog Code Generation](/202603/25/2603.19347v2-exploring-the-agentic-frontier-of-verilog-code-generation)  
    标签：评分：9.0/10、query:agent
-   evidence：评估编码智能体作为长上下文处理任务的通用接口
-16. [Seed1.8 Model Card: Towards Generalized Real-World Agency](/202603/24/2603.20633v1-seed18-model-card-towards-generalized-real-world-agency)  
+   evidence：用于Verilog代码生成的智能体LLM
+4. [WorldAgents: Can Foundation Image Models be Agents for 3D World Models?](/202603/25/2603.19708v1-worldagents-can-foundation-image-models-be-agents-for-3d-world-models)  
+   标签：评分：9.0/10、query:wmodel
+   evidence：用于3D世界模型合成的多智能体架构
+5. [Probing the Latent World: Emergent Discrete Symbols and Physical Structure in Latent Representations](/202603/25/2603.20327v1-probing-the-latent-world-emergent-discrete-symbols-and-physical-structure-in-latent-representations)  
+   标签：评分：9.0/10、query:wmodel
+   evidence：使用JEPA探测视频世界模型
+6. [ALARA for Agents: Least-Privilege Context Engineering Through Portable Composable Multi-Agent Teams](/202603/25/2603.20380v1-alara-for-agents-least-privilege-context-engineering-through-portable-composable-multi-agent-teams)  
    标签：评分：9.0/10、query:agent
-   evidence：支持搜索、代码生成和智能体接口的基础模型
-17. [Towards Intelligent Geospatial Data Discovery: a knowledge graph-driven multi-agent framework powered by large language models](/202603/24/2603.20670v1-towards-intelligent-geospatial-data-discovery-a-knowledge-graph-driven-multi-agent-framework-powered-by-large-language-models)  
+   evidence：用于管理多智能体系统的可移植可组合智能体团队框架
+7. [Towards Practical World Model-based Reinforcement Learning for Vision-Language-Action Models](/202603/25/2603.20607v1-towards-practical-world-model-based-reinforcement-learning-for-vision-language-action-models)  
+   标签：评分：9.0/10、query:wmodel
+   evidence：基于世界模型的VLA-MBPO强化学习框架
+8. [Towards Intelligent Geospatial Data Discovery: a knowledge graph-driven multi-agent framework powered by large language models](/202603/25/2603.20670v2-towards-intelligent-geospatial-data-discovery-a-knowledge-graph-driven-multi-agent-framework-powered-by-large-language-models)  
    标签：评分：9.0/10、query:agent
-   evidence：智能数据发现的多智能体框架
-18. [AC4A: Access Control for Agents](/202603/24/2603.20933v1-ac4a-access-control-for-agents)  
+   evidence：用于智能地理空间数据发现的多智能体框架
+9. [AI Co-Scientist for Ranking: Discovering Novel Search Ranking Models alongside LLM-based AI Agents with Cloud Computing Access](/202603/25/2603.22376v1-ai-co-scientist-for-ranking-discovering-novel-search-ranking-models-alongside-llm-based-ai-agents-with-cloud-computing-access)  
    标签：评分：9.0/10、query:agent
-   evidence：专为LLM智能体设计的访问控制框架
-19. [Dreaming the Unseen: World Model-regularized Diffusion Policy for Out-of-Distribution Robustness](/202603/24/2603.21017v1-dreaming-the-unseen-world-model-regularized-diffusion-policy-for-out-of-distribution-robustness)  
+   evidence：AI Co-Scientist框架使用LLM智能体进行搜索排序模型发现
+10. [Model Predictive Control with Differentiable World Models for Offline Reinforcement Learning](/202603/25/2603.22430v1-model-predictive-control-with-differentiable-world-models-for-offline-reinforcement-learning)  
    标签：评分：9.0/10、query:wmodel
-   evidence：用于策略训练的扩散世界模型框架，具备潜在动力学预测能力
-20. [ARYA: A Physics-Constrained Composable & Deterministic World Model Architecture](/202603/24/2603.21340v1-arya-a-physics-constrained-composable--deterministic-world-model-architecture)  
+   evidence：离线强化学习中用于MPC的可微分世界模型
+11. [Describe-Then-Act: Proactive Agent Steering via Distilled Language-Action World Models](/202603/25/2603.23149v1-describe-then-act-proactive-agent-steering-via-distilled-language-action-world-models)  
    标签：评分：9.0/10、query:wmodel
-   evidence：ARYA是可组合的物理约束确定性世界模型架构，包含状态表示和规划能力
-21. [What Do World Models Learn in RL? Probing Latent Representations in Learned Environment Simulators](/202603/24/2603.21546v1-what-do-world-models-learn-in-rl-probing-latent-representations-in-learned-environment-simulators)  
+   evidence：用于智能体引导的蒸馏语言-动作世界模型
+12. [ABot-PhysWorld: Interactive World Foundation Model for Robotic Manipulation with Physics Alignment](/202603/25/2603.23376v1-abot-physworld-interactive-world-foundation-model-for-robotic-manipulation-with-physics-alignment)  
    标签：评分：9.0/10、query:wmodel
-   evidence：探测世界模型的潜在表示
-22. [Omni-WorldBench: Towards a Comprehensive Interaction-Centric Evaluation for World Models](/202603/24/2603.22212v1-omni-worldbench-towards-a-comprehensive-interaction-centric-evaluation-for-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：世界模型综合评估基准
-23. [ThinkJEPA: Empowering Latent World Models with Large Vision-Language Reasoning Model](/202603/24/2603.22281v1-thinkjepa-empowering-latent-world-models-with-large-vision-language-reasoning-model)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：视觉语言推理增强的潜在世界模型
-24. [WorldCache: Content-Aware Caching for Accelerated Video World Models](/202603/24/2603.22286v1-worldcache-content-aware-caching-for-accelerated-video-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：用缓存框架加速视频世界模型
+   evidence：基于视频的世界基础模型与机器人操作数据集
+13. [Code Review Agent Benchmark](/202603/25/2603.23448v1-code-review-agent-benchmark)  
+   标签：评分：9.0/10、query:agent
+   evidence：代码审查智能体的基准数据集与框架
 
 ### 速读区论文标签
-1. [RS-WorldModel: a Unified Model for Remote Sensing Understanding and Future Sense Forecasting](/202603/24/2603.14941v1-rs-worldmodel-a-unified-model-for-remote-sensing-understanding-and-future-sense-forecasting)  
+1. [EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards](/202603/25/2603.17808v2-eva-aligning-video-world-models-with-executable-robot-actions-via-inverse-dynamics-rewards)  
    标签：评分：8.0/10、query:wmodel
-   evidence：RS-WorldModel引入包含110万样本的RSWBench-1.1M数据集用于世界模型训练
-2. [Bridging Scene Generation and Planning: Driving with World Model via Unifying Vision and Motion Representation](/202603/24/2603.14948v1-bridging-scene-generation-and-planning-driving-with-world-model-via-unifying-vision-and-motion-representation)  
+   evidence：通过逆动力学对齐视频世界模型与可执行机器人动作
+2. [Enactor: From Traffic Simulators to Surrogate World Models](/202603/25/2603.18266v1-enactor-from-traffic-simulators-to-surrogate-world-models)  
    标签：评分：8.0/10、query:wmodel
-   evidence：统一视觉与运动表示的驾驶世界模型
-3. [NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation](/202603/24/2603.15359v2-navthinker-action-conditioned-world-models-for-coupled-prediction-and-planning-in-social-navigation)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：NavThinker将动作条件世界模型与强化学习结合用于预测与规划
-4. [Chronos: Temporal-Aware Conversational Agents with Structured Event Retrieval for Long-Term Memory](/202603/24/2603.16862v1-chronos-temporal-aware-conversational-agents-with-structured-event-retrieval-for-long-term-memory)  
+   evidence：受世界模型范式启发的代理世界模型
+3. [Conflict-Based Search for Multi Agent Path Finding with Asynchronous Actions](/202603/25/2603.18866v1-conflict-based-search-for-multi-agent-path-finding-with-asynchronous-actions)  
    标签：评分：8.0/10、query:agent
-   evidence：具有时间感知记忆框架的对话智能体
-5. [FAR-Drive: Frame-AutoRegressive Video Generation in Closed-Loop Autonomous Driving](/202603/24/2603.14938v1-far-drive-frame-autoregressive-video-generation-in-closed-loop-autonomous-driving)  
+   evidence：多智能体异步动作路径规划
+4. [DynFlowDrive: Flow-Based Dynamic World Modeling for Autonomous Driving](/202603/25/2603.19675v1-dynflowdrive-flow-based-dynamic-world-modeling-for-autonomous-driving)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于自动驾驶的潜在世界模型与速度场
+5. [MicroVision: An Open Dataset and Benchmark Models for Detecting Vulnerable Road Users and Micromobility Vehicles](/202603/25/2603.18192v1-microvision-an-open-dataset-and-benchmark-models-for-detecting-vulnerable-road-users-and-micromobility-vehicles)  
    标签：评分：7.0/10、query:wmodel
-   evidence：自动驾驶闭环世界模型仿真器
-6. [DreamPlan: Efficient Reinforcement Fine-Tuning of Vision-Language Planners via Video World Models](/202603/24/2603.16860v1-dreamplan-efficient-reinforcement-fine-tuning-of-vision-language-planners-via-video-world-models)  
+   evidence：道路用户检测开放数据集
+6. [Hypothesis-Conditioned Query Rewriting for Decision-Useful Retrieval](/202603/25/2603.19008v1-hypothesis-conditioned-query-rewriting-for-decision-useful-retrieval)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于检索增强生成的查询重写框架
+7. [DriveTok: 3D Driving Scene Tokenization for Unified Multi-View Reconstruction and Understanding](/202603/25/2603.19219v1-drivetok-3d-driving-scene-tokenization-for-unified-multi-view-reconstruction-and-understanding)  
    标签：评分：7.0/10、query:wmodel
-   evidence：用于视觉语言规划器强化微调的视频世界模型
-7. [WorldCam: Interactive Autoregressive 3D Gaming Worlds with Camera Pose as a Unifying Geometric Representation](/202603/24/2603.16871v1-worldcam-interactive-autoregressive-3d-gaming-worlds-with-camera-pose-as-a-unifying-geometric-representation)  
+   evidence：用于自动驾驶世界模型的3D场景分词
+8. [DataProphet: Demystifying Supervision Data Generalization in Multimodal LLMs](/202603/25/2603.19688v1-dataprophet-demystifying-supervision-data-generalization-in-multimodal-llms)  
    标签：评分：7.0/10、query:wmodel
-   evidence：基于相机姿态表示的交互式游戏世界模型
-8. [GigaWorld-Policy: An Efficient Action-Centered World--Action Model](/202603/24/2603.17240v2-gigaworld-policy-an-efficient-action-centered-world--action-model)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：世界-动作模型用于机器人策略学习，支持高效动作解码
-9. [SmartSearch: How Ranking Beats Structure for Conversational Memory Retrieval](/202603/24/2603.15599v1-smartsearch-how-ranking-beats-structure-for-conversational-memory-retrieval)  
+   evidence：跨14个视觉-语言数据集的监督数据迁移分析
+9. [MemX: A Local-First Long-Term Memory System for AI Assistants](/202603/25/2603.16171v1-memx-a-local-first-long-term-memory-system-for-ai-assistants)  
    标签：评分：6.0/10、query:agent
-   evidence：具有确定性搜索流程的对话记忆检索系统
-10. [A Framework and Prototype for a Navigable Map of Datasets in Engineering Design and Systems Engineering](/202603/24/2603.15722v1-a-framework-and-prototype-for-a-navigable-map-of-datasets-in-engineering-design-and-systems-engineering)  
+   evidence：对话智能体的长期记忆系统
+10. [Are a Thousand Words Better Than a Single Picture? Beyond Images -- A Framework for Multi-Modal Knowledge Graph Dataset Enrichment](/202603/25/2603.16974v1-are-a-thousand-words-better-than-a-single-picture-beyond-images----a-framework-for-multi-modal-knowledge-graph-dataset-enrichment)  
    标签：评分：6.0/10、query:wmodel
-   evidence：工程设计领域数据集组织框架
-11. [CounterRefine: Answer-Conditioned Counterevidence Retrieval for Inference-Time Knowledge Repair in Factual Question Answering](/202603/24/2603.16091v1-counterrefine-answer-conditioned-counterevidence-retrieval-for-inference-time-knowledge-repair-in-factual-question-answering)  
+   evidence：多模态知识图谱数据集增强框架
+11. [DaPT: A Dual-Path Framework for Multilingual Multi-hop Question Answering](/202603/25/2603.19097v1-dapt-a-dual-path-framework-for-multilingual-multi-hop-question-answering)  
    标签：评分：6.0/10、query:agent
-   evidence：基于检索的问答系统，使用后续查询收集证据
-12. [IndexRAG: Bridging Facts for Cross-Document Reasoning at Index Time](/202603/24/2603.16415v1-indexrag-bridging-facts-for-cross-document-reasoning-at-index-time)  
+   evidence：多语言多跳问答的双路径框架
+12. [RouterKGQA: Specialized--General Model Routing for Constraint-Aware Knowledge Graph Question Answering](/202603/25/2603.20017v1-routerkgqa-specialized--general-model-routing-for-constraint-aware-knowledge-graph-question-answering)  
    标签：评分：6.0/10、query:agent
-   evidence：基于RAG的多跳问答检索
+   evidence：知识图谱问答框架含智能体方法
 
 
 <div class="dpr-home-promo-card">

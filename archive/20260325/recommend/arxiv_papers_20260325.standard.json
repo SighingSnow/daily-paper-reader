@@ -1,0 +1,982 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-25T19:44:59.834799+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 25,
+    "deep_cap": 7,
+    "deep_selected": 13,
+    "quick_candidates": 32,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.17808v1",
+      "title": "EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards",
+      "abstract": "Video generative models are increasingly used as world models for robotics, where a model generates a future visual rollout conditioned on the current observation and task instruction, and an inverse dynamics model (IDM) converts the generated frames into executable robot actions. However, current video world models lack explicit executability constraints. As a result, visually coherent rollouts may still violate rigid-body and kinematic consistency, producing unstable or infeasible control commands when decoded by an IDM. We refer to this mismatch between visual generation and physically executable control as the executability gap. While this gap can be mitigated at inference time using techniques such as rejection sampling, such approaches are inefficient due to the high cost of video generation. In this paper, we leverage the executability gap as a training signal and introduce Executable Video Alignment (EVA), a reinforcement-learning post-training framework for aligning video world models. EVA trains an inverse dynamics model on real robot trajectories and repurposes it as a reward model that evaluates generated videos through the action sequences they induce, encouraging smooth motions measured by velocity, acceleration, and jerk while penalizing actions that violate embodiment constraints. Importantly, the reward remains informative even when generated videos contain severe visual artifacts, since such artifacts typically translate into unstable or out-of-bound actions. Experiments on the RoboTwin benchmark and a real bimanual robot show that EVA reduces embodiment-specific artifacts in generated rollouts and improves downstream task execution success.",
+      "authors": [
+        "Ruixiang Wang",
+        "Qingming Liu",
+        "Yueci Deng",
+        "Guiliang Liu",
+        "Zhen Liu",
+        "Kui Jia"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T15:02:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.17808v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Video world models for robotics with inverse dynamics",
+      "llm_evidence_cn": "机器人视频世界模型与逆动力学",
+      "llm_evidence": "机器人视频世界模型与逆动力学",
+      "canonical_evidence": "机器人视频世界模型与逆动力学",
+      "llm_tldr_en": "EVA aligns video world models with executable robot actions via inverse dynamics rewards to bridge executability gap.",
+      "llm_tldr_cn": "EVA通过逆动力学奖励对齐视频世界模型与可执行机器人动作。",
+      "llm_tldr": "EVA通过逆动力学奖励对齐视频世界模型与可执行机器人动作。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19201v1",
+      "title": "OmniVTA: Visuo-Tactile World Modeling for Contact-Rich Robotic Manipulation",
+      "abstract": "Contact-rich manipulation tasks, such as wiping and assembly, require accurate perception of contact forces, friction changes, and state transitions that cannot be reliably inferred from vision alone. Despite growing interest in visuo-tactile manipulation, progress is constrained by two persistent limitations: existing datasets are small in scale and narrow in task coverage, and current methods treat tactile signals as passive observations rather than using them to model contact dynamics or enable closed-loop control explicitly. In this paper, we present \\textbf{OmniViTac}, a large-scale visuo-tactile-action dataset comprising $21{,}000+$ trajectories across $86$ tasks and $100+$ objects, organized into six physics-grounded interaction patterns. Building on this dataset, we propose \\textbf{OmniVTA}, a world-model-based visuo-tactile manipulation framework that integrates four tightly coupled modules: a self-supervised tactile encoder, a two-stream visuo-tactile world model for predicting short-horizon contact evolution, a contact-aware fusion policy for action generation, and a 60Hz reflexive controller that corrects deviations between predicted and observed tactile signals in a closed loop. Real-robot experiments across all six interaction categories show that OmniVTA outperforms existing methods and generalizes well to unseen objects and geometric configurations, confirming the value of combining predictive contact modeling with high-frequency tactile feedback for contact-rich manipulation. All data, models, and code will be made publicly available on the project website at https://mrsecant.github.io/OmniVTA.",
+      "authors": [
+        "Yuhang Zheng",
+        "Songen Gu",
+        "Weize Li",
+        "Yupeng Zheng",
+        "Yujie Zang",
+        "Shuai Tian",
+        "Xiang Li",
+        "Ruihai Wu",
+        "Ce Hao",
+        "Chen Gao",
+        "Si Liu",
+        "Haoran Li",
+        "Yilun Chen",
+        "Shuicheng Yan",
+        "Wenchao Ding"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T17:52:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.19201v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Visuo-tactile world modeling with large-scale dataset",
+      "llm_evidence_cn": "视觉触觉世界建模与大规模数据集",
+      "llm_evidence": "视觉触觉世界建模与大规模数据集",
+      "canonical_evidence": "视觉触觉世界建模与大规模数据集",
+      "llm_tldr_en": "Presents OmniViTac dataset and world modeling approach for contact-rich robotic manipulation.",
+      "llm_tldr_cn": "提出OmniViTac数据集和世界建模方法用于接触丰富机器人操作。",
+      "llm_tldr": "提出OmniViTac数据集和世界建模方法用于接触丰富机器人操作。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19347v2",
+      "title": "Exploring the Agentic Frontier of Verilog Code Generation",
+      "abstract": "Large language models (LLMs) have made rapid advancements in code generation for popular languages such as Python and C++. Many of these recent gains can be attributed to the use of ``agents'' that wrap domain-relevant tools alongside LLMs. Hardware design languages such as Verilog have also seen improved code generation in recent years, but the impact of agentic frameworks on Verilog code generation tasks remains unclear. In this work, we present the first systematic evaluation of agentic LLMs for Verilog generation, using the recently introduced CVDP benchmark. We also introduce several open-source hardware design agent harnesses, providing a model-agnostic baseline for future work. Through controlled experiments across frontier models, we study how structured prompting and tool design affect performance, analyze agent failure modes and tool usage patterns, compare open-source and closed-source models, and provide qualitative examples of successful and failed agent runs. Our results show that naive agentic wrapping around frontier models can degrade performance (relative to standard forward passes with optimized prompts), but that structured harnesses meaningfully match and in some cases exceed non-agentic baselines. We find that the performance gap between open and closed source models is driven by both higher crash rates and weaker tool output interpretation. Our exploration illuminates the path towards designing special-purpose agents for verilog generation in the future.",
+      "authors": [
+        "Patrick Yubeaton",
+        "Siddharth Garg",
+        "Chinmay Hegde"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T16:48:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.19347v2",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agentic LLMs for Verilog code generation",
+      "llm_evidence_cn": "用于Verilog代码生成的智能体LLM",
+      "llm_evidence": "用于Verilog代码生成的智能体LLM",
+      "canonical_evidence": "用于Verilog代码生成的智能体LLM",
+      "llm_tldr_en": "First systematic evaluation of agentic LLMs for Verilog generation with open-source harnesses.",
+      "llm_tldr_cn": "首个系统评估智能体LLM生成Verilog的研究，提供开源框架。",
+      "llm_tldr": "首个系统评估智能体LLM生成Verilog的研究，提供开源框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19708v1",
+      "title": "WorldAgents: Can Foundation Image Models be Agents for 3D World Models?",
+      "abstract": "Given the remarkable ability of 2D foundation image models to generate high-fidelity outputs, we investigate a fundamental question: do 2D foundation image models inherently possess 3D world model capabilities? To answer this, we systematically evaluate multiple state-of-the-art image generation models and Vision-Language Models (VLMs) on the task of 3D world synthesis. To harness and benchmark their potential implicit 3D capability, we propose an agentic framing to facilitate 3D world generation. Our approach employs a multi-agent architecture: a VLM-based director that formulates prompts to guide image synthesis, a generator that synthesizes new image views, and a VLM-backed two-step verifier that evaluates and selectively curates generated frames from both 2D image and 3D reconstruction space. Crucially, we demonstrate that our agentic approach provides coherent and robust 3D reconstruction, producing output scenes that can be explored by rendering novel views. Through extensive experiments across various foundation models, we demonstrate that 2D models do indeed encapsulate a grasp of 3D worlds. By exploiting this understanding, our method successfully synthesizes expansive, realistic, and 3D-consistent worlds.",
+      "authors": [
+        "Ziya Erkoç",
+        "Angela Dai",
+        "Matthias Nießner"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T07:22:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.19708v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent architecture for 3D world model synthesis",
+      "llm_evidence_cn": "用于3D世界模型合成的多智能体架构",
+      "llm_evidence": "用于3D世界模型合成的多智能体架构",
+      "canonical_evidence": "用于3D世界模型合成的多智能体架构",
+      "llm_tldr_en": "Investigates whether 2D foundation models possess 3D world model capabilities via multi-agent framing for world synthesis.",
+      "llm_tldr_cn": "研究2D基础模型是否具有3D世界模型能力，提出多智能体架构。",
+      "llm_tldr": "研究2D基础模型是否具有3D世界模型能力，提出多智能体架构。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20327v1",
+      "title": "Probing the Latent World: Emergent Discrete Symbols and Physical Structure in Latent Representations",
+      "abstract": "Video world models trained with Joint Embedding Predictive Architectures (JEPA) acquire rich spatiotemporal representations by predicting masked regions in latent space rather than reconstructing pixels. This removes the visual verification pathway of generative models, creating a structural interpretability gap: the encoder has learned physical structure inaccessible in any inspectable form. Existing probing methods either operate in continuous space without a structured intermediate layer, or attach generative components whose parameters confound attribution of behavior to the encoder.   We propose the AI Mother Tongue (AIM) framework as a passive quantization probe: a lightweight, vocabulary-free probe that converts V-JEPA 2 continuous latent vectors into discrete symbol sequences without task-specific supervision or modifying the encoder. Because the encoder is kept completely frozen, any symbolic structure in the AIM codebook is attributable entirely to V-JEPA 2 pre-trained representations -- not to the probe.   We evaluate through category-contrast experiments on Kinetics-mini along three physical dimensions: grasp angle, object geometry, and motion temporal structure. AIM symbol distributions differ significantly across all three experiments (chi^2 p < 10^{-4}; MI 0.036--0.117 bits, NMI 1.2--3.9% of the 3-bit maximum; JSD up to 0.342; codebook active ratio 62.5%). The experiments reveal that V-JEPA 2 latent space is markedly compact: diverse action categories share a common representational core, with semantic differences encoded as graded distributional variations rather than categorical boundaries. These results establish Stage 1 of a four-stage roadmap toward an action-conditioned symbolic world model, demonstrating that structured symbolic manifolds are discoverable properties of frozen JEPA latent spaces.",
+      "authors": [
+        "Liu hung ming"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-03-20T01:30:59+00:00",
+      "link": "https://arxiv.org/pdf/2603.20327v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Probing video world models with JEPA",
+      "llm_evidence_cn": "使用JEPA探测视频世界模型",
+      "llm_evidence": "使用JEPA探测视频世界模型",
+      "canonical_evidence": "使用JEPA探测视频世界模型",
+      "llm_tldr_en": "Proposes AIM framework to probe latent physical structure in video world models.",
+      "llm_tldr_cn": "提出AIM框架探测视频世界模型中的潜在物理结构。",
+      "llm_tldr": "提出AIM框架探测视频世界模型中的潜在物理结构。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20380v1",
+      "title": "ALARA for Agents: Least-Privilege Context Engineering Through Portable Composable Multi-Agent Teams",
+      "abstract": "Industry practitioners and academic researchers regularly use multi-agent systems to accelerate their work, yet the frameworks through which these systems operate do not provide a simple, unified mechanism for scalably managing the critical aspects of the agent harness, impacting both the quality of individual human-agent interactions and the capacity for practitioners to coordinate toward common goals through shared agent infrastructure. Agent frameworks have enabled increasingly sophisticated multi-agent systems, but the behavioral specifications that define what these agents can do remain fragmented across prose instruction files, framework-internal configuration, and mechanisms like MCP servers that operate separately from individual agent definitions, making these specifications difficult to share, version, or collaboratively maintain across teams and projects. Applying the ALARA principle from radiation safety (exposures kept as low as reasonably achievable) to agent context, we introduce a declarative context-agent-tool (CAT) data layer expressed through interrelated files that scope each agent's tool access and context to the minimum its role requires, and \\texttt{npcsh}, a command-line shell for executing it. Because the system parses and enforces these files structurally, modifying an agent's tool list produces a guaranteed behavioral change rather than a suggestion the model may or may not follow. We evaluate 22 locally-hosted models from 0.6B to 35B parameters across 115 practical tasks spanning file operations, web search, multi-step scripting, tool chaining, and multi-agent delegation, characterizing which model families succeed at which task categories and where they break down across $\\sim$2500 total executions.",
+      "authors": [
+        "Christopher J. Agostino",
+        "Nayan D'Souza"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-03-20T18:00:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.20380v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "framework for managing multi-agent systems with portable composable agent teams",
+      "llm_evidence_cn": "用于管理多智能体系统的可移植可组合智能体团队框架",
+      "llm_evidence": "用于管理多智能体系统的可移植可组合智能体团队框架",
+      "canonical_evidence": "用于管理多智能体系统的可移植可组合智能体团队框架",
+      "llm_tldr_en": "Proposes ALARA framework for managing multi-agent teams with least-privilege context engineering.",
+      "llm_tldr_cn": "提出多智能体团队管理框架，实现最小权限上下文工程。",
+      "llm_tldr": "提出多智能体团队管理框架，实现最小权限上下文工程。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20607v1",
+      "title": "Towards Practical World Model-based Reinforcement Learning for Vision-Language-Action Models",
+      "abstract": "Vision-Language-Action (VLA) models show strong generalization for robotic control, but finetuning them with reinforcement learning (RL) is constrained by the high cost and safety risks of real-world interaction. Training VLA models in interactive world models avoids these issues but introduces several challenges, including pixel-level world modeling, multi-view consistency, and compounding errors under sparse rewards. Building on recent advances across large multimodal models and model-based RL, we propose VLA-MBPO, a practical framework to tackle these problems in VLA finetuning. Our approach has three key design choices: (i) adapting unified multimodal models (UMMs) for data-efficient world modeling; (ii) an interleaved view decoding mechanism to enforce multi-view consistency; and (iii) chunk-level branched rollout to mitigate error compounding. Theoretical analysis and experiments across simulation and real-world tasks demonstrate that VLA-MBPO significantly improves policy performance and sample efficiency, underscoring its robustness and scalability for real-world robotic deployment.",
+      "authors": [
+        "Zhilong Zhang",
+        "Haoxiang Ren",
+        "Yihao Sun",
+        "Yifei Sheng",
+        "Haonan Wang",
+        "Haoxin Lin",
+        "Zhichao Wu",
+        "Pierre-Luc Bacon",
+        "Yang Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.LG"
+      ],
+      "published": "2026-03-21T02:44:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.20607v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "VLA-MBPO framework for world model-based RL",
+      "llm_evidence_cn": "基于世界模型的VLA-MBPO强化学习框架",
+      "llm_evidence": "基于世界模型的VLA-MBPO强化学习框架",
+      "canonical_evidence": "基于世界模型的VLA-MBPO强化学习框架",
+      "llm_tldr_en": "Proposes VLA-MBPO, a practical framework for training vision-language-action models using interactive world models.",
+      "llm_tldr_cn": "提出VLA-MBPO框架，用交互式世界模型训练视觉-语言-动作模型。",
+      "llm_tldr": "提出VLA-MBPO框架，用交互式世界模型训练视觉-语言-动作模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20670v2",
+      "title": "Towards Intelligent Geospatial Data Discovery: a knowledge graph-driven multi-agent framework powered by large language models",
+      "abstract": "The rapid growth in the volume, variety, and velocity of geospatial data has created data ecosystems that are highly distributed, heterogeneous, and semantically inconsistent. Existing data catalogs, portals, and infrastructures still rely largely on keyword-based search with limited semantic support, which often fails to capture user intent and leads to weak retrieval performance. To address these challenges, this study proposes a knowledge graph-driven multi-agent framework for intelligent geospatial data discovery, powered by large language models. The framework introduces a unified geospatial metadata ontology as a semantic mediation layer to align heterogeneous metadata standards across platforms and constructs a geospatial metadata knowledge graph to explicitly model datasets and their multidimensional relationships. Building on the structured representation, the framework adopts a multi-agent collaborative architecture to perform intent parsing, knowledge graph retrieval, and answer synthesis, forming an interpretable and closed-loop discovery process from user queries to results. Results from representative use cases and performance evaluation show that the framework substantially improves intent matching accuracy, ranking quality, recall, and discovery transparency compared with traditional systems. This study advances geospatial data discovery toward a more semantic, intent-aware, and intelligent paradigm, providing a practical foundation for next-generation intelligent and autonomous spatial data infrastructures and contributing to the broader vision of Autonomous GIS.",
+      "authors": [
+        "Ruixiang Liu",
+        "Zhenlong Li",
+        "Ali Khosravi Kazazi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-03-21T06:16:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.20670v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent framework for intelligent geospatial data discovery",
+      "llm_evidence_cn": "用于智能地理空间数据发现的多智能体框架",
+      "llm_evidence": "用于智能地理空间数据发现的多智能体框架",
+      "canonical_evidence": "用于智能地理空间数据发现的多智能体框架",
+      "llm_tldr_en": "A knowledge graph-driven multi-agent framework for intelligent geospatial data search and discovery.",
+      "llm_tldr_cn": "知识图谱驱动的智能地理空间数据搜索与发现多智能体框架。",
+      "llm_tldr": "知识图谱驱动的智能地理空间数据搜索与发现多智能体框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22376v1",
+      "title": "AI Co-Scientist for Ranking: Discovering Novel Search Ranking Models alongside LLM-based AI Agents with Cloud Computing Access",
+      "abstract": "Recent advances in AI agents for software engineering and scientific discovery have demonstrated remarkable capabilities, yet their application to developing novel ranking models in commercial search engines remains unexplored. In this paper, we present an AI Co-Scientist framework that automates the full search ranking research pipeline: from idea generation to code implementation and GPU training job scheduling with expert in the loop. Our approach strategically employs single-LLM agents for routine tasks while leveraging multi-LLM consensus agents (GPT 5.2, Gemini Pro 3, and Claude Opus 4.5) for challenging phases such as results analysis and idea generation. To our knowledge, this is the first study in the ranking community to utilize an AI Co-Scientist framework for algorithmic research. We demonstrate that this framework discovered a novel technique for handling sequence features, with all model enhancements produced automatically, yielding substantial offline performance improvements. Our findings suggest that AI systems can discover ranking architectures comparable to those developed by human experts while significantly reducing routine research workloads.",
+      "authors": [
+        "Liwei Wu",
+        "Cho-Jui Hsieh"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T09:29:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.22376v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "AI Co-Scientist framework using LLM agents for search ranking model discovery",
+      "llm_evidence_cn": "AI Co-Scientist框架使用LLM智能体进行搜索排序模型发现",
+      "llm_evidence": "AI Co-Scientist框架使用LLM智能体进行搜索排序模型发现",
+      "canonical_evidence": "AI Co-Scientist框架使用LLM智能体进行搜索排序模型发现",
+      "llm_tldr_en": "Presents an AI agent framework that automates search ranking research pipeline from idea generation to code implementation.",
+      "llm_tldr_cn": "提出AI智能体框架，自动化搜索排序研究流程从想法生成到代码实现。",
+      "llm_tldr": "提出AI智能体框架，自动化搜索排序研究流程从想法生成到代码实现。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22430v1",
+      "title": "Model Predictive Control with Differentiable World Models for Offline Reinforcement Learning",
+      "abstract": "Offline Reinforcement Learning (RL) aims to learn optimal policies from fixed offline datasets, without further interactions with the environment. Such methods train an offline policy (or value function), and apply it at inference time without further refinement. We introduce an inference time adaptation framework inspired by model predictive control (MPC) that utilizes a pretrained policy along with a learned world model of state transitions and rewards. While existing world model and diffusion-planning methods use learned dynamics to generate imagined trajectories during training, or to sample candidate plans at inference time, they do not use inference-time information to optimize the policy parameters on the fly. In contrast, our design is a Differentiable World Model (DWM) pipeline that enables endto-end gradient computation through imagined rollouts for policy optimization at inference time based on MPC. We evaluate our algorithm on D4RL continuous-control benchmarks (MuJoCo locomotion tasks and AntMaze), and show that exploiting inference-time information to optimize the policy parameters yields consistent gains over strong offline RL baselines.",
+      "authors": [
+        "Rohan Deb",
+        "Stephen J. Wright",
+        "Arindam Banerjee"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-23T18:05:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.22430v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Differentiable world models for MPC in offline RL",
+      "llm_evidence_cn": "离线强化学习中用于MPC的可微分世界模型",
+      "llm_evidence": "离线强化学习中用于MPC的可微分世界模型",
+      "canonical_evidence": "离线强化学习中用于MPC的可微分世界模型",
+      "llm_tldr_en": "Introduces MPC framework using differentiable world models for inference-time policy optimization in offline RL.",
+      "llm_tldr_cn": "引入MPC框架，利用可微分世界模型进行离线强化学习的推理时策略优化。",
+      "llm_tldr": "引入MPC框架，利用可微分世界模型进行离线强化学习的推理时策略优化。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23149v1",
+      "title": "Describe-Then-Act: Proactive Agent Steering via Distilled Language-Action World Models",
+      "abstract": "Deploying safety-critical agents requires anticipating the consequences of actions before they are executed. While world models offer a paradigm for this proactive foresight, current approaches relying on visual simulation incur prohibitive latencies, often exceeding several seconds per step. In this work, we challenge the assumption that visual processing is necessary for failure prevention. We show that a trained policy's latent state, combined with its planned actions, already encodes sufficient information to anticipate action outcomes, making visual simulation redundant for failure prevention. To this end, we introduce DILLO (DIstiLLed Language-ActiOn World Model), a fast steering layer that shifts the paradigm from \"simulate-then-act\" to \"describe-then-act.\" DILLO is trained via cross-modal distillation, where a privileged Vision Language Model teacher annotates offline trajectories and a latent-conditioned Large Language Model student learns to predict semantic outcomes. This creates a text-only inference path, bypassing heavy visual generation entirely, achieving a 14x speedup over baselines. Experiments on MetaWorld and LIBERO demonstrate that DILLO produces high-fidelity descriptions of the next state and is able to steer the policy, improving episode success rate by up to 15 pp and 9.3 pp on average across tasks.",
+      "authors": [
+        "Massimiliano Pappa",
+        "Luca Romani",
+        "Valentino Sacco",
+        "Alessio Palma",
+        "Stéphane Lathuilière",
+        "Fabio Galasso",
+        "Xavier Alameda-Pineda",
+        "Indro Spinelli"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-24T12:49:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.23149v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Distilled language-action world model for agent steering",
+      "llm_evidence_cn": "用于智能体引导的蒸馏语言-动作世界模型",
+      "llm_evidence": "用于智能体引导的蒸馏语言-动作世界模型",
+      "canonical_evidence": "用于智能体引导的蒸馏语言-动作世界模型",
+      "llm_tldr_en": "Introduces DILLO, a fast steering layer using distilled world models to anticipate action outcomes for safety-critical agents.",
+      "llm_tldr_cn": "提出DILLO，用蒸馏世界模型预测动作结果以引导安全关键智能体。",
+      "llm_tldr": "提出DILLO，用蒸馏世界模型预测动作结果以引导安全关键智能体。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23376v1",
+      "title": "ABot-PhysWorld: Interactive World Foundation Model for Robotic Manipulation with Physics Alignment",
+      "abstract": "Video-based world models offer a powerful paradigm for embodied simulation and planning, yet state-of-the-art models often generate physically implausible manipulations - such as object penetration and anti-gravity motion - due to training on generic visual data and likelihood-based objectives that ignore physical laws. We present ABot-PhysWorld, a 14B Diffusion Transformer model that generates visually realistic, physically plausible, and action-controllable videos. Built on a curated dataset of three million manipulation clips with physics-aware annotation, it uses a novel DPO-based post-training framework with decoupled discriminators to suppress unphysical behaviors while preserving visual quality. A parallel context block enables precise spatial action injection for cross-embodiment control. To better evaluate generalization, we introduce EZSbench, the first training-independent embodied zero-shot benchmark combining real and synthetic unseen robot-task-scene combinations. It employs a decoupled protocol to separately assess physical realism and action alignment. ABot-PhysWorld achieves new state-of-the-art performance on PBench and EZSbench, surpassing Veo 3.1 and Sora v2 Pro in physical plausibility and trajectory consistency. We will release EZSbench to promote standardized evaluation in embodied video generation.",
+      "authors": [
+        "Yuzhi Chen",
+        "Ronghan Chen",
+        "Dongjie Huo",
+        "Yandan Yang",
+        "Dekang Qi",
+        "Haoyun Liu",
+        "Tong Lin",
+        "Shuang Zeng",
+        "Junjin Xiao",
+        "Xinyuan Chang",
+        "Feng Xiong",
+        "Xing Wei",
+        "Zhiheng Ma",
+        "Mu Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-24T16:07:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.23376v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Video-based world foundation model with curated dataset for robotic manipulation",
+      "llm_evidence_cn": "基于视频的世界基础模型与机器人操作数据集",
+      "llm_evidence": "基于视频的世界基础模型与机器人操作数据集",
+      "canonical_evidence": "基于视频的世界基础模型与机器人操作数据集",
+      "llm_tldr_en": "Presents a 14B Diffusion Transformer world model generating physically plausible videos for robotic manipulation planning.",
+      "llm_tldr_cn": "提出14B扩散Transformer世界模型生成物理合理的机器人操作视频",
+      "llm_tldr": "提出14B扩散Transformer世界模型生成物理合理的机器人操作视频",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23448v1",
+      "title": "Code Review Agent Benchmark",
+      "abstract": "Software engineering agents have shown significant promise in writing code. As AI agents permeate code writing, and generate huge volumes of code automatically -- the matter of code quality comes front and centre. As the automatically generated code gets integrated into huge code-bases -- the issue of code review and broadly quality assurance becomes important. In this paper, we take a fresh look at the problem and curate a code review dataset for AI agents to work with. Our dataset called c-CRAB (pronounced see-crab) can evaluate agents for code review tasks. Specifically given a pull-request (which could be coming from code generation agents or humans), if a code review agent produces a review, our evaluation framework can asses the reviewing capability of the code review agents. Our evaluation framework is used to evaluate the state of the art today -- the open-source PR-agent, as well as commercial code review agents from Devin, Claude Code, and Codex.   Our c-CRAB dataset is systematically constructed from human reviews -- given a human review of a pull request instance we generate corresponding tests to evaluate the code review agent generated reviews. Such a benchmark construction gives us several insights. Firstly, the existing review agents taken together can solve only around 40% of the c-CRAB tasks, indicating the potential to close this gap by future research. Secondly, we observe that the agent reviews often consider different aspects from the human reviews -- indicating the potential for human-agent collaboration for code review that could be deployed in future software teams. Last but not the least, the agent generated tests from our data-set act as a held out test-suite and hence quality gate for agent generated reviews. What this will mean for future collaboration of code generation agents, test generation agents and code review agents -- remains to be investigated.",
+      "authors": [
+        "Yuntong Zhang",
+        "Zhiyuan Pan",
+        "Imam Nur Bani Yusuf",
+        "Haifeng Ruan",
+        "Ridwan Shariffdeen",
+        "Abhik Roychoudhury"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-24T17:19:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.23448v1",
+      "tags": [
+        "keyword:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark dataset and framework for code review agents",
+      "llm_evidence_cn": "代码审查智能体的基准数据集与框架",
+      "llm_evidence": "代码审查智能体的基准数据集与框架",
+      "canonical_evidence": "代码审查智能体的基准数据集与框架",
+      "llm_tldr_en": "Introduces c-CRAB, a benchmark dataset and evaluation framework for assessing code review capabilities of AI agents.",
+      "llm_tldr_cn": "提出c-CRAB基准，用于评估AI智能体的代码审查能力。",
+      "llm_tldr": "提出c-CRAB基准，用于评估AI智能体的代码审查能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.17808v2",
+      "title": "EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards",
+      "abstract": "Video generative models are increasingly used as world models for robotics, where a model generates a future visual rollout conditioned on the current observation and task instruction, and an inverse dynamics model (IDM) converts the generated frames into executable robot actions. However, current video world models lack explicit executability constraints. As a result, visually coherent rollouts may still violate rigid-body and kinematic consistency, producing unstable or infeasible control commands when decoded by an IDM. We refer to this mismatch between visual generation and physically executable control as the executability gap. While this gap can be mitigated at inference time using techniques such as rejection sampling, such approaches are inefficient due to the high cost of video generation. In this paper, we leverage the executability gap as a training signal and introduce Executable Video Alignment (EVA), a reinforcement-learning post-training framework for aligning video world models. EVA trains an inverse dynamics model on real robot trajectories and repurposes it as a reward model that evaluates generated videos through the action sequences they induce, encouraging smooth motions measured by velocity, acceleration, and jerk while penalizing actions that violate embodiment constraints. Importantly, the reward remains informative even when generated videos contain severe visual artifacts, since such artifacts typically translate into unstable or out-of-bound actions. Experiments on the RoboTwin benchmark and a real bimanual robot show that EVA reduces embodiment-specific artifacts in generated rollouts and improves downstream task execution success.",
+      "authors": [
+        "Ruixiang Wang",
+        "Qingming Liu",
+        "Yueci Deng",
+        "Guiliang Liu",
+        "Zhen Liu",
+        "Kui Jia"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T15:02:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.17808v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Video world models aligned with executable robot actions via inverse dynamics",
+      "llm_evidence_cn": "通过逆动力学对齐视频世界模型与可执行机器人动作",
+      "llm_evidence": "通过逆动力学对齐视频世界模型与可执行机器人动作",
+      "canonical_evidence": "通过逆动力学对齐视频世界模型与可执行机器人动作",
+      "llm_tldr_en": "Aligns video world models with executable robot actions using inverse dynamics rewards.",
+      "llm_tldr_cn": "使用逆动力学奖励对齐视频世界模型与可执行机器人动作。",
+      "llm_tldr": "使用逆动力学奖励对齐视频世界模型与可执行机器人动作。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18192v1",
+      "title": "MicroVision: An Open Dataset and Benchmark Models for Detecting Vulnerable Road Users and Micromobility Vehicles",
+      "abstract": "Micromobility is a growing mode of transportation, raising new challenges for traffic safety and planning due to increased interactions in areas where vulnerable road users (VRUs) share the infrastructure with micromobility, including parked micromobility vehicles (MMVs). Approaches to support traffic safety and planning increasingly rely on detecting road users in images -- a computer-vision task relying heavily on the quality of the images to train on. However, existing open image datasets for training such models lack focus and diversity in VRUs and MMVs, for instance, by categorizing both pedestrians and MMV riders as \"person\", or by not including new MMVs like e-scooters. Furthermore, datasets are often captured from a car perspective and lack data from areas where only VRUs travel (sidewalks, cycle paths). To help close this gap, we introduce the MicroVision dataset: an open image dataset and annotations for training and evaluating models for detecting the most common VRUs (pedestrians, cyclists, e-scooterists) and stationary MMVs (bicycles, e-scooters), from a VRU perspective. The dataset, recorded in Gothenburg (Sweden), consists of more than 8,000 anonymized, full-HD images with more than 30,000 carefully annotated VRUs and MMVs, captured over an entire year and part of almost 2,000 unique interaction scenes. Along with the dataset, we provide first benchmark object-detection models based on state-of-the-art architectures, which achieved a mean average precision of up to 0.723 on an unseen test set. The dataset and model can support traffic safety to distinguish between different VRUs and MMVs, or help monitoring systems identify the use of micromobility. The dataset and model weights can be accessed at https://doi.org/10.71870/eepz-jd52.",
+      "authors": [
+        "Alexander Rasch",
+        "Rahul Rajendra Pai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T18:40:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.18192v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Open dataset for road user detection",
+      "llm_evidence_cn": "道路用户检测开放数据集",
+      "llm_evidence": "道路用户检测开放数据集",
+      "canonical_evidence": "道路用户检测开放数据集",
+      "llm_tldr_en": "MicroVision provides an open dataset and benchmark models for detecting vulnerable road users and micromobility vehicles.",
+      "llm_tldr_cn": "MicroVision提供开放数据集和基准模型，用于检测弱势道路用户和微出行车辆。",
+      "llm_tldr": "MicroVision提供开放数据集和基准模型，用于检测弱势道路用户和微出行车辆。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.16171v1",
+      "title": "MemX: A Local-First Long-Term Memory System for AI Assistants",
+      "abstract": "We present MemX, a local-first long-term memory system for AI assistants with stability-oriented retrieval design. MemX is implemented in Rust on top of libSQL and an OpenAI-compatible embedding API, providing persistent, searchable, and explainable memory for conversational agents. Its retrieval pipeline applies vector recall, keyword recall, Reciprocal Rank Fusion (RRF), four-factor re-ranking, and a low-confidence rejection rule that suppresses spurious recalls when no answer exists in the memory store.   We evaluate MemX on two axes. First, two custom Chinese-language benchmark suites (43 queries, <=1,014 records) validate pipeline design: Hit@1=91.3% on a default scenario and 100% under high confusion, with conservative miss-query suppression. Second, the LongMemEval benchmark (500 queries, up to 220,349 records) quantifies system boundaries across four ability types and three storage granularities. At fact-level granularity the system reaches Hit@5=51.6% and MRR=0.380, doubling session-level performance, while temporal and multi-session reasoning remain challenging (<=43.6% Hit@5). FTS5 full-text indexing reduces keyword search latency by 1,100x at 100k-record scale, keeping end-to-end search under 90 ms.   Unlike Mem0 and related work that targets end-to-end agent benchmarks, MemX focuses on a narrower, reproducible baseline: local-first deployment, structural simplicity, explainable retrieval, and stability-oriented design.",
+      "authors": [
+        "Lizheng Sun"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T06:39:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.16171v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Long-term memory system for conversational agents",
+      "llm_evidence_cn": "对话智能体的长期记忆系统",
+      "llm_evidence": "对话智能体的长期记忆系统",
+      "canonical_evidence": "对话智能体的长期记忆系统",
+      "llm_tldr_en": "A local-first persistent memory system providing searchable and explainable memory for AI assistants.",
+      "llm_tldr_cn": "本地优先的持久记忆系统，为AI助手提供可搜索可解释的记忆。",
+      "llm_tldr": "本地优先的持久记忆系统，为AI助手提供可搜索可解释的记忆。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.18266v1",
+      "title": "Enactor: From Traffic Simulators to Surrogate World Models",
+      "abstract": "Traffic microsimulators are widely used to evaluate road network performance under various ``what-if\" conditions. However, the behavior models controlling the actions of the actors are overly simplistic and fails to capture realistic actor-actor interactions. Deep learning-based methods have been applied to model vehicles and pedestrians as ``agents\" responding to their surrounding ``environment\" (including lanes, signals, and neighboring agents). Although effective in learning actor-actor interaction, these approaches fail to generate physically consistent trajectories over long time periods, and they do not explicitly address the complex dynamics that arise at traffic intersections which is a critical location in urban networks. Inspired by the World Model paradigm, we have developed an actor centric generative model using transformer-based architecture that is able to capture the actor-actor interaction, at the same time understanding the geometry to the traffic intersection to generate physically grounded trajectories that are based on learned behavior. Moreover, we test the model in a live ``simulation-in-the-loop\" setting, where we generate the initial conditions of the actors using SUMO and then let the model control the dynamics of the actors. We let the simulation run for 40000 timesteps (4000 seconds), testing the performance of the model on long timerange and evaluating the trajectories on traffic engineering related metrics. Experimental results demonstrate that the proposed framework effectively captures complex actor-actor interactions and generates long-horizon, physically consistent trajectories, while requiring significantly fewer training samples than traditional agent-centric generative approaches. Our model is able to outperform the baseline in traffic related as well as aggregate metrics where our model beats the baseline by more than 10x on the KL-Divergence.",
+      "authors": [
+        "Yash Ranjan",
+        "Rahul Sengupta",
+        "Anand Rangarajan",
+        "Sanjay Ranka"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T20:38:28+00:00",
+      "link": "https://arxiv.org/pdf/2603.18266v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Surrogate world models inspired by World Model paradigm",
+      "llm_evidence_cn": "受世界模型范式启发的代理世界模型",
+      "llm_evidence": "受世界模型范式启发的代理世界模型",
+      "canonical_evidence": "受世界模型范式启发的代理世界模型",
+      "llm_tldr_en": "Transforms traffic simulators into surrogate world models for realistic agent-environment interaction.",
+      "llm_tldr_cn": "将交通模拟器转化为代理世界模型以实现真实的智能体-环境交互。",
+      "llm_tldr": "将交通模拟器转化为代理世界模型以实现真实的智能体-环境交互。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.19008v1",
+      "title": "Hypothesis-Conditioned Query Rewriting for Decision-Useful Retrieval",
+      "abstract": "Retrieval-Augmented Generation (RAG) improves Large Language Models (LLMs) by grounding generation in external, non-parametric knowledge. However, when a task requires choosing among competing options, simply grounding generation in broadly relevant context is often insufficient to drive the final decision. Existing RAG methods typically rely on a single initial query, which often favors topical relevance over decision-relevant evidence, and therefore retrieves background information that can fail to discriminate among answer options. To address this issue, here we propose Hypothesis-Conditioned Query Rewriting (HCQR), a training-free pre-retrieval framework that reorients RAG from topic-oriented retrieval to evidence-oriented retrieval. HCQR first derives a lightweight working hypothesis from the input question and candidate options, and then rewrites retrieval into three targeted queries that seek evidence to: (1) support the hypothesis, (2) distinguish it from competing alternatives, and (3) verify salient clues in the question. This approach enables context retrieval that is more directly aligned with answer selection, allowing the generator to confirm or overturn the initial hypothesis based on the retrieved evidence. Experiments on MedQA and MMLU-Med show that HCQR consistently outperforms single-query RAG and re-rank/filter baselines, improving average accuracy over Simple RAG by 5.9 and 3.6 points, respectively. Code is available at https://anonymous.4open.science/r/HCQR-1C2E.",
+      "authors": [
+        "Hangeol Chang",
+        "Changsun Lee",
+        "Seungjoon Rho",
+        "Junho Yeo",
+        "Jong Chul Ye"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T15:15:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.19008v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Query rewriting framework for retrieval-augmented generation",
+      "llm_evidence_cn": "用于检索增强生成的查询重写框架",
+      "llm_evidence": "用于检索增强生成的查询重写框架",
+      "canonical_evidence": "用于检索增强生成的查询重写框架",
+      "llm_tldr_en": "Proposes HCQR, a training-free query rewriting method that shifts RAG from topic-oriented to evidence-oriented retrieval.",
+      "llm_tldr_cn": "提出HCQR方法，将RAG从主题导向检索转向证据导向检索。",
+      "llm_tldr": "提出HCQR方法，将RAG从主题导向检索转向证据导向检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.16974v1",
+      "title": "Are a Thousand Words Better Than a Single Picture? Beyond Images -- A Framework for Multi-Modal Knowledge Graph Dataset Enrichment",
+      "abstract": "Multi-Modal Knowledge Graphs (MMKGs) benefit from visual information, yet large-scale image collection is hard to curate and often excludes ambiguous but relevant visuals (e.g., logos, symbols, abstract scenes). We present Beyond Images, an automatic data-centric enrichment pipeline with optional human auditing. This pipeline operates in three stages: (1) large-scale retrieval of additional entity-related images, (2) conversion of all visual inputs into textual descriptions to ensure that ambiguous images contribute usable semantics rather than noise, and (3) fusion of multi-source descriptions using a large language model (LLM) to generate concise, entity-aligned summaries. These summaries replace or augment the text modality in standard MMKG models without changing their architectures or loss functions. Across three public MMKG datasets and multiple baseline models, we observe consistent gains (up to 7% Hits@1 overall). Furthermore, on a challenging subset of entities with visually ambiguous logos and symbols, converting images into text yields large improvements (201.35% MRR and 333.33% Hits@1). Additionally, we release a lightweight Text-Image Consistency Check Interface for optional targeted audits, improving description quality and dataset reliability. Our results show that scaling image coverage and converting ambiguous visuals into text is a practical path to stronger MMKG completion. Code, datasets, and supplementary materials are available at https://github.com/pengyu-zhang/Beyond-Images.",
+      "authors": [
+        "Pengyu Zhang",
+        "Klim Zaporojets",
+        "Jie Liu",
+        "Jia-Hong Huang",
+        "Paul Groth"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T12:41:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.16974v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Framework for multi-modal knowledge graph dataset enrichment pipeline",
+      "llm_evidence_cn": "多模态知识图谱数据集增强框架",
+      "llm_evidence": "多模态知识图谱数据集增强框架",
+      "canonical_evidence": "多模态知识图谱数据集增强框架",
+      "llm_tldr_en": "Beyond Images is an automatic pipeline for enriching multi-modal knowledge graph datasets with visual information.",
+      "llm_tldr_cn": "Beyond Images是用于增强多模态知识图谱数据集视觉信息的自动流水线。",
+      "llm_tldr": "Beyond Images是用于增强多模态知识图谱数据集视觉信息的自动流水线。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.18866v1",
+      "title": "Conflict-Based Search for Multi Agent Path Finding with Asynchronous Actions",
+      "abstract": "Multi-Agent Path Finding (MAPF) seeks collision-free paths for multiple agents from their respective start locations to their respective goal locations while minimizing path costs. Most existing MAPF algorithms rely on a common assumption of synchronized actions, where the actions of all agents start at the same time and always take a time unit, which may limit the use of MAPF planners in practice. To get rid of this assumption, Continuous-time Conflict-Based Search (CCBS) is a popular approach that can find optimal solutions for MAPF with asynchronous actions (MAPF-AA). However, CCBS has recently been identified to be incomplete due to an uncountably infinite state space created by continuous wait durations. This paper proposes a new method, Conflict-Based Search with Asynchronous Actions (CBS-AA), which bypasses this theoretical issue and can solve MAPF-AA with completeness and solution optimality guarantees. Based on CBS-AA, we also develop conflict resolution techniques to improve the scalability of CBS-AA further. Our test results show that our method can reduce the number of branches by up to 90%.",
+      "authors": [
+        "Xuemian Wu",
+        "Shizhe Zhao",
+        "Zhongqiang Ren"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-19T13:12:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.18866v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-Agent Path Finding with asynchronous actions",
+      "llm_evidence_cn": "多智能体异步动作路径规划",
+      "llm_evidence": "多智能体异步动作路径规划",
+      "canonical_evidence": "多智能体异步动作路径规划",
+      "llm_tldr_en": "Proposes a new conflict-based search method for multi-agent path finding with asynchronous actions.",
+      "llm_tldr_cn": "提出新的冲突搜索方法解决多智能体异步动作路径规划问题。",
+      "llm_tldr": "提出新的冲突搜索方法解决多智能体异步动作路径规划问题。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.19219v1",
+      "title": "DriveTok: 3D Driving Scene Tokenization for Unified Multi-View Reconstruction and Understanding",
+      "abstract": "With the growing adoption of vision-language-action models and world models in autonomous driving systems, scalable image tokenization becomes crucial as the interface for the visual modality. However, most existing tokenizers are designed for monocular and 2D scenes, leading to inefficiency and inter-view inconsistency when applied to high-resolution multi-view driving scenes. To address this, we propose DriveTok, an efficient 3D driving scene tokenizer for unified multi-view reconstruction and understanding. DriveTok first obtains semantically rich visual features from vision foundation models and then transforms them into the scene tokens with 3D deformable cross-attention. For decoding, we employ a multi-view transformer to reconstruct multi-view features from the scene tokens and use multiple heads to obtain RGB, depth, and semantic reconstructions. We also add a 3D head directly on the scene tokens for 3D semantic occupancy prediction for better spatial awareness. With the multiple training objectives, DriveTok learns unified scene tokens that integrate semantic, geometric, and textural information for efficient multi-view tokenization. Extensive experiments on the widely used nuScenes dataset demonstrate that the scene tokens from DriveTok perform well on image reconstruction, semantic segmentation, depth prediction, and 3D occupancy prediction tasks.",
+      "authors": [
+        "Dong Zhuo",
+        "Wenzhao Zheng",
+        "Sicheng Zuo",
+        "Siming Yan",
+        "Lu Hou",
+        "Jie Zhou",
+        "Jiwen Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T17:58:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.19219v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "3D scene tokenization for world models in autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶世界模型的3D场景分词",
+      "llm_evidence": "用于自动驾驶世界模型的3D场景分词",
+      "canonical_evidence": "用于自动驾驶世界模型的3D场景分词",
+      "llm_tldr_en": "Proposes DriveTok, a 3D driving scene tokenizer enabling efficient multi-view reconstruction for world models.",
+      "llm_tldr_cn": "提出DriveTok，用于自动驾驶世界模型的高效3D场景分词器。",
+      "llm_tldr": "提出DriveTok，用于自动驾驶世界模型的高效3D场景分词器。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19097v1",
+      "title": "DaPT: A Dual-Path Framework for Multilingual Multi-hop Question Answering",
+      "abstract": "Retrieval-augmented generation (RAG) systems have made significant progress in solving complex multi-hop question answering (QA) tasks in the English scenario. However, RAG systems inevitably face the application scenario of retrieving across multilingual corpora and queries, leaving several open challenges. The first one involves the absence of benchmarks that assess RAG systems' capabilities under the multilingual multi-hop (MM-hop) QA setting. The second centers on the overreliance on LLMs' strong semantic understanding in English, which diminishes effectiveness in multilingual scenarios. To address these challenges, we first construct multilingual multi-hop QA benchmarks by translating English-only benchmarks into five languages, and then we propose DaPT, a novel multilingual RAG framework. DaPT generates sub-question graphs in parallel for both the source-language query and its English translation counterpart, then merges them before employing a bilingual retrieval-and-answer strategy to sequentially solve sub-questions. Our experimental results demonstrate that advanced RAG systems suffer from a significant performance imbalance in multilingual scenarios. Furthermore, our proposed method consistently yields more accurate and concise answers compared to the baselines, significantly enhancing RAG performance on this task. For instance, on the most challenging MuSiQue benchmark, DaPT achieves a relative improvement of 18.3\\% in average EM score over the strongest baseline.",
+      "authors": [
+        "Yilin Wang",
+        "Yuchun Fan",
+        "Jiaoyang Li",
+        "Ziming Zhu",
+        "Yongyu Mu",
+        "Qiaozhi He",
+        "Tong Xiao",
+        "Jingbo Zhu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-19T16:23:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.19097v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Dual-path framework for multilingual multi-hop QA",
+      "llm_evidence_cn": "多语言多跳问答的双路径框架",
+      "llm_evidence": "多语言多跳问答的双路径框架",
+      "canonical_evidence": "多语言多跳问答的双路径框架",
+      "llm_tldr_en": "Framework for multilingual multi-hop QA with RAG systems.",
+      "llm_tldr_cn": "基于RAG的多语言多跳问答框架。",
+      "llm_tldr": "基于RAG的多语言多跳问答框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.19675v1",
+      "title": "DynFlowDrive: Flow-Based Dynamic World Modeling for Autonomous Driving",
+      "abstract": "Recently, world models have been incorporated into the autonomous driving systems to improve the planning reliability. Existing approaches typically predict future states through appearance generation or deterministic regression, which limits their ability to capture trajectory-conditioned scene evolution and leads to unreliable action planning. To address this, we propose DynFlowDrive, a latent world model that leverages flow-based dynamics to model the transition of world states under different driving actions. By adopting the rectifiedflow formulation, the model learns a velocity field that describes how the scene state changes under different driving actions, enabling progressive prediction of future latent states. Building upon this, we further introduce a stability-aware multi-mode trajectory selection strategy that evaluates candidate trajectories according to the stability of the induced scene transitions. Extensive experiments on the nuScenes and NavSim benchmarks demonstrate consistent improvements across diverse driving frameworks without introducing additional inference overhead. Source code will be abaliable at https://github.com/xiaolul2/DynFlowDrive.",
+      "authors": [
+        "Xiaolu Liu",
+        "Yicong Li",
+        "Song Wang",
+        "Junbo Chen",
+        "Angela Yao",
+        "Jianke Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-20T06:19:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.19675v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Latent world model with velocity field for autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶的潜在世界模型与速度场",
+      "llm_evidence": "用于自动驾驶的潜在世界模型与速度场",
+      "canonical_evidence": "用于自动驾驶的潜在世界模型与速度场",
+      "llm_tldr_en": "A flow-based latent world model for autonomous driving using velocity field dynamics.",
+      "llm_tldr_cn": "基于流动力学的自动驾驶潜在世界模型，利用速度场建模状态转移。",
+      "llm_tldr": "基于流动力学的自动驾驶潜在世界模型，利用速度场建模状态转移。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.19688v1",
+      "title": "DataProphet: Demystifying Supervision Data Generalization in Multimodal LLMs",
+      "abstract": "Conventional wisdom for selecting supervision data for multimodal large language models (MLLMs) is to prioritize datasets that appear similar to the target benchmark, such as text-intensive or vision-centric tasks. However, it remains unclear whether such intuitive similarity reliably predicts downstream performance gains. In this work, we take a first step toward answering a practical question: can we estimate the influence of a training dataset on a target benchmark before any training is performed? To investigate this question, we conduct an in-depth analysis of transfer across 14 vision-language datasets spanning 7 diverse tasks. Our results show that intuitive task similarity is an unreliable predictor of transferability, and that generalization depends more on the specific dataset than on its broad task category. Motivated by this finding, we propose DATAPROPHET, a simple and effective training-free metric that combines multimodal perplexity, similarity, and data diversity. Experiments show that DATAPROPHET produces supervision-data rankings that strongly correlate with rankings based on actual post-training performance gains, achieving a Kendall's tau of 86.0%. Moreover, DATAPROPHET enables better supervision-data selection, yielding up to 6.9% improvement over uniform selection, 1.4% over a state-of-the-art training-based baseline, and 0.2% above oracle selection based on experimental performance. Our code and data will be released.",
+      "authors": [
+        "Xuan Qi",
+        "Luxi He",
+        "Dan Roth",
+        "Xingyu Fu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-20T06:42:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.19688v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "analysis of supervision data transfer across 14 vision-language datasets",
+      "llm_evidence_cn": "跨14个视觉-语言数据集的监督数据迁移分析",
+      "llm_evidence": "跨14个视觉-语言数据集的监督数据迁移分析",
+      "canonical_evidence": "跨14个视觉-语言数据集的监督数据迁移分析",
+      "llm_tldr_en": "Investigates how to estimate training dataset influence on target benchmarks before training for multimodal LLMs.",
+      "llm_tldr_cn": "研究如何在训练前估计训练数据集对目标基准的影响。",
+      "llm_tldr": "研究如何在训练前估计训练数据集对目标基准的影响。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20017v1",
+      "title": "RouterKGQA: Specialized--General Model Routing for Constraint-Aware Knowledge Graph Question Answering",
+      "abstract": "Knowledge graph question answering (KGQA) is a promising approach for mitigating LLM hallucination by grounding reasoning in structured and verifiable knowledge graphs. Existing approaches fall into two paradigms: retrieval-based methods utilize small specialized models, which are efficient but often produce unreachable paths and miss implicit constraints, while agent-based methods utilize large general models, which achieve stronger structural grounding at substantially higher cost. We propose RouterKGQA, a framework for specialized--general model collaboration, in which a specialized model generates reasoning paths and a general model performs KG-guided repair only when needed, improving performance at minimal cost. We further equip the specialized with constraint-aware answer filtering, which reduces redundant answers. In addition, we design a more efficient general agent workflow, further lowering inference cost. Experimental results show that RouterKGQA outperforms the previous best by 3.57 points in F1 and 0.49 points in Hits@1 on average across benchmarks, while requiring only 1.15 average LLM calls per question. Codes and models are available at https://github.com/Oldcircle/RouterKGQA.",
+      "authors": [
+        "Bo Yuan",
+        "Hexuan Deng",
+        "Xuebo Liu",
+        "Min Zhang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.DB",
+        "cs.IR"
+      ],
+      "published": "2026-03-20T15:01:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.20017v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "framework for KGQA with agent-based methods",
+      "llm_evidence_cn": "知识图谱问答框架含智能体方法",
+      "llm_evidence": "知识图谱问答框架含智能体方法",
+      "canonical_evidence": "知识图谱问答框架含智能体方法",
+      "llm_tldr_en": "Proposes RouterKGQA framework combining specialized and general models for knowledge graph question answering.",
+      "llm_tldr_cn": "提出RouterKGQA框架，结合专用模型和通用模型进行知识图谱问答。",
+      "llm_tldr": "提出RouterKGQA框架，结合专用模型和通用模型进行知识图谱问答。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

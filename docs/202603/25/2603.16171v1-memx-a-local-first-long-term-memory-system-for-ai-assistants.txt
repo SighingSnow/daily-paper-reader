@@ -1,0 +1,403 @@
+Title: MemX: A Local-First Long-Term Memory System for AI Assistants
+
+URL Source: https://arxiv.org/pdf/2603.16171v1
+
+Published Time: Wed, 18 Mar 2026 00:42:11 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# MemX: A Local-First Long-Term Memory System for AI Assistants 
+
+Lizheng Sun March 2026 
+
+Abstract 
+
+We present MemX , a local-first long-term memory system for AI assistants with stability-oriented retrieval design. MemX is implemented in Rust on top of libSQL and an OpenAI-compatible embedding API, providing persistent, searchable, and explainable memory for conversational agents. Its retrieval pipeline applies vector recall, keyword recall, Recip-rocal Rank Fusion (RRF), four-factor re-ranking, and a low-confidence rejection rule that suppresses spurious recalls when no answer exists in the memory store. We evaluate MemX on two axes. First, two custom Chinese-language benchmark suites (43 queries, ≤1 , 014 records) validate pipeline design: Hit@1 =91.3% on a default scenario and 100% under high confusion, with conservative miss-query suppression. Second, the LongMemEval benchmark (500 queries, up to 220,349 records) quantifies system boundaries across four ability types and three storage granularities. At fact-level granularity the system reaches Hit@5 =51.6% and MRR =0.380, doubling session-level performance, while temporal and multi-session reasoning remain challenging ( ≤43.6% Hit@5). FTS5 full-text indexing reduces keyword search latency by 1 ,100 × at 100k-record scale, keeping end-to-end search under 90 ms. Unlike Mem0 and related work that targets end-to-end agent benchmarks, MemX fo-cuses on a narrower, reproducible baseline: local-first deployment, structural simplicity, explainable retrieval, and stability-oriented design. 
+
+Keywords: long-term memory, local AI assistant, hybrid retrieval, reciprocal rank fusion, rejection rule, benchmark 
+
+# 1 Introduction 
+
+Large language models have achieved strong single-turn comprehension, yet they remain stateless across sessions. Without a persistent memory layer, an AI assistant cannot reliably retain user preferences, project conventions, operational procedures, incident resolutions, or domain-specific constraints. This gap is especially pronounced for local AI assistants, where users expect the system to accumulate knowledge over time, avoid repetitive questioning, and refrain from fabricating answers when no relevant memory exists. The challenge of equipping LLMs with long-term memory has been widely recognized as a key research direction [Zhang et al., 2024]. While retrieval-augmented generation (RAG) [Lewis et al., 2020] has become the dominant paradigm for grounding LLM outputs in external knowledge, most RAG systems target document corpora rather than the incremental, personalized memories that accumulate during daily assistant interactions. 1
+
+> arXiv:2603.16171v1 [cs.IR] 17 Mar 2026
+
+Recent work has begun to address this gap through diverse architectural choices. Mem0 [Chhikara et al., 2025] frames long-term memory as an integral component of agent infras-tructure, covering memory extraction, update, retrieval, and downstream task performance. MemGPT [Packer et al., 2024] introduces an operating-system metaphor for managing LLM memory hierarchies. Generative Agents [Park et al., 2023] demonstrate how persistent memory enables believable social simulation. MemLLM [Modarressi et al., 2024] takes a complemen-tary fine-tuning approach, augmenting the model itself with an explicit read–write memory module. A recent survey by Gao et al. [2024] highlights the growing diversity of RAG architec-tures, yet notes that most systems assume access to a pre-existing knowledge base rather than incrementally constructed personal memories. Effective memory retrieval requires combining semantic and lexical signals. Dense vector search, typically organized through approximate nearest-neighbor structures such as HNSW [Malkov and Yashunin, 2020], captures meaning-level similarity but can miss keyword-specific cues. Sparse lexical methods, from classical BM25 [Lin et al., 2021] to lightweight full-text indexes such as SQLite FTS5, complement dense retrieval by matching exact terms. Recent embedding models such as BGE-M3 [Chen et al., 2024] natively support both dense and sparse representations, underscoring the importance of hybrid retrieval. Reciprocal Rank Fusion (RRF) [Cormack et al., 2009] provides a simple, parameter-light method for combining ranked lists from heterogeneous retrievers, making it well-suited to systems that pair vector and full-text indexes. Most existing memory-augmented systems assume cloud-hosted deployment with ample compute and centralized storage, and their evaluations emphasize end-to-end agent task comple-tion rather than retrieval quality in isolation. However, the local-first software paradigm [Klepp-mann et al., 2019] argues that users should retain full ownership of their data, with the ability to operate offline and without depending on third-party services. For a personal AI assistant, local-first deployment offers concrete advantages: lower latency, stronger privacy guarantees, and independence from external infrastructure changes. Yet a narrower but critical gap remains: under these constraints, how should a memory system balance recall against the risk of spurious results when no relevant memory exists? This gap motivates the following research question: 
+
+In a single-user, locally-deployed AI assistant scenario, can a structurally simple, explainable memory system achieve stable recall of relevant memories while minimizing spurious recalls on unanswerable queries? 
+
+We answer this question with MemX, a system built on four design principles (local-first deployment, structural simplicity, real-embedding evaluation, and stability-over-recall) and validate it on two custom benchmark suites with live embedding APIs as well as the external LongMemEval benchmark [Wang et al., 2024] (500 queries, up to 220k records). 
+
+Contributions. 
+
+1. A complete implementation of a local long-term memory system featuring hybrid retrieval with explicit access/retrieval tracking separation. 2. A reproducible benchmark framework that directly invokes internal search functions with real embeddings, supporting scenario extension, threshold sweeping, and structured JSON reporting. 23. Empirical evidence on two custom scenarios (43 queries) characterizing the pipeline’s strengths (stable single-topic recall, conservative miss handling) and boundaries (multi-topic coverage gaps, high-confusion false recalls). 4. A storage-granularity study on LongMemEval [Wang et al., 2024] (500 queries, up to 220k records) showing that fact-level chunking doubles retrieval quality over session-level storage, and quantifying per-ability-type performance boundaries. 
+
+# 2 Related Work 
+
+Long-term memory for LLM agents. The need for persistent memory in LLM-based systems has been widely recognized [Zhang et al., 2024]. Mem0 [Chhikara et al., 2025] proposes a production-oriented memory layer with extraction, update, and retrieval stages, evaluated on end-to-end agent tasks. MemGPT [Packer et al., 2024] draws an analogy to virtual memory, allowing an LLM to page information in and out of its context window. MemLLM [Modarressi et al., 2024] fine-tunes models to use an explicit read-write memory. MemX differs from these systems in scope: rather than targeting general agent benchmarks, we focus on a local, single-user deployment with reproducible retrieval evaluation. 
+
+Retrieval-augmented generation. RAG [Lewis et al., 2020] established the paradigm of condi-tioning generation on retrieved passages. Subsequent surveys [Gao et al., 2024] document the rapid diversification of RAG architectures. MemX can be viewed as a specialized RAG store whose retrieval pipeline is optimized for stability rather than maximum recall. 
+
+Vector and hybrid retrieval. FAISS [Johnson et al., 2021] and HNSW [Malkov and Yashunin, 2020] are foundational approximate nearest-neighbor methods. Hybrid approaches that combine dense and sparse retrieval—fused via Reciprocal Rank Fusion [Cormack et al., 2009]—have shown consistent benefits in information retrieval [Lin et al., 2021, Chen et al., 2024]. MemX adopts RRF as the fusion step and adds a four-factor re-ranking stage tailored to memory retrieval. 
+
+Graph-enhanced memory. GraphRAG [Edge et al., 2024] and related efforts [Guo et al., 2024] enrich retrieval with graph structure. Mem0’s later work also explores graph-augmented memory where contradiction, supersession, and causality links participate in retrieval. MemX maintains a link table ( memory_links ) supporting seven relation types, but does not yet integrate multi-hop traversal or graph-aware re-ranking into the search pipeline; we note this as a planned extension (Section 6). 
+
+Local-first software. Kleppmann et al. [2019] articulate the principles of local-first software: data ownership, offline capability, and low-latency access. MemX embodies these principles by storing all data in a single libSQL [Turso, 2023] file on the user’s machine. 3Figure 1: MemX search pipeline. A query is embedded by Qwen3-0.6B (1024-dim) and routed to two parallel recall paths: DiskANN/brute-force vector search and FTS5 keyword matching. Results are fused via RRF ( k=60), re-ranked by four weighted factors (semantic similarity, recency, importance, frequency), and filtered by a rejection gate that returns ∅ when similarity falls below threshold τ. After deduplication the top-k results are returned and retrieval statistics are written back to the database. 
+
+# 3 System Design 
+
+3.1 Architecture Overview 
+
+Figure 1 illustrates the end-to-end search pipeline. A query enters the system and is simulta-neously processed by a vector recall path (via an OpenAI-compatible embedding API) and a keyword recall path. The two candidate sets are merged using RRF, re-ranked by a four-factor scoring function, filtered by a low-confidence rejection rule, and finally the top-k results are returned with retrieval statistics recorded. The system is implemented in Rust. Storage uses libSQL [Turso, 2023], an open fork of SQLite [Hipp, 2000], which provides a single-file database with vector-search extensions. 
+
+3.2 Data Model 
+
+The primary table memories stores each memory entry with content, embedding, type, tags, meta-data, and importance fields, together with access and retrieval counters and their corresponding timestamps. A secondary table memory_links records directed relations between memories. Seven link types are currently defined: similar , related , contradicts , extends , supersedes , caused_by , and temporal .Although the graph infrastructure exists, multi-hop traversal and graph-aware retrieval are not yet integrated into the search pipeline. 4Algorithm 1: Hybrid Search with Low-Confidence Rejection 
+
+Input: Query q; candidate limit n; rejection threshold τ; result limit k
+
+Output: Ranked memory set R (possibly empty)  
+
+> 1
+
+eq ← EMBED (q); 
+
+> 2
+
+V ← VECTOR RECALL (eq, n) ; // cosine similarity  
+
+> 3
+
+K ← KEYWORD RECALL (q, n) ; // FTS5 full-text match  
+
+> 4
+
+C ← RRF (V, K) ; // Reciprocal Rank Fusion  
+
+> 5
+
+S ← FOUR FACTOR RERANK (C) ; // Eq. 1–3  
+
+> 6
+
+ˆS ← ZS CORE NORMALIZE (S) ; // Eq. 4  
+
+> 7
+
+if K = ∅ and max m∈V sim (eq, em) < τ then  
+
+> 8
+
+return ∅ ; // reject low-confidence result  
+
+> 9
+
+D ← DEDUP ( ˆS) ; // content + tag-signature  
+
+> 10
+
+R ← TOP K(D, k); 
+
+> 11
+
+RECORD RETRIEVAL STATS (R); 
+
+> 12
+
+return R;
+
+3.3 Hybrid Search Pipeline 
+
+The search pipeline is deterministic and proceeds in the fixed stages formalized in Algorithm 1. 
+
+3.4 Four-Factor Re-ranking 
+
+After RRF fusion, each candidate memory m is assigned a composite score: score (m) = αs · fsem (m) + αr · frec (m) + α f · ffreq (m) + αi · fimp (m) (1) where the four factors and their default weights are: Table 1: Default re-ranking weights. 
+
+Factor Signal source Weight 
+
+fsem Semantic similarity (from RRF score) αs = 0.45 
+
+frec Recency (prefer last_retrieved_at , αr = 0.25 fallback to created_at )
+
+ffreq Frequency (prefer retrieval_count , α f = 0.05 fallback to access_count )
+
+fimp Importance (explicit annotation) αi = 0.10 
+
+The weights sum to 0.85, not 1.0; because the subsequent z-score normalization (Equation 4) removes absolute scale dependence, only the ratios among weights affect the final ranking. The remaining capacity leaves room for additional factors in future extensions. The recency factor uses last_retrieved_at rather than last_accessed_at , and the frequency factor uses retrieval_count rather than access_count . Ranking therefore reflects how often a memory has been useful in search rather than how often it has been explicitly viewed , avoiding signal pollution from administrative access. 5Factor computation. Each factor is computed from the memory’s metadata. Let tm be the effective timestamp (prefer last_retrieved_at , fall back to created_at ) and cm the effective count (prefer retrieval_count , fall back to access_count ). Recency follows an exponential half-life decay: 
+
+frec (m) = 2− dm /h (2) where dm = ( now − tm)/ 86400 is the age in days and h is a configurable half-life (default h = 30 days). This gives a smooth, parameter-transparent curve: a memory’s recency score halves every 
+
+h days with no hard cutoffs. Frequency is log-normalized and capped: 
+
+ffreq (m) = min  1, ln (cm + 1) / 10  (3) The logarithm prevents highly-accessed memories from dominating the score, while the cap ensures the factor stays in [0, 1 ].
+
+Score normalization. After the composite scores are computed across all candidates, the system applies z-score normalization followed by a sigmoid transformation: ˆs(m) = sigm 
+
+ s(m) − μσs
+
+
+
+= 11 + exp  −(s(m) − μ) / σs
+
+ (4) where μ and σs are the mean and standard deviation of {s(m)} over the candidate set. Z-score centering makes scores comparable across queries with different candidate-set distributions; the subsequent sigmoid compresses outliers while spreading scores near the center, improving the discriminability of the final ranking. If σs < 10 −6 (all candidates score identically), normalization is skipped to avoid division instability. 
+
+3.5 Result Deduplication 
+
+Template-based memory stores and repeated ingestion can produce near-identical records that, without intervention, would occupy multiple top-k slots and reduce topic diversity. The system applies two deduplication layers after scoring: 1. Content deduplication. Memories with identical trimmed content are collapsed; only the highest-scoring instance is retained. 2. Tag-signature deduplication. A tag signature is defined as the concatenation of a memory’s type and its sorted tag set (e.g., procedural::ops|release ). At most one memory per tag signature is returned. This prevents a cluster of same-topic records (common when procedural memories share identical tags) from crowding out results from other topics. Memories without tags are exempt from tag-signature filtering and compete solely on score. In the benchmark’s 3 ×-scaled datasets (up to 1,014 records), this mechanism matters in practice: without it, the top-5 results for procedural queries consist entirely of template variants of the same topic, and Coverage@5 drops accordingly. 
+
+3.6 Low-Confidence Rejection Rule 
+
+To suppress spurious recalls when the memory store contains no relevant entry, the system applies a conservative rejection rule: 6If the keyword recall set K is empty and the maximum vector similarity score is below threshold τ, return an empty result set. The current recommended threshold is τ = 0.50, determined empirically through the threshold sweep experiment described in Section 5.3. This rule trades a small amount of recall for a meaningful reduction in false positives on unanswerable queries. Section 5.7 formalizes five candidate rejection rules and evaluates them against the benchmark data. 
+
+3.7 Access vs. Retrieval Separation 
+
+The system explicitly distinguishes two types of interactions: 
+
+Access — A user or system explicitly reads a memory entry (e.g., viewing details). Tracked by 
+
+access_count and last_accessed_at .
+
+Retrieval — A memory is returned as a search result. Tracked by retrieval_count and 
+
+last_retrieved_at .This separation prevents explicit reads from inflating retrieval-based ranking signals. Section 6.2 quantifies the ranking impact of this design choice through a worked numerical example. 
+
+# 4 Benchmark Framework 
+
+4.1 Design Rationale 
+
+Many memory system evaluations rely on single demonstrations or manually curated examples, which suffice for showcasing behavior but are insufficient for locating failure modes. We implement a standalone benchmark framework with the following properties: • Directly invokes the system’s internal search functions (bypassing HTTP routing), measur-ing intrinsic retrieval performance. • Uses a live OpenAI-compatible embedding API rather than pre-computed or random vectors. • Automatically constructs an isolated test database per run. • Outputs structured JSON reports supporting downstream analysis. • Supports threshold sweeping and scenario extension. 
+
+4.2 Scenario Design 
+
+We construct two benchmark scenarios in Chinese, reflecting the target deployment language. 
+
+Default scenario. This scenario models realistic usage of a local AI assistant, covering user preferences (e.g., coffee habits), job role, code style conventions, deployment checklists, client demo constraints, database incident procedures, Rust debugging strategies, budget thresholds, travel preferences, and multiple noise topics. After 3 × scaling, the scenario contains 1,014 memory records and 25 queries spanning seven query kinds: keyword_exact , semantic_paraphrase ,
+
+procedure_recall , long_context , reflective , multi_fact , and miss .
+
+High-confusion scenario. This scenario deliberately places semantically overlapping topics adjacent to each other: local deployment vs. vendor switching messaging, migration root cause vs. release compatibility checks, search stability vs. search speed preferences, budget caps vs. 7ROI exceptions, and Rust borrow errors vs. trait bound errors. After 3 × scaling it contains 600 records and 18 queries. It is designed to stress-test false-recall suppression, multi-topic coverage, and miss-query convergence. 
+
+LongMemEval scenario. To evaluate at larger scale, we adopt the LongMemEval bench-mark [Wang et al., 2024], which provides 500 annotated questions derived from 19,195 multi-turn conversation sessions. Questions span four ability types: information extraction , knowledge update ,
+
+multi-session reasoning , and temporal reasoning . We convert the dataset into three MemX scenarios at different storage granularities (session, round, fact); fact-level extraction uses DeepSeek-Chat to decompose each session into atomic statements. Details and results are presented in Section 5.4. 
+
+Total query budget. Across all scenarios the evaluation uses 543 queries: 43 from the two custom scenarios (25 default + 18 high-confusion) and 500 from LongMemEval. 
+
+4.3 Metrics 
+
+The benchmark reports the following metrics (Table 2): Table 2: Benchmark metrics. 
+
+Metric Description 
+
+Hit@ k (k=1, 3, 5) Fraction of relevant queries where at least one correct memory appears in the top-k results. Topic Coverage@ k For multi-topic queries, the fraction of expected topics covered in the top-k results. MRR Mean Reciprocal Rank over relevant queries. Miss-Empty-Rate Fraction of miss queries (no correct answer exists) for which the system returns an empty result set. Miss-Strict-Rate Fraction of miss queries for which the top vector score stays below the miss threshold (more stringent than Miss-Empty-Rate). Avg/P95 Search (ms) Average and 95th-percentile end-to-end search latency. For binary metrics (Hit@ k, Miss-Empty-Rate, Miss-Strict-Rate) we report 95% Wilson score confidence intervals where the sample size is finite. The Wilson interval for a proportion ˆ p observed in n trials is ˆp + z2 
+
+> 2n
+
+± z
+
+q ˆp(1− ˆp) 
+
+> n
+
++ z2
+
+> 4n2
+
+1 + z2
+
+> n
+
+, z = 1.96 . This interval has better coverage than the normal approximation when n is small or ˆ p is near 0 or 1 [Wilson, 1927]. 
+
+# 5 Experiments 
+
+5.1 Setup 
+
+All experiments use the following configuration: 8Table 3: Retrieval quality and latency across the two benchmark scenarios ( τ = 0.50). 95% Wilson confidence intervals are shown in brackets for binary metrics. 
+
+Metric Default High-Confusion 
+
+Records 1,014 600 Queries (rel / miss) 23 / 2 14 / 4 Hit@1 91.3% [73, 98] 100.0% [78, 100] Hit@5 95.7% [79, 99] 100.0% [78, 100] Coverage@5 91.3% 75.0% MRR 0.935 1.000 Miss-Empty-Rate 50.0% [9, 91] 75.0% [30, 95] Miss-Strict-Rate 100.0% [34, 100] 75.0% [30, 95] Avg Search (ms) 538.32 397.68 P95 Search (ms) 679.01 459.84 • Embedding model: Qwen3-Embedding-0.6B [Qwen Team, 2025] • Embedding dimension: 1,024 • Rejection threshold: τ = 0.50 • Re-ranking weights: as in Table 1 • Vector index: DiskANN (via libSQL vector extension) • Keyword index: FTS5 with unicode61 tokenizer The benchmark framework invokes internal search functions directly; reported latencies there-fore reflect intrinsic retrieval cost, not full HTTP round-trip time. 
+
+5.2 Scenario-Level Results 
+
+Table 3 summarizes the key metrics for both scenarios. 
+
+Default scenario. With the expanded 25-query set, Hit@1 reaches 91.3% (Wilson 95% CI [73, 98]%) and MRR is 0.935. The two misses at rank 1 are keyword-exact queries whose target memories share vocabulary with higher-scoring distractors: travel_network is recovered at rank 2 (Hit@3 = 95.7%), while deploy_rollback is not recovered within the top-5. Coverage@5 is 91.3%, with gaps on the two multi_fact queries that each require two distinct topics. Of the two miss queries, one ( “What is the user’s favorite gym brand?” ) is correctly rejected ( vmax =0.453), while the other ( “What breed is the user’s pet?” ) produces a borderline vmax that exceeds τ, giving Miss-Empty-Rate = 50% [9, 91]%. Miss-Strict-Rate remains 100% [34, 100]%. 
+
+High-confusion scenario. Hit@1 is 100% [78, 100]% across all 14 relevant queries, confirm-ing that the system reliably identifies the primary relevant topic even under high semantic overlap. Coverage@5 is 75.0%, reflecting the difficulty of multi-topic queries where each ex-pected topic competes with a semantically similar neighbor. Of the four miss queries, three are correctly rejected (Miss-Empty-Rate = 75% [30, 95]%), while “Which public cloud region does the client require?” produces vmax =0.621, exceeding τ and resulting in a spurious recall of the 
+
+local_storage_policy topic. This failure case is analyzed further in Section 6.1. 9Table 4: Threshold sweep results (averaged across both scenarios, 43 queries). 
+
+τ Avg Hit@1 Avg Miss-Empty Avg Miss-Strict Note 0.48 95.7% 62.5% 87.5% Tied with 0.50 0.50 95.7% 62.5% 87.5% Recommended 
+
+0.52 93.5% 62.5% 87.5% Begins to hurt recall 0.64 87.0% 100.0% 87.5% Significantly hurts recall 
+
+5.3 Threshold Sweep 
+
+We sweep the rejection threshold τ over {0.48, 0.50, 0.52, 0.64 }, running both scenarios at each value. Table 4 reports the cross-scenario averages. At τ = 0.48 and τ = 0.50, Avg Hit@1 is highest at 95.7% with identical Miss-Empty-Rate (62.5%) and Miss-Strict-Rate (87.5%). Raising the threshold to τ = 0.52 causes one additional false rejection (the deploy_rollback query in the default scenario, whose top vector score is 0.513), reducing Avg Hit@1 to 93.5%. At τ = 0.64, Avg Hit@1 drops sharply to 87.0% as six default-scenario queries are rejected, although Miss-Empty-Rate reaches 100%. We recommend 
+
+τ = 0.50 as the operating point: it ties with τ = 0.48 on all accuracy metrics and is the highest threshold that does not sacrifice recall. 
+
+5.4 LongMemEval Evaluation 
+
+To evaluate MemX beyond the two custom scenarios (43 queries over ≤1 ,014 records), we apply it to the LongMemEval benchmark [Wang et al., 2024], which provides 500 annotated questions derived from 19,195 multi-turn conversation sessions spanning four ability types: information extraction (156 queries), knowledge update (78), multi-session reasoning (133), and temporal reasoning 
+
+(133). 
+
+Storage granularity. We convert the LongMemEval dataset into three MemX scenarios at different storage granularities: • Session — each conversation session becomes one memory (19,195 records). • Round — each user–assistant turn pair becomes one memory (100,486 records). • Fact — each atomic fact, extracted from sessions by an LLM (DeepSeek-Chat), becomes one memory (220,349 records). This granularity axis is orthogonal to the pipeline-component ablation in Section 5.6: it asks how should raw conversations be chunked before indexing? 
+
+Overall results. Table 5 shows that finer granularity consistently improves retrieval quality. Fact-level storage doubles Hit@5 and MRR relative to session-level storage. 
+
+Per-ability-type breakdown. Table 6 reveals that the improvement from fact-level storage is not uniform across ability types. Three findings emerge. First, knowledge update benefits most from fact-level storage (Hit@5: 30.8% → 75.6%, +44.8 pp), because LLM-extracted facts explicitly surface the updated information that a full conversation buries in dialogue context. Second, temporal reasoning 
+
+10 Table 5: LongMemEval retrieval quality across three storage granularities (500 queries, τ=0.50, FTS5 keyword index). 
+
+Granularity Records Hit@1 Hit@5 MRR TC@5 
+
+Session 19,195 14.8% 24.6% 0.183 19.5% Round 100,486 17.2% 27.0% 0.207 21.0% Fact 220,349 29.8% 51.6% 0.380 41.5% 
+
+Table 6: Hit@5 and MRR by LongMemEval ability type across three storage granularities.                                      
+
+> Session Round Fact Ability type nHit@5 MRR Hit@5 MRR Hit@5 MRR Information extraction 156 36.5 .298 39.7 .324 55.8 .379
+> Knowledge update 78 30.8 .218 44.9 .360 75.6 .624
+> Multi-session reasoning 133 18.0 .117 15.0 .110 43.6 .323
+> Temporal reasoning 133 13.5 .093 13.5 .078 40.6 .296
+
+and multi-session reasoning show the largest absolute gaps from custom-scenario performance (≤43.6% Hit@5 at best), confirming that these abilities require mechanisms beyond single-query vector recall—e.g., temporal indexing or cross-session linking—that MemX does not yet implement. Third, moving from session to round granularity yields modest gains ( +2.4 pp Hit@5 overall), while moving from round to fact produces a large jump ( +24.6 pp), suggesting that semantic density per record is the primary driver of retrieval quality at scale. 
+
+Pipeline baseline comparison. To isolate the contribution of pipeline components at this scale, we compare a vector-only baseline (no keyword search, no rejection, no deduplication) against the full pipeline on the fact-granularity dataset. Counter-intuitively, the full pipeline under performs the vector-only baseline by 5.0 pp on Hit@5 (Table 7). The cause is tag-signature deduplication: in the fact-granularity dataset, all memories are typed semantic with no tags, producing an identical tag signature. The deduplication rule therefore limits each query to at most one result per signature, discarding co-relevant facts from the same session that would otherwise occupy top-k slots. On the custom scenarios, where template-generated memories carry explicit tags and 3 × scaling creates genuine duplicates, deduplication improves Hit@3 by +2.7 pp (Table 9). This contrast reveals that 
+
+deduplication is data-dependent : it helps when memories have structured tags and repetitive content, but harms recall on tag-free atomic facts. Section 6.4 discusses adaptive deduplication strategies that could address this. 
+
+5.5 Latency Analysis 
+
+Table 8 reveals a scale-dependent latency picture. On the custom scenarios ( ≤1 ,014 records), keyword search is negligible ( <3 ms) and latency is dominated by the remote embedding API call. On LongMemEval at 100k+ records, however, the naive LIKE keyword search becomes the dominant bottleneck: at 100,486 records it consumes 3,305 ms per query (95% of total latency), making it 1,500 × slower than at 1k records. 11 Table 7: Vector-only baseline vs. full pipeline on LongMemEval fact granularity (220,349 records, 500 queries). 
+
+Config Hit@1 Hit@5 MRR TC@5 Avg ms 
+
+V (vector-only) 30.2% 56.6% 0.406 44.2% 89.6 Full pipeline 29.8% 51.6% 0.380 41.5% 88.2 Table 8: Latency breakdown (milliseconds) across custom and LongMemEval scenarios. Custom scenarios use the remote embedding API; LongMemEval scenarios use cached embeddings (query_embed ≈ 0 ms). Rows marked (LIKE) use LIKE substring search; rows marked (FTS5) use FTS5 full-text indexing. All runs use DiskANN vector indexing where supported. 
+
+Scenario Records Vector Keyword Total P95 
+
+Custom scenarios (Section 5.2) 
+
+Default 1,014 545 2.2 538 679 High-Confusion 600 389 1.6 398 460 
+
+LongMemEval (Section 5.4) 
+
+Session (LIKE) 19,195 98.6 286.7 385 1,418 Session (FTS5) 19,195 15.8 1.6 17.3 20 Round (LIKE) 100,486 177.8 3,305 3,483 6,919 Round (FTS5) 100,486 31.7 2.9 34.6 60 Fact (FTS5) 220,349 87.1 1.1 88.2 134 Replacing LIKE with an FTS5 full-text index eliminates this bottleneck entirely. On the same 100,486-record dataset, FTS5 keyword search takes 2.9 ms—a 1,100 × speedup—reducing total search latency from 3,483 ms to 34.6 ms. At 220,349 records (fact granularity), FTS5 keyword search remains at 1.1 ms and total latency is 88 ms. Vector search latency also benefits from the DiskANN index (Section 3.1): at 100k records, DiskANN achieves 31.7 ms compared to the brute-force O(n) path that would scale linearly with dataset size. Figure 2 visualizes the contrast between vector and keyword latency across all scenarios. 
+
+5.6 Ablation Study 
+
+To quantify the contribution of each pipeline component, we evaluate four cumulative configu-rations across both scenarios: V (vector search only), V+K (add keyword search and RRF fusion), 
+
+V+K+Rej (add low-confidence rejection rule), and Full (add tag-signature deduplication). All other parameters ( τ=0.50, four-factor weights, 3 × scaling) are held constant. Three observations emerge from Table 9. First, adding keyword search and RRF fusion (V→V+K ) produces no change in any metric. This confirms that with the current query distribu-tion, semantic similarity alone is sufficient for ranking; keyword overlap adds no discriminative power beyond what vector search already provides. Second, the rejection rule ( V+K →V+K+Rej ) is the sole contributor to Miss-Empty-Rate, raising it from 0% to 66.7%. Without the rejection rule, the system returns results for every query 12 Figure 2: Vector vs. keyword search latency across custom and LongMemEval scenarios (log scale). At 100k records, LIKE -based keyword search dominates total latency (3,305 ms); FTS5 indexing reduces it to 2.9 ms (1,100 × speedup). Table 9: Ablation study: cumulative effect of pipeline components averaged over both scenarios. 95% Wilson confidence intervals are shown for binary metrics. nrel and nmiss denote the number of relevant and miss queries respectively. 
+
+Config Hit@1 Hit@3 TC@ k Miss-Empty Miss-Strict 
+
+V 94.6 [82, 99] 94.6 [82, 99] 81.0 0.0 [0, 39] 83.3 [44, 97] V+K 94.6 [82, 99] 94.6 [82, 99] 81.0 0.0 [0, 39] 83.3 [44, 97] V+K+Rej 94.6 [82, 99] 94.6 [82, 99] 81.0 66.7 [30, 90] 83.3 [44, 97] Full 94.6 [82, 99] 97.3 [86, 100] 83.2 66.7 [30, 90] 83.3 [44, 97]   
+
+> All values in %. Pooled over nrel =37 relevant and nmiss =6 miss queries. Wilson 95% CI in brackets.
+
+including those with no correct answer. Hit@ k and TC@ k are unaffected, confirming that the rule never rejects valid queries at τ=0.50. Third, deduplication ( V+K+Rej →Full ) lifts Hit@3 from 94.6% to 97.3% and TC@ k from 81.0% to 83.2% on the custom scenarios. However, on LongMemEval’s fact-granularity dataset the same mechanism reduces Hit@5 by 5.0 pp (Section 5.4, Table 7). This divergence arises because the custom scenarios use structured tags that produce meaningful tag signatures, while the fact dataset stores tag-free atomic statements that all share an identical signature. Deduplication is therefore data-dependent : beneficial for tagged, template-generated data but harmful for homogeneously-typed atomic facts. 
+
+Granularity ablation. A second, orthogonal ablation axis is explored in Section 5.4: storage granularity (session → round → fact). Fact-level storage doubles Hit@5 and MRR relative to session-level storage (Table 5), an effect far larger than any pipeline-component change observed above. This suggests that for large-scale memory stores, investment in upstream chunking and 13 Table 10: Five candidate rejection rules. vmax is the top vector similarity score, kw indicates non-empty keyword recall, and τ is the rejection threshold. 
+
+Rule Condition to reject Intuition 
+
+R1 ¬kw ∧ vmax < τ Current system: reject only when 
+
+both signals are weak. R2 vmax < τ Vector-only gate; ignores keyword signal. R3 ¬kw Keyword-required gate; ignores vec-tor signal. R4 ¬kw ∨ vmax < τ Strict dual gate: reject if either signal is weak. R5 ¬kw ∧ vmax < 0.55 Same as R1 but with a raised thresh-old ( τ=0.55). 
+
+Table 11: Rejection rule simulation on four representative queries. FN = false negatives (valid queries rejected); FP = false positives (miss queries accepted). Counts are from the original 24-query subset where per-query vector scores were recorded. 
+
+R1 R2 R3 R4 R5 
+
+job_lookup (0.504, ¬kw) ✓ ✓ × × ×
+
+incident_kw (0.490, kw) ✓ × ✓ × ✓
+
+hard_miss (0.453, ¬kw) × × × × ×
+
+cloud_region_miss (0.621, ¬kw) ✓∗ ✓∗ × × ✓∗
+
+FN (of 21 valid) 0 1 18 19 1FP (of 3 miss) 1 1 1 0 1    
+
+> ✓= correctly handled; × = incorrectly rejected/accepted; ∗= false positive (miss query accepted).
+
+fact extraction yields greater returns than additional retrieval pipeline stages. 
+
+5.7 Rejection Rule Design Space 
+
+To justify the choice of rejection rule used throughout this work, we define five candidate rules (Table 10) and evaluate them against the actual per-query data from both benchmark scenarios. Let vmax denote the maximum vector similarity for a query and kw a Boolean indicating whether the keyword recall set is non-empty. We apply each rule to the original 24-query subset (21 relevant + 3 miss) for which per-query vector scores were recorded. Table 11 summarizes the outcomes as false negatives (valid queries incorrectly rejected) and false positives (miss queries incorrectly accepted). Four representa-tive queries illustrate the key distinctions: job_lookup (vmax =0.504, no kw), incident_keyword 
+
+(vmax =0.490, kw), hard_miss (vmax =0.453, no kw), and public_cloud_region_miss (vmax =0.621, no kw). Three findings emerge from this analysis. First, R1 is the only rule with zero false negatives . It preserves all 21 valid queries because its conjunctive structure ( ¬kw ∧ vmax <τ) requires both signals to be absent before rejecting. All other rules sacrifice at least one valid query: R2 rejects incident_keyword (vmax =0.490 < τ
+
+despite a keyword hit); R3 and R4 reject 18 and 19 valid queries respectively because only 3 of 14 the 24 queries produce keyword hits; R5 rejects job_lookup (vmax =0.504 < 0.55). Second, R3 and R4 are unusable in practice . Because keyword recall relies on token overlap between query and stored memories (whether via FTS5 or substring matching), only 3 of 24 queries produce non-empty keyword sets. Any rule that requires a keyword hit as a necessary condition for acceptance will reject almost all valid queries. Third, the fundamental limit is the score gap between the hardest valid query ( job_lookup ,
+
+vmax =0.504) and the easiest false recall ( public_cloud_region_miss , vmax =0.621). No single-threshold rule over vmax can separate these two queries: any τ that accepts job_lookup must also accept the false recall. Improving miss suppression beyond the current level therefore requires a different kind of signal, such as cross-encoder re-scoring, which can model fine-grained query–document interaction rather than relying on a single similarity score. 
+
+# 6 Discussion 
+
+6.1 Failure Cases and System Boundaries 
+
+Multi-topic coverage gap. In both scenarios, queries that require two topics consistently retrieve only the most semantically prominent one. For example, the query “Which metric should matter besides budget when recommending a tool?” retrieves budget_threshold but not 
+
+search_expectation . The current pipeline is optimized for single-topic “needle-in-a-haystack” retrieval and lacks mechanisms for multi-facet query decomposition. 
+
+High-confusion false recall. The public_cloud_region_miss query shares substantial vocabu-lary with local_storage_policy (both discuss deployment, data location, and cloud infrastruc-ture). The resulting vector similarity (0.621) exceeds τ, producing a false recall. The rejection rule, while effective for topically distant miss queries, can be defeated by carefully constructed adversarial overlaps. The systematic analysis in Section 5.7 confirms that no single-threshold rule can separate this false recall from valid queries. 
+
+Graph structure not yet in the search path. The memory_links table and its seven relation types provide the scaffolding for graph-enhanced retrieval. However, the current search pipeline does not perform multi-hop traversal or graph-aware re-ranking, so the graph cannot yet resolve contradictions or surface causally linked memories. 
+
+Temporal and multi-session reasoning. The LongMemEval evaluation (Section 5.4) reveals that temporal reasoning ( ≤40.6% Hit@5 at fact granularity) and multi-session reasoning ( ≤43.6%) are the weakest ability types. These queries require capabilities that single-query vector recall cannot provide: temporal ordering of events across sessions, and synthesis of information scattered across multiple conversations. Addressing these gaps likely requires temporal indexing (e.g., date-aware retrieval) and cross-session linking mechanisms. 
+
+No task-level attribution. The system tracks which memories are returned by search, but does not record whether a returned memory was actually used by the downstream agent or whether it improved task completion. Without this closed-loop signal, the system cannot automatically learn which memories are most valuable. 15 Table 12: Three memory profiles with contrasting access and retrieval histories. All three share 
+
+fsem = 0.70 and fimp = 0.80.                    
+
+> Profile Access Retrieval Last accessed Last retrieved
+> AAdmin-heavy 50 21 d ago 15 d ago BSearch-heavy 325 30 d ago 1 d ago CStale 40 40 60 d ago 60 d ago
+
+Table 13: Composite scores under two tracking strategies. Weights: αs=0.45, αr =0.25, α f =0.05, 
+
+αi=0.10. Ranking reversal between A and B is highlighted.                           
+
+> Strategy 1 (retrieval) Strategy 2 (access)
+> frec ffreq Score frec ffreq Score A0.707 0.110 0.577 0.977 0.393 0.659 B0.977 0.326 0.656 0.500 0.139 0.527 C0.250 0.371 0.476 0.250 0.371 0.476 Ranking B
+
+> A > C A > B > C
+
+6.2 Impact of Access/Retrieval Separation 
+
+Section 3.7 described the design rationale for separating access and retrieval counters. Because the benchmark creates all memories fresh with zero counters, it cannot directly exercise this design choice: recency and frequency factors contribute equally (and minimally) regardless of tracking strategy. To illustrate the practical impact, we construct a worked example with three hypothetical memory profiles exhibiting different access/retrieval patterns. We compute the composite score (Equation 1) for each profile under two strategies. Strat-egy 1 (retrieval-preferred, the current design) uses retrieval_count for frequency and last_re-trieved_at for recency. Strategy 2 (access-based) uses access_count for frequency and last_ac-cessed_at for recency. Both strategies use the same factor formulas defined in Section 3.4: recency frec = 2−d/h with h=30 days (Equation 2) and frequency ffreq = min (1, ln (c+1)/ 10 )
+
+(Equation 3), differing only in which timestamp and counter they read. Semantic and importance factors are held constant at fsem = 0.70 and fimp = 0.80. The ranking reversal between profiles A and B is driven almost entirely by the recency factor (αr = 0.25), not by frequency ( α f = 0.05). Under Strategy 1, profile B ranks first because it was 
+
+retrieved one day ago; under Strategy 2, profile A ranks first because it was accessed one day ago. Strategy 2 therefore promotes memories that are frequently viewed (e.g., for administrative purposes) but rarely useful in search, while demoting memories that are genuinely search-relevant. This confirms the design motivation in Section 3.7: retrieval-based tracking better reflects a memory’s utility in the search pipeline. 
+
+6.3 Threats to Validity 
+
+1. Template-driven data. Benchmark records are generated from templates with repetition-based scaling. While more structured than ad-hoc examples, they do not capture the distribu-tional complexity of real long-term interaction logs. 2. Single embedding configuration. All results are obtained with Qwen3-Embedding-0.6B 16 at 1,024 dimensions. The system accepts any OpenAI-compatible embedding model via environment variables, but the optimal rejection threshold τ must be recalibrated for each model, as cosine-similarity distributions vary across embedding spaces. 3. Intrinsic vs. end-to-end latency. Reported latencies bypass HTTP routing and full request handling; production latency will be higher. 4. No human evaluation. The current evaluation measures retrieval quality, not downstream task completion. Whether improved retrieval translates to better agent output requires task-level human assessment. 5. Scenario diversity. The custom evaluation uses 43 queries across two scenarios; the addition of LongMemEval (500 queries, four ability types) substantially broadens coverage, but all LongMemEval conversations are in English while the custom scenarios are in Chinese. Cross-lingual generalization remains untested. 
+
+6.4 Future Directions 
+
+Five directions are most promising for extending the current baseline: 1. Temporal and cross-session reasoning. The LongMemEval evaluation identifies temporal reasoning and multi-session reasoning as the weakest ability types. Date-aware retrieval (e.g., temporal indexing of memory creation times) and cross-session linking could substantially improve these categories. 2. Stronger rejection rules. Cross-encoder re-scoring or lightweight classifier-based rejection could improve miss-query handling under high semantic overlap. 3. Adaptive deduplication. The current tag-signature deduplication helps on template-generated data but harms recall on tag-free atomic facts (Section 5.4). Content-similarity–based dedupli-cation (e.g., collapsing results only when cosine similarity exceeds a threshold) would adapt to both regimes without requiring explicit tags. 4. Multi-topic coverage. Query decomposition (splitting a compound query into sub-queries) or diversity-aware re-ranking could improve Coverage@ k on multi-facet queries. 5. Task-level attribution. Recording whether a retrieved memory was used by the agent and whether it improved the final output would enable credit assignment and a closed-loop memory lifecycle. 
+
+# 7 Conclusion 
+
+We have presented MemX, a local-first long-term memory system for AI assistants, featuring a hybrid retrieval pipeline with RRF fusion, four-factor re-ranking, and a low-confidence rejection rule. On two custom Chinese-language scenarios (43 queries), the pipeline achieves Hit@1 =91– 100% with conservative miss-query suppression, validating its component design. On the Long-MemEval benchmark (500 queries, up to 220k records), fact-level storage reaches Hit@5 =51.6% and MRR =0.380—doubling session-level performance—while temporal and multi-session rea-soning remain at ≤43.6% Hit@5, defining clear improvement targets. A storage-granularity study shows that semantic density per record is the primary driver of retrieval quality at scale, with knowledge-update queries benefiting most (Hit@5: 30.8% → 75.6%). On the systems side, replacing LIKE -based keyword search with FTS5 full-text indexing yields a 1 ,100 × latency reduction at 100k records, keeping end-to-end search under 90 ms at 17 220k records. Two supplementary analyses strengthen these findings: a rejection rule design space study (Section 5.7) shows that the current conjunctive rule is the only candidate with zero false negatives, and an access/retrieval separation analysis (Section 6.2) demonstrates that retrieval-based tracking prevents ranking distortion from administrative access patterns. Within the scope of a local, single-user AI assistant, MemX provides a solid v1 baseline whose retrieval pipeline, explicit tracking separation, and reproducible benchmark framework can be extended with temporal indexing, cross-session linking, and task-level attribution without architectural redesign. Source code and reproduction scripts are available at https://github. com/memxlab/memx .
+
+# References 
+
+Jianlv Chen, Shitao Xiao, Peitian Zhang, Kun Luo, Defu Lian, and Zheng Liu. BGE M3-embedding: Multi-lingual, multi-functionality, multi-granularity text embeddings through self-knowledge distillation. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL) , 2024. Prateek Chhikara, Vansh Khindri, Deshraj Udasi, and Dev Thakkar. Mem0: Building production-ready ai agents with scalable long-term memory. arXiv preprint arXiv:2504.19413 , 2025. Gordon V. Cormack, Charles L. A. Clarke, and Stefan Buettcher. Reciprocal rank fusion outper-forms Condorcet and individual rank learning methods. In Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval , pages 758–759, 2009. Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, and Jonathan Larson. GraphRAG: Unlocking LLM discovery on narrative private data. 
+
+arXiv preprint arXiv:2404.16130 , 2024. Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 , 2024. Jiajun Guo et al. A survey on knowledge graph-enhanced large language models. arXiv preprint arXiv:2404.14741 , 2024. D. Richard Hipp. SQLite. https://www.sqlite.org/ , 2000. Jeff Johnson, Matthijs Douze, and Hervé Jégou. Billion-scale similarity search with GPUs. IEEE Transactions on Big Data , 7(3):535–547, 2021. Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. Local-first software: You own your data, in spite of the cloud. Proceedings of the ACM on Human-Computer Interaction , 3(CSCW):1–24, 2019. Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive NLP tasks. In 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2020. 18 Jimmy Lin, Xueguang Ma, Sheng-Chieh Lin, Jheng-Hong Yang, Ronak Pradeep, and Rodrigo Nogueira. Pyserini: A python toolkit for reproducible information retrieval research with sparse and dense representations. In Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval , pages 2356–2362, 2021. Yu A. Malkov and D. A. Yashunin. Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs. IEEE Transactions on Pattern Analysis and Machine Intelligence , 42(4):824–836, 2020. Ali Modarressi, Ayyoob Imani, Mohsen Fayyaz, and Hinrich Schütze. MemLLM: Finetuning LLMs to use an explicit read-write memory. arXiv preprint arXiv:2404.11672 , 2024. Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez. MemGPT: Towards LLMs as operating systems. In Proceedings of the International Conference on Learning Representations (ICLR) , 2024. Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein. Generative agents: Interactive simulacra of human behavior. In 
+
+Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology (UIST) ,2023. Qwen Team. Qwen3 embedding and reranker: Towards unified versatile embedding and reranking. Qwen Technical Blog , 2025. https://qwenlm.github.io/blog/qwen3-embedding/ .Turso. libSQL: An open contribution fork of SQLite. https://github.com/tursodatabase/ libsql , 2023. Di Wang et al. Longmemeval: Benchmarking chat assistants on long-term interactive memory. 
+
+arXiv preprint arXiv:2410.10813 , 2024. Edwin B. Wilson. Probable inference, the law of succession, and statistical inference. Journal of the American Statistical Association , 22(158):209–212, 1927. Zeyu Zhang, Xiaohe Bo Zhang, Chen Jiang, Bin Liu, Zhenyu Fan, Fei Guo, and Mingyu Gong. A survey on the memory mechanism of large language model based agents. arXiv preprint arXiv:2404.13501 , 2024. 19

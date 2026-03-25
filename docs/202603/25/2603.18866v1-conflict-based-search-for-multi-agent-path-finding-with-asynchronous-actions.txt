@@ -1,0 +1,1109 @@
+Title: Conflict-Based Search for Multi Agent Path Finding with Asynchronous Actions
+
+URL Source: https://arxiv.org/pdf/2603.18866v1
+
+Published Time: Fri, 20 Mar 2026 01:08:29 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Conflict-Based Search for Multi Agent Path Finding with Asynchronous Actions 
+
+# Xuemian Wu 
+
+Shanghai Jiao Tong University Shanghai, China xuemian.wu@sjtu.edu.cn 
+
+# Shizhe Zhao 
+
+Shanghai Jiao Tong University Shanghai, China shizhe.zhao@sjtu.edu.cn 
+
+# Zhongqiang Ren †
+
+Shanghai Jiao Tong University Shanghai, China zhongqiang.ren@sjtu.edu.cn 
+
+## ABSTRACT 
+
+Multi-Agent Path Finding (MAPF) seeks collision-free paths for multiple agents from their respective start locations to their re-spective goal locations while minimizing path costs. Most existing MAPF algorithms rely on a common assumption of synchronized actions, where the actions of all agents start at the same time and always take a time unit, which may limit the use of MAPF plan-ners in practice. To get rid of this assumption, Continuous-time Conflict-Based Search (CCBS) is a popular approach that can find optimal solutions for MAPF with asynchronous actions (MAPF-AA). However, CCBS has recently been identified to be incomplete due to an uncountably infinite state space created by continuous wait durations. This paper proposes a new method, Conflict-Based Search with Asynchronous Actions (CBS-AA), which bypasses this theoretical issue and can solve MAPF-AA with completeness and solution optimality guarantees. Based on CBS-AA, we also develop conflict resolution techniques to improve the scalability of CBS-AA further. Our test results show that our method can reduce the number of branches by up to 90%. 
+
+## KEYWORDS 
+
+Conflict-based Search; Multi Agent Path Finding; Asynchronous Actions 
+
+## 1 INTRODUCTION 
+
+Multi-Agent Path Finding (MAPF) seeks collision-free paths for multiple agents from their respective start locations to their respec-tive goal locations while minimizing path costs. The environment is often represented by a graph, where vertices represent the lo-cations that the agent can reach, and edges represent actions that transit the agent between two locations. MAPF is NP-hard to solve optimally [ 19 ], and a variety of MAPF planners were developed, ranging from optimal planners [ 14 , 16 ], bounded sub-optimal plan-ners [ 2, 7], to unbounded sub-optimal planners [ 4 , 9]. A common underlying assumption in these planners is that each action of an agent, either waiting in place or moving to an adjacent vertex, takes the same duration, i.e., a time unit, and the actions of all agents are synchronized, i.e., the action of each agent starts at the same discrete time step. This assumption limits the application of MAPF planners, especially when the agent speeds are different or an agent has to vary its speed when going through different edges (Fig. 1). To bypass this synchronous action assumption, MAPF variants such as Continuous-Time MAPF [ 1], MAPF with Asynchronous Actions (MAPF-AA) [ 12 ], MAPF 𝑅 [ 17 ] were proposed. The major idea in those variants is that, the actions of agents can take different amounts of time, and as a result, the agents may not start and end each of their actions at the same discrete time steps. Among the 
+
+Figure 1: A motivating example of MAPF-AA where the yel-low car moves fast and the green truck moves slowly in con-tinuous time. The circled numbers show the time points: e.g., in (a), the truck moves from B1 to B2 during the time range 
+
+[0 .0, 2.3] . This work considers the agent to occupy both ends of an edge when the agent goes through it. As a result, a constraint (as shown in (d)) at B2 with time range [0 .0, 4.6] is imposed on the yellow car to avoid collision as shown in (c). 
+
+exact algorithms that can find optimal solutions, Continuous-time Conflict-Based Search (CCBS) [ 1] is a leading approach that extends CBS to handle various action durations. This paper focuses on exact algorithms for MAPF-AA, which considers duration conflict [ 10 , 12 ] in the sense that when an agent traverses an edge within a time range, the agent occupies both end vertices of the edge during that time range and no two agents can occupy the same vertex at the same time. CCBS [ 1] can be applied to solve MAPF-AA. However, a naive application can lead to incompleteness due to the infinite number of possible durations for the wait action [ 5], and may not be able to find a solution even if the instance is solvable. Although the reason for such incomplete-ness is analyzed [ 5], we are not aware of any fix in the literature yet, and this paper provides a possible fix by developing a new exact algorithm called Conflict-Based Search with Asynchronous Actions (CBS-AA) for MAPF-AA. Besides CCBS [ 1 ], our prior work has studied scalable yet unbounded sub-optimal algorithms for MAPF-AA [ 20 , 21 ]. In terms of exact algorithms, our prior work developed an A*/M*-based exact algorithm for MAPF-AA called Loosely Synchronized M* (LS-M*) [ 12 ], which often runs slower than CCBS [1]. Additionally, in MAPF-AA, it takes a different amount of time when different agents go through the same edge, or the same agent goes through different edges. Such heterogeneous duration tends to complicate the collision avoidance among the agents, and disables many conflict resolution techniques in CBS for MAPF, which limits the scalability of the exact algorithms for MAPF-AA. To improve scalability, we develop constraint propagation techniques based on the agents’ action duration within CBS-AA. The intuition behind these techniques is that when two agents collide, we add constraints to the agents to forbid as many actions as possible, and forbid each action as long as possible, so that CBS-AA can resolve collisions in fewer iterations. 
+
+> arXiv:2603.18866v1 [cs.AI] 19 Mar 2026
+
+We compare different variants of our CBS-AA with the existing CCBS. The results show that with the proposed constraint prop-agation techniques, the success rate of CBS-AA is significantly higher than that of CCBS [ 1 ], and the number of iterations in high-level is reduced by up to 90%. We also compare our CBS-AA with LS-M* [ 12 ]. The results show that CBS-AA can find the optimal solution faster, and the costs of the optimal solutions are the same as those of LS-M*. 
+
+## 2 PROBLEM FORMULATION 
+
+Let 𝐼 = {1, 2, . . . , 𝑁 } be the index set of 𝑁 agents, where each 𝑖 ∈ 𝐼 
+
+corresponds to a specific agent. The workspace is represented by an undirected graph 𝐺 = ( 𝑉 , 𝐸 ), where 𝑉 is the set of traversable vertices, and 𝐸 ⊂ 𝑉 × 𝑉 . Each edge 𝑒 = ( 𝑢, 𝑣 ) ∈ 𝐸 represents an action that moves an agent from 𝑢 to an adjacent vertex 𝑣 . The travel time of each edge may vary for each agent. Let 𝜏 𝑖 (𝑢, 𝑣 ) ∈ R≥0
+
+denote the travel time for agent 𝑖 moving from 𝑢 to 𝑣 . All agents can wait at a vertex for an arbitrary amount of time. Let 𝑠 𝑖 = ( 𝑣, 𝑡 ) denote the space-time state of agent 𝑖 , and let 
+
+𝐴 𝑖 = ( 𝑠 𝑖 
+
+> 1
+
+, 𝑠 𝑖 
+
+> 2
+
+) denote a state transition from 𝑠 𝑖  
+
+> 1
+
+to 𝑠 𝑖 
+
+> 2
+
+. Given 𝐴 𝑖 =(( 𝑣 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 1
+
+), (𝑣 𝑖 
+
+> 2
+
+, 𝑡 𝑖 
+
+> 2
+
+)) , let 𝑣 𝑓 (𝐴 𝑖 ), 𝑡 𝑓 (𝐴 𝑖 ) and 𝑣 𝑡 (𝐴 𝑖 ), 𝑡 𝑡 (𝐴 𝑖 ) denote the space and time components for 𝑠 𝑖  
+
+> 1
+
+and 𝑠 𝑖 
+
+> 2
+
+, respectively, and let 𝜏 (𝐴 𝑖 ) denote the duration of 𝐴 𝑖 . For any action, 𝑡 𝑖  
+
+> 2
+
+= 𝑡 𝑖  
+
+> 1
+
++ 𝜏 (𝐴 𝑖 ). For a move action, 
+
+𝑣 𝑖  
+
+> 2
+
+is adjacent to 𝑣 𝑖 
+
+> 1
+
+, and 𝜏 (𝐴 𝑖 ) = 𝜏 𝑖 (𝑣 𝑖 
+
+> 1
+
+, 𝑣 𝑖 
+
+> 2
+
+) is given by input. For a wait action, we have 𝑣 𝑖  
+
+> 1
+
+= 𝑣 𝑖 
+
+> 2
+
+, and the duration 𝜏 (𝐴 𝑖 ) ∈ R≥0 is determined by the planner. We use the same conflict model from existing work [10, 12], as illustrated below. 
+
+Definition 1 (Duration Occupancy). When agent 𝑖 performs an action (( 𝑣 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 1
+
+), (𝑣 𝑖 
+
+> 2
+
+, 𝑡 𝑖 
+
+> 2
+
+)) , both 𝑣 𝑖  
+
+> 1
+
+and 𝑣 𝑖  
+
+> 2
+
+are occupied by 𝑖 during the action, which is called Duration Occupancy (DO). Specifically, 
+
+𝑣 𝑖  
+
+> 1
+
+is occupied at time 𝑡 𝑖 
+
+> 1
+
+, 𝑣 𝑖  
+
+> 2
+
+is occupied at time 𝑡 𝑖 
+
+> 2
+
+, and both 𝑣 𝑖 
+
+> 1
+
+, 𝑣 𝑖 
+
+> 2
+
+are occupied during (𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 2
+
+). At any time point, a vertex can only be occupied by at most one agent. Multiple agents are in conflict if they both occupy the same vertex for a non-empty time interval, which is referred to as Duration Conflict (DC). 
+
+Let 𝜋 𝑖 (𝑣 𝑠 , 𝑣 𝑔 ) = ( 𝑎 𝑖  
+
+> 0
+
+= ( 𝑣 𝑠 , 0) , 𝑎 𝑖 
+
+> 1
+
+, . . . , 𝑎 𝑖 𝑘 = ( 𝑣 𝑔 , 𝑡 𝑘 )) denote a path from 𝑣 𝑠 to 𝑣 𝑔 . The cost of 𝜋 𝑖 is 𝑡 𝑘 , denoted as 𝑔 (𝜋 𝑖 ), which is the time point it reaches 𝑣 𝑔 and can permanently stay after 𝑡 𝑘 without conflict. Let 𝑉 𝑠 , 𝑉 𝑔 denote the set of start and goal locations of all agents, and 𝑣 𝑖 𝑠 ∈ 𝑉 𝑠 , 𝑣 𝑖 𝑔 ∈ 𝑉 𝑔 denote the start and goal location of agent 𝑖 respectively. We assume there is no conflict when all agents stay at their start or goal locations. Multi Agent Path Finding with Asynchronous Action (MAPF-AA) 𝑃 = ⟨𝑉 , 𝐸, 𝑉 𝑠 , 𝑉 𝑔 ⟩ seeks to find a set of conflict-free paths such that (1) each agent 𝑖 ∈ 𝐼 starts at 
+
+𝑣 𝑖 𝑠 and ends at 𝑣 𝑖 𝑔 ; and (2) minimize the sum of costs (SoC) of all agents’ paths, i.e., min P𝑖 ∈𝐼 𝑔 (𝜋 𝑖 ).
+
+## 3 PRELIMINARIES 
+
+CBS. Conflict-Based Search (CBS) [ 14 ] is a two-level search algo-rithm that finds an optimal joint path for MAPF. At the high-level, CBS constructs a search tree and starts with a root node which con-sists of all agents’ individually optimal path ignoring any conflict. And then CBS selects a specific node that has the smallest 𝑔 -value (sum of costs), and detects conflicts along the paths of any pair of agents. According to the detected conflict, two constraints are generated corresponding to the two sub-trees. For each of those two constraints, CBS runs a low-level search to find a new path satisfying the constraints. At the low-level, a single-agent planner is invoked to plan an optimal path that satisfies all constraints related to a specific agent. CBS guarantees finding a conflict-free joint path with the minimal sum of costs. 
+
+CCBS. Continue Conflict-Based Search (CCBS) [ 1] is a CBS-based method and can solve the MAPF R problem to optimality. It assumes the travel time for an edge is real-valued and non-uniform, and different edges have different travel times. Therefore, the time is continue and the action of agents is asynchronous. To detect con-flicts, CCBS assumes that all agents move in a straight line at a constant speed and detects collisions based on agents’ geometry, such as circles. To resolve conflicts, CCBS adds constraints over pairs of actions and time ranges, instead of location-time pairs. Specifically, for a conflict ⟨(𝑎 𝑖 , 𝑡 𝑖 ), (𝑎 𝑗 , 𝑡 𝑗 )⟩, which means that agent 𝑖 performs action 𝑎 𝑖 at 𝑡 𝑖 and agent 𝑗 performs action 𝑎 𝑗 
+
+at 𝑡 𝑗 , and they collide, CCBS computes for each action an unsafe intervals w.r.t the other’s action. The unsafe interval [𝑡 𝑖 , 𝑡 𝑖 𝑢 ) of (𝑎 𝑖 , 𝑡 𝑖 )
+
+w.r.t. (𝑎 𝑗 , 𝑡 𝑗 ) is the maximal time interval starting from 𝑡 𝑖 in which if agent 𝑖 performs 𝑎 𝑖 then it is in conflict with the action (𝑎 𝑗 , 𝑡 𝑗 ).CCBS adds to agent 𝑖 the constraint ⟨𝑖, 𝑎 𝑖 , [𝑡 𝑖 , 𝑡 𝑖 𝑢 )⟩, which means agent 𝑖 cannot perform action 𝑎 𝑖 in the range [𝑡 𝑖 , 𝑡 𝑖 𝑢 )), and adds to agent 𝑗 the constraint ⟨𝑗, 𝑎 𝑗 , [𝑡 𝑗 , 𝑡 𝑗 𝑢 )⟩.The low-level solver of CCBS is Constrained Safe Interval Path Planning (CSIPP), where safe intervals for a vertex are computed based on CCBS constraints. In detail, a CCBS constraint ⟨𝑖, 𝑎 𝑖 𝑤 , [𝑡 𝑖 , 𝑡 𝑖 𝑢 )⟩
+
+about a wait action 𝑎 𝑖 𝑤 of vertex 𝑣 will divide the safe interval of 
+
+𝑣 to two parts: one that ends at 𝑡 𝑖 and another that starts at 𝑡 𝑖 𝑢 . If the action 𝑎 𝑖 𝑚 is a move action related to edge 𝑒 = ( 𝑣, 𝑣 ′), CCBS replaces the action 𝑎 𝑖 𝑚 with action 𝑎 𝑖 𝑚 ′ that starts by waiting in 𝑣 
+
+for duration 𝑡 𝑖 𝑢 − 𝑡 𝑖 before moving to 𝑣 ′
+
+.CCBS has issues as reported in [ 5]. CCBS fails to resolve conflicts for wait actions, since the time is continue, there are infinitely many wait actions with duration time 𝜏 𝑤 ∈ R≥0. The constraint added by branching each time in CCBS only focuses on a specific duration of the wait action, which can lead to infinite number of branching when resolving conflict caused by wait actions. For example, wait action 𝑎 𝑖 𝑤 = ( 𝐵, 𝐵, 2.0) means waiting at vertex 𝐵 for a duration of 2.0,and CCBS adds a constraint ⟨𝑖, 𝑎 𝑖 𝑤 , [𝑡 𝑖 , 𝑡 𝑖 𝑢 )⟩ to prohibit agent 𝑖 from performing 𝑎 𝑖 𝑤 at time 𝑡 ∈ [𝑡 𝑖 , 𝑡 𝑖 𝑢 ). But agent 𝑖 still can preform wait action 𝑎 𝑖 𝑤 1 = ( 𝐵, 𝐵, 2.01) , 𝑎 𝑖 𝑤 2 = ( 𝐵, 𝐵, 2.001) , 𝑎 𝑖 𝑤 3 = ( 𝐵, 𝐵, 2.0001) ... at time 𝑡 ∈ [𝑡 𝑖 , 𝑡 𝑖 𝑢 ). So, CCBS may not terminate when there is a wait action. In the open-sourced implementation 1, CCBS makes a change when transferring constraints about wait action to low-level solver. For the previous constraint ⟨𝑖, 𝑎 𝑖 𝑤 , [𝑡 𝑖 , 𝑡 𝑖 𝑢 )⟩, CSIPP divides the safe interval of 𝐵 to two parts: [0 , 𝑡 𝑖 ) and [𝑡 𝑖 𝑢 , ∞), which means that agent 
+
+𝑖 can not perform any wait action 𝑎 = ( 𝐵, 𝐵, 𝜏 𝑤 ), 𝜏 𝑤 ∈ R≥0 in [𝑡 𝑖 , 𝑡 𝑖 𝑢 ).However, “not perform any wait action 𝑎 = ( 𝐵, 𝐵, 𝜏 𝑤 ), 𝜏 𝑤 ∈ R≥0 in 
+
+[𝑡 𝑖 , 𝑡 𝑖 𝑢 )” is not equivalent to “not perform wait action 𝑎 𝑖 𝑤 = ( 𝐵, 𝐵, 2.0) 
+
+in [𝑡 𝑖 , 𝑡 𝑖 𝑢 )”. This inconsistency may miss feasible solutions during branching and can not guarantee completeness and optimality. For the rest of the paper, we refer to this implemented version as CCBS. 
+
+> 1https://github.com/PathPlanning/Continuous-CBS
+
+Figure 2: Toy example for the issues of CCBS. 
+
+Example 1. As shown in Fig. 2, there are three agents 𝐼 = {1, 2, 3}.The duration of all move actions of agent 1, 2 and 3 is 𝜏 1 = 1 , 𝜏 2 = 2 
+
+and 𝜏 3 = 3 , respectively. In the root node of high-level, agent 2 and 
+
+3 have a conflict ⟨(𝑎 2, 𝑡 2 = 0) , (𝑎 3, 𝑡 3 = 0) ⟩ where 𝑎 2 = ( 𝐷, 𝐷, ∞) is a wait action with ∞ duration time, 𝑎 3 = ( 𝐶, 𝐷, 3) is a move action from 
+
+𝐶 to 𝐷 . By Def. 1, the unsafe interval of (𝑎 2, 𝑡 2 = 0) w.r.t. (𝑎 3, 𝑡 3 = 0) 
+
+is [0 , 3) and the unsafe interval of (𝑎 3, 𝑡 3 = 0) w.r.t. (𝑎 2, 𝑡 2 = 0) is 
+
+[0 , ∞). By the implementation of CCBS, two constraints are generated, 
+
+(3 , 𝐶 → 𝐷, [0 , ∞)]) forbids agent 3 to perform action 𝑎 3 in the range 
+
+[0 , ∞) and (2 , 𝑤𝑎𝑖𝑡 𝑎𝑡 𝐷, [0 , 3)) forbids agent 2 to perform any wait action 𝑎 = ( 𝐷, 𝐷, 𝜏 𝑤 ), 𝜏 𝑤 ∈ R≥0 in the range [0 , 3) . The sub-trees of both branches do not contain the optimal solution. LS-M*. Loosely Synchronized M* (LS-M*) [ 12 ] solves MAPF-AA by introducing new search states that include both the locations and the action times of the agents. Similar to A*, LSS iteratively selects states from an open list, expands them to generate successors, prunes those that are either conflicting or less promising, and inserts the remaining ones into the open list for future expansion. This process continues until a conflict-free joint path from the start locations to the goal locations is found for all agents. LS-M* further introduce the idea of subdimensional expansion [16] into LSS and can handle more agents than LSS. LS-M* is complete and finds an optimal solution for MAPF-AA, but can only handle a relatively small number of agents. 
+
+## 4 METHOD 
+
+This section proposes Conflict Based Search with Asynchronous Action (CBS-AA), which finds an optimal solution for MAPF-AA. We first modify CCBS to effectively resolve conflicts and call this modified method Constraint on Single Action (CSA). Then, we use DO to propagate constraints and resolve conflicts efficiently, which we call Constraint on Multiple Actions (CMA). 
+
+Overview. CBS-AA (Alg. 1) is similar to CBS with three processes modified: LowLevelPlan , DetectConflict and GenerateConstraints .
+
+LowLevelPlan adapts Safe Interval Path Planning (SIPP) [ 11 ] to han-dle continuous-time. The numbers associated with safe intervals and constraints are all positive real numbers. We cut safe intervals into continuous time intervals according to the constraints, rather than a set of discrete time steps. DetectConflict detects conflicts in the continuous time range. When there is overlap in the time inter-vals for two agents to occupy a same vertex, a conflict is returned. In GenerateConstraints , we propose two different conflict resolution methods for MAPF-AA, CSA and CMA, as detailed later. 
+
+Algorithm 1 CBS-AA                                                                 
+
+> INPUT: 𝐺 = ( 𝑉 , 𝐸 )
+> OUTPUT: a conflict-free joint path 𝜋 in 𝐺 .
+> 1: Ω𝑐 ← ∅ ,𝜋, 𝑔 ←LowLevelPlan (Ω𝑐 )
+> 2: Add 𝑃 𝑟𝑜𝑜𝑡, 1= ( 𝜋, 𝑔, Ω𝑐 )to OPEN
+> 3: while OPEN ̸=∅do
+> 4: 𝑃 = ( 𝜋, 𝑔, Ω𝑐 )←OPEN.pop()
+> 5: 𝑐 𝑓 𝑡 ←DetectConflict (𝜋 )
+> 6: if 𝑐 𝑓 𝑡 =𝑁𝑈 𝐿𝐿 then return 𝜋
+> 7: Ω←GenerateConstraints (𝑐 𝑓 𝑡 )
+> 8: for all 𝜔 𝑖 ∈Ωdo
+> 9: Ω′= Ω 𝑐 ∪ { 𝜔 𝑖 }
+> 10: 𝜋 ′, 𝑔 ′←LowLevelPlan (Ω′)
+> 11: Add 𝑃 ′= ( 𝜋 ′, 𝑔 ′,Ω′)to OPEN
+> 12: end for
+> 13: end while
+> 14: return failure
+
+Figure 3: Three Conflict Types. (a): IN-IN ; (b): OUT-IN ; (c): 
+
+WAIT-IN 
+
+## 4.1 Conflict Detection and Classification 
+
+For a vertex 𝑣 , there are three types of actions: 
+
+
+
+IN : {𝐴 𝑖 |𝑣 𝑡 (𝐴 𝑖 ) = 𝑣 }
+
+OUT : {𝐴 𝑖 |𝑣 𝑓 (𝐴 𝑖 ) = 𝑣 }
+
+WAIT : {𝐴 𝑖 |𝑣 𝑓 (𝐴 𝑖 ) = 𝑣 𝑡 (𝐴 𝑖 ) = 𝑣 }
+
+(1) If agent 𝑖 wants to go through 𝑣 , it must perform these three actions 
+
+𝐴 𝑖 𝐼 ∈ IN , 𝐴 𝑖 𝑊 ∈ WAIT and 𝐴 𝑖 𝑂 ∈ OUT at 𝑣 in sequence. Let 𝜏 (𝐴 𝑖 , 𝑣 )
+
+denote the time interval during which the transition of 𝑖 occupies vertex 𝑣 based on Def. 1. If agent 𝑖 performs 𝐴 𝑖 𝐼 at 𝑡 , 𝜏 (𝐴 𝑖 𝐼 , 𝑣 ) = (𝑡, 𝑡 + 𝜏 (𝐴 𝑖 𝐼 )] , 𝜏 (𝐴 𝑖 𝑊 , 𝑣 ) = [ 𝑡 + 𝜏 (𝐴 𝑖 𝐼 ), 𝑡 + 𝜏 (𝐴 𝑖 𝐼 ) + 𝜏 (𝐴 𝑖 𝑊 )] and 𝜏 (𝐴 𝑖 𝑂 , 𝑣 ) = [𝑡 + 𝜏 (𝐴 𝑖 𝐼 ) + 𝜏 (𝐴 𝑖 𝑊 ), 𝑡 + 𝜏 (𝐴 𝑖 𝐼 ) + 𝜏 (𝐴 𝑖 𝑊 ) + 𝜏 (𝐴 𝑖 𝑂 )] . If 𝑖 does not need to wait at 𝑣 , the duration 𝜏 (𝐴 𝑖 𝑊 ) is 0 and the wait action 𝐴 𝑖 𝑊 occupies 
+
+𝑣 only at one time point 𝑡 + 𝜏 (𝐴 𝑖 𝐼 ).Two agent 𝑖 and 𝑗 are in conflict if there is a 𝑣 such that 𝜏 (𝐴 𝑖 , 𝑣 ) ∩
+
+𝜏 (𝐴 𝑗 , 𝑣 )̸ = ∅. Let ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩ denote a duration conflict between agents 𝑖 and 𝑗 that both occupy the same vertex 𝑣 during their actions 𝐴 𝑖 , 𝐴 𝑗 . For two agent 𝑖 and 𝑗 , we always detect and resolve the earliest conflict between them. We classify all conflicts to be resolved into three types (Fig. 3): 
+
+• IN-IN : ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝐼 , where 𝑣 = 𝑣 𝑡 (𝐴 𝑖 ) = 𝑣 𝑡 (𝐴 𝑗 );
+
+• OUT-IN : ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑂 , where 𝑣 = 𝑣 𝑡 (𝐴 𝑖 ) = 𝑣 𝑓 (𝐴 𝑗 );
+
+• WAIT-IN : ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑊 , where 𝑣 = 𝑣 𝑡 (𝐴 𝑖 ) = 𝑣 𝑓 (𝐴 𝑗 ) = 𝑣 𝑡 (𝐴 𝑗 ).While there are nine possible combinations of two agents’ ac-tions {IN ,OUT ,WAIT } × { IN ,OUT ,WAIT }, we only need to consider the combinations that involve IN . Since for any other conflicts 
+
+{OUT ,WAIT } × { OUT ,WAIT }, an IN must be involved prior to WAIT or 
+
+OUT and cause a conflict at the same vertex due to DO. From now on, for any conflict between 𝑖 and 𝑗 , let 𝑖 be the agent who performs the IN action, and 𝑗 may or may not perform IN .Figure 4: Changes in the search space of low-level after adding constraints. Duration time from 𝐴 to 𝐵 and from 𝐵 
+
+to 𝐶 are abbreviated as 𝜏 𝐴𝐵 and 𝜏 𝐵𝐶 . (a) MC ⟨𝑖, 𝐴 → 𝐵, [𝑙, 𝑟 )⟩𝑚 :before time 𝑙 , the interval at which moving from 𝐴 to 𝐵 can be started is [0 , 𝑙 ); after time 𝑟 , the interval is [𝑟, ∞). (b) WC 
+
+⟨𝑖, 𝐵, [𝑙, 𝑟 )⟩𝑤 : before time 𝑙 , the interval at which an IN in 𝐵 can be started is [0 , 𝑙 − 𝜏 𝐴𝐵 ) and the interval at which an OUT in 𝐵 
+
+can be started is [𝜏 𝐴𝐵 , 𝑙 ); after time 𝑟 , the interval about IN in 𝐵 
+
+is [𝑟 − 𝜏 𝐴𝐵 , ∞) and the interval about OUT in 𝐵 is [𝑟, ∞); the safe interval of 𝐵 is [0 , 𝑙 ) and [𝑟, ∞). (c) OC ⟨𝑖, 𝐵, 𝑡 ⟩𝑜 : before time 𝑡 ,the interval at which an IN in 𝐵 can be started is [0 , 𝑡 −𝜏 𝐴𝐵 −𝜏 𝐵𝐶 ]
+
+(by Def. 1, 𝑡 − 𝜏 𝐴𝐵 − 𝜏 𝐵𝐶 is included) and the interval at which an OUT in 𝐵 can be started is [𝜏 𝐴𝐵 , 𝑡 − 𝜏 𝐵𝐶 ]; after time 𝑡 , the interval about IN in 𝐵 is [𝑡, ∞) and the interval about OUT in 𝐵 
+
+is [𝑡 +𝜏 𝐴𝐵 , ∞); the safe interval of 𝐵 is [0 , 𝑡 −𝜏 𝐵𝐶 ) and [𝑡 +𝜏 𝐴𝐵 , ∞).
+
+## 4.2 Constraint and Low-level Planner 
+
+Safe Interval Path Planning (SIPP) [ 11 ] is often used as the low-level planner in CBS. It constructs a search space with states defined by their vertex and safe time interval, resulting in a graph that generally only has a few states per vertex. SIPP is more efficient than A* in the presence of wait durations and finds an optimal path that avoids any unsafe time intervals. We adapt SIPP to MAPF-AA setting by using the following constraints for an agent 𝑖 , let 
+
+𝐴 𝑖 = (( 𝑣 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 1
+
+), (𝑣 𝑖 
+
+> 2
+
+, 𝑡 𝑖 
+
+> 2
+
+)) :
+
+• Motion Constraint (MC) ⟨𝑖, 𝑢 → 𝑣, [𝑙, 𝑟 )⟩𝑚 : forbids all move actions 𝐴 𝑖 where 𝑣 𝑖  
+
+> 1
+
+= 𝑢, 𝑣 𝑖  
+
+> 2
+
+= 𝑣 and 𝑡 𝑖  
+
+> 1
+
+∈ [𝑙, 𝑟 );
+
+• Wait Constraint (WC) ⟨𝑖, 𝑣, [𝑙, 𝑟 )⟩𝑤 : forbids all wait actions 
+
+𝐴 𝑖 where 𝑣 𝑖  
+
+> 1
+
+= 𝑣 and 𝜏 (𝐴 𝑖 , 𝑣 ) ∩ [𝑙, 𝑟 )̸ = ∅• Occupancy Constraint (OC) ⟨𝑖, 𝑣, 𝑡 ⟩𝑜 : forbids all actions ( IN ,
+
+OUT and WAIT ) 𝐴 𝑖 where 𝑡 ∈ 𝜏 (𝐴 𝑖 , 𝑣 );Fig. 4 illustrates how the constraints affect the search space of the low-level planner. In the low-level planner of CBS [ 14 ], tie-breaking is a useful method to find conflict-free solutions faster. It can find an optimal path for agent 𝑖 that satisfies the constraints added by high-level and has fewer conflicts with the planned paths of other agents. SIPPS [ 6] extends SIPP to consider other paths as soft constraints and breaks ties by preferring the path that has fewer soft conflicts (i.e., conflicts with soft constraints). But SIPPS ignores the cases where an agent may encounter multiple soft conflicts if it waits within a safe interval. To consider these cases, we propose SIPPS with Waiting Conflict (SIPPS-WC) to consider the soft conflicts when waiting. Specifically, a state 𝑠 = ( 𝑣, 𝑡, 𝑡 ℎ, 𝑐 𝑤 𝑣 ) in SIPPS-WC consists of a vertex 𝑣 , an arrival 
+
+Figure 5: Expanding states in SIPPS-WC. The parent state 𝑠 𝑝 
+
+at vertex 𝑣 with safe interval [0 , 8.29) can get two child states 
+
+𝑠 𝑐 1 and 𝑠 𝑐 2 at vertex 𝑣 ′. State 𝑠 𝑐 1 has safe interval [1 , ∞) (starts moving at 𝑡 = 0 , arrives at 𝑣 ′ at 𝑡 = 1 ) and 𝑠 𝑐 1.𝑐 𝑤 𝑣 = 2 . State 𝑠 𝑐 2
+
+has safe interval [6 .37 , ∞) (waits at 𝑣 , starts moving at 𝑡 = 5 .37 ,arrives at 𝑣 ′ at 𝑡 = 6 .37 ) and 𝑠 𝑐 2.𝑐 𝑤 𝑣 = 1 
+
+time 𝑡 , an end time of the corresponding safe interval 𝑡 ℎ , and an integer number 𝑐 𝑤 𝑣 indicating the number of soft conflicts if waiting at 𝑣 from 𝑡 to 𝑡 ℎ . As shown in Fig. 5, 𝑐 𝑤 𝑣 can help distinguish between a path that moves from 𝑣 to 𝑣 ′ and then waits at 𝑣 ′ and another path that waits at 𝑣 and then moves to 𝑣 ′. To prune states, if two states 𝑠 1
+
+and 𝑠 2 have the same 𝑣 , 𝑡 ℎ and 𝑐 𝑤 𝑣 , then 𝑠 1 dominants 𝑠 2 if the arrival time 𝑠 1.𝑡 ≤ 𝑠 2.𝑡 and the number of soft conflicts along the path from the start vertex to 𝑣 𝑐 (𝑠 1) ≤ 𝑐 (𝑠 2). Our low-level planner adapts SIPPS-WC to continuous time and the three types of constraints as aforementioned (Fig. 5). 
+
+## 4.3 Constraints on Single Action (CSA) 
+
+Let 𝐴 𝑖 = (( 𝑣 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 1
+
+), (𝑣 𝑖 
+
+> 2
+
+, 𝑡 𝑖 
+
+> 2
+
+)) and 𝐴 𝑗 = (( 𝑣 𝑗 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
+), (𝑣 𝑗 
+
+> 2
+
+, 𝑡 𝑗  
+
+> 2
+
+)) . In an IN-IN 
+
+conflict ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝐼 , if we permit 𝑗 ’s current action, then 𝑖 cannot perform its action during the time interval [𝑙 𝑖 = 𝑡 𝑖 
+
+> 1
+
+, 𝑟 𝑖 = 𝑡 𝑗  
+
+> 2
+
+). Here, setting 𝑙 𝑖 = 𝑡 𝑖  
+
+> 1
+
+eliminates the current action of 𝑖 , as the conflict has been detected. Let 𝑟 𝑖 = 𝑡 𝑗  
+
+> 2
+
+, since 𝑗 occupies 𝑣 in (𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
+] and 𝑖 
+
+occupies 𝑣 in (𝑡 𝑗  
+
+> 2
+
+, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 (𝐴 𝑖 )] (Def. 1). Similar reasoning applies to an 
+
+OUT-IN conflict. Constraints for both IN-IN and OUT-IN conflicts are denoted as Eq. 2. In a WAIT-IN conflict ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑊 , we simply add constraints to forbid agents to occupy 𝑣 at a time point 𝑡 𝑟 = min (𝑡 𝑖 
+
+> 2
+
+, 𝑡 𝑗  
+
+> 2
+
+). All constraints are denoted as Eq. 3. 
+
+(
+
+⟨𝑖, 𝑣 𝑖  
+
+> 1
+
+→ 𝑣 𝑖 
+
+> 2
+
+, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
+)⟩𝑚 
+
+⟨𝑗, 𝑣 𝑗  
+
+> 1
+
+→ 𝑣 𝑗 
+
+> 2
+
+, [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖 
+
+> 2
+
+)⟩𝑚 
+
+(2) 
+
+(
+
+⟨𝑖, 𝑣, 𝑡 𝑟 ⟩𝑜 
+
+⟨𝑗, 𝑣, 𝑡 𝑟 ⟩𝑜 
+
+(3) 
+
+Remark 1. The difference between CSA and CCBS lies in the con-straints on WAIT actions. CCBS adds a constraint to a specific WAIT 
+
+action, while CSA adds a constraint to a vertex 𝑣 , which forbids all actions that occupy 𝑣 . The constraints in CSA avoid the problem about infinitely many wait actions. 4.4 Constraints on Multiple Actions (CMA) 
+
+For a specific vertex 𝑣 , 𝑒 1 = ( 𝑢 1, 𝑣 ) ∈ 𝐸 and 𝑒 2 = ( 𝑢 2, 𝑣 ) ∈ 𝐸 , the travel time for agent 𝑖 , 𝜏 𝑖 (𝑢 1, 𝑣 ), can be different from 𝜏 𝑖 (𝑢 2, 𝑣 ). Let 
+
+𝜏 𝑖 𝑖𝑛 (𝑣 ), 𝜏 𝑖 𝑜𝑢𝑡 (𝑣 ) denote the minimum travel time of 𝑖 ’s IN and OUT at 𝑣 ,i.e., 𝜏 𝑖 𝑖𝑛 (𝑣 ) = min 𝑒 =( 𝑢,𝑣 )∈𝐸 (𝜏 𝑖 (𝑢, 𝑣 )) and 𝜏 𝑖 𝑜𝑢𝑡 (𝑣 ) = min 𝑒 =( 𝑣,𝑢 )∈𝐸 (𝜏 𝑖 (𝑣, 𝑢 )) .If agent 𝑖 starts to perform an IN in 𝑣 at 𝑡 , it occupies 𝑣 at least 
+
+(𝑡, 𝑡 + 𝜏 𝑖 𝑖𝑛 (𝑣 ) + 𝜏 𝑖 𝑜𝑢𝑡 (𝑣 )) . If agent 𝑖 starts to perform a WAIT or OUT in 𝑣 
+
+at 𝑡 , it occupies 𝑣 at least (𝑡 − 𝜏 𝑖 𝑖𝑛 (𝑣 ), 𝑡 + 𝜏 𝑖 𝑜𝑢𝑡 (𝑣 )) . CMA uses such DO to propagate constraints to multiple actions and time intervals. 
+
+Resolve IN( 𝑗 )-IN( 𝑖 ). To permit 𝑗 ’s action, we add a constraint on 
+
+𝑖 to forbid all IN actions starting within the time interval [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
++
+
+𝜏 𝑗 𝑖𝑛 + 𝜏 𝑗 𝑜𝑢𝑡 ), where 𝑡 𝑗  
+
+> 1
+
++ 𝜏 𝑗 𝑖𝑛 + 𝜏 𝑗 𝑜𝑢𝑡 represents the earliest time point for 
+
+𝑗 to leave 𝑣 if starting to perform an IN in 𝑣 at 𝑡 𝑗  
+
+> 1
+
+. The same strategy is applicable for 𝑖 :
+
+(
+
+⟨𝑖, ∗ → 𝑣 𝑖 
+
+> 2
+
+, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
++ 𝜏 𝑗 𝑖𝑛 + 𝜏 𝑗 𝑜𝑢𝑡 )⟩𝑚 
+
+⟨𝑗, ∗ → 𝑣 𝑗 
+
+> 2
+
+, [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 )⟩𝑚 
+
+(4) 
+
+Resolve OUT( 𝑗 )-IN( 𝑖 ). To permit 𝑗 ’s action, we add a constraint on 
+
+𝑖 to forbid all IN actions starting within the time interval [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
++𝜏 𝑗 𝑜𝑢𝑡 ).To permit 𝑖 ’s action, multiple constraints on 𝑗 are added to forbid all OUT actions starting within the time interval 𝑇 = [ 𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 +
+
+𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 ), and forbid WAIT actions that occupy 𝑣 at any time point in 𝑇 .
+
+⟨𝑖, ∗ → 𝑣, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
++ 𝜏 𝑗 𝑜𝑢𝑡 )⟩𝑚 (5) 
+
+⟨𝑗, 𝑣, [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 )⟩𝑤 ∪⟨𝑗, 𝑣 → ∗ , [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 )⟩𝑚 
+
+(6) Here, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
++𝜏 𝑗 𝑜𝑢𝑡 ) allows 𝑖 to either start the IN earlier than 𝑡 𝑖 
+
+> 1
+
+, or after the earliest time when 𝑗 ’s OUT finishes ( ≥ 𝑡 𝑗  
+
+> 1
+
++𝜏 𝑗 𝑜𝑢𝑡 ). 𝑡 𝑖  
+
+> 1
+
++𝜏 𝑖 𝑖𝑛 +𝜏 𝑖 𝑜𝑢𝑡 
+
+is the earliest time point that 𝑖 finishes an OUT action to leave 𝑣 , and 
+
+𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 is the earliest time point that 𝑗 finishes the IN to reach 𝑣 , so that 𝑗 can start to perform a WAIT or OUT afterwards. 
+
+Resolve WAIT( 𝑗 )-IN( 𝑖 ). Due to the existence of WAIT action and the variable duration of WAIT action, this case requires extra care on the time interval of constraints. We first show the form of con-straints, then we discuss how to properly set the time interval of constraints. Overall, we add a constraint on 𝑖 to forbid all IN actions starting within the time interval 𝑇 𝑖 = [ 𝑙 𝑖 , 𝑟 𝑖 ), or to forbid 𝑗 ’s WAIT to occupy 
+
+𝑣 for at any time point in 𝑇 𝑗 = [ 𝑙 𝑗 , 𝑟 𝑗 ), where 𝑇 𝑖 ,𝑇 𝑗 depend on the duration of 𝑗 ’s WAIT action. Similar to Eq. 6, to permit 𝑖 ’s action, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 is a critical time point. 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 is the earliest time point at which agent 𝑖 leaves the conflict vertex 𝑣 . Then agent 𝑗 can start the IN 
+
+action, arriving at 𝑡 𝑖  
+
+> 1
+
++𝜏 𝑖 𝑖𝑛 +𝜏 𝑖 𝑜𝑢𝑡 +𝜏 𝑗 𝑖𝑛 , and performs a WAIT . Therefore, 
+
+𝑡 𝑖  
+
+> 1
+
++𝜏 𝑖 𝑖𝑛 +𝜏 𝑖 𝑜𝑢𝑡 +𝜏 𝑗 𝑖𝑛 is the earliest time point that 𝑗 can start to perform a WAIT without conflicting with 𝑖 . We set 𝑟 𝑗 = 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 .To permit 𝑗 ’s action, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 𝑜𝑢𝑡 is a critical time point. 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 𝑜𝑢𝑡 is the earliest time point at which agent 𝑗 leaves the conflict vertex 
+
+𝑣 . Therefore, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 𝑜𝑢𝑡 is the earliest time point that 𝑖 can start to perform a IN without conflicting with 𝑗 . 𝑟 𝑖 should be equal to 
+
+𝑡 𝑗  
+
+> 2
+
++𝜏 𝑗 𝑜𝑢𝑡 . As illustrated in Fig. 4, we can set 𝑙 𝑖 = 𝑡 𝑖  
+
+> 1
+
+and 𝑙 𝑗 ∈ [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
+] to make the constraints affect the relevant actions. To resolve conflicts 
+
+Figure 6: Resolve WAIT( 𝑗 )-IN( 𝑖 ). Rectangular strips are con-flicts. Arrows are corresponding constraints. (a) Case 1: 𝑡 𝑗  
+
+> 2
+
+<
+
+𝑟 𝑗 . (b) Case 2: 𝑡 𝑗  
+
+> 2
+
+≥ 𝑟 𝑗 .
+
+efficiently without eliminating potential solutions and impacting completeness, we set 𝑙 𝑗 = 𝑡 𝑗  
+
+> 2
+
+.Now, we have 𝑙 𝑗 = 𝑡 𝑗  
+
+> 2
+
+, 𝑟 𝑗 = 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 , 𝑙 𝑖 = 𝑡 𝑖  
+
+> 1
+
+and 
+
+𝑟 𝑖 = 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 𝑜𝑢𝑡 , where 𝑡 𝑖  
+
+> 1
+
+is the start time of the IN action and 𝑡 𝑗  
+
+> 2
+
+is the end time of the WAIT action. However, due to the uncertain duration of WAIT action, the end time point 𝑡 𝑗  
+
+> 2
+
+may be very large, which can result in 𝑙 𝑗 > 𝑟 𝑗 and thus invalidate the interval 𝑇 𝑗 . When 𝑡 𝑗  
+
+> 2
+
+is large, special care is needed. If 𝑡 𝑗  
+
+> 2
+
+≥ 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 , 𝑗 performs a long WAIT . The long wait action is divided into two consecutive short WAIT actions. The start and end times of the first short WAIT action are 𝑡 𝑗  
+
+> 1
+> ′
+
+= 𝑡 𝑗  
+
+> 1
+
+and 
+
+𝑡 𝑗  
+
+> 2
+> ′
+
+= 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 respectively. The start and end times of the second short WAIT action are 𝑡 𝑗  
+
+> 1
+> ′′
+
+= 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 and 𝑡 𝑗  
+
+> 2
+> ′′
+
+= 𝑡 𝑗 
+
+> 2
+
+respectively. We first resolve the conflict between 𝑗 ’s first short 
+
+WAIT action and 𝑖 ’s IN action, using the above idea. Therefore, we have 𝑙 𝑗 = 𝑡 𝑗 
+
+> 2
+> ′
+
+, 𝑟 𝑗 = 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 , 𝑙 𝑖 = 𝑡 𝑖  
+
+> 1
+
+and 𝑟 𝑖 = 𝑡 𝑗  
+
+> 2
+> ′
+
++ 𝜏 𝑗 𝑜𝑢𝑡 ,where 𝑡 𝑖  
+
+> 1
+
+is the start time of the IN action and 𝑡 𝑗  
+
+> 2
+> ′
+
+is the end time of the first short WAIT action. In summary, there are two cases: Case 1 (Fig. 6 (a)): 𝑡 𝑗  
+
+> 2
+
+< 𝑟 𝑗 
+
+(
+
+⟨𝑖, ∗ → 𝑣, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 𝑜𝑢𝑡 )⟩𝑚 
+
+⟨𝑗, 𝑣, [𝑡 𝑗  
+
+> 2
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 )⟩𝑤 
+
+(7) Case 2 (Fig. 6 (b)): 𝑡 𝑗  
+
+> 2
+
+≥ 𝑟 𝑗 
+
+(
+
+⟨𝑖, ∗ → 𝑣, [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑜𝑢𝑡 )⟩𝑚 
+
+⟨𝑗, 𝑣, [𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 , 𝑡 𝑖  
+
+> 1
+
++ 𝜏 𝑖 𝑖𝑛 + 𝜏 𝑖 𝑜𝑢𝑡 + 𝜏 𝑗 𝑖𝑛 )⟩𝑤 
+
+(8) Note that conflict resolution in Case 2 needs multiple iterations to permit 𝑗 ’s long WAIT action. In the first iteration, after adding the constraint of case 2, the start time of 𝑖 ’s IN action is delayed to permit 𝑗 ’s first short WAIT action. Then in the second iteration, we have a conflict between 𝑗 ’s second short WAIT action and 𝑖 ’s delayed Figure 7: Search process of CMA for Ex. 1 
+
+Figure 8: (a) An example where CMA generates an invalid constraint. (b) By inserting intermediate vertices into the longer edges, the constraint generated by CMA can be valid. 
+
+IN action. After a finite number of iterations, case 2 will return to case 1, and finally the entire long WAIT action of 𝑗 is permitted. 
+
+Example 2. Following Ex. 1, Fig. 7 shows the search process of CMA. CMA can eventually find an optimal solution. Four key conflicts need to be resolved. The first conflict is ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑊 , where 𝑖 = 3 ,
+
+𝑗 = 2 , 𝐴 𝑖 = (( 𝐶, 0) , (𝐷, 3)) and 𝐴 𝑗 = (( 𝐷, 0) , (𝐷, ∞)) . The second conflict is ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑂 , where 𝑖 = 2 , 𝑗 = 1 , 𝐴 𝑖 = (( 𝐷, 0) , (𝐸, 2)) and 
+
+𝐴 𝑗 = (( 𝐸, 0) , (𝐵, 1)) . The third conflict is ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑊 , where 𝑖 = 3 ,
+
+𝑗 = 2 , 𝐴 𝑖 = (( 𝐶, 0) , (𝐷, 3)) and 𝐴 𝑗 = (( 𝐷, 0) , (𝐷, 1)) . The fourth conflict is ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝑂 , where 𝑖 = 2 , 𝑗 = 3 , 𝐴 𝑖 = (( 𝐸, 6) , (𝐷, 8)) and 𝐴 𝑗 =(( 𝐷, 6) , (𝐴, 9)) .
+
+## 4.5 Discussion on CMA and CSA 
+
+For each constraint generated in CMA and CSA, the end time 𝑟 of the time interval in that constraint must be no smaller than the start time 𝑙 of the time interval. Otherwise, the interval and the constraint are invalid. It is easy to verify that 𝑟 is not smaller than 
+
+𝑙 in the constraints of CSA. But Eq. 4, Eq. 5 and Eq. 6 of CMA may result in 𝑟 being smaller than 𝑙 due to the differences in travel time. 
+
+Example 3. As shown in Fig. 8 (a), the conflict is ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩𝐼 , where 
+
+𝑖 = 1 , 𝑗 = 2 , 𝐴 𝑖 = (( 𝐴, 5) , (𝐵, 11)) and 𝐴 𝑗 = (( 𝐷, 10 .5) , (𝐵, 11 .5)) . Accord-ing to Eq. 4, the constraint added to agent 𝑗 is ⟨𝑗, ∗ → 𝐵, [10 .5, 9) ⟩𝑚 ,which is invalid. 
+
+If the following assumption holds, then 𝑟 is always greater than 
+
+𝑙 for any generated constraint in CMA. 
+
+Assumption 1. For each agent 𝑖 ∈ 𝐼 , the duration for 𝑖 to traverse any edge 𝑒 ∈ 𝐸 is the same constant real number. This constant can be different for different agents. 
+
+In practice, Assumption 1 can be satisfied by inserting interme-diate vertexes into the longer edges (as shown in Fig. 8 (b)) and Keeping agents moving at constant speeds. The grid world used for path planning in an automated warehouse is a common example. By Assumption 1, all edges linked to 𝑣 have the same travel time for agent 𝑖 . The time intervals in Eq. 4 are changed to [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 ) and 
+
+[𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 2
+
++ 𝜏 𝑖 ) where 𝜏 𝑖 , 𝜏 𝑗 denote the travel time of agent 𝑖 , 𝑗 . It is easy to verify that 𝑟 is not smaller than 𝑙 in these new time intervals. The same is true for Eq. 5 and Eq. 6. 
+
+## 4.6 Analysis 
+
+In this subsection, we show that CBS-AA is optimal and complete. We begin by showing that the constraints introduced by CBS-AA are mutually disjunctive, a property essential for proving optimal-ity. Next, we demonstrate that CBS-AA always terminates within a finite number of steps. Finally, we prove the optimality and com-pleteness of CBS-AA. 
+
+Definition 2. Two constraints are Mutually Disjunctive (MD) [ 8]if a set of conflict-free paths cannot simultaneously violate them. In other words, if a set of paths simultaneously violates these two constraints, then it must have a conflict. 
+
+Lemma 1. Constraints in CSA (Eq. (2) , (3) ) are MD. 
+
+Proof. In Eq (2) , the end time 𝑟 of the time interval added to 𝑖 
+
+(𝑗 ) is 𝑡 𝑡 (𝐴 𝑗 ) (𝑡 𝑡 (𝐴 𝑖 )). Therefore, simultaneously violating these two constraints necessarily leads to a conflict. In Eq (3) , violating both constraints will obviously result in a conflict at time point 𝑡 𝑟 . □
+
+Assumption 1 allows us to use 𝜏 𝑖 , 𝜏 𝑗 to denote the travel time of agent 𝑖, 𝑗 ∈ 𝐼 for any edge in 𝐺 , which greatly simplifies the notation. This section thus uses this assumption to show the ideas in the proofs. The proof can be extended to the general case without relying on Assumption 1 by using 𝜏 𝑖 𝑖𝑛 (𝑣 ), 𝜏 𝑖 𝑜𝑢𝑡 (𝑣 ). Given ⟨𝐴 𝑖 , 𝐴 𝑗 , 𝑣 ⟩,let 𝐴 𝑖 = (( 𝑣 𝑖 
+
+> 1
+
+, 𝑡 𝑖 
+
+> 1
+
+), (𝑣 𝑖 
+
+> 2
+
+, 𝑡 𝑖 
+
+> 2
+
+)) and 𝐴 𝑗 = (( 𝑣 𝑗 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 1
+
+), (𝑣 𝑗 
+
+> 2
+
+, 𝑡 𝑗  
+
+> 2
+
+)) .
+
+Lemma 2. IN-IN constraints (Eq. (4) ) in CMA are MD. 
+
+Proof. Assume agent 𝑖 performs IN at time 𝑥 , occupying 𝑣 over 
+
+𝜏 𝑖 𝑥 = ( 𝑥, 𝑥 + 2 𝜏 𝑖 ), and agent 𝑗 performs IN at time 𝑦 , occupying 𝑣 
+
+over 𝜏 𝑗 𝑦 = ( 𝑦, 𝑦 + 2 𝜏 𝑗 ). If both agents violate the constraint, then 
+
+𝑥 ∈ [𝑡 𝑖 
+
+> 1
+
+, 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 ) and 𝑦 ∈ [𝑡 𝑗  
+
+> 1
+
+, 𝑡 𝑖  
+
+> 2
+
++ 𝜏 𝑖 ). We show the intervals must intersect. By contradiction, suppose they do not. (i) If 𝑥 ≥ 𝑦 + 2 𝜏 𝑗 ,then 𝑥 < 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 while 𝑦 + 2 𝜏 𝑗 ≥ 𝑡 𝑗  
+
+> 1
+
++ 2 𝜏 𝑗 = 𝑡 𝑗  
+
+> 2
+
++ 𝜏 𝑗 , a contradiction. (ii) If 𝑦 ≥ 𝑥 + 2 𝜏 𝑖 , then 𝑦 < 𝑡 𝑖  
+
+> 2
+
++ 𝜏 𝑖 while 𝑥 + 2 𝜏 𝑖 ≥ 𝑡 𝑖  
+
+> 1
+
++ 2 𝜏 𝑖 = 𝑡 𝑖  
+
+> 2
+
++ 𝜏 𝑖 ,a contradiction. Hence, the intervals intersect, implying a conflict. Without Assumption 1, replacing 2𝜏 by 𝜏 𝑖𝑛 + 𝜏 𝑜𝑢𝑡 yields the same conclusion. Therefore, constraints in Eq. (4) are MD. □
+
+With the same idea, it can be proved that OUT-IN constraints (Eq. (5), (6)) and WAIT-IN constraints (Eq. (7) and (8)) are MD. Lemma 3. CBS-AA can terminate within a finite number of steps on a solvable MAPF-AA problem. 
+
+Proof. Due to space limits, we sketch the main idea, similar to the one in [ 3]. If the method does not terminate, there exists an infinite sequence of high-level nodes whose costs are all below the optimal solution and all contain conflicts. Let a trajectory 𝜎 be a finite sequence of move actions with cost 
+
+𝑔 (𝜎 ) equal to the sum of their durations. If a path 𝜋 contains all actions of 𝜎 in order, we write 𝜋 ∼ 𝜎 . For any finite 𝑐 ∈ R, the set 
+
+{𝜎 | 𝑔 (𝜎 ) < 𝑐 } is finite. Hence, infinitely many constraints must be added to paths mapping to a specific trajectory 𝜎 ∞.Non-termination requires that, despite infinitely many constraints, there still exists a path 𝜋 ′ ∼ 𝜎 ∞ satisfying all constraints with 
+
+𝑔 (𝜋 ′) < 𝑐 . However, each constraint introduced by CBS-AA reduces the feasible execution time of actions in 𝜎 ∞ by a non-zero amount. After finitely many branchings, no such 𝜋 ′ can exist. Therefore, CBS-AA must terminate in finite steps. □
+
+Theorem 1. CBS-AA is optimal and solution complete. 
+
+Proof. Because all constraints added by CBS-AA are MD (Lem. 1 and Lem. 2), all solutions are reachable from the root of search tree. And CBS-AA always expands the high-level node with minimum objective value. Thus, CBS-AA is optimal. If a feasible solution exists, CBS-AA is solution complete because it can terminate within a finite number of steps (Lem. 3). □
+
+## 5 EXPERIMENTAL RESULTS 
+
+In the previous section, we proposed CSA to correct the errors of CCBS, and further proposed CMA to resolve conflicts efficiently. In order to find conflict-free solutions faster, we proposed a new low-level planner, SIPPS-WC. In this section, we compare our CSA, CMA and CMAS (CMA with SIPPS-WC) with CCBS [ 1 ], to show the gradual improvement of the methods. Among them, CSA and CMA use SIPP at the low-level, CMAS uses SIPPS-WC at the low-level. Besides, to verify the optimality, we compare CMAS with LS-M* [12]. We use four maps of different sizes from an online data set [ 15 ]: “empty-32-32”, “random-32-32-20”, “den312d” and “warehouse-10-20-10-2-2”. We test the algorithms by varying the number of agents 
+
+𝑁 from 10 to 50.For testing purposes, we consider that the edges in each map have fixed-length edges of a unit, and each agent has a random speed between 1 and 20. In other words, it takes the same amount of time to traverse any edge for the same agent, and it takes different amount of time to traverse the same edge for different agents. When agents reach their goals, they will stay there permanently. The runtime limit of each instance is 30 seconds. We implement all algorithms in C++ and run all tests on a computer with an Intel Core i7-11800H CPU. 
+
+## 5.1 Comparison with CCBS 
+
+Success Rates. Fig. 9 (a)-(d) show the success rates of the methods. We observe that CSA has a slightly higher success rate than CCBS, mainly due to the changes in the wait action. Different from CCBS, the constraint added by CSA for wait actions (Fig. 4 (c)) may affect all of IN , OUT , WAIT actions, and therefore resolve conflicts more 
+
+Table 1: Comparison of SIPP with SIPPS-WC in terms of average runtime per call (ms).                
+
+> N10 15 20 25 30 SIPP 0.803 0.930 0.902 0.999 1.03 SIPPS-WC 0.845 1.20 1.37 1.62 1.95
+
+efficiently and improve the success rates a bit. Since CCBS’s con-straints on wait actions are not mutually disjunctive, it is possible that CCBS overlooks feasible solutions and fails within the time limit, resulting in a lower success rate. Additionally, the success rates of CMA are obviously higher than CSA and CCBS, especially when the number of agents increases. The reason is that, CMA add constraints that affect multiple actions and add constraints at a time interval for WAIT actions, which makes CMA resolve conflicts more efficiently than CSA and CCBS. Finally, SIPPS-WC can help find an optimal path and avoid collisions with other agents as much as possible, especially for cases involving waiting at a safe interval. With the help of SIPPS-WC, the success rates of CMAS are further improved and can handle up to 50 agents in the warehouse map, which is otherwise hard to achieve by the other three algorithms. 
+
+Number of Expansions. Fig. 9 (e)-(f) shows the number of high-level nodes expanded. CMA has the least number of expansions, which means it can resolve more conflicts with one branching, which reduces the number of expansions to find a solution. Com-pared with CSA, CMA reduces the number of expansions by up to 90%: When the number of agents is 25 in the empty map, the aver-age number of expansions in CSA is 8286 while the one for CMA is 617. By considering paths of other agents in the low-level planner, CMAS can find an optimal solution with even fewer expansions, which thus enhances the success rates. 
+
+Runtime. We further extend the runtime limit to 120 seconds and analyze the runtime of different algorithms in empty 32 × 32 . As shown in Fig. 10, when the number of agents 𝑁 ≥ 25 , the success rates of CCBS and CSA are low, while the success rate of CMA drops rapidly. However, the success rate of CMAS remains above 60%. When the number of agents 𝑁 = 30 , CMAS can find solutions in 68% of instances within 60 seconds. 
+
+SIPP v.s. SIPPS-WC. We compare the average runtime per call of SIPP in CMA with that of SIPPS-WC in CMAS in empty 32 × 32 .As shown in Table. 1, the runtime of SIPPS-WC increases with the number of agents. The increase in the number of agents leads to an increase in the number of soft constraints contained in SIPPS-WC. Multiple child nodes can be generated for the same safe interval (de-pending on the number of soft constraints involved), thus increasing the number of nodes to explore. However, due to the consideration of other agents’ paths, CMAS can find conflict-free solutions faster. 
+
+## 5.2 Comparison with LS-M* 
+
+LS-M* [ 12 ] is an A*-based MAPF planner and can find an optimal solution in MAPF-AA. We compare CMAS with it in order to verify the optimality of CMAS. The experimental setup is the same as above. We fix the map to random-32-32-20 and the number of agents is 𝑁 = 2, 4, 6, 8. And considering that LS-M* needs a long time to search for an optimal solution, we add an additional experiment to Figure 9: (a)-(d): Success rates of the algorithms. 𝑁 is the number of agents. (e)-(h): Min., Avg., and Max. number of high-level nodes expanded by the algorithms, which only counts the cases where all four methods succeed. 𝑁 is the number of agents. 
+
+Figure 10: Runtime in empty 32 × 32 . 𝑁 is the number of agents. Table 2: Comparison of CMAS with LS-M* in terms of Success Rate (SR) and Avg. Run Time (RT) under different Time Limit (TL). The data are shown in format (CMAS/ LS-M* under 
+
+𝑇 𝐿 = 30 𝑠 / LS-M* under 𝑇 𝐿 = 120 𝑠 ). 
+
+N 2 4 6 8SR 1.0/1.0/1.0 1.0/0.96/1.0 1.0/0.2/0.4 1.0/0.0/0.0 RT (s) 0.009/0.895/0.895 0.002/1.52/4.44 0.082/19.0/49.6 -/-
+
+extend the runtime limit to 120 seconds. As shown in Table. 2, when the number of agents increases to more than 4, the success rate of LS-M* begins to decline. When the number of agents reaches 8, the success rate of LS-M* is 0%. However, CMAS can always maintain a 100% success rate, and handle more agents than LS-M*. The cost of the solution found by CMAS is the same as LS-M*, while CMAS can find the solution in less run time. The results show that CMAS can find the same optimal solution as LS-M* in a shorter time. 
+
+## 6 CONCLUSION AND FUTURE WORK 
+
+This paper focuses on MAPF-AA, and develops a new exact algo-rithm CBS-AA for MAPF-AA with solution optimality guarantees, based on the popular CBS framework. CBS-AA introduces new con-flict resolution techniques for agents with asynchronous actions, which improves the runtime efficiency of the algorithm. Experi-mental results demonstrate the advantages of our new approaches in different settings against several baseline methods. For future work, one can also consider speed and uncertainty in MAPF-AA or combine MAPF-AA with target allocation and sequencing [13, 18]. 
+
+## ACKNOWLEDGMENTS 
+
+This work was supported by the Natural Science Foundation of China under Grant 62403313, and the Natural Science Foundation of Shanghai under Grant 24ZR1435900. 
+
+## REFERENCES                    
+
+> [1] Anton Andreychuk, Konstantin Yakovlev, Pavel Surynek, Dor Atzmon, and Roni Stern. 2022. Multi-agent pathfinding with continuous time. Artificial Intelligence
+> 305 (2022), 103662. https://doi.org/10.1016/j.artint.2022.103662 [2] Max Barer, Guni Sharon, Roni Stern, and Ariel Felner. 2014. Suboptimal variants of the conflict-based search algorithm for the multi-agent pathfinding problem. In Proceedings of the international symposium on combinatorial Search , Vol. 5. 19–27. [3] Alvin Combrink, Sabino Francesco Roselli, and Martin Fabian. 2025. Sound and Solution-Complete CCBS. arXiv preprint arXiv:2508.16410 (2025). [4] Boris De Wilde, Adriaan W Ter Mors, and Cees Witteveen. 2013. Push and rotate: cooperative multi-agent path planning. In Proceedings of the 2013 international conference on Autonomous agents and multi-agent systems . 87–94. [5] Andy Li, Zhe Chen, Danial Harabor, and Mor Vered. 2025. Revisiting Conflict Based Search with Continuous-Time. arXiv preprint arXiv:2501.07744 (2025). [6] Jiaoyang Li, Zhe Chen, Daniel Harabor, Peter J Stuckey, and Sven Koenig. 2022. MAPF-LNS2: Fast repairing for multi-agent path finding via large neighborhood search. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 36. 10256–10265. [7] Jiaoyang Li, Wheeler Ruml, and Sven Koenig. 2021. Eecbs: A bounded-suboptimal search for multi-agent path finding. In Proceedings of the AAAI conference on artificial intelligence , Vol. 35. 12353–12362. [8] Jiaoyang Li, Pavel Surynek, Ariel Felner, Hang Ma, TK Satish Kumar, and Sven Koenig. 2019. Multi-agent path finding for large agents. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 33. 7627–7634.
+
+[9] Keisuke Okumura, Manao Machida, Xavier Défago, and Yasumasa Tamura. 2022. Priority Inheritance with Backtracking for Iterative Multi-agent Path Finding. 
+
+Artificial Intelligence (2022), 103752. https://doi.org/10.1016/j.artint.2022.103752 [10] Keisuke Okumura, Yasumasa Tamura, and Xavier Défago. 2021. Time-Independent Planning for Multiple Moving Agents. Proceedings of the AAAI Conference on Artificial Intelligence 35, 13 (May 2021), 11299–11307. [11] Mike Phillips and Maxim Likhachev. 2011. Sipp: Safe interval path planning for dynamic environments. In 2011 IEEE International Conference on Robotics and Automation . IEEE, 5628–5635. [12] Zhongqiang Ren, Sivakumar Rathinam, and Howie Choset. 2021. Loosely syn-chronized search for multi-agent path finding with asynchronous actions. In 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 9714–9719. [13] Zhongqiang Ren, Sivakumar Rathinam, and Howie Choset. 2023. CBSS: A New Approach for Multiagent Combinatorial Path Finding. IEEE Transactions on Robotics 39, 4 (2023), 2669–2683. https://doi.org/10.1109/TRO.2023.3266993 [14] Guni Sharon, Roni Stern, Ariel Felner, and Nathan R Sturtevant. 2015. Conflict-based search for optimal multi-agent pathfinding. Artificial intelligence 219 (2015), 40–66. [15] Roni Stern, Nathan Sturtevant, Ariel Felner, Sven Koenig, Hang Ma, Thayne Walker, Jiaoyang Li, Dor Atzmon, Liron Cohen, TK Kumar, et al . 2019. Multi-agent pathfinding: Definitions, variants, and benchmarks. In Proceedings of the International Symposium on Combinatorial Search , Vol. 10. 151–158. [16] Glenn Wagner and Howie Choset. 2015. Subdimensional expansion for multirobot path planning. Artificial intelligence 219 (2015), 1–24. [17] Thayne T Walker, Nathan R Sturtevant, and Ariel Felner. 2018. Extended Increas-ing Cost Tree Search for Non-Unit Cost Domains.. In IJCAI . 534–540. [18] Xuemian Wu and Zhongqiang Ren. 2025. Multi-Agent Combinatorial Path Finding for Tractor-Trailers in Occupancy Grids. In 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . 14124–14131. https://doi. org/10.1109/IROS60139.2025.11246219 [19] Jingjin Yu and Steven LaValle. 2013. Structure and intractability of optimal multi-robot path planning on graphs. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 27. 1443–1449. [20] Shuai Zhou, Shizhe Zhao, and Zhongqiang Ren. 2025. Loosely Synchronized Rule-Based Planning for Multi-Agent Path Finding with Asynchronous Actions. In 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 39. 14763–14770. [21] Shuai Zhou, Shizhe Zhao, and Zhongqiang Ren. 2025. LSRP*: Scalable and Anytime Planning for Multi-Agent Path Finding with Asynchronous Actions (Ex-tended Abstract). In Proceedings of the International Symposium on Combinatorial Search , Vol. 18. 275–276. https://doi.org/10.1609/socs.v18i1.36016
