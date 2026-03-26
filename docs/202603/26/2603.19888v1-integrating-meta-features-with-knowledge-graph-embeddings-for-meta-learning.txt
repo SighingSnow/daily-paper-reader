@@ -1,0 +1,760 @@
+Title: Integrating Meta-Features with Knowledge Graph Embeddings for Meta-Learning
+
+URL Source: https://arxiv.org/pdf/2603.19888v1
+
+Published Time: Mon, 23 Mar 2026 00:49:22 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Integrating Meta-Features with Knowledge Graph Embeddings for Meta-Learning 
+
+Antonis Klironomos 1,2⋆, Ioannis Dasoulas 3,4,5⋆, Francesco Periti 3,4,5, Mohamed H. Gad-Elrab 1, Heiko Paulheim 2, Anastasia Dimou 3,4,5, and Evgeny Kharlamov 1,6 
+
+> 1
+
+Bosch Center for Artificial Intelligence, Germany 
+
+{antonis.klironomos,mohamed.gad-elrab,evgeny.kharlamov}@de.bosch.com  
+
+> 2
+
+University of Mannheim, Germany 
+
+heiko@informatik.uni-mannheim.de  
+
+> 3
+
+KU Leuven, Belgium 
+
+{ioannis.dasoulas,francesco.periti,anastasia.dimou}@kuleuven.be  
+
+> 4
+
+Leuven.AI - KU Leuven Institute for AI, Belgium  
+
+> 5
+
+Flanders Make, Belgium  
+
+> 6
+
+Univesity of Oslo, Norway 
+
+Abstract. The vast collection of experimental machine learning data available on the web presents a significant opportunity for meta-learning, where past experiments are leveraged to improve performance. Two cru-cial meta-learning tasks are pipeline performance estimation (PPE ), which predicts pipeline performance on target datasets, and dataset performance-based similarity estimation (DPSE ), which identifies datasets with simi-lar performance patterns. Existing approaches primarily rely on dataset meta-features ( e.g. , number of instances, class entropy, etc.) to represent datasets numerically and approximate these meta-learning tasks. How-ever, these approaches often overlook the wealth of past experiment and pipeline metadata available. This limits their ability to capture dataset-pipeline interactions that reveal performance similarity patterns. In this work, we propose KGmetaSP , an approach utilizing knowledge graph embeddings which leverages existing experiment data to capture these interactions and improve both PPE and DPSE . We represent datasets and pipelines within a unified knowledge graph (KG) and derive embed-dings that support pipeline-agnostic meta-models for PPE and distance-based retrieval for DPSE . To validate our approach, we construct a large-scale benchmark comprising 144,177 OpenML experiments, enabling a rich cross-dataset evaluation. KGmetaSP enables accurate PPE using a single pipeline-agnostic meta-model and improves DPSE over baselines. The proposed KGmetaSP , KG, and benchmark are released, establishing a new reference point for meta-learning and demonstrating how consoli-dating open experiment data into a unified KG advances the field. 
+
+Keywords: Knowledge graph embeddings · Knowledge graph construc-tion · Meta-learning.  
+
+> ⋆
+
+These authors contributed equally to this work.  
+
+> arXiv:2603.19888v1 [cs.LG] 20 Mar 2026 2A. Klironomos and I. Dasoulas et al.
+
+## 1 Introduction 
+
+The rapid growth of data science has generated a vast collection of machine learning (ML) artifacts available on the web. Platforms such as OpenML [42] host numerous records of experiments conducted across a wide range of datasets, pipelines and pipeline configurations. A pipeline is a data mining workflow composed of pre-processing, feature extraction, feature selection, estimation, and post-processing primitives, executed sequentially to prepare data and build predictive models [12] and a pipeline configuration is an instantiation of such pipeline in which all component hyper-parameters are specified. The availability of ML experiment data on the web has sparked growing inter-est in meta-learning, a subfield of ML that leverages past experiments to improve performance [17]. Two core meta-learning tasks are pipeline performance estima-tion (PPE) [7] and dataset performance-based similarity estimation (DPSE) [22]. 
+
+PPE predicts pipeline configurations’ performance for a target dataset, with predictive models, typically referred to as meta-models [7]. DPSE measures how consistently datasets perform with shared pipeline configurations [14]. Solving these tasks helps identify promising pipelines early and narrow down the search space, reducing the need for costly training or optimization runs [14,41]. Existing methods for PPE and DPSE typically rely on numeric dataset rep-resentations, i.e. , meta-features [8,19], which summarize key dataset properties. These include generic features ( e.g. , number of instances), statistical features (e.g. , skewness), and landmarker features [2] ( e.g. , classifier performance). How-ever, focusing exclusively on meta-features neglects a wealth of experimental metadata available on the web. This metadata can be modeled using seman-tic web technologies and represented within knowledge graphs (KGs), which capture the historical relationships between datasets and the ML pipelines eval-uated on them. These links enable DPSE even when datasets are evaluated with different pipeline configurations and provide historical dataset - pipeline usage patterns for PPE . In this work, we examine whether encoding this information in a KG and learning numerical representations of its entities can benefit PPE 
+
+and DPSE .To this end, we propose KGmetaSP , a novel approach that employs knowl-edge graph embeddings (KGEs) to model the latent structure relating datasets and their top-performing pipeline configurations (Fig. 1). KGmetaSP builds on the inherent ability of KGs to capture hidden patterns [27]. We construct 
+
+MetaExe-KG , a unified KG that integrates semantic representations of datasets and their scikit-learn [31] pipeline configurations extracted from OpenML [42]. For dataset representation, we adopt MLSea-KG [11] to represent dataset meta-data, including meta-features. For pipeline configuration representation, we adopt Executable KGs ( ExeKGs ) [46], which capture the data flow of ML pipeline con-figurations, including preprocessing steps, models, and hyper-parameters. We employ KGE methods to learn a vector representation for each dataset and pipeline configuration. We use pipeline embeddings to train pipeline-agnostic meta-models ( i.e. , meta-models that are not tied to predictions for a specific pipeline configuration) for PPE and use vector distance measures for DPSE .Integrating Meta-Features with Knowledge Graph Embeddings 3Hyper-parameters                   
+
+> Pipeline 1
+> Pipeline N
+> Configuration 1
+> Configuration N
+> Configuration 1
+> Configuration N
+> Dataset A
+> Dataset B
+> Dataset past usage
+> Components
+> 748 40.78 750 40.75
+> Meta-feature vectors
+> Dataset A Dataset B
+> F1 F2 F3 F1 F2 F3
+> F1: # instances
+> F2: # features
+> F3: class entropy
+> Similarity calculation
+> (existing)
+> Similarity calculation
+> (proposed)
+> Embedding vectors
+> 0.89 0.81 0.02
+> 0.91 0.23 0.45
+> Dataset A
+> Dataset B
+> Knowledge
+> graph
+
+Fig. 1. Comparison of the information leveraged by our proposed approach (green) ver-sus existing approaches (orange) for representing datasets in meta-learning. For a pair of datasets, A and B, existing approaches represent datasets using only intrinsic meta-feature vectors (top-right). Our proposed approach also includes past pipeline config-urations metadata (top left) as additional context into a KG, to represent datasets. 
+
+To evaluate our approach, we created a large-scale performance benchmark, namely MetaExe-Bench , comprising 144,177 scikit-learn pipeline evaluations. To our knowledge, this is the first of its kind in terms of scale for existing OpenML datasets and pipelines, providing evaluation coverage for 2,616 end-to-end classi-fication and regression pipeline configurations by executing them sparsely across 170 datasets. First, we evaluated our proposed pipeline-agnostic meta-model for 
+
+PPE against commonly used specialized models across different prediction met-rics for both unseen datasets and pipeline configurations. Second, we compared our approach’s DPSE by measuring distances between learned embeddings to baselines. Results demonstrate that KGmetaSP enables accurate PPE , allow-ing a single meta-model to jointly learn to predict the performance of multiple pipeline configurations, and leads to performance improvements in DPSE . Our contributions are summarized as follows: (a) We present KGmetaSP : a novel approach for assessing PPE and DPSE using KGEs. It combines OpenML datasets with past pipeline configurations into a KG, from which embeddings are produced for use in downstream meta-learning tasks. To our knowledge, this is the first investigation of KGEs for meta-learning tasks. Our method enables accurate PPE with a single meta-model and shows performance improvements in DPSE .(b) We create a unified KG, MetaExe-KG , comprising 2,616 ExeKGs derived from OpenML experiments on 170 datasets, covering classification and regres-sion tasks. It integrates ExeKGs [46] with MLSea-KG [11] to include dataset meta-features, links between datasets and pipeline configurations, and detailed structural representations of pipeline configurations. (c) We propose a large meta-learning benchmark, MetaExe-Bench , comprising 144,177 performance evaluations for 2,616 OpenML scikit-learn pipeline config-urations across 170 datasets. 4 A. Klironomos and I. Dasoulas et al. 
+
+## 2 Related work 
+
+In this section we review relevant work for PPE and DPSE . We also review the use of KGs in ML knowledge representation. 
+
+Pipeline Performance Estimation ( PPE ). Predicting a pipeline’s perfor-mance for a target dataset is a core meta-learning task [23]. Conventional ap-proaches use the dataset’s meta-features as inputs for predictive meta-models, training on historical evaluations [7]. A common strategy involves training a distinct meta-model for each available pipeline configuration, predicting per-formance for unseen datasets [3]. While effective for warm-starting optimiza-tion [30], these methods cannot generalize to pipeline configurations unseen dur-ing training since they do not encode pipelines numerically. Pipeline embedding techniques such as DeepPipe [33] mitigate this issue by modeling pipeline struc-ture, but do not account for historical pipeline usage or dataset representations. Our method jointly models datasets and pipelines, allowing PPE both for unseen datasets and pipelines. 
+
+Dataset Performance-based Similarity Estimation ( DPSE ). Identifying performance-similar datasets is a critical component of many meta-learning ap-plications [41]. Feurer et al. [13] define dataset similarity based on how different pipeline configurations perform on them. Prior work has proposed methods based on dataset meta-features [8,19]. These can be simple ( i.e. , descriptive measures such as number of instances), information-theoretic ( i.e. , measures that quan-tify variable uncertainty and dependence) [26], statistical ( i.e. , measures that characterize the distribution of variables using moments and dispersion) [26], and landmarkers ( i.e. , measures derived by applying ML models on datasets and documenting their performance) [2]. Other works learn meta-features by training neural networks on representations of entire datasets [18,20] based on a specific learning objective, generating task-specific meta-features. However, solely focus-ing on dataset representation overlooks valuable past experiment data. While landmarkers incorporate limited pipeline information, they require datasets to be evaluated on identical pipeline configurations to be comparable. Representing pipelines in the latent space allows KGmetaSP to compare datasets even when evaluated with different pipeline configurations. 
+
+Performance Benchmarks. Various large-scale benchmarking efforts have been made to compare pipeline performance. PMLB [29] suite provides 165 clas-sification datasets sourced from repositories like UCI and KEEL and applies 13 models. AMLB [15] offers a benchmark with 9 AutoML frameworks on 71 clas-sification and 33 regression datasets, mostly from OpenML. Similarly, Alcobaça et al. [1] provides meta-knowledge from pipeline configuration variations across 211 datasets retrieved from OpenML. Still, these benchmarks rely on synthetic pipeline variations or evaluate only a limited subset of pipelines per dataset. Our goal is to assess predictive performance using the pipeline configurations already available on the web, specifically, the scikit-learn pipelines recorded in OpenML, providing cross-dataset evaluations. Integrating Meta-Features with Knowledge Graph Embeddings 5
+
+Ontologies and Graphs for ML Knowledge Representation. Several works use KGs to organize ML resources. HuggingKG [9] builds a KG of Hug-ging Face models and datasets. MLTaskKG [24] constructs a KG of AI tasks and models with and their library implementations. DCAT [25] provides a vo-cabulary for dataset metadata, while ML-Schema [35] and MLSO [11] extend this into the ML domain by describing datasets, tasks, and pipelines. MLSea-KG [11] leverages MLSO to represent dataset metadata and associated pipelines, but does not model pipelines at the level of components. To standardize ML pipeline representation, ExeKGs [46,21], capture the internal structure and data flow of ML pipelines, representing individual components and hyper-parameters. Our MetaExe-KG is built upon the integration of MLSea-KG and ExeKGs to combine detailed ML dataset and pipeline representations. 
+
+Knowledge Graph Embeddings. KGEs learn low-dimensional vectors of nodes and relations in a KG for tasks, such as link prediction and node clas-sification. KGE models are categorized as triple score-based, deep learning ( e.g. ,GNNs), and walk-based. Triple score-based methods use a scoring function [4], deep learning-based methods use neural networks [40], and walk-based meth-ods generate node/relation sequences to learn vectors [38]. Score-based methods struggle with scalability and complex KGs [45] while GNNs are computation-ally costly and assume homogeneous graphs [43]. Walk-based methods, such as RDF2Vec [38], have been found to be more suitable for real-world sparse KGs [39]. MKGA [34] extends RDF2Vec to include numeric literals by binning them. Yet, KGEs’ usage for downstream meta-learning tasks remains unexplored. 
+
+## 3 Problem Description 
+
+Context. Let D be a set of datasets, where each dataset d ∈ D is characterized by a set of meta-features Cd (e.g. , number of instances). Let P be a set of ML pipeline configurations, where each pipeline configuration p ∈ P has been trained and evaluated on at least one dataset d ∈ D and has a set of characteristics Cp
+
+(e.g. , preprocessing steps, predictive models, hyper-parameters). Each pipeline configuration pj ∈ P evaluated on a dataset di ∈ D produces a performance value vi,j .
+
+Goal. To constrain the pipeline search space in meta-learning, we consider PPE 
+
+and DPSE . PPE : for a target pair ( di, p j ), the goal is to predict the performance value, denoted as vi,j , that pipeline pj achieves on dataset di. DPSE : for a target dataset di ∈ D , the goal is to find a dataset dj ∈ D (j̸ = i) that exhibits the most similar performance profile across pipeline configurations p ∈ P . For a dataset di, its performance profile is the vector of recorded performance values across the pipeline configurations evaluated on it. Formally, let Pi = {p ∈ P | 
+
+p was evaluated on di}; the performance profile is Vi = [ vi, 1, v i, 2, . . . , v i, |Pi| ],where vi,j is the performance of pipeline pj on di.
+
+Formalization. We formalize our two tasks. For PPE , we define a meta-model 
+
+f that maps the characteristics of a dataset di (Cdi ) and a pipeline pj (Cpj ) to 6 A. Klironomos and I. Dasoulas et al. Datasets   
+
+> Pipeline
+> Configurations
+> Pipeline
+> Executions
+> ExeKG Construction
+> MLSeaKG Import
+> KG Integration
+> Node Embedding
+> Aggregation
+> Dataset Performance-based
+> Similarity Estimation
+> Pipeline Performance
+> Estimation
+> Data Source KG Construction Downstream
+> Meta-learning Tasks
+> KG Embedding
+> & Aggregation
+> Atomic Pipeline
+> Filtering
+
+Fig. 2. KGmetaSP overview. 
+
+a predicted performance value ˆvi,j , such that it closely approximates the true value vi,j : ˆvi,j = f (Cdi , C pj ). For DPSE , we define a function sim (di, d j ) that computes the similarity between two datasets di, d j based on Cd and Cp. The retrieval problem is to find the dataset d∗ 
+
+> j
+
+that maximises this function for a target dataset di: d∗ 
+
+> j
+
+= argmax   
+
+> dj∈D ,j ̸=i
+
+sim (di, d j ).
+
+## 4 Knowledge Graph Embeddings for Meta-Learning 
+
+We propose KGmetaSP , a novel meta-learning approach based on knoweledge graph embeddings (KGEs) (Fig. 2). KGEs offer a principled way to model sim-ilarity by encoding the relational topology among datasets, pipelines and their components in KGs. By embedding this structure into a continuous space, KGEs place entities close together when they share similar relational contexts. We start by constructing a unified KG, MetaExe-KG , that integrates both dataset-level and pipeline-level information. To this end, we combine MLSea-KG [11], which captures semantic and statistical properties of ML datasets, with ExeKGs we construct from OpenML experiments, which model the structure, components, and hyper-parameters of pipeline configurations. We then embed MetaExe-KG to jointly represent datasets and pipelines in the latent space for downstream tasks, namely PPE and DPSE . Finally, we use pipeline embeddings to train pipeline-agnostic meta-models for PPE and apply cosine similarity to dataset embeddings for DPSE . Implementation details and computational cost analysis is provided in the Appendix. We make our 
+
+KGmetaSP available, along with code to generate the MetaExe-KG 7.
+
+4.1 MetaExe-KG : A Knowledge Graph of Datasets And Pipelines 
+
+To support our approach, we require a KG that captures both rich dataset metadata and the structural details of ML pipeline configurations. MLSO, used in MLSea-KG [11], provides a detailed description of dataset characteristics, including metadata and meta-features. However, MLSO lacks a representation of pipeline internals such as operators, components, and hyper-parameters. To fill this gap, we align MLSea-KG with the ontology of ExeKGs [46], which offers a modular description of ML pipeline configurations. The resulting unified data model of our MetaExe-KG is shown in Fig. 4.  
+
+> 7
+
+https://github.com/dtai-kg/KGmetaSP Integrating Meta-Features with Knowledge Graph Embeddings 7
+
+Our data model is applied to datasets and pipeline configurations we fetch from OpenML. Specifically, we leverage the OpenML API 8 to fetch a set of OpenML datasets D. For each dataset di ∈ D , we retrieve the top 10 pipeline con-figurations for each pipeline that has been trained and evaluated on di. Selecting the top configurations reduces noise from poorly performing runs, keeps the KG compact, and preserves the most informative historical performance patterns, improving embedding quality. We focus on scikit-learn pipelines to maintain a consistent representation across pipeline components and hyper-parameters. To ensure that the curated pipeline configurations can be executed end-to-end for their target dataset, we created a pipeline filtering module (Fig. 2), to verify recorded OpenML evaluations and filter out pipeline configurations that are not atomic ( i.e. , require additional preprocessing to be applied to the target dataset). We then apply MLSO and ExeKGs ’ ontology to model datasets and pipeline configurations, including all their discrete steps and hyper-parameters as seen in Fig. 3. This approach results in linking each dataset with its top-performing pipeline configurations recorded in OpenML. For each OpenML dataset, its features and target variable are mapped to the corresponding ExeKG semantic representations (Fig. 3). For each associated pipeline configuration, we parse each step of their pipeline and the correspond-ing hyper-parameters. We create an ExeKG DataEntity node for each dataset variable, an ExeKG Task node for each pipeline step ( e.g. , data splitting, data transformation, model training and testing) and an ExeKG Method node that implements the ExeKG Task . This results in an independent ExeKG graph for each pipeline configuration we mine. The pipeline configuration graphs are further enriched by aligning them with MLSea-KG , which provides granular metadata for OpenML datasets, such as dataset descriptions, keywords and meta-features. This integration creates a unified knowledge representation that combines execution-level details with rich dataset characterization, resulting in MetaExe-KG . Currently, MetaExe-KG includes 170 OpenML datasets and 2,616 OpenML (classification and re-gression) pipeline configurations, with an average of 15 steps per pipeline. In total, MetaExe-KG contains approximately 4.5 million triples. 
+
+4.2 KGmetaSP : Knowledge Graph Embeddings for Meta-Learning 
+
+After constructing MetaExe-KG , we embed its nodes into a continuous vector space using RDF2Vec [38] with MKGA [34] for binning numeric attributes. We produce a single vector representation for each pipeline configuration and each dataset by aggregating the embeddings of their related nodes, exploring three aggregation strategies for datasets. The learned embeddings are used for PPE 
+
+and DPSE as explained in the remainder of the section. 
+
+Embedding Aggregation. For each dataset, we aggregate node embeddings 
+
+E to create two representations (1, 2) based on different node types and a third,  
+
+> 8https://www.openml.org/apis
+
+8 A. Klironomos and I. Dasoulas et al. method            
+
+> DataSplitting PerformanceCalc. Test
+> method
+> TrainLabel
+> TrainedModel
+> input input output output
+> input
+> TrainFeatures
+> TrainLabel
+> TestFeatures
+> TestLabel
+> output input
+> TestLabel
+> output
+> Metric Score
+> Test
+> method
+> Concatenation StratifiedKFold RandomForest
+> TestPredictions
+> DataEntity
+> Legend
+> relation Method
+> Task
+> BinaryClassification
+> next
+> DataConcatenation
+> input output
+> Feature 1
+> Concat. data
+> output
+> method
+> F1 score
+> method
+> DataProcessing
+> Feature N
+> input
+> Label
+> method
+> SimpleImputer
+> next next next next
+> Transf. TrainFeat.
+> Transf. TestFeat.
+> Concat. Axis
+> parameter
+> 0
+> value
+> K
+> parameter
+> 10
+> value
+> Missing Values
+> 0
+> value
+> parameter
+> Criterion
+> "gini"
+> value
+> parameter
+> Parameter
+> Value
+
+Fig. 3. ML pipeline configuration example represented as an ExeKG .
+
+composite representation (3) (Fig. 5): (1) DE var , by averaging DataEntity 
+
+node embeddings, which represent dataset variables; (2) DE pip , by averaging 
+
+Method node embeddings comprising the associated pipeline configurations; and (3) DE comb , by averaging DE var and DE pip . These two node types were chosen because they capture the main factors known to drive performance behaviour: the dataset’s intrinsic properties, reflected at the variable level [5,19], and its empirical interaction with modeling components, reflected at the method level [13,22]. In contrast, Hyper-parameter nodes capture execution-specific settings, and Task nodes describe only data-flow stages. They do not convey the actual operation applied to the data, which is defined at the method level together with linked hyper-parameters. DE comb combines the two complementary per-spectives, a common method for computing meta-embeddings [10]. We define: 
+
+DE var (Di) = 1
+
+f
+
+> f
+
+X
+
+> j=1
+
+E(de j ), PE (Pl) = 1
+
+slslX
+
+> k=1
+
+E(Mlk ),
+
+DE pip (Di) = 1
+
+p
+
+> p
+
+X
+
+> l=1
+
+PE (Pl), DE comb (Di) = 12 (DE var (Di) + DE pip (Di)) 
+
+where E(de j ) is the embedding of the j-th DataEntity node for dataset Di;
+
+f is the number of DataEntity nodes for Di; E(Mlk ) is the embedding of the 
+
+k-th Method node, in the l-th pipeline configuration associated with Di; sl is the number of Method nodes in the l-th pipeline configuration associated with Di,and; p is the number of pipeline configurations associated with Di.
+
+PPE and DPSE leveraging KGEs. For PPE , we use pipeline configuration embeddings ( PE (Pl)) to train pipeline-agnostic meta-models, which are not tied to a specific pipeline configuration, by combining them with dataset metafeatures (Fig. 7). For DPSE , we approximate dataset similarity of two datasets D1 and 
+
+D2 through the cosine similarity of their embeddings, DE (1)  
+
+> ∗
+
+and DE (2)  
+
+> ∗
+
+, where 
+
+∗ indicates the aggregation strategy ( DE var , DE pip , or DE comb ). Integrating Meta-Features with Knowledge Graph Embeddings 9Dataset  
+
+> Tag
+> keyword
+> feature
+> Feature
+> Name
+> name
+> Name
+> name
+> Name
+> Description
+> Description
+> quality
+> Feature Quality
+> Value
+> Dataset Quality
+> Name
+> Value
+> target feature
+> DataEntity
+> source
+> Source
+> MLSeaKG
+> ExeKG
+> Task
+> Method
+> method
+> input
+> next
+> param Parameter Module module
+> sameAs
+
+Fig. 4. High-level view of MetaExe-KG .Variable embedding       
+
+> Pipeline configuration embedding
+> Legend
+> Average
+> 2nd method of 1st pip. config.
+> 1st pip. config.
+> 1st data entity of D
+
+Fig. 5. Embedding aggregation process. 
+
+## 5 Experiments 
+
+We evaluate our approach for PPE and DPSE . To this end, we construct 
+
+MetaExe-Bench a ground-truth benchmark, obtained by executing MetaExe-KG 
+
+pipeline configurations across MetaExe-KG datasets, thus providing real perfor-mance values for training meta-models and comparing similarity estimates. 
+
+5.1 Experimental Setup Data Source and MetaExe-Bench . Table 1 summarizes the statistics of our data source with and without integrating MLSea-KG , allowing us to assess the impact of semantic enrichment. To avoid leakage, we remove performance val-ues, curated from OpenML, from MetaExe-KG before generating embeddings. Including them might lead the embedding model to encode performance infor-mation directly to the embeddings, instead of capturing the structural patterns. To evaluate our approach, we created MetaExe-Bench : a large-scale simula-tion benchmark obtained by sparsely training and evaluating the 2,616 MetaExe-KG pipeline configurations across the 170 MetaExe-KG datasets. To achieve this, we mapped OpenML pipeline components and hyper-parameter metadata to scikit-learn Pipeline objects. Due to inconsistencies between different scikit-learn versions of OpenML pipelines, we mapped deprecated parameters and out-dated components of older configurations to the modern scikit-learn v1.5.1. The sparse simulation produced 144,177 distinct experiments of existing OpenML datasets and pipeline configurations. For each dataset di ∈ D, we train and evaluate a set of pipeline configurations 
+
+P compatible with its ML goal ( e.g. , classification). If pj cannot be used to fit 
+
+di, the experiment is deemed as invalid and Vi,j is assigned the worst possible value, depending on the performance metric. In addition, we measure fit time and penalize pipeline configurations that exhibit long execution times compared to their original execution, by deeming them invalid. For this version of the benchmark, we deem pipeline configuration that require at least 10 times the execution time of the original execution as invalid. For PPE , we use the performance metric obtained when a dataset is eval-uated with a pipeline configuration as the ground-truth target for prediction. 10 A. Klironomos and I. Dasoulas et al. 
+
+Table 1. MetaExe-KG statistics. 
+
+Entities Properties Triples Attributes Literals 
+
+ExeKGs 1,502,140 293 4,492,036 149 371,534 
+
+ExeKGs +MLSea 1,514,836 317 4,522,216 155 385,246 0.76  0.82  0.63  0.95 Dataset A          
+
+> Dataset B
+> Dataset C
+> Pipeline 1
+> Pipeline N
+> Configuration
+> Configuration
+> Configuration
+> Configuration
+> 0.88 0.83 0.64 0.82
+> 0.75 0.81 0.64 0.94
+> Dataset A Dataset B
+> Dataset C
+> Performance vectors Performance vector space
+> Closest
+> i.e. high similarity Farthest
+> i.e. low similarity
+
+Fig. 6. Overview of MetaExe-Bench constructed by sparsely training and evaluating 
+
+MetaExe-KG datasets with MetaExe-KG pipeline configurations. Resulting perfor-mance values are used to assess the ground truth performance-based similarity between datasets and train PPE meta-models. 
+
+For DPSE , we derive the ground-truth similarity between two datasets from their performance profiles across the pipeline configurations on which both were trained and evaluated (Fig. 6). We compute the cosine similarity of their perfor-mance vectors [22], and use it as the performance-based similarity reference. 
+
+MetaExe-Bench is open-sourced and available for the ML community: https: //github.com/dtai-kg/KGmetaSP .
+
+Pipeline Performance Estimation ( PPE ) Evaluation. We evaluate KG-metaSP ’s ability on PPE , using its embeddings as input to a single, pipeline-agnostic meta-model that predicts performance for any dataset - pipeline con-figuration pair. While our KGmetaSP supports any predictive meta-model, for our experiments we adopt random forest predictors, a standard choice in meta-learning [7]. We focus on pipeline configurations solving classification tasks and use the accuracy and precision values from MetaExe-Bench as the targets to be predicted (meta-targets). We assess the performance of KGmetaSP in predict-ing the raw meta-targets (meta-regression) and classifying them in bins (meta-classification). For meta-classification, meta-targets are binned into three pro-portional intervals (low, medium, and high performance) using a quantile-based approach, ensuring an even distribution of samples across the bins. We evaluate PPE for unseen datasets and unseen pipeline configurations. For 
+
+unseen datasets , the goal is to predict the performance of pipeline configura-tions on datasets not observed during training. We consider pipeline configura-tions that appear in at least 50 training samples ( i.e. , dataset - pipeline pairs), totaling 123,920 samples from MetaExe-Bench across 1,028 pipeline configura-tions. We compare our pipeline-agnostic meta-model which takes as input the concatenation of dataset meta-features and KGmetaSP ’s pipeline configuration Integrating Meta-Features with Knowledge Graph Embeddings 11 a) Pipeline configuration-specific meta-models 
+
+> Meta-Model A
+> for Pip. Config. j
+> Predicted
+> Perf.
+> Value
+> b) Pipeline configuration-agnostic meta-model
+> Meta-Model
+> Predicted
+> Perf.
+> Value
+
+# + 
+
+> Meta-Model B
+> for Pip. Config. m
+> Predicted
+> Perf.
+> Value
+> Dataset
+> Representation Dataset
+> Representation
+> Pip. Conf. j
+> Representation
+> di
+> Dataset
+> Representation
+> Pip. Conf. m
+> Representation
+> Predicted
+> Perf.
+> Value
+
+# + Meta-Model     
+
+> Dataset
+> Representation
+> difj(C di
+> )v(i,j)
+> difm(C di
+> )v(i,m)
+> di
+> pm
+> pj
+> f(C di
+> ,Cpm
+> )
+> f(C di
+> ,Cpj
+> )
+> v(i,j)
+> v(i,m)
+
+Fig. 7. High-level depiction of PPE meta-models. a) Common approach: Pipeline configuration-specific meta-models predict the performance of a pipeline-configuration for a dataset given a dataset’s representation. b) Our approach: A single common pipeline configuration-agnostic meta-model predicts the performance of a pipeline con-figuration for a dataset given the dataset’s and pipeline configuration’s representations. 
+
+embeddings against 1,028 pipeline configuration-specific meta-models trained on dataset meta-features (Fig. 7). We evaluate different types of meta-features (MF), to test our meta-model’s robustness: 
+
+– MF All: A complete set combining simple, statistical, information-theoretic, and landmarker meta-features. 
+
+– MF Statistical: Meta-features derived from the dataset’s statistical proper-ties, including measures of central tendency or dispersion [26]. 
+
+– MF Information Theory: Meta-features derived from information theory concepts like entropy or mutual information [26]. 
+
+– MF Landmarkers: Meta-features based on the performance of simple ML models (landmarkers) like Decision Tree or Naive Bayes on the dataset [2]. For unseen pipeline configurations , the goal is to predict the performance of pipeline configurations not encountered during training, a scenario where configuration-specific meta-models cannot generalize, since they are trained to make predictions for a single pipeline configuration (Fig. 7). We compare against two baselines that are both generalizable and pipeline-agnostic. “Average perfor-mance” is a naive constant predictor that predicts the average performance across all training samples. “Closest embedding” is a stronger retrieval-based heuristic that uses the nearest observed pipeline in the embedding space. These baselines bracket the task’s difficulty, ranging from ignoring all pipeline information to relying only on local similarity. Together, they provide a meaningful reference point for assessing KGmetaSP ’s ability to generalize. 
+
+Dataset Performance-based Similarity Estimation (DPSE ) Evalua-tion. We evaluate KGmetaSP ’s effectiveness in DPSE . First, we compute the ground-truth similarity for each dataset pair using MetaExe-Bench , based on the cosine similarity of their performance profiles. We then compare the re-trieval and ranking ability of our method against this ground truth using the 
+
+Hit @K and N DCG @K metrics. For Hit @K, a hit is recorded when a dataset whose ground-truth similarity with the query dataset exceeds 0.9 appears among 12 A. Klironomos and I. Dasoulas et al. 
+
+the top-K retrieved datasets. For comparison, we employ the below non-KGE baseline methods for DPSE from literature. 
+
+– Graph Edit Distance (GED). We use GED [36] to measure similarity be-tween two datasets ( d1, d2) via the structural similarity of their pipeline config-urations ( P1, P2): Sim GED (d1, d 2) = − 1
+
+> |P1|·| P2|
+
+P
+
+> pi∈P1
+
+P  
+
+> pj∈P2
+
+GED (pi, p j ).
+
+– Meta-feature P-Norm Distance Ranking (MF). We adopt past works based on meta-feature distance [13]. We employ the same set of meta-features as in MLSea-KG , and test with and without meta-feature normalization. The similarity between datasets, d1 and d2, is calculated from the p-norm of their meta-feature vectors, m1 and m2: Sim M F (d1, d 2) = −|| m1 − m2|| p.
+
+– Single-field Document Ranking: Dataset Meta-features (SiFi-Dat.). 
+
+The effectiveness of representing and ranking tables as documents has been shown in past works [6,44]. We investigate this in the context of DPSE , rep-resenting OpenML dataset metadata, such as title, description, and variable names as a single document and leveraging pre-trained bi-encoder language model embeddings with cosine similarity for ranking [37]. 
+
+– Single-field Document Ranking: Pipeline Description (SiFi-Pip.). 
+
+We represent OpenML descriptions of top-performing pipeline configurations per dataset as a single document. Documents are ranked with pre-trained bi-encoder language model embeddings leveraging cosine similarity [37]. 
+
+– Multi-field Document Ranking (MuFi-Dat.). We represent each dataset as a fielded document [32,44] using metadata fields: title, description, variable names, and tags. We use the mixture of language models [28] approach, em-pirically setting field weights and rank embeddings using cosine similarity. 
+
+5.2 Evaluation Results Evaluation Results for PPE . For the unseen datasets scenario (Table 2), in the meta-regression task, while configuration-specific meta-models show gen-erally lower MSE and higher R2, our meta-model maintains comparable per-formance. Notably, for the more practical task of meta-classification, our meta-model shows a distinct advantage, consistently outperforming the average of 1,028 specialized models across all dataset meta-feature types (MF) ( e.g. , up to 0.7537 accuracy for “MF All”). This suggests that while our KGmetaSP is less precise for point-value prediction, its strength lies in correctly ranking and identifying high-performing pipeline configurations, which is often the primary goal in meta-learning. This is achieved with a single meta-model, offering sig-nificant efficiency gains over training and maintaining hundreds of specialized meta-models. The pipeline embeddings’ contribution is maintained for all tested dataset representations, showcasing the robustness of our approach. In PPE for 
+
+unseen pipeline configurations , our meta-model significantly outperforms both “Average performance” and “Closest embedding” baselines (Table 3). These results highlight the strong generalization capabilities of our approach, enabling reliable PPE even for pipeline structures not seen during meta-model training. Integrating Meta-Features with Knowledge Graph Embeddings 13 
+
+Table 2. PPE meta-regression and meta-classification for unseen datasets. We com-pare a single, configuration-agnostic model trained on meta-features and KGmetaSP 
+
+embeddings against an average evaluation of 1,028 configuration-specific specialized models trained on meta-features. Meta-regression targets are raw performance values. Meta-classification targets are binned into 3 classes (low, medium, high). The highest score per metric is underlined; the best score per dataset embedding group is bold. 
+
+Dataset Pipeline Meta- Meta-Regr. Meta-Classif. Embedding Strategy Models MSE R2 Accuracy F1 Target: Accuracy 
+
+MF All Conf.-specific 1,028 0.0081 0.6748 0.7363 0.7358 
+
+KGmetaSP P E 1 0.0101 0.6181 0.7413 0.7427 
+
+MF Info. Theory [26] Conf.-specific 1,028 0.0249 -0.0737 0.4428 0.4423 
+
+KGmetaSP P E 1 0.0401 -0.5135 0.4773 0.4789 
+
+MF Landmarkers [2] Conf.-specific 1,028 0.0092 0.6428 0.7152 0.7139 
+
+KGmetaSP P E 1 0.0104 0.6094 0.7169 0.7172 
+
+MF Statistical [26] Conf.-specific 1,028 0.0218 0.0892 0.5499 0.5484 
+
+KGmetaSP P E 1 0.0259 0.0212 0.5827 0.5830 Target: Precision 
+
+MF All Conf.-specific 1,028 0.0133 0.6311 0.7347 0.7400 
+
+KGmetaSP P E 1 0.0164 0.5449 0.7537 0.7562 
+
+MF Info. Theory [26] Conf.-specific 1,028 0.0330 -0.0933 0.4324 0.4350 
+
+KGmetaSP P E 1 0.0506 -0.4059 0.4961 0.5007 
+
+MF Landmarkers [2] Conf.-specific 1,028 0.0148 0.6069 0.6987 0.7006 
+
+KGmetaSP P E 1 0.0184 0.4889 0.7247 0.7269 
+
+MF Statistical [26] Conf.-specific 1,028 0.0274 0.1221 0.5490 0.5487 
+
+KGmetaSP P E 1 0.0346 0.0381 0.5897 0.5896 
+
+Evaluation Results for DPSE . Tables 4 and 5 show the aggregation strategies of KGmetaSP yield strong retrieval performance. The combined strategy ( KG-metaSP DE comb ) achieves the best Hit@1 (tied with SF-Dataset), Hit@2 (0.8986), Hit@5 (0.9459), and average Hit (0.8806), indicating that jointly leveraging vari-able and pipeline context is most effective for top-k retrieval. The pipeline-based strategy ( KGmetaSP DE pip ) attains the highest NDCG@1 (0.8811) and the second-best average NDCG (0.8665), while the variable-based one ( KG-metaSP DE var ) remains competitive, e.g. , the second-highest Hit@5 (0.9324). Among non-KGE baselines, SF-Dat. is strongest leveraging pre-trained lan-guage models, particularly on NDCG metrics, indicating textual metadata from OpenML provide useful information for DPSE .
+
+Ablation Study: MLSea-KG Integration Impact. To measure the effect of semantic enrichment through MLSea-KG , we conducted an ablation study com-paring models trained with and without MLSea-KG integration across PPE and 
+
+DPSE . For PPE , in the unseen dataset scenario (Table 6), meta-classification 14 A. Klironomos and I. Dasoulas et al. 
+
+Table 3. PPE meta-regression and meta-classification for unseen pipeline configu-rations. Meta-Regression targets are the raw performance values. Meta-classification targets are binned into 3 classes (low, medium, high). The best scores are in bold. 
+
+Method Meta-Regression Meta-Classification MSE R2 Accuracy F1 Target: Accuracy 
+
+Average performance 0.0267 -0.0005 0.3303 0.1640 Closest embedding 0.0127 0.5241 0.7748 0.7747 
+
+MF All + KGmetaSP P E 0.0070 0.7361 0.8250 0.8244 Target: Precision 
+
+Average performance 0.0352 -0.0012 0.3323 0.1658 Closest embedding 0.0225 0.3607 0.7773 0.7771 
+
+MF All + KGmetaSP P E 0.0131 0.6264 0.8251 0.8247 Table 4. Hit@k of similarity measures according to performance-based ground truth. A hit is recorded when a dataset retrieved within the top-k has a ground-truth similarity with the query dataset greater than a similarity threshold ( ST ). Results are reported for ST = 0 .8 and ST = 0 .9. The highest score per metric is in bold and the second highest is underlined. 
+
+Hit@k (ST =0.8) Hit@k (ST =0.9) 
+
+Method k=1 k=2 k=5 Avg. k=1 k=2 k=5 Avg. 
+
+GED [36] 0.5743 0.8243 0.9054 0.7680 0.4527 0.7432 0.8514 0.6824 MF [13] 0.6892 0.8243 0.8851 0.7996 0.6622 0.8041 0.8716 0.7793 MF Norm. [13] 0.6892 0.8851 0.9324 0.8356 0.7905 0.8446 0.9122 0.8491 SiFi-Dat. [6,44] 0.8514 0.8851 0.9054 0.8806 0.7973 0.8649 0.8919 0.8514 SiFi-Pip. [6,44] 0.6351 0.8176 0.9527 0.8018 0.6216 0.7568 0.9324 0.7703 MuFi-Dat. [32,44] 0.7905 0.8851 0.8987 0.8581 0.7635 0.8378 0.8784 0.8266 
+
+KGmetaSP DE var 0.7973 0.8716 0.9324 0.8671 0.7365 0.8581 0.9324 0.8423 
+
+KGmetaSP DE pip 0.8581 0.9122 0.9460 0.8671 0.7905 0.8649 0.9257 0.8604 
+
+KGmetaSP DE comb 0.8176 0.9122 0.9662 0.8987 0.7973 0.8986 0.9459 0.8806 
+
+performance shows mixed effects: for accuracy prediction, MLSea-KG increases accuracy (0.7413 vs. 0.7302) and F1 (0.7427 vs. 0.7320), whereas for precision prediction, the non-MLSea-KG variant performs slightly better. Meta-regression results consistently favor MLSea-KG . In the unseen pipeline configuration 
+
+scenario (Table 7), MLSea-KG yields uniform improvements across all meta-classification evaluations, with gains of up to 0.0035 in accuracy and 0.0036 in F1. Meta-regression results show similar patterns: MLSea-KG reduces MSE by 0.0004 for both meta-targets, and increases R 2 by 0.0115 and 0.0101 respec-tively. For DPSE , we selected the best-performing configuration for each condi-tion based on NDCG@5. As shown in Table 8, integrating MLSea-KG improves Hit@1 from 0.7432 to 0.7905 and NDCG@1 from 0.8551 to 0.8811, indicating stronger retrieval of the most similar datasets. Without MLSea-KG , performance is slightly higher for Hit@5 and NDCG@5, suggesting that MLSea-KG primarily Integrating Meta-Features with Knowledge Graph Embeddings 15 
+
+Table 5. NDCG@k of similarity measures according to performance-based ground truth. The highest score per metric is in bold and the second highest is underlined. 
+
+NDCG@k Method k=1 k=2 k=5 Avg. 
+
+GED [36] 0.5684 0.6308 0.6847 0.6280 MF [13] 0.6939 0.6874 0.7016 0.6943 MF Norm. [13] 0.8561 0.8418 0.8358 0.8446 SiFi-Dat. [6,44] 0.8753 0.8768 0.8693 0.8738 
+
+SiFi-Pip. [6,44] 0.8255 0.8073 0.8248 0.8192 MuFi-Dat. [32,44] 0.8229 0.8338 0.8398 0.8322 
+
+KGmetaSP DE var 0.8010 0.8176 0.8136 0.8107 
+
+KGmetaSP DE pip 0.8811 0.8642 0.8541 0.8665 
+
+KGmetaSP DE comb 0.8436 0.8562 0.8388 0.8462 
+
+Table 6. Ablation of MLSea-KG integration for PPE for the unseen datasets. Exper-imental setup follows Table 2. The best score per column is in bold. 
+
+Method MLSea-KG Meta-Regression Meta-Classification MSE R2 Accuracy F1 Target: Accuracy 
+
+MF All + KGmetaSP P E With 0.0101 0.6181 0.7413 0.7427 
+
+MF All + KGmetaSP P E Without 0.0103 0.6114 0.7302 0.7320 
+
+Target: Precision 
+
+MF All + KGmetaSP P E With 0.0164 0.5449 0.7492 0.7516 MF All + KGmetaSP P E Without 0.0167 0.5358 0.7537 0.7562 
+
+strengthens top-rank similarity retrieval. Overall, MLSea-KG -enhanced models outperform their non-enhanced counterparts in 14 out of 16 comparisons for PPE 
+
+and in top rank comparisons for DPSE . MLSea-KG provides clear benefits for 
+
+DPSE at top ranks and consistent improvements for PPE in the unseen pipeline scenario, while offering moderate gains in unseen dataset meta-regression tasks. 
+
+## 6 Conclusion 
+
+In this paper, we presented a novel approach that leverages KGEs for PPE and 
+
+DPSE . Our approach demonstrates robust generalization of PPE with a single meta-model, both for unseen datasets and pipeline configurations and leading performance in DPSE . These results highlight the importance of incorporating pipeline configuration metadata and open experiment data as structured KG context. Our approach is model-agnostic and applies to different dataset modal-ities, pipelines, and meta-learning objectives, opening new directions grounded in structured ML knowledge. While our approach is a first demonstration of the effect of KGEs in meta-learning, its implementation, KGmetaSP , can be furter improved. First, we cur-16 A. Klironomos and I. Dasoulas et al. 
+
+Table 7. Ablation of MLSea-KG integration for PPE for the unseen pipeline configu-rations. Experimental setup follows Table 3. The best score per column is in bold. 
+
+Method MLSea-KG Meta-Regression Meta-Classification MSE R2 Accuracy F1 Target: Accuracy 
+
+MF All + KGmetaSP P E With 0.0070 0.7361 0.8250 0.8244 
+
+MF All + KGmetaSP P E Without 0.0074 0.7246 0.8225 0.8220 
+
+Target: Precision 
+
+MF All + KGmetaSP P E With 0.0131 0.6264 0.8251 0.8247 
+
+MF All + KGmetaSP P E Without 0.0135 0.6163 0.8216 0.8211 
+
+Table 8. Ablation of MLSea-KG integration on DPSE . For Hit@k, datasets with similarity > 0.9 are considered hits. 
+
+Hit@k NDCG@k Method MLSea-KG k=1 k=2 k=5 k=1 k=2 k=5 
+
+KGmetaSP DE pip With 0.7905 0.8649 0.9257 0.8811 0.8642 0.8541 
+
+KGmetaSP DE pip Without 0.7432 0.8649 0.9527 0.8551 0.8606 0.8560 
+
+rently focused only on scikit-learn pipelines from OpenML to maintain a consis-tent representation of pipeline components. Still, KGmetaSP can be extended for other ML libraries or platforms, by mapping their pipeline information to the ExeKG ontology. Second, KGmetaSP embeddings are static, meaning that incorporating new data requires retrofitting or re-embedding of the KG. Notably, RDF2Vec can support incremental updates [16]. In future work, we plan to ex-tend our approach to diverse ML frameworks beyond scikit-learn and investigate methods for dynamic embedding updates in evolving KGs. We also plan to test our approach for end-to-end hyper-parameter optimization. 
+
+Supplemental Material Statement: Source code for KGmetaSP , MetaExe-KG 
+
+generation, MetaExe-Bench , and evaluations is available at: https://github. com/dtai-kg/KGmetaSP .
+
+Use of Generative AI: The authors used generative AI tools (Google Gemini and OpenAI ChatGPT) to help prepare this manuscript. These tools were em-ployed exclusively for language refinement, restructuring of text and figures, and generation of preliminary phrasing suggestions. All conceptual contributions, methodological designs, experiments, analyses, figures, tables, and conclusions were developed solely by the authors. The authors reviewed, edited, and verified all AI-assisted text and take full responsibility for the final paper content. 
+
+Acknowledgments. The work was partially supported by the EU project SMARTY (GA 101140087), as well as Flanders Make (REXPEK project), the strategic research centre for the manufacturing industry and the Flemish Government under the “Onder-zoeksprogramma Artificiële Intelligentie (AI) Vlaanderen” program. Integrating Meta-Features with Knowledge Graph Embeddings 17 
+
+## References 
+
+1. Alcobaça, E., De Carvalho, A.C.P.L.F.: Exploring one million machine learning pipelines: A benchmarking study. In: AutoML 2025 (2025) 2. Bensusan, H., Giraud-Carrier, C.G.: Discovering Task Neighbourhoods Through Landmark Learning Performances. In: ECML-PKDD (2000) 3. Bilalli, B., Abelló, A., Aluja-Banet, T.: On the predictive power of meta-features in OpenML. International Journal of Applied Mathematics and Computer Sci-ence 27 (4), 697–712 (2017). https://doi.org/10.1515/amcs-2017-0048 , https: //doi.org/10.1515/amcs-2017-0048 
+
+4. Bordes, A., Usunier, N., Garcia-Duran, A., Weston, J., Yakhnenko, O.: Translating embeddings for modeling multi-relational data. In: Advances in Neural Information Processing Systems. vol. 26. Curran Associates, Inc. (2013) 5. Brazdil, P., Giraud-Carrier, C., Soares, C., Vilalta, R.: Metalearning: Applications to Data Mining. Springer Publishing Company, Incorporated, 1 edn. (2008) 6. Cafarella, Michael J. and Halevy, Alon and Wang, Daisy Zhe and Wu, Eugene and Zhang, Yang: Webtables: exploring the power of tables on the web. Proc. VLDB Endow. 1(1), 538–549 (Aug 2008) 7. Carneiro, D., Guimarães, M., Carvalho, M., Novais, P.: Using meta-learning to predict performance metrics in machine learning problems. Expert Systems (2021). 
+
+https://doi.org/https://doi.org/10.1111/exsy.12900 
+
+8. Castiello, C., Castellano, G., Fanelli, A.M.: Meta-data: Characterization of In-put Features for Meta-learning. In: Torra, V., Narukawa, Y., Miyamoto, S. (eds.) Modeling Decisions for Artificial Intelligence. pp. 457–468. Springer Berlin Hei-delberg, Berlin, Heidelberg (2005). https://doi.org/https://doi.org/10.1007/ 11526018_45 
+
+9. Chen, Q., Huang, K., Zhou, X., Luo, W., Cui, Y., Cheng, G.: Benchmarking rec-ommendation, classification, and tracing based on hugging face knowledge graph. In: Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval. p. 3433–3443. SIGIR ’25, Association for Computing Machinery, New York, NY, USA (2025). https://doi.org/10.1145/ 3726302.3730277 , https://doi.org/10.1145/3726302.3730277 
+
+10. Coates, J., Bollegala, D.: Frustratingly easy meta-embedding – computing meta-embeddings by averaging source word embeddings. In: Walker, M., Ji, H., Stent, A. (eds.) Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Vol-ume 2 (Short Papers). pp. 194–198. Association for Computational Linguistics, New Orleans, Louisiana (Jun 2018). https://doi.org/10.18653/v1/N18-2031 ,
+
+https://aclanthology.org/N18-2031/ 
+
+11. Dasoulas, I., Yang, D., Dimou, A.: Mlsea: A semantic layer for discoverable machine learning. In: The Semantic Web. pp. 178–198. CSAL, Cham (2024) 12. Drori, I., Krishnamurthy, Y., Rampin, R., DE PAULA LOURENCO, R., Pi-azentin Ono, J., Cho, K., Silva, C., Freire, J.: Alphad3m: Machine learning pipeline synthesis. In: ICML 2018 AutoML Workshop (2021) 13. Feurer, M., Springenberg, J., Hutter, F.: Initializing bayesian hyperparameter optimization via meta-learning. Proceedings of the AAAI Conference on Artifi-cial Intelligence 29 (1) (Feb 2015). https://doi.org/10.1609/aaai.v29i1.9354 ,
+
+https://ojs.aaai.org/index.php/AAAI/article/view/9354 
+
+14. Feurer, M., Springenberg, J.T., Hutter, F.: Using Meta-learning to Initialize Bayesian Optimization of Hyperparameters. In: Proceedings of the 2014 Inter-18 A. Klironomos and I. Dasoulas et al. national Conference on Meta-Learning and Algorithm Selection - Volume 1201. p. 3–10. MLAS’14, CEUR-WS.org, Aachen, DEU (2014) 15. Gijsbers, P., et al.: Amlb: an automl benchmark. Journal of Machine Learning Research 25 , 1–65 (2024) 16. Hahn, S.H., Paulheim, H.: Rdf2vec embeddings for updateable knowledge graphs – reuse, don’t retrain! In: The Semantic Web: ESWC 2024 Satellite Events: Hersonissos, Crete, Greece, May 26–30, 2024, Proceedings, Part I. p. 217–222. Springer-Verlag, Berlin, Heidelberg (2025). https://doi.org/10.1007/ 978-3-031-78952-6_30 , https://doi.org/10.1007/978-3-031-78952-6_30 
+
+17. Hospedales, T., Antoniou, A., Micaelli, P., Storkey, A.: Meta-Learning in Neu-ral Networks: A Survey. IEEE Transactions on Pattern Analysis & Machine In-telligence 44 (09), 5149–5169 (Sep 2022). https://doi.org/10.1109/TPAMI.2021. 3079209 
+
+18. Jomaa, H.S., Schmidt-Thieme, L., Grabocka, J.: Dataset2Vec: learning dataset meta-features. Data Min. Knowl. Discov. 35 (3), 964–985 (2021) 19. Kalousis, A., Hilario, M.: Feature selection for meta-learning. In: Cheung, D., Williams, G.J., Li, Q. (eds.) Advances in Knowledge Discovery and Data Min-ing. pp. 222–233. Springer Berlin Heidelberg, Berlin, Heidelberg (2001). https: //doi.org/https://doi.org/10.1007/3-540-45357-1_26 
+
+20. Kim, J., Kim, S., Choi, S.: Learning to Warm-Start Bayesian Hyperparameter Optimization (2018) 21. Klironomos, A., Zhou, B., Tan, Z., Zheng, Z., Mohamed, G.E., Paulheim, H., Khar-lamov, E.: Exekglib: knowledge graphs-empowered machine learning analytics. In: ESWC. pp. 123–127. Springer (2023) 22. Leite, R., Brazdil, P.: Exploiting Performance-based Similarity between Datasets in Metalearning. In: MetaLearning@AAAI2021. pp. 90–99. PMLR, PMLR (2021) 23. Lemke, C., Budka, M., Gabrys, B.: Metalearning: a survey of trends and technolo-gies. Artificial Intelligence Review DOI: 10.1007/s10462-013-9406-y (06 2013). 
+
+https://doi.org/10.1007/s10462-013-9406-y 
+
+24. Liu, M., Zhao, C., Peng, X., Yu, S., Wang, H., Sha, C.: Task-oriented ml/dl library recommendation based on a knowledge graph. IEEE Trans. Softw. Eng. 49 (8), 4081–4096 (Aug 2023). https://doi.org/10.1109/TSE.2023.3285280 , https:// doi.org/10.1109/TSE.2023.3285280 
+
+25. Maali, F., Erickson, J.: Data Catalog Vocabulary (DCAT). Recommendation, World Wide Web Consortium (W3C) (Jan 2014) 26. Michie, D., Spiegelhalter, D.J., Taylor, C.C., Campbell, J. (eds.): Machine learning, neural and statistical classification. Ellis Horwood, USA (1995) 27. Nickel, M., Murphy, K., Tresp, V., Gabrilovich, E.: A review of relational machine learning for knowledge graphs. Proceedings of the IEEE 104 (1), 11–33 (2016). 
+
+https://doi.org/10.1109/JPROC.2015.2483592 
+
+28. Ogilvie, P., Callan, J.: Combining document representations for known-item search. In: SIGIR03. p. 143–150. SIGIR ’03, Association for Computing Machinery, New York, NY, USA (2003) 29. Olson, R.S., La Cava, W., Orzechowski, P., Urbanowicz, R.J., Moore, J.H.: Pmlb: a large benchmark suite for machine learning evaluation and comparison. BioData mining 10 , 1–13 (2017) 30. Palumbo, G., Guimarães, M., Carneiro, D., Novais, P., Alves, V.: Real-time algorithm recommendation using meta-learning. In: Julián, V., Carneiro, J., Alonso, R.S., Chamoso, P., Novais, P. (eds.) Ambient Intelligence—Software and Integrating Meta-Features with Knowledge Graph Embeddings 19 Applications—13th International Symposium on Ambient Intelligence. pp. 249– 258. Springer International Publishing, Cham (2023). https://doi.org/10.1007/ 978-3-031-22356-3_24 
+
+31. Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., et al.: Scikit-learn: Machine learning in Python. the Journal of machine Learning research 12 , 2825–2830 (2011) 32. Pimplikar, R., Sarawagi, S.: Answering table queries on the web using column keywords. Proc. VLDB Endow. 5(10), 908–919 (Jun 2012) 33. Pineda Arango, S., Grabocka, J.: Deep pipeline embeddings for automl. In: Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining. p. 1907–1919. KDD ’23, Association for Computing Machin-ery, New York, NY, USA (2023). https://doi.org/10.1145/3580305.3599303 ,
+
+https://doi.org/10.1145/3580305.3599303 
+
+34. Preisner, P., Paulheim, H.: Universal preprocessing operators for embedding knowl-edge graphs with literals. arXiv preprint arXiv:2309.03023 (2023) 35. Publio, G.C., Esteves, D., Ławrynowicz, A., Panov, P., Soldatova, L., Soru, T., Vanschoren, J., Zafar, H.: ML-Schema: Exposing the Semantics of Machine Learn-ing with Schemas and Ontologies (Jul 2018) 36. Redyuk, S., Kaoudi, Z., Schelter, S., Markl, V.: Assisted design of data science pipelines. The VLDB Journal pp. 1–25 (2024) 37. Reimers, N., Gurevych, I.: Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In: EMNLP-IJCNLP 2019. pp. 3982–3992. Association for Com-putational Linguistics, Hong Kong, China (Nov 2019) 38. Ristoski, P., Paulheim, H.: Rdf2vec: Rdf graph embeddings for data mining. In: International semantic web conference. pp. 498–514. Springer (2016) 39. Ristoski, P., Rosati, J., Di Noia, T., De Leone, R., Paulheim, H.: Rdf2vec: Rdf graph embeddings and their applications. Semantic Web 10 (4), 721–752 (2019) 40. Schlichtkrull, M., Kipf, T.N., Bloem, P., van den Berg, R., Titov, I., Welling, M.: Modeling relational data with graph convolutional networks. In: European semantic web conference. pp. 593–607. Springer (2018) 41. Stolte, M., Kappenberg, F., Rahnenführer, J., Bommert, A.: Methods for quan-tifying dataset similarity: a review, taxonomy and comparison. Statistics Surveys 
+
+18 (none) (Jan 2024) 42. Vanschoren, J., van Rijn, J.N., Bischl, B., Torgo, L.: Openml: Networked science in machine learning. SIGKDD Expl. 15 (2), 49–60 (2013) 43. Wu, Z., Pan, S., Chen, F., Long, G., Zhang, C., Philip, S.Y.: A comprehensive survey on graph neural networks. IEEE Trans. Neural Netw. 32 (1), 4–24 (2020) 44. Zhang, S., Balog, K.: Ad Hoc Table Retrieval using Semantic Similarity. In: WWW18. p. 1553–1562. WWW ’18, International World Wide Web Conferences Steering Committee, Republic and Canton of Geneva, CHE (2018) 45. Zheng, S., Rao, J., Song, Y., Zhang, J., Xiao, X., Fang, E.F., Yang, Y., Niu, Z.: Pharmkg: a dedicated knowledge graph benchmark for bomedical data mining. Briefings in bioinformatics 22 (4), bbaa344 (2021) 46. Zheng, Z., Zhou, B., Zhou, D., Zheng, X., Cheng, G., Soylu, A., Kharlamov, E.: Executable knowledge graphs for machine learning: a bosch case of welding moni-toring. In: International Semantic Web Conference. pp. 791–809. Springer (2022) 20 A. Klironomos and I. Dasoulas et al. 
+
+## A Implementation Details and Additional Experiments 
+
+A.1 Experimental Configuration Embedding Hyper-parameters. MetaExe-KG is embedded using RDF2Vec 
+
+with gensim Word2Vec and MKGA discretization. We generate 10 walks per entity (length 20) and train Word2Vec for 10 epochs (dim=100, window=5, negative=5, min_count=0). Numeric literals are processed via MKGA strategy 
+
+propConst_LOF_del_numbers . All unspecified parameters use gensim defaults. 
+
+Data Splitting for PPE . We use a 70/30 train-test split (seed=42). Splitting is performed at the dataset level for unseen datasets or at the pipeline configuration level for unseen pipelines, such that all dataset - pipeline pairs associated with a given dataset or pipeline configuration are assigned entirely to either the training or the test split. 
+
+PPE Meta-Models. Random Forests (scikit-learn) are used for meta-regression and meta-classification. Hyper-parameters are selected via 10-fold CV on the training set. Grid search space: n_estimators ∈ [50-200] (clf), [20-200] (regr); max_depth ∈ {10,20,None}; min_samples_split ∈ {2,5,10}. Other parameters use defaults (seed=42). 
+
+A.2 Analysis of Computational Cost Runtime. Experiments ran on an AMD EPYC-7643 CPU. MetaExe-KG con-struction (2,616 ExeKGs , ∼4.5M triples) requires ∼7.5h using 10 cores. RDF2Vec 
+
+training requires ∼24h (10-core parallel walk generation). Since a single embed-ding model serves all datasets and pipelines, this cost is incurred once. PPE 
+
+training requires ∼9.5h. Embedding training dominates total runtime. 
+
+Memory. KG construction peaks at ∼6GB RAM. Embedding training requires 
+
+∼80GB RAM (walk corpus ∼1.5M nodes). PPE training requires ∼13GB RAM. 
+
+Scalability. MetaExe-KG construction scales linearly with the number of ex-periments. RDF2Vec scales with node count, walk parameters, and embedding dimension. PPE scales with dataset - pipeline pairs and feature dimensionality. Embedding training is the dominant cost. 
+
+A.3 Additional Experiments Experimental Setup. We evaluate TransE, DistMult, and ComplEx (PyKEEN) link prediction models. Embeddings (dim=128) are trained for 1500 epochs us-ing self-adversarial negative sampling (batch=2048, lr=0.0005, 3 negatives, mar-gin=50). Pipeline embeddings are aggregated and concatenated with MF All for a single pipeline-agnostic PPE meta-model. 
+
+Results. Across both scenarios, i.e. , unseen datasets (Table 9) and unseen pipelines (Table 10), RDF2Vec embeddings outperform LP-based embeddings. Integrating Meta-Features with Knowledge Graph Embeddings 21 
+
+Table 9. PPE results for unseen datasets. Setup follows Table 2. 
+
+Dataset Pipeline Meta- Meta-Regr. Meta-Classif. Emb. Strategy Models MSE R2 Accuracy F1 Target: Accuracy 
+
+MF All Conf.-specific 1028 0.0081 0.6748 0.7363 0.7358 
+
+KGmetaSP P E (ComplEx) 1 0.0106 0.6006 0.7343 0.7361 
+
+KGmetaSP P E (TransE) 1 0.0105 0.6032 0.7351 0.7368 
+
+KGmetaSP P E (DistMult) 1 0.0103 0.6104 0.7380 0.7393 
+
+KGmetaSP P E (RDF2Vec ) 1 0.0101 0.6181 0.7413 0.7427 Target: Precision 
+
+MF All Conf.-specific 1028 0.0133 0.6311 0.7347 0.7400 
+
+KGmetaSP P E (ComplEx) 1 0.0175 0.5138 0.7359 0.7383 
+
+KGmetaSP P E (TransE) 1 0.0176 0.5117 0.7430 0.7457 
+
+KGmetaSP P E (DistMult) 1 0.0173 0.5198 0.7461 0.7482 
+
+KGmetaSP P E (RDF2Vec ) 1 0.0164 0.5449 0.7537 0.7562 Table 10. PPE results for unseen pipeline configurations. Setup follows Table 3. 
+
+Method Meta-Regr. Meta-Classif. MSE R2 Accuracy F1 Target: Accuracy 
+
+Average performance 0.0267 -0.0005 0.3303 0.1640 Closest embedding 0.0127 0.5241 0.7748 0.7747 MF All + KGmetaSP P E (ComplEx) 0.0083 0.6911 0.8072 0.8062 MF All + KGmetaSP P E (TransE) 0.0081 0.6976 0.8092 0.8083 MF All + KGmetaSP P E (DistMult) 0.0080 0.7007 0.8076 0.8068 
+
+MF All + KGmetaSP P E (RDF2Vec ) 0.0070 0.7361 0.8250 0.8244 Target: Precision 
+
+Average performance 0.0352 -0.0012 0.3323 0.1658 Closest embedding 0.0225 0.3607 0.7773 0.7771 MF All + KGmetaSP P E (ComplEx) 0.0153 0.5650 0.8088 0.8080 MF All + KGmetaSP P E (TransE) 0.0148 0.5792 0.8072 0.8064 MF All + KGmetaSP P E (DistMult) 0.0148 0.5804 0.8089 0.8083 
+
+MF All + KGmetaSP P E (RDF2Vec ) 0.0131 0.6264 0.8251 0.8247 
+
+Whenever RDF2Vec surpasses the baselines, the best-performing LP model lies in between, i.e. , Baselines < KGmetaSP P E (best LP model) < KGmetaSP P E 
+
+(RDF2Vec ). In cases where the strongest baselines remain superior, KG-based variants preserve the same internal ordering, i.e. , KGmetaSP P E (best LP model) 
+
+< KGmetaSP P E (RDF2Vec ). Thus, the results reinforce two conclusions: (i) performance improvements in PPE are primarily driven by the semantic KG representation of pipelines and datasets, and (ii) walk-based embeddings offer a structural advantage for complex ML metadata graphs such as MetaExe-KG .

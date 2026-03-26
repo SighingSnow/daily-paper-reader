@@ -1,0 +1,960 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-26T20:20:52.374346+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 19,
+    "deep_cap": 7,
+    "deep_selected": 11,
+    "quick_candidates": 35,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.20576v1",
+      "title": "Can AI Agents Answer Your Data Questions? A Benchmark for Data Agents",
+      "abstract": "Users across enterprises increasingly rely on AI agents to query their data through natural language. However, building reliable data agents remains difficult because real-world data is often fragmented across multiple heterogeneous database systems, with inconsistent references and information buried in unstructured text. Existing benchmarks only tackle individual pieces of this problem -- e.g., translating natural-language questions into SQL queries, answering questions over small tables provided in context -- but do not evaluate the full pipeline of integrating, transforming, and analyzing data across multiple database systems. To fill this gap, we present the Data Agent Benchmark (DAB), grounded in a formative study of enterprise data agent workloads across six industries. DAB comprises 54 queries across 12 datasets, 9 domains, and 4 database management systems. On DAB, the best frontier model (Gemini-3-Pro) achieves only 38% pass@1 accuracy. We benchmark five frontier LLMs, analyze their failure modes, and distill takeaways for future data agent development. Our benchmark and experiment code are published at github.com/ucbepic/DataAgentBench.",
+      "authors": [
+        "Ruiying Ma",
+        "Shreya Shankar",
+        "Ruiqi Chen",
+        "Yiming Lin",
+        "Sepanta Zeighami",
+        "Rajoshi Ghosh",
+        "Abhinav Gupta",
+        "Anushrut Gupta",
+        "Tanmai Gopal",
+        "Aditya G. Parameswaran"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-03-21T00:14:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.20576v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "AI agents that query and search data through natural language",
+      "llm_evidence_cn": "通过自然语言查询和搜索数据的AI智能体",
+      "llm_evidence": "通过自然语言查询和搜索数据的AI智能体",
+      "canonical_evidence": "通过自然语言查询和搜索数据的AI智能体",
+      "llm_tldr_en": "Presents Data Agent Benchmark (DAB) for evaluating AI agents that query data across heterogeneous database systems.",
+      "llm_tldr_cn": "提出数据智能体基准DAB，评估跨异构数据库查询的AI智能体。",
+      "llm_tldr": "提出数据智能体基准DAB，评估跨异构数据库查询的AI智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21430v2",
+      "title": "DomAgent: Leveraging Knowledge Graphs and Case-Based Reasoning for Domain-Specific Code Generation",
+      "abstract": "Large language models (LLMs) have shown impressive capabilities in code generation. However, because most LLMs are trained on public domain corpora, directly applying them to real-world software development often yields low success rates, as these scenarios frequently require domain-specific knowledge. In particular, domain-specific tasks usually demand highly specialized solutions, which are often underrepresented or entirely absent in the training data of generic LLMs. To address this challenge, we propose DomAgent, an autonomous coding agent that bridges this gap by enabling LLMs to generate domain-adapted code through structured reasoning and targeted retrieval. A core component of DomAgent is DomRetriever, a novel retrieval module that emulates how humans learn domain-specific knowledge, by combining conceptual understanding with experiential examples. It dynamically integrates top-down knowledge-graph reasoning with bottom-up case-based reasoning, enabling iterative retrieval and synthesis of structured knowledge and representative cases to ensure contextual relevance and broad task coverage. DomRetriever can operate as part of DomAgent or independently with any LLM for flexible domain adaptation. We evaluate DomAgent on an open benchmark dataset in the data science domain (DS-1000) and further apply it to real-world truck software development tasks. Experimental results show that DomAgent significantly enhances domain-specific code generation, enabling small open-source models to close much of the performance gap with large proprietary LLMs in complex, real-world applications. The code is available at: https://github.com/Wangshuaiia/DomAgent.",
+      "authors": [
+        "Shuai Wang",
+        "Dhasarathy Parthasarathy",
+        "Robert Feldt",
+        "Yinan Yu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-22T22:39:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.21430v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "autonomous coding agent for domain-specific code generation",
+      "llm_evidence_cn": "用于领域特定代码生成的自主编程智能体",
+      "llm_evidence": "用于领域特定代码生成的自主编程智能体",
+      "canonical_evidence": "用于领域特定代码生成的自主编程智能体",
+      "llm_tldr_en": "DomAgent is an autonomous coding agent using knowledge graphs for domain-specific code generation.",
+      "llm_tldr_cn": "DomAgent是利用知识图谱进行领域特定代码生成的自主编程智能体。",
+      "llm_tldr": "DomAgent是利用知识图谱进行领域特定代码生成的自主编程智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22341v1",
+      "title": "T-MAP: Red-Teaming LLM Agents with Trajectory-aware Evolutionary Search",
+      "abstract": "While prior red-teaming efforts have focused on eliciting harmful text outputs from large language models (LLMs), such approaches fail to capture agent-specific vulnerabilities that emerge through multi-step tool execution, particularly in rapidly growing ecosystems such as the Model Context Protocol (MCP). To address this gap, we propose a trajectory-aware evolutionary search method, T-MAP, which leverages execution trajectories to guide the discovery of adversarial prompts. Our approach enables the automatic generation of attacks that not only bypass safety guardrails but also reliably realize harmful objectives through actual tool interactions. Empirical evaluations across diverse MCP environments demonstrate that T-MAP substantially outperforms baselines in attack realization rate (ARR) and remains effective against frontier models, including GPT-5.2, Gemini-3-Pro, Qwen3.5, and GLM-5, thereby revealing previously underexplored vulnerabilities in autonomous LLM agents.",
+      "authors": [
+        "Hyomin Lee",
+        "Sangwoo Park",
+        "Yumin Choi",
+        "Sohyun An",
+        "Seanie Lee",
+        "Sung Ju Hwang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-21T12:33:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.22341v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Red-teaming LLM agents with trajectory-aware evolutionary search",
+      "llm_evidence_cn": "针对LLM智能体的轨迹感知进化搜索红队测试",
+      "llm_evidence": "针对LLM智能体的轨迹感知进化搜索红队测试",
+      "canonical_evidence": "针对LLM智能体的轨迹感知进化搜索红队测试",
+      "llm_tldr_en": "Proposes T-MAP for discovering adversarial prompts targeting LLM agents via tool execution trajectories.",
+      "llm_tldr_cn": "提出T-MAP方法通过工具执行轨迹发现LLM智能体漏洞",
+      "llm_tldr": "提出T-MAP方法通过工具执行轨迹发现LLM智能体漏洞",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23481v1",
+      "title": "VTAM: Video-Tactile-Action Models for Complex Physical Interaction Beyond VLAs",
+      "abstract": "Video-Action Models (VAMs) have emerged as a promising framework for embodied intelligence, learning implicit world dynamics from raw video streams to produce temporally consistent action predictions. Although such models demonstrate strong performance on long-horizon tasks through visual reasoning, they remain limited in contact-rich scenarios where critical interaction states are only partially observable from vision alone. In particular, fine-grained force modulation and contact transitions are not reliably encoded in visual tokens, leading to unstable or imprecise behaviors. To bridge this gap, we introduce the Video-Tactile Action Model (VTAM), a multimodal world modeling framework that incorporates tactile perception as a complementary grounding signal. VTAM augments a pretrained video transformer with tactile streams via a lightweight modality transfer finetuning, enabling efficient cross-modal representation learning without tactile-language paired data or independent tactile pretraining. To stabilize multimodal fusion, we introduce a tactile regularization loss that enforces balanced cross-modal attention, preventing visual latent dominance in the action model. VTAM demonstrates superior performance in contact-rich manipulation, maintaining a robust success rate of 90 percent on average. In challenging scenarios such as potato chip pick-and-place requiring high-fidelity force awareness, VTAM outperforms the pi 0.5 baseline by 80 percent. Our findings demonstrate that integrating tactile feedback is essential for correcting visual estimation errors in world action models, providing a scalable approach to physically grounded embodied foundation models.",
+      "authors": [
+        "Haoran Yuan",
+        "Weigang Yi",
+        "Zhenyu Zhang",
+        "Wendi Chen",
+        "Yuchen Mo",
+        "Jiashi Yin",
+        "Xinzhuo Li",
+        "Xiangyu Zeng",
+        "Chuan Wen",
+        "Cewu Lu",
+        "Katherine Driggs-Campbell",
+        "Ismini Lourentzou"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-24T17:45:06+00:00",
+      "link": "https://arxiv.org/pdf/2603.23481v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal world modeling framework incorporating tactile perception for embodied AI",
+      "llm_evidence_cn": "融合触觉感知的多模态世界建模框架，用于具身智能",
+      "llm_evidence": "融合触觉感知的多模态世界建模框架，用于具身智能",
+      "canonical_evidence": "融合触觉感知的多模态世界建模框架，用于具身智能",
+      "llm_tldr_en": "VTAM extends video-action models with tactile perception for contact-rich embodied AI tasks.",
+      "llm_tldr_cn": "VTAM扩展视频-动作模型，引入触觉感知以处理接触密集型具身智能任务。",
+      "llm_tldr": "VTAM扩展视频-动作模型，引入触觉感知以处理接触密集型具身智能任务。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23667v1",
+      "title": "Echoes: A semantically-aligned music deepfake detection dataset",
+      "abstract": "We introduce Echoes, a new dataset for music deepfake detection designed for training and benchmarking detectors under realistic and provider-diverse conditions. Echoes comprises 3,577 tracks (110 hours of audio) spanning multiple genres (pop, rock, electronic), and includes content generated by ten popular AI music generation systems. To prevent shortcut learning and promote robust generalization, the dataset is deliberately constructed to be challenging, enforcing semantic-level alignment between spoofed audio and bona fide references. This alignment is achieved by conditioning generated audio samples directly on bona-fide waveforms or song descriptors. We evaluate Echoes in a cross-dataset setting against three existing AI-generated music datasets using state-of-the-art Wav2Vec2 XLS-R 2B representations. Results show that (i) Echoes is the hardest in-domain dataset; (ii) detectors trained on existing datasets transfer poorly to Echoes; (iii) training on Echoes yields the strongest generalization performance. These findings suggest that provider diversity and semantic alignment help learn more transferable detection cues.",
+      "authors": [
+        "Octavian Pascu",
+        "Dan Oneata",
+        "Horia Cucu",
+        "Nicolas M. Muller"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "eess.AS"
+      ],
+      "published": "2026-03-24T19:10:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.23667v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "dataset for music deepfake detection benchmarking",
+      "llm_evidence_cn": "用于音乐深度伪造检测基准的数据集",
+      "llm_evidence": "用于音乐深度伪造检测基准的数据集",
+      "canonical_evidence": "用于音乐深度伪造检测基准的数据集",
+      "llm_tldr_en": "Echoes is a challenging dataset for music deepfake detection with semantic-level alignment across multiple genres.",
+      "llm_tldr_cn": "Echoes是具有语义级对齐的多流派音乐深度伪造检测挑战性数据集。",
+      "llm_tldr": "Echoes是具有语义级对齐的多流派音乐深度伪造检测挑战性数据集。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23763v1",
+      "title": "AgenticNet: Utilizing AI Coding Agents To Create Hybrid Network Experiments",
+      "abstract": "Traditional network experiments focus on validation through either simulation or emulation. Each approach has its own advantages and limitations. In this work, we present a new tool for next-generation network experiments created through Artificial Intelligence (AI) coding agents. This tool facilitates hybrid network experimentation through simulation and emulation capabilities. The simulator supports three main operation modes: pure simulation, pure emulation, and hybrid mode. AgenticNet provides a more flexible approach to creating experiments for cases that may require a combination of simulation and emulation. In addition, AgenticNet supports rapid development through AI agents. We test Python and C++ versions. The results show that C++ achieves higher accuracy and better performance than the Python version.",
+      "authors": [
+        "Majd Latah",
+        "Kubra Kalkan"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-03-24T22:50:37+00:00",
+      "link": "https://arxiv.org/pdf/2603.23763v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "AI coding agents for creating network experiments",
+      "llm_evidence_cn": "用于创建网络实验的AI编程智能体",
+      "llm_evidence": "用于创建网络实验的AI编程智能体",
+      "canonical_evidence": "用于创建网络实验的AI编程智能体",
+      "llm_tldr_en": "AgenticNet uses AI coding agents to create hybrid network experiments combining simulation and emulation capabilities.",
+      "llm_tldr_cn": "AgenticNet利用AI编程智能体创建结合仿真和模拟能力的混合网络实验。",
+      "llm_tldr": "AgenticNet利用AI编程智能体创建结合仿真和模拟能力的混合网络实验。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24284v1",
+      "title": "The Specification Gap: Coordination Failure Under Partial Knowledge in Code Agents",
+      "abstract": "When multiple LLM-based code agents independently implement parts of the same class, they must agree on shared internal representations, even when the specification leaves those choices implicit. We study this coordination problem across 51 class-generation tasks, progressively stripping specification detail from full docstrings (L0) to bare signatures (L3), and introducing opposing structural biases (lists vs. dictionaries) to stress-test integration. Three findings emerge. First, a persistent specification gap: two-agent integration accuracy drops from 58% to 25% as detail is removed, while a single-agent baseline degrades more gracefully (89% to 56%), leaving a 25--39 pp coordination gap that is consistent across two Claude models (Sonnet, Haiku) and three independent runs. Second, an AST-based conflict detector achieves 97% precision at the weakest specification level without additional LLM calls, yet a factorial recovery experiment shows that restoring the full specification alone recovers the single-agent ceiling (89%), while providing conflict reports adds no measurable benefit. Third, decomposing the gap into coordination cost (+16 pp) and information asymmetry (+11 pp) suggests that the two effects are independent and approximately additive. The gap is not merely a consequence of hidden information, but reflects the difficulty of producing compatible code without shared decisions. These results support a specification-first view of multi-agent code generation: richer specifications are both the primary coordination mechanism and the sufficient recovery instrument.",
+      "authors": [
+        "Camilo Chacón Sartori"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-03-25T13:18:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.24284v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based code agents coordination and integration study",
+      "llm_evidence_cn": "基于LLM的代码智能体协调与集成研究",
+      "llm_evidence": "基于LLM的代码智能体协调与集成研究",
+      "canonical_evidence": "基于LLM的代码智能体协调与集成研究",
+      "llm_tldr_en": "Studies coordination failure in multi-agent code integration when specifications are incomplete.",
+      "llm_tldr_cn": "研究规范不完整时多智能体代码集成中的协调失败问题。",
+      "llm_tldr": "研究规范不完整时多智能体代码集成中的协调失败问题。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24402v1",
+      "title": "AI-Supervisor: Autonomous AI Research Supervision via a Persistent Research World Model",
+      "abstract": "Existing automated research systems operate as stateless, linear pipelines, generating outputs without maintaining a persistent understanding of the research landscape. They process papers sequentially, propose ideas without structured gap analysis, and lack mechanisms for agents to verify or refine each other's findings. We present AutoProf (Autonomous Professor), a multi-agent orchestration framework where specialized agents provide end-to-end AI research supervision driven by human interests, from literature review through gap discovery, method development, evaluation, and paper writing, via autonomous exploration and self-correcting updates. Unlike sequential pipelines, AutoProf maintains a continuously evolving Research World Model implemented as a Knowledge Graph, capturing methods, benchmarks, limitations, and unexplored gaps as shared memory across agents. The framework introduces three contributions: first, structured gap discovery that decomposes methods into modules, evaluates them across benchmarks, and identifies module-level gaps; second, self-correcting discovery loops that analyze why modules succeed or fail, detect benchmark biases, and assess evaluation adequacy; third, self-improving development loops using cross-domain mechanism search to iteratively address failing components. All agents operate under a consensus mechanism where findings are validated before being committed to the shared model. The framework is model-agnostic, supports mainstream large language models, and scales elastically with token budget from lightweight exploration to full-scale investigation.",
+      "authors": [
+        "Yunbo Long"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-25T15:16:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.24402v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent orchestration framework for autonomous AI research supervision",
+      "llm_evidence_cn": "多智能体编排框架用于自主AI研究监督",
+      "llm_evidence": "多智能体编排框架用于自主AI研究监督",
+      "canonical_evidence": "多智能体编排框架用于自主AI研究监督",
+      "llm_tldr_en": "AutoProf is a multi-agent framework providing end-to-end AI research supervision via a persistent Research World Model.",
+      "llm_tldr_cn": "AutoProf多智能体框架通过持久研究世界模型提供端到端AI研究监督。",
+      "llm_tldr": "AutoProf多智能体框架通过持久研究世界模型提供端到端AI研究监督。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24422v1",
+      "title": "OneSearch-V2: The Latent Reasoning Enhanced Self-distillation Generative Search Framework",
+      "abstract": "Generative Retrieval (GR) has emerged as a promising paradigm for modern search systems. Compared to multi-stage cascaded architecture, it offers advantages such as end-to-end joint optimization and high computational efficiency. OneSearch, as a representative industrial-scale deployed generative search framework, has brought significant commercial and operational benefits. However, its inadequate understanding of complex queries, inefficient exploitation of latent user intents, and overfitting to narrow historical preferences have limited its further performance improvement. To address these challenges, we propose \\textbf{OneSearch-V2}, a latent reasoning enhanced self-distillation generative search framework. It contains three key innovations: (1) a thought-augmented complex query understanding module, which enables deep query understanding and overcomes the shallow semantic matching limitations of direct inference; (2) a reasoning-internalized self-distillation training pipeline, which uncovers users' potential yet precise e-commerce intentions beyond log-fitting through implicit in-context learning; (3) a behavior preference alignment optimization system, which mitigates reward hacking arising from the single conversion metric, and addresses personal preference via direct user feedback. Extensive offline evaluations demonstrate OneSearch-V2's strong query recognition and user profiling capabilities. Online A/B tests further validate its business effectiveness, yielding +3.98\\% item CTR, +3.05\\% buyer conversion rate, and +2.11\\% order volume. Manual evaluation further confirms gains in search experience quality, with +1.65\\% in page good rate and +1.37\\% in query-item relevance. More importantly, OneSearch-V2 effectively mitigates common search system issues such as information bubbles and long-tail sparsity, without incurring additional inference costs or serving latency.",
+      "authors": [
+        "Ben Chen",
+        "Siyuan Wang",
+        "Yufei Ma",
+        "Zihan Liang",
+        "Xuxin Zhang",
+        "Yue Lv",
+        "Ying Yang",
+        "Huangyu Dai",
+        "Lingtao Mao",
+        "Tong Zhao",
+        "Zhipeng Qian",
+        "Xinyu Sun",
+        "Zhixin Zhai",
+        "Yang Zhao",
+        "Bochao Liu",
+        "Jingshan Lv",
+        "Xiao Liang",
+        "Hui Kong",
+        "Jing Chen",
+        "Han Li",
+        "Chenyi Lei",
+        "Wenwu Ou",
+        "Kun Gai"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-25T15:33:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.24422v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "generative search framework with latent reasoning",
+      "llm_evidence_cn": "具有潜在推理的生成式搜索框架",
+      "llm_evidence": "具有潜在推理的生成式搜索框架",
+      "canonical_evidence": "具有潜在推理的生成式搜索框架",
+      "llm_tldr_en": "OneSearch-V2 is a latent reasoning enhanced self-distillation generative search framework for improved query understanding.",
+      "llm_tldr_cn": "OneSearch-V2是增强潜在推理的自蒸馏生成式搜索框架以改进查询理解。",
+      "llm_tldr": "OneSearch-V2是增强潜在推理的自蒸馏生成式搜索框架以改进查询理解。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24506v1",
+      "title": "Toward Physically Consistent Driving Video World Models under Challenging Trajectories",
+      "abstract": "Video generation models have shown strong potential as world models for autonomous driving simulation. However, existing approaches are primarily trained on real-world driving datasets, which mostly contain natural and safe driving scenarios. As a result, current models often fail when conditioned on challenging or counterfactual trajectories-such as imperfect trajectories generated by simulators or planning systems-producing videos with severe physical inconsistencies and artifacts. To address this limitation, we propose PhyGenesis, a world model designed to generate driving videos with high visual fidelity and strong physical consistency. Our framework consists of two key components: (1) a physical condition generator that transforms potentially invalid trajectory inputs into physically plausible conditions, and (2) a physics-enhanced video generator that produces high-fidelity multi-view driving videos under these conditions. To effectively train these components, we construct a large-scale, physics-rich heterogeneous dataset. Specifically, in addition to real-world driving videos, we generate diverse challenging driving scenarios using the CARLA simulator, from which we derive supervision signals that guide the model to learn physically grounded dynamics under extreme conditions. This challenging-trajectory learning strategy enables trajectory correction and promotes physically consistent video generation. Extensive experiments demonstrate that PhyGenesis consistently outperforms state-of-the-art methods, especially on challenging trajectories. Our project page is available at: https://wm-research.github.io/PhyGenesis/.",
+      "authors": [
+        "Jiawei Zhou",
+        "Zhenxin Zhu",
+        "Lingyi Du",
+        "Linye Lyu",
+        "Lijun Zhou",
+        "Zhanqian Wu",
+        "Hongcheng Luo",
+        "Zhuotao Tian",
+        "Bing Wang",
+        "Guang Chen",
+        "Hangjun Ye",
+        "Haiyang Sun",
+        "Yu Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-25T16:47:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.24506v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes PhyGenesis world model for driving video generation",
+      "llm_evidence_cn": "提出PhyGenesis世界模型用于驾驶视频生成",
+      "llm_evidence": "提出PhyGenesis世界模型用于驾驶视频生成",
+      "canonical_evidence": "提出PhyGenesis世界模型用于驾驶视频生成",
+      "llm_tldr_en": "Introduces PhyGenesis, a world model generating physically consistent driving videos under challenging trajectories.",
+      "llm_tldr_cn": "提出PhyGenesis世界模型，在挑战性轨迹下生成物理一致的驾驶视频。",
+      "llm_tldr": "提出PhyGenesis世界模型，在挑战性轨迹下生成物理一致的驾驶视频。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24517v1",
+      "title": "AVO: Agentic Variation Operators for Autonomous Evolutionary Search",
+      "abstract": "Agentic Variation Operators (AVO) are a new family of evolutionary variation operators that replace the fixed mutation, crossover, and hand-designed heuristics of classical evolutionary search with autonomous coding agents. Rather than confining a language model to candidate generation within a prescribed pipeline, AVO instantiates variation as a self-directed agent loop that can consult the current lineage, a domain-specific knowledge base, and execution feedback to propose, repair, critique, and verify implementation edits. We evaluate AVO on attention, among the most aggressively optimized kernel targets in AI, on NVIDIA Blackwell (B200) GPUs. Over 7 days of continuous autonomous evolution on multi-head attention, AVO discovers kernels that outperform cuDNN by up to 3.5% and FlashAttention-4 by up to 10.5% across the evaluated configurations. The discovered optimizations transfer readily to grouped-query attention, requiring only 30 minutes of additional autonomous adaptation and yielding gains of up to 7.0% over cuDNN and 9.3% over FlashAttention-4. Together, these results show that agentic variation operators move beyond prior LLM-in-the-loop evolutionary pipelines by elevating the agent from candidate generator to variation operator, and can discover performance-critical micro-architectural optimizations that produce kernels surpassing state-of-the-art expert-engineered attention implementations on today's most advanced GPU hardware.",
+      "authors": [
+        "Terry Chen",
+        "Zhifan Ye",
+        "Bing Xu",
+        "Zihao Ye",
+        "Timmy Liu",
+        "Ali Hassani",
+        "Tianqi Chen",
+        "Andrew Kerr",
+        "Haicheng Wu",
+        "Yang Xu",
+        "Yu-Jung Chen",
+        "Hanfeng Chen",
+        "Aditya Kane",
+        "Ronny Krashinsky",
+        "Ming-Yu Liu",
+        "Vinod Grover",
+        "Luis Ceze",
+        "Roger Bringmann",
+        "John Tran",
+        "Wei Liu",
+        "Fung Xie",
+        "Michael Lightstone",
+        "Humphrey Shi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-25T16:55:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.24517v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "autonomous coding agents for evolutionary search optimization",
+      "llm_evidence_cn": "用于进化搜索优化的自主编程智能体",
+      "llm_evidence": "用于进化搜索优化的自主编程智能体",
+      "canonical_evidence": "用于进化搜索优化的自主编程智能体",
+      "llm_tldr_en": "AVO replaces classical evolutionary operators with autonomous coding agents for self-directed code optimization.",
+      "llm_tldr_cn": "AVO用自主编程智能体替代经典进化算子进行自导向代码优化。",
+      "llm_tldr": "AVO用自主编程智能体替代经典进化算子进行自导向代码优化。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.21104v1",
+      "title": "CounterScene: Counterfactual Causal Reasoning in Generative World Models for Safety-Critical Closed-Loop Evaluation",
+      "abstract": "Generating safety-critical driving scenarios requires understanding why dangerous interactions arise, rather than merely forcing collisions. However, existing methods rely on heuristic adversarial agent selection and unstructured perturbations, lacking explicit modeling of interaction dependencies and thus exhibiting a realism--adversarial trade-off. We present CounterScene, a framework that endows closed-loop generative BEV world models with structured counterfactual reasoning for safety-critical scenario generation. Given a safe scene, CounterScene asks: what if the causally critical agent had behaved differently? To answer this, we introduce causal adversarial agent identification to identify the critical agent and classify conflict types, and develop a conflict-aware interactive world model in which a causal interaction graph is used to explicitly model dynamic inter-agent dependencies. Building on this structure, stage-adaptive counterfactual guidance performs minimal interventions on the identified agent, removing its spatial and temporal safety margins while allowing risk to emerge through natural interaction propagation. Extensive experiments on nuScenes demonstrate that CounterScene achieves the strongest adversarial effectiveness while maintaining superior trajectory realism across all horizons, improving long-horizon collision rate from 12.3% to 22.7% over the strongest baseline with better realism (ADE 1.88 vs.2.09). Notably, this advantage further widens over longer rollouts, and CounterScene generalizes zero-shot to nuPlan with state-of-the-art realism.",
+      "authors": [
+        "Bowen Jing",
+        "Ruiyang Hao",
+        "Weitao Zhou",
+        "Haibao Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-03-22T07:44:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.21104v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generative world models with agent reasoning for driving scenarios",
+      "llm_evidence_cn": "生成式世界模型结合智能体因果推理",
+      "llm_evidence": "生成式世界模型结合智能体因果推理",
+      "canonical_evidence": "生成式世界模型结合智能体因果推理",
+      "llm_tldr_en": "CounterScene framework adds counterfactual causal reasoning to generative BEV world models for safety-critical scenario generation.",
+      "llm_tldr_cn": "CounterScene框架为生成式BEV世界模型添加反事实因果推理用于安全关键场景生成。",
+      "llm_tldr": "CounterScene框架为生成式BEV世界模型添加反事实因果推理用于安全关键场景生成。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17889v3",
+      "title": "Identity as Presence: Towards Appearance and Voice Personalized Joint Audio-Video Generation",
+      "abstract": "Recent advances have demonstrated compelling capabilities in synthesizing real individuals into generated videos, reflecting the growing demand for identity-aware content creation. Nevertheless, an openly accessible framework enabling fine-grained control over facial appearance and voice timbre across multiple identities remains unavailable. In this work, we present a unified and scalable framework for identity-aware joint audio-video generation, enabling high-fidelity and consistent personalization. Specifically, we introduce a data curation pipeline that automatically extracts identity-bearing information with paired annotations across audio and visual modalities, covering diverse scenarios from single-subject to multi-subject interactions. We further propose a flexible and scalable identity injection mechanism for single- and multi-subject scenarios, in which both facial appearance and vocal timbre act as identity-bearing control signals. Moreover, in light of modality disparity, we design a multi-stage training strategy to accelerate convergence and enforce cross-modal coherence. Experiments demonstrate the superiority of the proposed framework. For more details and qualitative results, please refer to our webpage: \\href{https://chen-yingjie.github.io/projects/Identity-as-Presence}{Identity-as-Presence}.",
+      "authors": [
+        "Yingjie Chen",
+        "Shilun Lin",
+        "Cai Xing",
+        "Binxin Yang",
+        "Long Zhou",
+        "Qixin Yan",
+        "Wenjing Wang",
+        "Dingming Liu",
+        "Hao Liu",
+        "Chen Li",
+        "Jing Lyu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T16:13:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.17889v3",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "unified framework for identity-aware audio-video generation",
+      "llm_evidence_cn": "身份感知音视频生成的统一框架",
+      "llm_evidence": "身份感知音视频生成的统一框架",
+      "canonical_evidence": "身份感知音视频生成的统一框架",
+      "llm_tldr_en": "A unified framework enabling fine-grained control over facial appearance and voice timbre for personalized video generation.",
+      "llm_tldr_cn": "实现面部外观和音色细粒度控制的个性化视频生成统一框架。",
+      "llm_tldr": "实现面部外观和音色细粒度控制的个性化视频生成统一框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.18573v1",
+      "title": "Interplay: Training Independent Simulators for Reference-Free Conversational Recommendation",
+      "abstract": "Training conversational recommender systems (CRS) requires extensive dialogue data, which is challenging to collect at scale. To address this, researchers have used simulated user-recommender conversations. Traditional simulation approaches often utilize a single large language model (LLM) that generates entire conversations with prior knowledge of the target items, leading to scripted and artificial dialogues. We propose a reference-free simulation framework that trains two independent LLMs, one as the user and one as the conversational recommender. These models interact in real-time without access to predetermined target items, but preference summaries and target attributes, enabling the recommender to genuinely infer user preferences through dialogue. This approach produces more realistic and diverse conversations that closely mirror authentic human-AI interactions. Our reference-free simulators match or exceed existing methods in quality, while offering a scalable solution for generating high-quality conversational recommendation data without constraining conversations to pre-defined target items. We conduct both quantitative and human evaluations to confirm the effectiveness of our reference-free approach.",
+      "authors": [
+        "Jerome Ramos",
+        "Feng Xia",
+        "Xi Wang",
+        "Shubham Chatterjee",
+        "Xiao Fu",
+        "Hossein A. Rahmani",
+        "Aldo Lipani"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-03-19T07:33:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.18573v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Training independent LLM agents for conversational simulation",
+      "llm_evidence_cn": "训练独立LLM智能体进行对话模拟",
+      "llm_evidence": "训练独立LLM智能体进行对话模拟",
+      "canonical_evidence": "训练独立LLM智能体进行对话模拟",
+      "llm_tldr_en": "Proposes framework training separate user and recommender LLM agents for realistic dialogue simulation.",
+      "llm_tldr_cn": "提出框架训练独立的用户和推荐LLM智能体实现真实对话模拟。",
+      "llm_tldr": "提出框架训练独立的用户和推荐LLM智能体实现真实对话模拟。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21272v1",
+      "title": "The Library Theorem: How External Organization Governs Agentic Reasoning Capacity",
+      "abstract": "Externalized reasoning is already exploited by transformer-based agents through chain-of-thought, but structured retrieval -- indexing over one's own reasoning state -- remains underexplored. We formalize the transformer context window as an I/O page and prove that tool-augmented agents with indexed external memory achieve exponentially lower retrieval cost than agents restricted to sequential scanning: $O(\\log_b N)$ versus $Ω(N)$ page reads per query, and $O(T \\log_b T)$ versus $Θ(T^2)$ cumulative cost over $T$ reasoning steps -- a gap that widens as deliberation deepens. We test these predictions on a controlled lookup benchmark across three content types -- random hashes, ordered integers, and encyclopedia entries -- varying store size from 50 to 5,000 items, and replicate key conditions across two model generations (GPT-4o-mini and GPT-5.4). On abstract content, the indexed agent achieves median 1 page read regardless of store size, confirming the $O(1)$ prediction. Sorted pages without an index fail to close the gap: the weaker model cannot sustain binary search at scale, and the stronger model achieves near-optimal $\\log_2 N$ search but still loses to the index by $5\\times$. On familiar content (encyclopedia entries), a competing failure mode emerges: the model recognizes the domain, bypasses the retrieval protocol, and generates answers from parametric memory, producing catastrophic token expenditure even when the index is sound. This parametric memory competition dissociates the two cognitive operations that indexing combines: understanding content (where language models excel) and following navigational protocols (where they fail when understanding tempts them to shortcut). The result argues for a separation of concerns: use language models for index construction, where semantic understanding helps, and deterministic algorithms for index traversal, where it hurts.",
+      "authors": [
+        "Zachary F. Mainen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.DS",
+        "cs.LG"
+      ],
+      "published": "2026-03-22T15:02:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.21272v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Theoretical analysis of tool-augmented agents with external memory for reasoning",
+      "llm_evidence_cn": "工具增强智能体外部记忆推理能力的理论分析",
+      "llm_evidence": "工具增强智能体外部记忆推理能力的理论分析",
+      "canonical_evidence": "工具增强智能体外部记忆推理能力的理论分析",
+      "llm_tldr_en": "Proves that agents with indexed external memory achieve exponentially lower retrieval cost, formalizing agentic reasoning capacity.",
+      "llm_tldr_cn": "证明带索引外部记忆的智能体实现指数级更低检索成本，形式化智能体推理能力。",
+      "llm_tldr": "证明带索引外部记忆的智能体实现指数级更低检索成本，形式化智能体推理能力。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18067v2",
+      "title": "DarkDriving: A Real-World Day and Night Aligned Dataset for Autonomous Driving in the Dark Environment",
+      "abstract": "The low-light conditions are challenging to the vision-centric perception systems for autonomous driving in the dark environment. In this paper, we propose a new benchmark dataset (named DarkDriving) to investigate the low-light enhancement for autonomous driving. The existing real-world low-light enhancement benchmark datasets can be collected by controlling various exposures only in small-ranges and static scenes. The dark images of the current nighttime driving datasets do not have the precisely aligned daytime counterparts. The extreme difficulty to collect a real-world day and night aligned dataset in the dynamic driving scenes significantly limited the research in this area. With a proposed automatic day-night Trajectory Tracking based Pose Matching (TTPM) method in a large real-world closed driving test field (area: 69 acres), we collected the first real-world day and night aligned dataset for autonomous driving in the dark environment. The DarkDriving dataset has 9,538 day and night image pairs precisely aligned in location and spatial contents, whose alignment error is in just several centimeters. For each pair, we also manually label the object 2D bounding boxes. DarkDriving introduces four perception related tasks, including low-light enhancement, generalized low-light enhancement, and low-light enhancement for 2D detection and 3D detection of autonomous driving in the dark environment. The experimental results show that our DarkDriving dataset provides a comprehensive benchmark for evaluating low-light enhancement for autonomous driving and it can also be generalized to enhance dark images and promote detection in some other low-light driving environment, such as nuScenes.The code and dataset will be publicly available at https://github.com/DriveMindLab/DarkDriving-ICRA-2026.",
+      "authors": [
+        "Wuqi Wang",
+        "Haochen Yang",
+        "Baolu Li",
+        "Jiaqi Sun",
+        "Xiangmo Zhao",
+        "Zhigang Xu",
+        "Qing Guo",
+        "Haigen Min",
+        "Tianyun Zhang",
+        "Hongkai Yu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.DB"
+      ],
+      "published": "2026-03-18T03:36:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.18067v2",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Proposes new benchmark dataset for autonomous driving research",
+      "llm_evidence_cn": "提出新的自动驾驶研究基准数据集",
+      "llm_evidence": "提出新的自动驾驶研究基准数据集",
+      "canonical_evidence": "提出新的自动驾驶研究基准数据集",
+      "llm_tldr_en": "Introduces DarkDriving, a day-night aligned dataset for low-light autonomous driving perception.",
+      "llm_tldr_cn": "提出DarkDriving数据集，用于暗光环境自动驾驶感知研究。",
+      "llm_tldr": "提出DarkDriving数据集，用于暗光环境自动驾驶感知研究。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.18835v1",
+      "title": "Tursio Database Search: How far are we from ChatGPT?",
+      "abstract": "Business users need to search enterprise databases using natural language, just as they now search the web using ChatGPT or Perplexity. However, existing benchmarks -- designed for open-domain QA or text-to-SQL -- do not evaluate the end-to-end quality of such a search experience. We present an evaluation framework for structured database search that generates realistic banking queries across varying difficulty levels and assesses answer quality using relevance, safety, and conversational metrics via an LLM-as-judge approach. We apply this framework to compare Tursio, a database search platform, against ChatGPT and Perplexity on a credit union banking schema. Our results show that Tursio achieves answer relevancy statistically comparable to both baselines (97.8% vs. 98.1% on simple, 90.0% vs. 100.0% on medium, 89.5% vs. 100.0% on hard questions), even though Tursio answers from a structured database while the baselines generate responses from the open web. We analyze the failure modes, identify database completeness as the primary bottleneck, and outline directions for improving both the evaluation methodology and the systems under evaluation.",
+      "authors": [
+        "Sulbha Jain",
+        "Shivani Tripathi",
+        "Shi Qiao",
+        "Alekh Jindal"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-03-19T12:36:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.18835v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Natural language database search platform evaluation framework",
+      "llm_evidence_cn": "自然语言数据库搜索平台评估框架",
+      "llm_evidence": "自然语言数据库搜索平台评估框架",
+      "canonical_evidence": "自然语言数据库搜索平台评估框架",
+      "llm_tldr_en": "Presents evaluation framework comparing database search platforms against ChatGPT and Perplexity.",
+      "llm_tldr_cn": "提出数据库搜索评估框架并与ChatGPT和Perplexity对比",
+      "llm_tldr": "提出数据库搜索评估框架并与ChatGPT和Perplexity对比",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21315v1",
+      "title": "FluidWorld: Reaction-Diffusion Dynamics as a Predictive Substrate for World Models",
+      "abstract": "World models learn to predict future states of an environment, enabling planning and mental simulation. Current approaches default to Transformer-based predictors operating in learned latent spaces. This comes at a cost: O(N^2) computation and no explicit spatial inductive bias. This paper asks a foundational question: is self-attention necessary for predictive world modeling, or can alternative computational substrates achieve comparable or superior results? I introduce FluidWorld, a proof-of-concept world model whose predictive dynamics are governed by partial differential equations (PDEs) of reaction-diffusion type. Instead of using a separate neural network predictor, the PDE integration itself produces the future state prediction. In a strictly parameter-matched three-way ablation on unconditional UCF-101 video prediction (64x64, ~800K parameters, identical encoder, decoder, losses, and data), FluidWorld is compared against both a Transformer baseline (self-attention) and a ConvLSTM baseline (convolutional recurrence). While all three models converge to comparable single-step prediction loss, FluidWorld achieves 2x lower reconstruction error, produces representations with 10-15% higher spatial structure preservation and 18-25% more effective dimensionality, and critically maintains coherent multi-step rollouts where both baselines degrade rapidly. All experiments were conducted on a single consumer-grade PC (Intel Core i5, NVIDIA RTX 4070 Ti), without any large-scale compute. These results establish that PDE-based dynamics, which natively provide O(N) spatial complexity, adaptive computation, and global spatial coherence through diffusion, are a viable and parameter-efficient alternative to both attention and convolutional recurrence for world modeling.",
+      "authors": [
+        "Fabien Polly"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-22T16:49:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.21315v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Introduces FluidWorld, a world model using PDEs for predictive dynamics",
+      "llm_evidence_cn": "提出FluidWorld世界模型，使用PDE进行预测动力学",
+      "llm_evidence": "提出FluidWorld世界模型，使用PDE进行预测动力学",
+      "canonical_evidence": "提出FluidWorld世界模型，使用PDE进行预测动力学",
+      "llm_tldr_en": "Proposes FluidWorld, a novel world model using reaction-diffusion PDEs instead of Transformers for environment prediction.",
+      "llm_tldr_cn": "提出FluidWorld世界模型，用反应扩散PDE替代Transformer进行环境预测。",
+      "llm_tldr": "提出FluidWorld世界模型，用反应扩散PDE替代Transformer进行环境预测。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.19607v1",
+      "title": "Physion-Eval: Evaluating Physical Realism in Generated Video via Human Reasoning",
+      "abstract": "Video generation models are increasingly used as world simulators for storytelling, simulation, and embodied AI. As these models advance, a key question arises: do generated videos obey the physical laws of the real world? Existing evaluations largely rely on automated metrics or coarse human judgments such as preferences or rubric-based checks. While useful for assessing perceptual quality, these methods provide limited insight into when and why generated dynamics violate real-world physical constraints. We introduce Physion-Eval, a large-scale benchmark of expert human reasoning for diagnosing physical realism failures in videos generated by five state-of-the-art models across egocentric and exocentric views, containing 10,990 expert reasoning traces spanning 22 fine-grained physical categories. Each generated video is derived from a corresponding real-world reference video depicting a clear physical process, and annotated with temporally localized glitches, structured failure categories, and natural-language explanations of the violated physical behavior. Using this dataset, we reveal a striking limitation of current video generation models: in physics-critical scenarios, 83.3% of exocentric and 93.5% of egocentric generated videos exhibit at least one human-identifiable physical glitch. We hope Physion-Eval will set a new standard for physical realism evaluation and guide the development of physics-grounded video generation. The benchmark is publicly available at https://huggingface.co/datasets/PhysionLabs/Physion-Eval.",
+      "authors": [
+        "Qin Zhang",
+        "Peiyu Jing",
+        "Hong-Xing Yu",
+        "Fangqiang Ding",
+        "Fan Nie",
+        "Weimin Wang",
+        "Yilun Du",
+        "James Zou",
+        "Jiajun Wu",
+        "Bing Shuai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T03:25:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.19607v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Large-scale benchmark dataset for evaluating world simulators and video generation models",
+      "llm_evidence_cn": "大规模基准数据集，用于评估世界模拟器和视频生成模型",
+      "llm_evidence": "大规模基准数据集，用于评估世界模拟器和视频生成模型",
+      "canonical_evidence": "大规模基准数据集，用于评估世界模拟器和视频生成模型",
+      "llm_tldr_en": "Physion-Eval provides expert human reasoning benchmark for diagnosing physical realism in generated videos.",
+      "llm_tldr_cn": "Physion-Eval提供专家推理基准，用于诊断生成视频的物理真实性。",
+      "llm_tldr": "Physion-Eval提供专家推理基准，用于诊断生成视频的物理真实性。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19888v1",
+      "title": "Integrating Meta-Features with Knowledge Graph Embeddings for Meta-Learning",
+      "abstract": "The vast collection of machine learning records available on the web presents a significant opportunity for meta-learning, where past experiments are leveraged to improve performance. Two crucial meta-learning tasks are pipeline performance estimation (PPE), which predicts pipeline performance on target datasets, and dataset performance-based similarity estimation (DPSE), which identifies datasets with similar performance patterns. Existing approaches primarily rely on dataset meta-features (e.g., number of instances, class entropy, etc.) to represent datasets numerically and approximate these meta-learning tasks. However, these approaches often overlook the wealth of past experimental results and pipeline metadata available. This limits their ability to capture dataset - pipeline interactions that reveal performance similarity patterns. In this work, we propose KGmetaSP, a knowledge-graph-embeddings approach that leverages existing experiment data to capture these interactions and improve both PPE and DPSE. We represent datasets and pipelines within a unified knowledge graph (KG) and derive embeddings that support pipeline-agnostic meta-models for PPE and distance-based retrieval for DPSE. To validate our approach, we construct a large-scale benchmark comprising 144,177 OpenML experiments, enabling a rich cross-dataset evaluation. KGmetaSP enables accurate PPE using a single pipeline-agnostic meta-model and improves DPSE over baselines. The proposed KGmetaSP, KG, and benchmark are released, establishing a new reference point for meta-learning and demonstrating how consolidating open experiment data into a unified KG advances the field.",
+      "authors": [
+        "Antonis Klironomos",
+        "Ioannis Dasoulas",
+        "Francesco Periti",
+        "Mohamed Gad-Elrab",
+        "Heiko Paulheim",
+        "Anastasia Dimou",
+        "Evgeny Kharlamov"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-20T11:57:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.19888v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Meta-learning tasks on datasets using meta-features",
+      "llm_evidence_cn": "使用元特征在数据集上进行元学习任务",
+      "llm_evidence": "使用元特征在数据集上进行元学习任务",
+      "canonical_evidence": "使用元特征在数据集上进行元学习任务",
+      "llm_tldr_en": "Integrates meta-features with knowledge graph embeddings for pipeline performance estimation on datasets.",
+      "llm_tldr_cn": "将元特征与知识图谱嵌入结合，用于数据集上的流水线性能估计。",
+      "llm_tldr": "将元特征与知识图谱嵌入结合，用于数据集上的流水线性能估计。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21362v1",
+      "title": "AdaRubric: Task-Adaptive Rubrics for LLM Agent Evaluation",
+      "abstract": "LLM-as-Judge evaluation fails agent tasks because a fixed rubric cannot capture what matters for this task: code debugging demands Correctness and Error Handling; web navigation demands Goal Alignment and Action Efficiency. We present ADARUBRIC, which closes this gap by generating task-specific evaluation rubrics on the fly from task descriptions, scoring trajectories step-by-step with confidence-weighted per-dimension feedback, and filtering preference pairs with the novel DimensionAwareFilter - a provably necessary condition for preventing high-scoring dimensions from masking dimension-level failures. On WebArena and ToolBench, ADARUBRIC achieves Pearson r=0.79 human correlation (+0.16 over the best static baseline) with deployment-grade reliability (Krippendorff's $α$=0.83). DPO agents trained on ADARUBRIC preference pairs gain +6.8 to +8.5 pp task success over Prometheus across three benchmarks; gains transfer to SWE-bench code repair (+4.9 pp) and accelerate PPO convergence by +6.6 pp at 5K steps - both without any rubric engineering. Code: https://github.com/alphadl/AdaRubrics.",
+      "authors": [
+        "Liang Ding"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-22T18:47:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.21362v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLM agent evaluation framework with code debugging and web navigation tasks",
+      "llm_evidence_cn": "LLM智能体评估框架，包含代码调试和网页导航任务",
+      "llm_evidence": "LLM智能体评估框架，包含代码调试和网页导航任务",
+      "canonical_evidence": "LLM智能体评估框架，包含代码调试和网页导航任务",
+      "llm_tldr_en": "AdaRubric generates task-adaptive rubrics for evaluating LLM agents on code debugging and web navigation.",
+      "llm_tldr_cn": "AdaRubric生成任务自适应评分标准，用于评估代码调试和网页导航的LLM智能体。",
+      "llm_tldr": "AdaRubric生成任务自适应评分标准，用于评估代码调试和网页导航的LLM智能体。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.19710v1",
+      "title": "AIGQ: An End-to-End Hybrid Generative Architecture for E-commerce Query Recommendation",
+      "abstract": "Pre-search query recommendation, widely known as HintQ on Taobao's homepage, plays a vital role in intent capture and demand discovery, yet traditional methods suffer from shallow semantics, poor cold-start performance and low serendipity due to reliance on ID-based matching and co-click heuristics. To overcome these challenges, we propose AIGQ (AI-Generated Query architecture), the first end-to-end generative framework for HintQ scenario. AIGQ is built upon three core innovations spanning training paradigm, policy optimization and deployment architecture. First, we propose Interest-Aware List Supervised Fine-Tuning (IL-SFT), a list-level supervised learning approach that constructs training samples through session-aware behavior aggregation and interest-guided re-ranking strategy to faithfully model nuanced user intent. Accordingly, we design Interest-aware List Group Relative Policy Optimization (IL-GRPO), a novel policy gradient algorithm with a dual-component reward mechanism that jointly optimizes individual query relevance and global list properties, enhanced by a model-based reward from the online click-through rate (CTR) ranking model. To deploy under strict real-time and low-latency requirements, we further develop a hybrid offline-online architecture comprising AIGQ-Direct for nearline personalized user-to-query generation and AIGQ-Think, a reasoning-enhanced variant that produces trigger-to-query mappings to enrich interest diversity. Extensive offline evaluations and large-scale online A/B experiments on Taobao demonstrate that AIGQ consistently delivers substantial improvements in key business metrics across platform effectiveness and user engagement.",
+      "authors": [
+        "Jingcao Xu",
+        "Jianyun Zou",
+        "Renkai Yang",
+        "Zili Geng",
+        "Qiang Liu",
+        "Haihong Tang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-03-20T07:27:59+00:00",
+      "link": "https://arxiv.org/pdf/2603.19710v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "End-to-end generative framework for query recommendation in search systems",
+      "llm_evidence_cn": "用于搜索系统的端到端查询推荐生成框架",
+      "llm_evidence": "用于搜索系统的端到端查询推荐生成框架",
+      "canonical_evidence": "用于搜索系统的端到端查询推荐生成框架",
+      "llm_tldr_en": "Proposes AIGQ, an end-to-end generative architecture for e-commerce query recommendation with novel training and optimization methods.",
+      "llm_tldr_cn": "提出AIGQ，一种用于电商查询推荐的端到端生成架构，包含新颖的训练和优化方法。",
+      "llm_tldr": "提出AIGQ，一种用于电商查询推荐的端到端生成架构，包含新颖的训练和优化方法。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.21363v1",
+      "title": "Cerebra: Aligning Implicit Knowledge in Interactive SQL Authoring",
+      "abstract": "LLM-driven tools have significantly lowered barriers to writing SQL queries. However, user instructions are often underspecified, assuming the model understands implicit knowledge, such as dataset schemas, domain conventions, and task-specific requirements, that isn't explicitly provided. This results in frequently erroneous scripts that require users to repeatedly clarify their intent. Additionally, users struggle to validate generated scripts because they cannot verify whether the model correctly applied implicit knowledge. We present Cerebra, an interactive NL-to-SQL tool that aligns implicit knowledge between users and LLMs during SQL authoring. Cerebra automatically retrieves implicit knowledge from historical SQL scripts based on user instructions, presents this knowledge in an interactive tree view for code review, and supports iterative refinement to improve generated scripts. To evaluate the effectiveness and usability of Cerebra, we conducted a user study with 16 participants, demonstrating its improved support for customized SQL authoring. The source code of Cerebra is available at https://github.com/zjuidg/CHI26-Cerebra.",
+      "authors": [
+        "Yunfan Zhou",
+        "Qiming Shi",
+        "Zhongsu Luo",
+        "Xiwen Cai",
+        "Yanwei Huang",
+        "Dae Hyun Kim",
+        "Di Weng",
+        "Yingcai Wu"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-22T18:48:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.21363v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-driven interactive tool with knowledge retrieval agents for SQL authoring",
+      "llm_evidence_cn": "LLM驱动的交互式SQL编写工具含知识检索智能体",
+      "llm_evidence": "LLM驱动的交互式SQL编写工具含知识检索智能体",
+      "canonical_evidence": "LLM驱动的交互式SQL编写工具含知识检索智能体",
+      "llm_tldr_en": "Cerebra is an interactive NL-to-SQL tool that aligns implicit knowledge between users and LLMs during SQL authoring.",
+      "llm_tldr_cn": "Cerebra是交互式NL-to-SQL工具在SQL编写中对齐用户与LLM的隐式知识。",
+      "llm_tldr": "Cerebra是交互式NL-to-SQL工具在SQL编写中对齐用户与LLM的隐式知识。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

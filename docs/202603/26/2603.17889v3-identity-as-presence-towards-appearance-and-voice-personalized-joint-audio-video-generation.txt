@@ -1,0 +1,291 @@
+Title: Identity as Presence: Towards Appearance and Voice Personalized Joint Audio-Video Generation
+
+URL Source: https://arxiv.org/pdf/2603.17889v3
+
+Published Time: Thu, 26 Mar 2026 00:48:09 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# Identity as Presence: Towards Appearance and Voice Personalized Joint Audio-Video Generation 
+
+Yingjie Chen 1, Shilun Lin 1, Cai Xing 1, Binxin Yang 1, Long Zhou 1, Qixin Yan 1,Wenjing Wang 1, Dingming Liu 2, Hao Liu 1, Chen Li 1, and Jing LYU 1 
+
+> 1
+
+WXG, Tencent Inc. 
+
+{alexyjchen,cirolin,yolocai,binxinyang,simonlzhou,qixinyan, augustawang,leweshaoliu,chaselli,eckolv}@tencent.com  
+
+> 2
+
+Peking University 
+
+dingmingliu3722@gmail.com 
+
+Abstract. Recent advances have demonstrated compelling capabilities in synthesizing real individuals into generated videos, reflecting the grow-ing demand for identity-aware content creation. Nevertheless, an openly accessible framework enabling fine-grained control over facial appear-ance and voice timbre across multiple identities remains unavailable. In this work, we present a unified and scalable framework for identity-aware joint audio-video generation, enabling high-fidelity and consistent personalization. Specifically, we introduce a data curation pipeline that automatically extracts identity-bearing information with paired anno-tations across audio and visual modalities, covering diverse scenarios from single-subject to multi-subject interactions. We further propose a flexible and scalable identity injection mechanism for single- and multi-subject scenarios, in which both facial appearance and vocal timbre act as identity-bearing control signals. Moreover, in light of modality dispar-ity, we design a multi-stage training strategy to accelerate convergence and enforce cross-modal coherence. Experiments demonstrate the superi-ority of the proposed framework. For more details and qualitative results, please refer to our webpage: Identity-as-Presence. 
+
+Keywords: joint audio-video generation · personalized video generation 
+
+## 1 Introduction 
+
+Recent advances in audio-visual generation have established a strong founda-tion for high-fidelity multimodal synthesis. Building on this progress, emerging applications have created increasing demand for personalized video generation that faithfully replicates both the facial appearance and vocal timbre of real individuals. This trend highlights the need for models with cameo capabilities ,enabling a specific person to speak arbitrary content and appear in diverse scenes conditioned on user input. Such functionality is critical for applications includ-ing virtual avatars and digital identity preservation, which require precise and disentangled control over facial identity and voice characteristics.   
+
+> arXiv:2603.17889v3 [cs.CV] 25 Mar 2026 2Y. Chen et al.
+> Fig. 1: Identity-as-Presence supports single-subject and multi-subject personalized joint audio-video generation for facial appearance and vocal timbre.
+
+A straightforward solution is a multi-stage cascade. It first generates audio and video independently, and then performs audio-driven lip synchronization. However, such sequential pipelines impose rigid visual constraints and offer lim-ited support for cinematic dynamics. They also model audio mainly through lip motion rather than holistic sound, which weakens overall audio-visual coherence. These limitations make end-to-end generation a more promising paradigm for unified audio-visual synthesis. Despite this potential, building a unified cameo model remains challenging. Identity-controllable audio-video generation requires stable cross-modal iden-tity consistency and flexible voice-face binding in multi-identity scenarios. In addition, high-quality identity-labeled audio-visual datasets are scarce, making stable and scalable training difficult. Existing identity injection methods remain largely unimodal. In audio generation, most approaches rely on autoregressive (AR) voice cloning frameworks, which excel at reproducing the voice timbre of a target individual from a reference utterance [33, 34, 39]. While diffusion-based models have recently emerged in speech and music synthesis with limited control over individual identity [13, 20]. In video generation, facial identity is typically preserved by encoding reference images through cross-attention [15,47,48], sym-metric network branches [16, 50], or token-wise concatenation [12, 29, 46]. These methods enable faithful visual identity retention but operate solely in the vi-sual domain. While recent works have made strides in multi-identity spatial composition via region-based attention masks [10, 41] or anchored prompts [27], extending this capability to joint audio-video generation remains an open chal-lenge. Most critically, the cross-modal binding of multiple individuals is largely unexplored. Unlike spatial composition in static images, joint audio-visual gen-eration requires the model to dynamically associate specific voice timbres with their corresponding facial appearances over time. Current systems lack a unified mechanism for such cross-modal identity alignment, resulting in inconsistent or ambiguous identity mapping, especially in multi-subject scenarios. As a result, Identity as Presence 3
+
+the problem of coherent, fine-grained control over multiple audio-visual identities remains fundamentally unsolved. To this end, we present Identity-as-Presence , a unified and scalable frame-work for appearance- and voice-personalized joint audio-video generation. To address the critical data bottleneck, we introduce a fully automated data cu-ration pipeline that constructs high-quality, identity-labeled audio-visual pairs without manual annotation, ensuring precise face-voice alignment for complex multi-identity interactions. To enable multimodal identity injection, we propose a unified identity injection mechanism. Specifically, visual (one-shot or multi-view facial images) and auditory identity control signals are encoded and aligned through shared identity embeddings and structured spatiotemporal positional embeddings. These embeddings ensure consistent face-voice association for mul-tiple individuals in complex scenarios while effectively distinguishing identities and preserving structural coherence. The resulting representations are then pro-cessed by a dual-tower diffusion transformer, where a decoupled parameterization with asymmetric self-attention is introduced to stabilize optimization. Further-more, to leverage heterogeneous data across modalities and promote progressive audio-visual alignment, we design a multi-stage training strategy. The model first learns unimodal identity injection on large-scale unimodal data, then jointly op-timizes multimodal identity injection, and finally performs fine-tuning for multi-view identity modeling. Together, these designs enable high-fidelity and coherent synthesis of personalized multi-subject audio-visual content with precise identity control. Extensive experiments demonstrate that our method achieves state-of-the-art performance in terms of audio quality, video fidelity, and cross-modal alignment. Our main contributions are threefold. 
+
+– We introduce a fully automated data curation pipeline that constructs high-quality, identity-labeled audio-visual pairs without manual annotation. It effectively alleviates the critical scarcity of paired multimodal data, providing a robust foundation for learning complex multi-identity interactions. 
+
+– We propose a unified identity injection mechanism comprising multimodal information representation, structured spatiotemporal alignment, and decou-pled attention parameterization. Together, these components resolve identity entanglement while ensuring strict cross-modal alignment. 
+
+– We devise a multi-stage training strategy to mitigate optimization instability arising from cross-modal discrepancies. Extensive experiments demonstrate that our method achieves state-of-the-art performance in audio generation, visual synthesis, and cross-modal alignment. Our dataset and model will be publicly released to promote transparency, reproducibility, and further research in the AIGC community. 
+
+## 2 Related Work 
+
+Identity-Aware Video Generation. Prior work on identity-aware video gen-eration either injects facial identity via explicit encoders or regularizes identity 4 Y. Chen et al. 
+
+consistency within diffusion backbones. ID-animator [15] conditions a text-to-video diffusion model with a lightweight face adapter and learnable facial latent queries, while ConsistID [48] enforces temporal identity coherence through fre-quency decomposition in diffusion transformers. Subject-consistent frameworks, such as Phantom [29], SkyReels-A2 [12] and VACE [21], concatenate reference conditions with noisy latents and perform full-sequence denoising to stabilize identity over time. With video foundation models, multimodal customization methods such as HunyuanCustom [17] and ConceptMaster [18] integrate con-ditions via modality-specific modules, but often incur substantial training cost. Stand-In [46] introduces a lightweight, plug-and-play identity control design to reduce trainable parameters. However, these approaches focus exclusively on vi-sual fidelity, thereby overlooking the holistic nature of identity that binds facial features with specific vocal characteristics. In contrast, our approach achieves multimodal identity-aware joint audio-video generation, ensuring cross-modal identity consistency. 
+
+Identity-Aware Audio Generation. Recent advancements in text-to-speech (TTS) have achieved human-level naturalness and high-fidelity speaker cloning [24, 25, 33, 34, 37], generally falling into two paradigms: Autoregressive (AR) and Non-Autoregressive (NAR). AR models, exemplified by VALL-E [39], treat TTS as a language modeling task, achieving remarkable speaker similarity but of-ten suffering from slow inference speeds due to sequential processing. In con-trast, NAR models offer superior efficiency through parallel processing. Promi-nent flow matching models like Voicebox [22] and Matcha-TTS [32] condition flow trajectories on text and audio, while E2 TTS [11] simplified the pipeline by discarding phoneme alignments in favor of direct subjec-level modeling. F5-TTS [6] further refined this architecture by introducing Sway Sampling to rectify alignment flaws and achieve robust, high-fidelity zero-shot generation. However, these methods typically rely on audio infilling for voice cloning, a paradigm ill-suited for the arbitrary text generation required in our Cameo scenario. While joint audio-video models favor diffusion backbones, adapting them for robust voice injection remains challenging. To address this, we introduce a streamlined token-concatenation mechanism for voice identity injection. Remarkably, with minimal architectural modifications, our approach achieves voice cloning perfor-mance comparable to state-of-the-art NAR TTS models. 
+
+Joint Audio-Visual Generation. To bridge the gap between visual and au-ditory generation, recent research has pivoted towards joint audio-video gen-eration. Consequently, unified frameworks have emerged as a promising direc-tion to model the intricate dependencies between sight and sound. Pioneer-ing works [14, 28, 31, 40, 49] attempt to synthesize both modalities simultane-ously within a single model. These methods predominantly adopt a dual-tower paradigm. Ovi [31] and LTX-2 [14] employ a symmetric architecture, while Jav-isDit [28], Universe-1 [40], and UniAVGen [49] employ asymmetric designs aug-mented with intricate interaction modules to facilitate cross-modal fusion. How-ever, despite these architectural innovations, existing unified methods often lack precise control over specific identities and struggle with identity entanglement Identity as Presence 5
+
+in multi-subject scenarios, leading to erroneous face-voice bindings such as voice swapping. In contrast, we propose a unified framework with a multimodal iden-tity injection approach, enabling coherent, multi-identity generation where flex-ible visual inputs are strictly aligned with their corresponding vocal timbres. 
+
+## 3 Identity-as-Presence 
+
+We propose Identity-as-Presence, a unified framework for joint audio-video gen-eration that achieves coherent multi-identity control, consisting of three key as-pects: an automated data curation pipeline for extracting identity-labeled audio-visual clips, a unified identity injection approach that independently modulates visual and auditory identity features, and a multi-stage training strategy de-signed to address modality disparity and ensure stable convergence. 
+
+3.1 Preliminaries 
+
+To address the distinct dynamics of visual and auditory modalities, a dual-tower architecture is employed, facilitating cross-modal interaction via attention mechanisms. Let v0 and a0 denote the clean latents encoded by respective VAEs. Independent probability paths are defined via linear interpolation with Gaussian noise v1, a 1 ∼ N (0 , I ):
+
+vt = (1 − t)v0 + tv 1, at = (1 − t)a0 + ta 1, (1) where t ∈ [0 , 1] . These paths induce target velocity fields uvt = v1 − v0 and 
+
+uat = a1 − a0. To enable personalized generation, the model is conditioned on disentangled visual and auditory identity signals cv and ca. Consequently, the joint optimization objective is a weighted sum of two flow matching losses: 
+
+Ljoint = Et,v 0,a 0,v 1,a 1
+
+∥ˆuvθ (vt, a t, t, c v ) − uvt ∥22 + λ∥ˆuaθ (vt, a t, t, c a) − uat ∥22
+
+ , (2) where ˆuvθ and ˆuaθ denote the predicted velocity fields conditioned on their respec-tive identity controls, and λ balances the learning between the two modalities. 
+
+3.2 Data Curation Pipeline 
+
+High-quality, identity-consistent data is the cornerstone of personalized audio-visual generation. To address the scarcity of paired multimodal data, we develop a fully automated data curation pipeline. As illustrated in Figure 2, the pipeline operates in three cascaded phases: (1) Multimodal Identity Extraction, which extracts fine-grained identity-bearing information from raw videos; (2) Multi-modal Captioning, which leverages multimodal large language models (MLLMs) to synthesize comprehensive textual descriptions; and (3) Audio-Visual Identity Matching, which associates identities across clips for accurate identity injection. 6 Y. Chen et al.  
+
+> Fig. 2: Overview of data curation pipeline for constructing identity-labeled audio-visual data from raw videos. The process involves isolating both visual and audi-tory identity-specific signals from raw videos, synthesizing comprehensive captions via MLLMs, and rigorously matching audio-visual identities to guarantee precise alignment across video clips to ensure high-fidelity identity consistency.
+
+1. Multimodal Identity Extraction. For the visual stream, we first ap-ply multi-object tracking to isolate individual subjects within raw videos. Frame-wise human detection is performed using YOLOv11 [23], followed by long-term tracking with MOTRv2 [51]. For each tracked subject, we per-form face detection and estimate FLAME [26] parameters using SMIRK [35], capturing dense 3D facial geometry and expression details. The resulting 3D parameters are then used to extract high-quality one-shot or diverse multi-view reference images, which serve as robust facial identity control signals for our generative model. Handling the audio modality requires separating mixed vocal tracks. We use Demucs [8] to separate vocal and background components and apply 3D-Speaker [5] for speaker diarization, isolating the distinct voice of each speaker. Automatic Speech Recognition (ASR) is used to transcribe the spoken content. To align facial appearance with vocal timbre, we employ SyncNet [7] to compute the synchronization confidence between the sepa-rated audio and visual lip movements. Only pairs with high synchronization scores are retained, ensuring that the extracted voice timbre is correctly associated with the corresponding facial identity. 2. Multimodal Captioning. Finally, we use MLLMs to generate textual de-scriptions for each video clip. Specifically, we feed each triplet consisting of the video clip, the extracted facial images for each subject, and the ASR transcripts into Qwen3-Omni [45]. Using a carefully designed prompt tem-plate, we instruct the model to generate comprehensive descriptions covering camera movements, scene context, ambience and sound effects, and subject descriptions, including subject appearance, actions, expressions, and speech content. Moreover, to establish robust subject anchors, we explicitly require Identity as Presence 7
+
+the model to bind physical appearance attributes and spoken content to unique identifiers for each subject. As shown in the right part of Figure 2, these structured captions serve as the text prompts for our joint audio-video generation model. 3. Audio-Visual Identity Matching. To ensure the model learns to inject identity rather than simply copy and paste, we construct training pairs via an extra matching phase. Specifically, the reference facial images are supposed to be diverse in identity-irrelevant attributes such as head pose and expres-sion, and the reference audio must not share causal transcription links with the target video. To achieve this, we implement a strict cross-clip matching strategy. First, we group video clips by visual identity using face embeddings extracted by ArcFace [9]. However, visual consistency does not guarantee vo-cal consistency due to dubbing or voice-overs. Therefore, we further refine these groups using speaker embeddings extracted by ERes2Net [4]. We com-pute the cosine similarity between speaker embeddings to filter out pairs with low similarity, ensuring that our training pairs share the same appearance and voice identity while containing diverse, non-overlapping speech content. Our data curation pipeline ensures precise alignment between facial appear-ance and vocal timbre, through which we construct a large-scale identity-labeled audio-visual dataset encompassing diverse scenarios ranging from single-subject to multi-subject interactions. The resulting dataset is denoted as D = {(v, a, c v ,ca, txt )}, where v and a represent the video and audio modalities, and cv and 
+
+ca correspond to facial appearance and vocal timbre. D serves as the founda-tion for our model, providing robust supervision to learn the disentangled yet synchronized identity signals required by our Identity-as-Presence framework. 
+
+3.3 Network Architecture 
+
+To achieve high-fidelity joint audio-video generation, we build our framework upon a dual-tower Diffusion Transformer (DiT) architecture. A critical challenge in this paradigm is the effective injection of identity control signals, specifically facial appearance and vocal timbre, into the generative process in a manner that is both disentangled and coherent. To address this, we propose a unified injection strategy that integrates multimodel information representation, spatiotemporal alignment, and attention mechanisms, as shown in Figure 3. 
+
+Multimodel Identity Injection. Instead of employing auxiliary control net-works or adapters, we treat identity signals as additional input tokens and seam-lessly integrate them into the input sequence of the DiT backbone. This unified approach allows for the joint optimization of multimodal content generation and identity preservation. Let m ∈ { v, a } denote the modality index. Let zmt ∈ RLmt ×D be the sequence of noisy latent tokens at diffusion timestep t, and cm be the corresponding raw reference signal. Specifically, for the visual branch ( m = v), cv comprises ref-erence facial images (supporting both one-shot and multi-view inputs), and for 8 Y. Chen et al. Vision Towe r 
+
+> Auditory Identity
+
+ca 
+
+> Voice ID 1 Audio za
+
+Audio Encoder & Patchify  
+
+> Visual Identity
+
+cv     
+
+> Video zv
+> Identity Embeds +
+> One -shot Face ID 1 Multi -shot Face ID 2
+> …
+> ×N
+> Norm + FFN
+> Time
+> Ta,max
+> Ta,max ＋L
+> Dense Near -square Packing
+> Position Embeds +
+> Width
+> Height
+> Time
+> Tv,max
+> Tv,max ＋1
+
+Video Encoder & Patchify  
+
+> …
+> …
+> Voice ID 2
+> Cross -Attn V2A
+> ×N
+> Asymmetric
+> Self -Attention
+> Norm + FFN
+> Cross -Attn V2A
+
+Audio Tower               
+
+> Trainable in Stage 1
+> Frozen
+> Trainable in Stage 2&3
+> Structured
+> Caption
+> Identity Embeds +
+> Position Embeds +
+> Linear W(r)
+> Asymmetric
+> Self -Attention Latents Linear W(z)
+> Reference Cross -Attn Cross -Attn
+> <REF_1_S> a man with short curly brown hair…
+> <REF_1_E> says calmly, <S1> The story has been
+> told. <E1> …<REF_2_S> a man with short black hair,
+> wears… <REF_2_E> responds gently, <S2> But the
+> touching part has just begun. <E2>
+> Cross -Attn A2V
+
+Fig. 3: The overall dual-tower DiT network architecture and training framework. The model has five inputs: video, audio, video identity, audio identity, and structured cap-tion. We first extract latents for each modality, apply identity embedding to identity latents, then organize latents with structured position embedding. In DiT, we use asymmetric self-attention for decoupled parameterization. The training contains three strages. Stage 1 for unimodal identity, stage 2 for joint multimodel identity training, and stage 3 for multi-view identity fine-tuning. 
+
+the auditory branch ( m = a), ca consists of a reference audio clip. We first en-code these control signals into discrete tokens rm using modality-specific VAE encoders: 
+
+rm = Patchify (Em(cm)) ∈ RLmr ×D . (3) 
+
+Shared Identity Embeddings. To enable robust multi-identity personalized generation, we must ensure that each voice timbre is correctly associated with its corresponding facial appearance. To this end, we introduce learnable Identity Embeddings to explicitly bind these modalities at the token level. For a scene with K distinct identities, we assign a unique vector e(k)
+
+id to the k-th identity. This embedding is injected into the reference tokens via element-wise addition: 
+
+ˆr(k)
+
+m = r(k)
+
+m + e(k)
+
+id , m ∈ { v, a }. (4) Since e(k)
+
+id is shared between r(k)
+
+v and r(k)
+
+a , it serves as an explicit binding sig-nal that guides the model to associate the visual tokens of identity k with the auditory tokens of the same identity. The identity-bound reference tokens ˆrm are then concatenated with the noisy latents zmt along the sequence dimension to form Xm ∈ R(Lmr +Lmt )×D as the composite input for each tower: 
+
+Xm = [ˆ rm; zmt ]. (5) Identity as Presence 9
+
+This token-wise concatenation imposes a symmetric inductive bias, allowing the model to flexibly attend to fine-grained features, aggregating multi-view facial details or extracting spectral formants, with minimal architectural overhead. 
+
+Structured Position Embeddings. Proper positional injection is crucial for the model to distinguish between identities and maintain structural coherence. For the video and audio latent tokens zvt and zat , we apply standard factorized 3D RoPE [36] and scale the audio temporal channels to align with the video frame rate. For the identity tokens ˆrv and ˆra, positional assignment requires a specialized strategy to ensure numerical stability and cross-modal binding. To this end, we propose a virtual temporal extension mechanism that assigns deterministic coordinates to identity tokens beyond the generation timeline. Recognizing that facial appearance identity ˆrv is inherently encoded in the spatial domain while vocal timbre identity ˆra unfolds along the temporal dimen-sion, we establish a strict geometric alignment to bridge these heterogeneous modalities. We map the spatially organized visual tokens ˆrv to virtual temporal indices, assigning Tv, max to visual tokens of the first identity, Tv, max +1 to the sec-ond, and continuing sequentially. Correspondingly, the auditory identity tokens 
+
+ˆra are arranged along the temporal axis starting from Ta, max . We synchronize this placement such that the k-th auditory identity (at Ta, max +( k−1) ×L, where 
+
+L denotes the maximum length of the audio reference) aligns strictly with the 
+
+k-th visual identity. This creates an invariant geometric anchor , allowing the attention mechanism to utilize relative positional distances as a strong inductive bias for binding spatial facial appearance with the corresponding temporal vocal timbre. We further propose a strategy for multi-view facial tokens. Instead of linearly concatenating reference images, which often leads to out-of-distribution spatial coordinates and frequency extrapolation artifacts, we employ a dense near-square packing strategy for multi-view facial images. We organize the multi-view images into a compact grid layout within (H, W ) before patchification. The resulting visual tokens ˆrv are then assigned a specific virtual temporal position. This layout constrains the maximum spatial frequencies to a stable range seen during training, significantly improving the robustness of the rotary embedding against spatial distortions. 
+
+Asymmetric Self-Attention with Decoupled Parameterization. Stan-dard self-attention layers typically share projection weights across all tokens. However, given the distinct semantic roles of the reference signals (condition) and the noisy latents (generation target), sharing weights may lead to optimiza-tion conflicts. To address this, we propose a decoupled parameterization strategy combined with an asymmetric attention mask. Let X ∈ RL×D be the input sequence. We divide the token indices into a reference set Ωr and a noisy latent set Ωz , where Ωr ∪ Ωz = {1, . . . , L }.To learn specialized representations, we use separate projection weights for the two groups: W(r) for reference tokens and W(z) for noisy tokens. Each token is projected using the weights corresponding to its set, producing the matrices 10 Y. Chen et al. 
+
+Q, K, V ∈ RL×d. This decoupling allows the model to learn identity-preserving and denoising features independently. To control information flow, we introduce a structural mask M in the atten-tion computation: 
+
+Attn (Q, K, V ) = softmax 
+
+ QK ⊤
+
+√d + M
+
+
+
+V, Mi,j =
+
+(
+
+−∞ i ∈ Ωr , j ∈ Ωz ,
+
+0 otherwise. 
+
+(6) With this mask, noisy latents can extract identity cues from references, whereas reference features remain unaffected by diffusion noise, preserving the integrity of the control signals during generation. 
+
+3.4 Training Strategy 
+
+To leverage heterogeneous data across modalities and facilitate progressive audio-visual alignment, we adopt a multi-stage training strategy motivated by dispar-ities in data availability. Identity-labeled audio data (e.g., TTS corpora) is the most abundant, identity-labeled video data is more limited due to filtering re-quirements, and paired identity-labeled audio-visual data is the scarcest because of strict synchronization and semantic constraints. Directly training on limited paired data risks overfitting and poor identity diversity. We therefore propose a progressive learning framework with three stages: unimodal identity training, joint multimodal identity training, and multi-view identity fine-tuning.                  
+
+> Table 1: Comparison with SOTA NAR TTS Methods on Seed-TTS-Eval [2].
+> Method English Chinese WER ↓AID-SIM ↑WER ↓AID-SIM ↑
+> E2 TTS [11] 0.022 0.710 0.012 0.730 F5 TTS [6] 0.018 0.647 0.015 0.741
+> Ours-Audio 0.021 0.675 0.014 0.732
+
+Stage 1: Unimodal Identity Training. We first decouple train-ing to fully exploit large-scale uni-modal data and learn identity-specific priors before cross-modal alignment. The audio tower is trained on large TTS datasets to model diverse vocal timbres and prosody, enabling robust voice identity injection. Notably, we find that the uni-modal pre-training stage is the optimal window for instilling robust multilingual capabilities. This stage imposes lower data requirements while ensuring that the acquired capabilities are well-preserved during post-training. We conduct exper-iments on TTS benchmarks to demonstrate that after the unimodal training stage, our audio tower achieves comparable performance to non-autoregressive (NAR) TTS models, as shown in Table 1. In parallel, the video tower is trained on identity-labeled video datasets to learn appearance and motion dynamics. During this stage, cross-modal fusion layers are masked, allowing each modality to converge optimally on its respective data. 
+
+Stage 2: Joint Multimodal Identity Training. Then, we perform joint mul-timodal training using curated paired identity-labeled audio-visual data. The model is initialized from Stage 1 and cross-modal fusion layers are activated to Identity as Presence 11 
+
+learn temporal alignment between speech and facial motion. This decoupling al-lows large unimodal datasets to provide identity diversity while a smaller paired set enables precise audio-visual synchronization. 
+
+Stage 3: Multi-view Identity Fine-tuning. To overcome the limitations of 2D one-shot generation, we introduce a lightweight fine-tuning stage using a small set of high-quality multi-view identity data. This stage improves spatial awareness and injects holistic identity consistency, enabling avatars to maintain structural integrity and photorealism under large pose variations. 
+
+## 4 Experiments 
+
+4.1 Experimental Settings Evaluation Benchmark. To rigorously assess joint audio-video generation, we introduce a benchmark of 100 curated triplets, split into 70 single-subject and 30 multi-subject scenarios. Each entry contains a triplet of reference facial im-ages (one-shot/multi-view), an audio clip, and the corresponding text prompt, spanning diverse subjects and scenarios. Unlike conventional single-modality benchmarks, this dataset serves as a holistic testbed for cross-modal identity preservation, challenging models to maintain high fidelity and synchronization in complex multi-subject settings beyond limited training distributions. 
+
+Evaluation Metrics. Audio Quality: We measure speech intelligibility us-ing Word Error Rate (WER) via SenseVoice [1], semantic consistency with CLAP [43], and perceptual similarity to the ground truth with Fréchet Dis-tance (FD), respectively. Audio production quality (PQ) is evaluated using Au-diobox [38], while speaker identity similarity (AID-SIM) is calculated using the cosine similarity of the WavLM embeddings [3]. Visual Fidelity: We use Aes-thetic Quality (AES), Dynamic Degree (DD), and Overall Consistency (OC) from VBench [19] to measure the artistic and beauty value, the degree of dynam-ics, and overall video-text consistency. Facial identity preservation (VID-SIM)  
+
+> Fig. 4: Comparison with state-of-the-art identity-aware video generation models and joint audio-video generation models.
+
+12 Y. Chen et al. 
+
+Table 2: Comparison with State-of-the-Art Methods.                                                                                             
+
+> Models Audio Video Audio-Video Consistency
+> PQ ↑CLAP ↑FD ↓WER ↓AID-SIM ↑AES ↑DD ↑OC ↑VID-SIM ↑Sync-C ↑Sync-D ↓ImageBind ↑
+> Phantom -----0.532 0.844 0.124 0.631/0.569 ---HunyuanCustom -----0.553 0.711 0.125 0.563/----Stand-In -----0.576 0.159 0.120 0.561/----R2I+Ovi I2AV 5.495 0.304 0.893 0.203 -0.554 0.667 0.111 0.383/-6.844 8.555 0.229 R2I+LTX-2 I2AV 5.302 0.268 1.131 0.205 -0.538 0.733 0.112 0.373/-5.777 8.908 0.238 R2I+UniAVGen I2AV 6.091 0.315 0.888 0.327 0.321/-0.598 0.622 0.107 0.403/-4.630 10.368 0.230 Ours 6.944 0.330 0.729 0.188 0.597 /0.572 0.606 0.867 0.132 0.667 /0.623 7.063 8.149 0.335
+
+is evaluated using ArcFace [9] feature similarity. Audio-Visual Consistency: We employ SyncNet [7] to measure lip-sync accuracy via confidence (Sync-C) and distance (Sync-D) scores. Additionally, ImageBind [44] is used to assess the align-ment between visual and auditory events in complex scenarios. 
+
+Implementation Details. We employ a dual-tower architecture following Ovi [31] and initialize with its pre-trained weights. AdamW [30] with β1 = 0 .9, β2 = 0 .999 
+
+and ϵ = 10 −8 are used as optimizer, with learning rate of 1e-4 and batch size of 64. For unimodal training, we train 12K iterations on 150K hours of TTS data on audio tower, and 8K iterations on 100K video clips on video tower. For mul-timodal training, we train 5K steps on 50K identity-labeled audio-visual data on the final dual-tower model. Finally, we fine-tune the model using 10K multi-view video clips to enable multi-view injection. 
+
+4.2 Comparison with State-of-the-Art Methods 
+
+We compare the proposed method with state-of-the-art methods that include identity-sensitive video generation models, Phantom [29], HunyuanCustom [17] and Stand-In [46] and joint audio-video generation models, Ovi [31], LTX-2 [14] and UniAVGen [49]. Note that UniAVGen only supports single-subject voice ID injection. For a fair comparison under identity-aware T2AV settings, we em-ploy Qwen-Image [42] to generate the first frame for baselines lacking native ID support, unifying the task as I2AV generation. All samples are generated at 720p resolution for 5 seconds. As reported in Table 2, our method outperforms others on audio quality, video fidelity, and audio-visual consistency. Qualitative comparisons in Figure 4 highlight that our method excels in generating highly dynamic scenes while preserving facial identity. 
+
+4.3 Ablation Study 
+
+In this section, we conduct ablation studies to evaluate the effectiveness of two key components, Subject Anchors (SA) and Identity Embeddings (IE), and the proposed training strategy. Quantitative results are presented in Table 3. From Table 3, we observe that both subject anchors and shared identity embeddings facilitate achieving more stable multi-subject personalization generation. As shown in Figure 5, removing subject anchors (w/o SA) leads to identity confusion. Without these anchors, the model may erroneously entangle speech Identity as Presence 13 
+
+content with speaker identity (top-left) or generate subjects that share partial appearance features (top-right). In the absence of identity embeddings (w/o IE), the model fails to align specific Face IDs with their corresponding Voice IDs. This leads to either unintended overlap (bottom-left), where subjects speak simultaneously due to a lack of turn-taking, or voice-face mismatch (bottom-right), where a face is driven by the wrong voice. Regarding the training strategy, we report results under the same training iterations for both one-stage and two-stage settings, noting that multi-view fine-tuning requires slightly more continuous iterations. Results in Table 3 show that our training strategy effectively leverages unimodal data to accelerate conver-gence, and multi-view extension can be enabled with minimal fine-tuning on a small set of multi-view data. 
+
+4.4 Case study 
+
+Table 3: Ablation on SA, IE, and training strategy.                               
+
+> Models WER ↓AID-SIM ↑VID-SIM ↑Sync-C ↑Sync-D ↓
+> w/o SA 0.283 0.388/0.242 0.608/0.394 5.273 9.528 w/o IE 0.345 0.470/0.170 0.628/0.413 4.553 10.309 One-stage 0.294 0.432/0.397 0.614/0.598 5.553 9.309 Two-stage 0.188 0.597/0.572 0.667/0.623 7.063 8.149 Multi-view 0.184 0.591/0.566 0.705/0.634 7.070 8.218
+
+To qualitatively evalu-ate the versatility of our framework, we present a case study in Figure 6 and Figure 7. In Fig-ure 6, the top row high-lights the high-fidelity joint audio-video gener-ation in single-subject scenarios. By decoupling the synthesized audio into sepa-rate speech and ambient tracks, we observe that our method not only produces clear speech but also generates realistic non-vocal sounds as described in the corresponding text prompt, and they fuse naturally with the visual context. The bottom row demonstrates the precision control in multi-subject scenarios. Our method maintains identity binding for two distinct subjects without entangle-ment while simultaneously exhibiting strong instruction-following capabilities, 
+
+Fig. 5: Ablation study on subject anchors and identity embeddings. 14 Y. Chen et al.   
+
+> Fig. 6: Case study of single-subject and multi-subject multimodal personalization.
+> Fig. 7: Case study of one-shot and multi-shot reference facial images.
+
+i.e ., accurately reflecting the scene context, subject actions, and fine-grained facial expressions. In Figure 7, we compare identity injection using single-shot versus multi-shot inputs. While the one-shot baseline suffers from facial identity inconsistency when rendering novel views, multi-view injection significantly improves view diversity and preserves identity fidelity across changing angles. Additionally, this example showcases the model’s responsiveness to textual descriptions of camera movements, ensuring cinematic coherence alongside identity preservation. 
+
+## 5 Conclusion 
+
+In this work, we presented Identity-as-Presence, a pioneering framework that addresses the critical challenges of personalized joint audio-video generation. By moving beyond the limitations of rigid cascaded pipelines and unimodal ap-proaches, we established a robust end-to-end framework capable of simultaneous, high-fidelity injection of both facial appearance and vocal timbre. Our approach effectively resolves the complexities of cross-modal consistency and multi-identity attribute binding through three synergistic innovations, i.e ., an automated data curation pipeline that alleviates the scarcity of identity-labeled audio-visual paired data, a unified identity injection mechanism that ensures precise face-voice association even in complex multi-subject scenarios, and a multi-stage training strategy that harmonizes the optimization of heterogeneous modalities. Identity as Presence 15 
+
+Extensive evaluations demonstrate that our framework significantly outperforms existing methods in generating coherent, identity-aware audio-visual content. We believe this work sets a new standard for personalized multimodal synthesis, paving the way for advanced applications. 
+
+## References 
+
+1. An, K., Chen, Q., Deng, C., Du, Z., Gao, C., Gao, Z., Gu, Y., He, T., Hu, H., Hu, K., et al.: Funaudiollm: Voice understanding and generation foundation models for natural interaction between humans and llms. arXiv preprint arXiv:2407.04051 (2024) 2. Anastassiou, P., Chen, J., Chen, J., Chen, Y., Chen, Z., Chen, Z., Cong, J., Deng, L., Ding, C., Gao, L., et al.: Seed-tts: A family of high-quality versatile speech generation models. arXiv preprint arXiv:2406.02430 (2024) 3. Chen, S., Wang, C., Chen, Z., Wu, Y., Liu, S., Chen, Z., Li, J., Kanda, N., Yoshioka, T., Xiao, X., et al.: Wavlm: Large-scale self-supervised pre-training for full stack speech processing. IEEE Journal of Selected Topics in Signal Processing 16 (6), 1505–1518 (2022) 4. Chen, Y., Zheng, S., Wang, H., Cheng, L., Chen, Q., Zhang, S., Li, J.: Eres2netv2: Boosting short-duration speaker verification performance with computational effi-ciency. arXiv preprint arXiv:2406.02167 (2024) 5. Chen, Y., Zheng, S., Wang, H., Cheng, L., Zhu, T., Huang, R., Deng, C., Chen, Q., Zhang, S., Wang, W., et al.: 3d-speaker-toolkit: An open-source toolkit for multi-modal speaker verification and diarization. In: ICASSP 2025-2025 IEEE Interna-tional Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 1–5. IEEE (2025) 6. Chen, Y., Niu, Z., Ma, Z., Deng, K., Wang, C., JianZhao, J., Yu, K., Chen, X.: F5-tts: A fairytaler that fakes fluent and faithful speech with flow matching. In: Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). pp. 6255–6271 (2025) 7. Chung, J.S., Zisserman, A.: Out of time: automated lip sync in the wild. In: Asian conference on computer vision. pp. 251–263. Springer (2016) 8. Défossez, A., Usunier, N., Bottou, L., Bach, F.: Demucs: Deep extractor for music sources with extra unlabeled data remixed. arXiv preprint arXiv:1909.01174 (2019) 9. Deng, J., Guo, J., Xue, N., Zafeiriou, S.: Arcface: Additive angular margin loss for deep face recognition. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 4690–4699 (2019) 10. Deng, Y., Yin, Y., Guo, X., Wang, Y., Fang, J.Z., Yuan, S., Yang, Y., Wang, A., Liu, B., Huang, H., et al.: Magref: Masked guidance for any-reference video generation with subject disentanglement. arXiv preprint arXiv:2505.23742 (2025) 11. Eskimez, S.E., Wang, X., Thakker, M., Li, C., Tsai, C.H., Xiao, Z., Yang, H., Zhu, Z., Tang, M., Tan, X., et al.: E2 tts: Embarrassingly easy fully non-autoregressive zero-shot tts. In: 2024 IEEE spoken language technology workshop (SLT). pp. 682–689. IEEE (2024) 12. Fei, Z., Li, D., Qiu, D., Wang, J., Dou, Y., Wang, R., Xu, J., Fan, M., Chen, G., Li, Y., et al.: Skyreels-a2: Compose anything in video diffusion transformers. arXiv preprint arXiv:2504.02436 (2025) 13. Gong, J., Zhao, S., Wang, S., Xu, S., Guo, J.: Ace-step: A step towards music generation foundation model. arXiv preprint arXiv:2506.00045 (2025) 16 Y. Chen et al. 14. HaCohen, Y., Brazowski, B., Chiprut, N., Bitterman, Y., Kvochko, A., Berkowitz, A., Shalem, D., Lifschitz, D., Moshe, D., Porat, E., Richardson, E., Shiran, G., Chachy, I., Chetboun, J., Finkelson, M., Kupchick, M., Zabari, N., Guetta, N., Kotler, N., Bibi, O., Gordon, O., Panet, P., Benita, R., Armon, S., Kulikov, V., Inger, Y., Shiftan, Y., Melumian, Z., Farbman, Z.: Ltx-2: Efficient joint audio-visual foundation model (2026), https://arxiv.org/abs/2601.03233 
+
+15. He, X., Liu, Q., Qian, S., Wang, X., Hu, T., Cao, K., Yan, K., Zhang, J.: Id-animator: Zero-shot identity-preserving human video generation. arXiv preprint arXiv:2404.15275 (2024) 16. Hu, L., Gao, X., Zhang, P., Sun, K., Zhang, B., Bo, L.: Animate anyone: Consistent and controllable image-to-video synthesis for character animation. arXiv preprint arXiv:2311.17117 (2023) 17. Hu, T., Yu, Z., Zhou, Z., Liang, S., Zhou, Y., Lin, Q., Lu, Q.: Hunyuancustom: A multimodal-driven architecture for customized video generation. arXiv preprint arXiv:2505.04512 (2025) 18. Huang, Y., Yuan, Z., Liu, Q., Wang, Q., Wang, X., Zhang, R., Wan, P., Zhang, D., Gai, K.: Conceptmaster: Multi-concept video customization on diffusion trans-former models without test-time tuning. arXiv preprint arXiv:2501.04698 (2025) 19. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al.: Vbench: Comprehensive benchmark suite for video gener-ative models. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 21807–21818 (2024) 20. Jiang, Y., Chen, H., Ning, Z., Yao, J., Han, Z., Wu, D., Meng, M., Luan, J., Fu, Z., Xie, L.: Diffrhythm 2: Efficient and high fidelity song generation via block flow matching. arXiv preprint arXiv:2510.22950 (2025) 21. Jiang, Z., Han, Z., Mao, C., Zhang, J., Pan, Y., Liu, Y.: Vace: All-in-one video creation and editing. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 17191–17202 (2025) 22. Ju, Z., Wang, Y., Shen, K., Tan, X., Xin, D., Yang, D., Liu, Y., Leng, Y., Song, K., Tang, S., et al.: Naturalspeech 3: Zero-shot speech synthesis with factorized codec and diffusion models. arXiv preprint arXiv:2403.03100 (2024) 23. Khanam, R., Hussain, M.: Yolov11: An overview of the key architectural enhance-ments. arXiv preprint arXiv:2410.17725 (2024) 24. Kim, J., Kim, S., Kong, J., Yoon, S.: Glow-tts: A generative flow for text-to-speech via monotonic alignment search. Advances in Neural Information Processing Systems 33 , 8067–8077 (2020) 25. Kong, J., Kim, J., Bae, J.: Hifi-gan: Generative adversarial networks for efficient and high fidelity speech synthesis. Advances in neural information processing sys-tems 33 , 17022–17033 (2020) 26. Li, T., Bolkart, T., Black, M.J., Li, H., Romero, J.: Learning a model of facial shape and expression from 4d scans. ACM Transactions on Graphics (TOG) 36 , 1 – 17 (2017) 27. Liang, F., Ma, H., He, Z., Hou, T., Hou, J., Li, K., Dai, X., Juefei-Xu, F., Azadi, S., Sinha, A., et al.: Movie weaver: Tuning-free multi-concept video personalization with anchored prompts. arXiv preprint arXiv:2502.07802 (2025) 28. Liu, K., Li, W., Chen, L., Wu, S., Zheng, Y., Ji, J., Zhou, F., Jiang, R., Luo, J., Fei, H., et al.: Javisdit: Joint audio-video diffusion transformer with hierarchical spatio-temporal prior synchronization. arXiv preprint arXiv:2503.23377 (2025) 29. Liu, L., Ma, T., Li, B., Chen, Z., Liu, J., Li, G., Zhou, S., He, Q., Wu, X.: Phantom: Subject-consistent video generation via cross-modal alignment. In: Proceedings of Identity as Presence 17 the IEEE/CVF International Conference on Computer Vision. pp. 14951–14961 (2025) 30. Loshchilov, I.: Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 (2017) 31. Low, C., Wang, W., Katyal, C.: Ovi: Twin backbone cross-modal fusion for audio-video generation. arXiv preprint arXiv:2510.01284 (2025) 32. Mehta, S., Tu, R., Beskow, J., Székely, É., Henter, G.E.: Matcha-tts: A fast tts architecture with conditional flow matching. In: ICASSP 2024-2024 IEEE Inter-national Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 11341–11345. IEEE (2024) 33. Ren, Y., Hu, C., Tan, X., Qin, T., Zhao, S., Zhao, Z., Liu, T.Y.: Fastspeech 2: Fast and high-quality end-to-end text to speech. arXiv preprint arXiv:2006.04558 (2020) 34. Ren, Y., Ruan, Y., Tan, X., Qin, T., Zhao, S., Zhao, Z., Liu, T.Y.: Fastspeech: Fast, robust and controllable text to speech. Advances in neural information processing systems 32 (2019) 35. Retsinas, G., Filntisis, P.P., Danecek, R., Abrevaya, V.F., Roussos, A., Bolkart, T., Maragos, P.: Smirk: 3d facial expressions through analysis-by-neural-synthesis. arXiv preprint arXiv:2404.04104 (2024) 36. Su, J., Lu, Y., Pan, S., Wen, B., Liu, Y.: Roformer: Enhanced transformer with rotary position embedding (2021) 37. Tan, X., Chen, J., Liu, H., Cong, J., Zhang, C., Liu, Y., Wang, X., Leng, Y., Yi, Y., He, L., et al.: Naturalspeech: End-to-end text-to-speech synthesis with human-level quality. IEEE Transactions on Pattern Analysis and Machine Intelligence 46 (6), 4234–4245 (2024) 38. Tjandra, A., Wu, Y.C., Guo, B., Hoffman, J., Ellis, B., Vyas, A., Shi, B., Chen, S., Le, M., Zacharov, N., et al.: Meta audiobox aesthetics: Unified automatic quality assessment for speech, music, and sound. arXiv preprint arXiv:2502.05139 (2025) 39. Wang, C., Chen, S., Wu, Y., Zhang, Z., Zhou, L., Liu, S., Chen, Z., Liu, Y., Wang, H., Li, J., et al.: Neural codec language models are zero-shot text to speech synthesizers. arXiv preprint arXiv:2301.02111 (2023) 40. Wang, D., Zuo, W., Li, A., Chen, L.H., Liao, X., Zhou, D., Yin, Z., Dai, X., Jiang, D., Yu, G.: Universe-1: Unified audio-video generation via stitching of experts. arXiv preprint arXiv:2509.06155 (2025) 41. Wang, Z., Yang, J., Jiang, J., Liang, C., Lin, G., Zheng, Z., Yang, C., Lin, D.: Inter-acthuman: Multi-concept human animation with layout-aligned audio conditions. arXiv preprint arXiv:2506.09984 (2025) 42. Wu, C., Li, J., Zhou, J., Lin, J., Gao, K., Yan, K., Yin, S.m., Bai, S., Xu, X., Chen, Y., et al.: Qwen-image technical report. arXiv preprint arXiv:2508.02324 (2025) 43. Wu, Y., Chen, K., Zhang, T., Hui, Y., Berg-Kirkpatrick, T., Dubnov, S.: Large-scale contrastive language-audio pretraining with feature fusion and keyword-to-caption augmentation. In: ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 1–5. IEEE (2023) 44. Wu, Y., Chen, K., Zhang, T., Hui, Y., Berg-Kirkpatrick, T., Dubnov, S.: Large-scale contrastive language-audio pretraining with feature fusion and keyword-to-caption augmentation. In: ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). pp. 1–5. IEEE (2023) 45. Xu, J., Guo, Z., Hu, H., Chu, Y., Wang, X., He, J., Wang, Y., Shi, X., He, T., Zhu, X., Lv, Y., Wang, Y., Guo, D., Wang, H., Ma, L., Zhang, P., Zhang, X., Hao, H., Guo, Z., Yang, B., Zhang, B., Ma, Z., Wei, X., Bai, S., Chen, K., Liu, 18 Y. Chen et al. X., Wang, P., Yang, M., Liu, D., Ren, X., Zheng, B., Men, R., Zhou, F., Yu, B., Yang, J., Yu, L., Zhou, J., Lin, J.: Qwen3-omni technical report (2025), https: //arxiv.org/abs/2509.17765 
+
+46. Xue, B., Duan, Z.P., Yan, Q., Wang, W., Liu, H., Guo, C.L., Li, C., Li, C., Lyu, J.: Stand-in: A lightweight and plug-and-play identity control for video generation. arXiv preprint arXiv:2508.07901 (2025) 47. Ye, H., Zhang, J., Liu, S., Han, X., Yang, W.: Ip-adapter: Text compati-ble image prompt adapter for text-to-image diffusion models. arXiv preprint arXiv:2308.06721 (2023) 48. Yuan, S., Huang, J., He, X., Ge, Y., Shi, Y., Chen, L., Luo, J., Yuan, L.: Identity-preserving text-to-video generation by frequency decomposition. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 12978–12988 (2025) 49. Zhang, G., Zhou, Z., Hu, T., Peng, Z., Zhang, Y., Chen, Y., Zhou, Y., Lu, Q., Wang, L.: Uniavgen: Unified audio and video generation with asymmetric cross-modal interactions. arXiv preprint arXiv:2511.03334 (2025) 50. Zhang, L., Rao, A., Agrawala, M.: Adding conditional control to text-to-image diffusion models. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 3836–3847 (2023) 51. Zhang, Y., Wang, T., Zhang, X.: Motrv2: Bootstrapping end-to-end multi-object tracking by pretrained object detectors. In: Proceedings of the IEEE/CVF confer-ence on computer vision and pattern recognition. pp. 22056–22065 (2023)

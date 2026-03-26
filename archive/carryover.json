@@ -1,79 +1,8 @@
 {
-  "generated_at": "2026-03-25T19:44:59.836175+00:00",
-  "updated_date": "20260325",
+  "generated_at": "2026-03-26T20:20:52.375889+00:00",
+  "updated_date": "20260326",
   "carryover_days": 9,
   "items": [
-    {
-      "id": "2603.21557v1",
-      "title": "From Part to Whole: 3D Generative World Model with an Adaptive Structural Hierarchy",
-      "abstract": "Single-image 3D generation lies at the core of vision-to-graphics models in the real world. However, it remains a fundamental challenge to achieve reliable generalization across diverse semantic categories and highly variable structural complexity under sparse supervision. Existing approaches typically model objects in a monolithic manner or rely on a fixed number of parts, including recent part-aware models such as PartCrafter, which still require a labor-intensive user-specified part count. Such designs easily lead to overfitting, fragmented or missing structural components, and limited compositional generalization when encountering novel object layouts. To this end, this paper rethinks single-image 3D generation as learning an adaptive part-whole hierarchy in the flexible 3D latent space. We present a novel part-to-whole 3D generative world model that autonomously discovers latent structural slots by inferring soft and compositional masks directly from image tokens. Specifically, an adaptive slot-gating mechanism dynamically determines the slot-wise activation probabilities and smoothly consolidates redundant slots within different objects, ensuring that the emergent structure remains compact yet expressive across categories. Each distilled slot is then aligned to a learnable, class-agnostic prototype bank, enabling powerful cross-category shape sharing and denoising through universal geometric prototypes in the real world. Furthermore, a lightweight 3D denoiser is introduced to reconstruct geometry and appearance via unified diffusion objectives. Experiments show consistent gains in cross-category transfer and part-count extrapolation, and ablations confirm complementary benefits of the prototype bank for shape-prior sharing as well as slot-gating for structural adaptation.",
-      "authors": [
-        "Bi'an Du",
-        "Daizong Liu",
-        "Pufan Li",
-        "Wei Hu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-23T04:25:40+00:00",
-      "link": "https://arxiv.org/pdf/2603.21557v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "3D generative world model with adaptive structural hierarchy",
-      "llm_evidence_cn": "具有自适应结构层次的3D生成世界模型",
-      "llm_evidence": "具有自适应结构层次的3D生成世界模型",
-      "canonical_evidence": "具有自适应结构层次的3D生成世界模型",
-      "llm_tldr_en": "A 3D generative world model that learns adaptive structural hierarchies from single images.",
-      "llm_tldr_cn": "从单张图像学习自适应结构层次的3D生成世界模型。",
-      "llm_tldr": "从单张图像学习自适应结构层次的3D生成世界模型。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21557v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21315v1",
-      "title": "FluidWorld: Reaction-Diffusion Dynamics as a Predictive Substrate for World Models",
-      "abstract": "World models learn to predict future states of an environment, enabling planning and mental simulation. Current approaches default to Transformer-based predictors operating in learned latent spaces. This comes at a cost: O(N^2) computation and no explicit spatial inductive bias. This paper asks a foundational question: is self-attention necessary for predictive world modeling, or can alternative computational substrates achieve comparable or superior results? I introduce FluidWorld, a proof-of-concept world model whose predictive dynamics are governed by partial differential equations (PDEs) of reaction-diffusion type. Instead of using a separate neural network predictor, the PDE integration itself produces the future state prediction. In a strictly parameter-matched three-way ablation on unconditional UCF-101 video prediction (64x64, ~800K parameters, identical encoder, decoder, losses, and data), FluidWorld is compared against both a Transformer baseline (self-attention) and a ConvLSTM baseline (convolutional recurrence). While all three models converge to comparable single-step prediction loss, FluidWorld achieves 2x lower reconstruction error, produces representations with 10-15% higher spatial structure preservation and 18-25% more effective dimensionality, and critically maintains coherent multi-step rollouts where both baselines degrade rapidly. All experiments were conducted on a single consumer-grade PC (Intel Core i5, NVIDIA RTX 4070 Ti), without any large-scale compute. These results establish that PDE-based dynamics, which natively provide O(N) spatial complexity, adaptive computation, and global spatial coherence through diffusion, are a viable and parameter-efficient alternative to both attention and convolutional recurrence for world modeling.",
-      "authors": [
-        "Fabien Polly"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-03-22T16:49:43+00:00",
-      "link": "https://arxiv.org/pdf/2603.21315v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "world model using reaction-diffusion PDEs",
-      "llm_evidence_cn": "使用反应扩散偏微分方程的世界模型",
-      "llm_evidence": "使用反应扩散偏微分方程的世界模型",
-      "canonical_evidence": "使用反应扩散偏微分方程的世界模型",
-      "llm_tldr_en": "Proposes FluidWorld, a world model using PDE-based dynamics instead of transformers.",
-      "llm_tldr_cn": "提出FluidWorld，使用基于PDE的动力学替代Transformer的世界模型。",
-      "llm_tldr": "提出FluidWorld，使用基于PDE的动力学替代Transformer的世界模型。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21315v1",
-      "carry_days": 1
-    },
     {
       "id": "2603.22078v1",
       "title": "Do World Action Models Generalize Better than VLAs? A Robustness Study",
@@ -103,13 +32,13 @@
         "keyword:WMODEL"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "World action models for robot planning",
-      "llm_evidence_cn": "用于机器人规划的世界动作模型",
-      "llm_evidence": "用于机器人规划的世界动作模型",
-      "canonical_evidence": "用于机器人规划的世界动作模型",
-      "llm_tldr_en": "Compares world action models with VLAs for robot action planning generalization.",
-      "llm_tldr_cn": "比较世界动作模型与VLA在机器人动作规划泛化上的表现。",
-      "llm_tldr": "比较世界动作模型与VLA在机器人动作规划泛化上的表现。",
+      "llm_evidence_en": "Compares World Action Models (WAMs) with VLAs for robot planning",
+      "llm_evidence_cn": "比较世界动作模型与VLA在机器人规划中的表现",
+      "llm_evidence": "比较世界动作模型与VLA在机器人规划中的表现",
+      "canonical_evidence": "比较世界动作模型与VLA在机器人规划中的表现",
+      "llm_tldr_en": "Studies whether world action models generalize better than vision-language-action models in robotics.",
+      "llm_tldr_cn": "研究世界动作模型在机器人任务中是否比视觉-语言-动作模型泛化更好。",
+      "llm_tldr": "研究世界动作模型在机器人任务中是否比视觉-语言-动作模型泛化更好。",
       "llm_tags": [
         "query:wmodel:composite"
       ],
@@ -118,102 +47,6 @@
       "matched_requirement_id": "req-composite-wmodel",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22078v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.20576v1",
-      "title": "Can AI Agents Answer Your Data Questions? A Benchmark for Data Agents",
-      "abstract": "Users across enterprises increasingly rely on AI agents to query their data through natural language. However, building reliable data agents remains difficult because real-world data is often fragmented across multiple heterogeneous database systems, with inconsistent references and information buried in unstructured text. Existing benchmarks only tackle individual pieces of this problem -- e.g., translating natural-language questions into SQL queries, answering questions over small tables provided in context -- but do not evaluate the full pipeline of integrating, transforming, and analyzing data across multiple database systems. To fill this gap, we present the Data Agent Benchmark (DAB), grounded in a formative study of enterprise data agent workloads across six industries. DAB comprises 54 queries across 12 datasets, 9 domains, and 4 database management systems. On DAB, the best frontier model (Gemini-3-Pro) achieves only 38% pass@1 accuracy. We benchmark five frontier LLMs, analyze their failure modes, and distill takeaways for future data agent development. Our benchmark and experiment code are published at github.com/ucbepic/DataAgentBench.",
-      "authors": [
-        "Ruiying Ma",
-        "Shreya Shankar",
-        "Ruiqi Chen",
-        "Yiming Lin",
-        "Sepanta Zeighami",
-        "Rajoshi Ghosh",
-        "Abhinav Gupta",
-        "Anushrut Gupta",
-        "Tanmai Gopal",
-        "Aditya G. Parameswaran"
-      ],
-      "primary_category": "cs.DB",
-      "categories": [
-        "cs.DB"
-      ],
-      "published": "2026-03-21T00:14:53+00:00",
-      "link": "https://arxiv.org/pdf/2603.20576v1",
-      "tags": [
-        "keyword:Agent",
-        "keyword:WMODEL",
-        "query:Agent",
-        "query:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "benchmark for AI agents that query data through natural language",
-      "llm_evidence_cn": "通过自然语言查询数据的AI智能体基准",
-      "llm_evidence": "通过自然语言查询数据的AI智能体基准",
-      "canonical_evidence": "通过自然语言查询数据的AI智能体基准",
-      "llm_tldr_en": "DAB benchmarks data agents on multi-database query and analysis pipelines.",
-      "llm_tldr_cn": "DAB评估数据智能体在多数据库查询和分析流程上的表现。",
-      "llm_tldr": "DAB评估数据智能体在多数据库查询和分析流程上的表现。",
-      "llm_tags": [
-        "query:agent"
-      ],
-      "matched_query_tag": "query:agent",
-      "matched_query_text": "Search Agent",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.20576v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21416v1",
-      "title": "Enterprise Sales Copilot: Enabling Real-Time AI Support with Automatic Information Retrieval in Live Sales Calls",
-      "abstract": "During live sales calls, customers frequently ask detailed product questions that require representatives to manually search internal databases and CRM systems. This process typically takes 25-65 seconds per query, creating awkward pauses that hurt customer experience and reduce sales efficiency. We present SalesCopilot, a real-time AI-powered assistant that eliminates this bottleneck by automatically detecting customer questions, retrieving relevant information from the product database, and displaying concise answers on the representative's dashboard in seconds. The system integrates streaming speech-to-text transcription, large language model (LLM)-based question detection, and retrieval-augmented generation (RAG) over a structured product database into a unified real-time pipeline. We demonstrate SalesCopilot on an insurance sales scenario with 50 products spanning 10 categories (2,490 FAQs, 290 coverage details, and 162 pricing tiers). In our benchmark evaluation, SalesCopilot achieves a measured mean response time of 2.8 seconds with 100% question detection rate, representing a 14xspeedup compared to manual CRM search in an internal study. The system is domain-agnostic and can be adapted to any enterprise sales domain by replacing the product database.",
-      "authors": [
-        "Jielin Qiu",
-        "Liangwei Yang",
-        "Ming Zhu",
-        "Wenting Zhao",
-        "Zhiwei Liu",
-        "Juntao Tan",
-        "Zixiang Chen",
-        "Roshan Ram",
-        "Akshara Prabhakar",
-        "Rithesh Murthy",
-        "Shelby Heinecke",
-        "Caiming Xiong",
-        "Silvio Savarese",
-        "Huan Wang"
-      ],
-      "primary_category": "cs.SD",
-      "categories": [
-        "cs.SD"
-      ],
-      "published": "2026-03-22T21:54:51+00:00",
-      "link": "https://arxiv.org/pdf/2603.21416v1",
-      "tags": [
-        "keyword:Agent",
-        "keyword:WMODEL",
-        "query:Agent",
-        "query:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Real-time AI assistant with automatic information retrieval from databases",
-      "llm_evidence_cn": "具有自动信息检索功能的实时AI助手",
-      "llm_evidence": "具有自动信息检索功能的实时AI助手",
-      "canonical_evidence": "具有自动信息检索功能的实时AI助手",
-      "llm_tldr_en": "Real-time AI assistant that automatically retrieves information during live sales calls.",
-      "llm_tldr_cn": "在销售通话中自动检索信息的实时AI助手系统。",
-      "llm_tldr": "在销售通话中自动检索信息的实时AI助手系统。",
-      "llm_tags": [
-        "query:agent"
-      ],
-      "matched_query_tag": "query:agent",
-      "matched_query_text": "Search Agent",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21416v1",
       "carry_days": 1
     },
     {
@@ -241,13 +74,13 @@
         "query:WMODEL"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Large-scale dataset for dynamic world modeling with actions and explicit state",
+      "llm_evidence_en": "Large-scale dataset for dynamic world modeling with actions and explicit states",
       "llm_evidence_cn": "用于动态世界建模的大规模数据集，包含动作和显式状态",
       "llm_evidence": "用于动态世界建模的大规模数据集，包含动作和显式状态",
       "canonical_evidence": "用于动态世界建模的大规模数据集，包含动作和显式状态",
-      "llm_tldr_en": "Proposes WildWorld dataset for action-conditioned world models with diverse action spaces.",
-      "llm_tldr_cn": "提出WildWorld数据集，支持动作条件化的世界模型学习。",
-      "llm_tldr": "提出WildWorld数据集，支持动作条件化的世界模型学习。",
+      "llm_tldr_en": "Proposes WildWorld dataset for action-conditioned world dynamics learning with explicit state modeling.",
+      "llm_tldr_cn": "提出WildWorld数据集用于动作条件化的世界动力学学习与显式状态建模。",
+      "llm_tldr": "提出WildWorld数据集用于动作条件化的世界动力学学习与显式状态建模。",
       "llm_tags": [
         "query:wmodel:composite"
       ],
@@ -259,43 +92,43 @@
       "carry_days": 1
     },
     {
-      "id": "2603.23481v1",
-      "title": "VTAM: Video-Tactile-Action Models for Complex Physical Interaction Beyond VLAs",
-      "abstract": "Video-Action Models (VAMs) have emerged as a promising framework for embodied intelligence, learning implicit world dynamics from raw video streams to produce temporally consistent action predictions. Although such models demonstrate strong performance on long-horizon tasks through visual reasoning, they remain limited in contact-rich scenarios where critical interaction states are only partially observable from vision alone. In particular, fine-grained force modulation and contact transitions are not reliably encoded in visual tokens, leading to unstable or imprecise behaviors. To bridge this gap, we introduce the Video-Tactile Action Model (VTAM), a multimodal world modeling framework that incorporates tactile perception as a complementary grounding signal. VTAM augments a pretrained video transformer with tactile streams via a lightweight modality transfer finetuning, enabling efficient cross-modal representation learning without tactile-language paired data or independent tactile pretraining. To stabilize multimodal fusion, we introduce a tactile regularization loss that enforces balanced cross-modal attention, preventing visual latent dominance in the action model. VTAM demonstrates superior performance in contact-rich manipulation, maintaining a robust success rate of 90 percent on average. In challenging scenarios such as potato chip pick-and-place requiring high-fidelity force awareness, VTAM outperforms the pi 0.5 baseline by 80 percent. Our findings demonstrate that integrating tactile feedback is essential for correcting visual estimation errors in world action models, providing a scalable approach to physically grounded embodied foundation models.",
+      "id": "2603.24587v1",
+      "title": "DreamerAD: Efficient Reinforcement Learning via Latent World Model for Autonomous Driving",
+      "abstract": "We introduce DreamerAD, the first latent world model framework that enables efficient reinforcement learning for autonomous driving by compressing diffusion sampling from 100 steps to 1 - achieving 80x speedup while maintaining visual interpretability. Training RL policies on real-world driving data incurs prohibitive costs and safety risks. While existing pixel-level diffusion world models enable safe imagination-based training, they suffer from multi-step diffusion inference latency (2s/frame) that prevents high-frequency RL interaction. Our approach leverages denoised latent features from video generation models through three key mechanisms: (1) shortcut forcing that reduces sampling complexity via recursive multi-resolution step compression, (2) an autoregressive dense reward model operating directly on latent representations for fine-grained credit assignment, and (3) Gaussian vocabulary sampling for GRPO that constrains exploration to physically plausible trajectories. DreamerAD achieves 87.7 EPDMS on NavSim v2, establishing state-of-the-art performance and demonstrating that latent-space RL is effective for autonomous driving.",
       "authors": [
-        "Haoran Yuan",
-        "Weigang Yi",
-        "Zhenyu Zhang",
-        "Wendi Chen",
-        "Yuchen Mo",
-        "Jiashi Yin",
-        "Xinzhuo Li",
-        "Xiangyu Zeng",
-        "Chuan Wen",
-        "Cewu Lu",
-        "Katherine Driggs-Campbell",
-        "Ismini Lourentzou"
+        "Pengxuan Yang",
+        "Yupeng Zheng",
+        "Deheng Qian",
+        "Zebin Xing",
+        "Qichao Zhang",
+        "Linbo Wang",
+        "Yichen Zhang",
+        "Shaoyu Guo",
+        "Zhongpu Xia",
+        "Qiang Chen",
+        "Junyu Han",
+        "Lingyun Xu",
+        "Yifeng Pan",
+        "Dongbin Zhao"
       ],
-      "primary_category": "cs.RO",
+      "primary_category": "cs.LG",
       "categories": [
-        "cs.RO",
-        "cs.AI",
-        "cs.CV",
-        "cs.LG"
+        "cs.LG",
+        "cs.RO"
       ],
-      "published": "2026-03-24T17:45:06+00:00",
-      "link": "https://arxiv.org/pdf/2603.23481v1",
+      "published": "2026-03-25T17:57:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.24587v1",
       "tags": [
         "keyword:WMODEL"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "multimodal world modeling framework for embodied intelligence",
-      "llm_evidence_cn": "面向具身智能的多模态世界建模框架",
-      "llm_evidence": "面向具身智能的多模态世界建模框架",
-      "canonical_evidence": "面向具身智能的多模态世界建模框架",
-      "llm_tldr_en": "VTAM introduces tactile perception into video-action world models for better physical interaction.",
-      "llm_tldr_cn": "VTAM将触觉感知引入视频-动作世界模型以改善物理交互。",
-      "llm_tldr": "VTAM将触觉感知引入视频-动作世界模型以改善物理交互。",
+      "llm_evidence_en": "Latent world model framework for autonomous driving RL",
+      "llm_evidence_cn": "自动驾驶强化学习的潜在世界模型框架",
+      "llm_evidence": "自动驾驶强化学习的潜在世界模型框架",
+      "canonical_evidence": "自动驾驶强化学习的潜在世界模型框架",
+      "llm_tldr_en": "Introduces DreamerAD achieving 80x speedup via latent world model for autonomous driving RL.",
+      "llm_tldr_cn": "提出DreamerAD通过潜在世界模型实现自动驾驶RL的80倍加速。",
+      "llm_tldr": "提出DreamerAD通过潜在世界模型实现自动驾驶RL的80倍加速。",
       "llm_tags": [
         "query:wmodel:composite"
       ],
@@ -303,37 +136,49 @@
       "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
       "matched_requirement_id": "req-composite-wmodel",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.23481v1",
+      "paper_id": "2603.24587v1",
       "carry_days": 1
     },
     {
-      "id": "2603.21104v1",
-      "title": "CounterScene: Counterfactual Causal Reasoning in Generative World Models for Safety-Critical Closed-Loop Evaluation",
-      "abstract": "Generating safety-critical driving scenarios requires understanding why dangerous interactions arise, rather than merely forcing collisions. However, existing methods rely on heuristic adversarial agent selection and unstructured perturbations, lacking explicit modeling of interaction dependencies and thus exhibiting a realism--adversarial trade-off. We present CounterScene, a framework that endows closed-loop generative BEV world models with structured counterfactual reasoning for safety-critical scenario generation. Given a safe scene, CounterScene asks: what if the causally critical agent had behaved differently? To answer this, we introduce causal adversarial agent identification to identify the critical agent and classify conflict types, and develop a conflict-aware interactive world model in which a causal interaction graph is used to explicitly model dynamic inter-agent dependencies. Building on this structure, stage-adaptive counterfactual guidance performs minimal interventions on the identified agent, removing its spatial and temporal safety margins while allowing risk to emerge through natural interaction propagation. Extensive experiments on nuScenes demonstrate that CounterScene achieves the strongest adversarial effectiveness while maintaining superior trajectory realism across all horizons, improving long-horizon collision rate from 12.3% to 22.7% over the strongest baseline with better realism (ADE 1.88 vs.2.09). Notably, this advantage further widens over longer rollouts, and CounterScene generalizes zero-shot to nuPlan with state-of-the-art realism.",
+      "id": "2603.24581v1",
+      "title": "Latent-WAM: Latent World Action Modeling for End-to-End Autonomous Driving",
+      "abstract": "We introduce Latent-WAM, an efficient end-to-end autonomous driving framework that achieves strong trajectory planning through spatially-aware and dynamics-informed latent world representations. Existing world-model-based planners suffer from inadequately compressed representations, limited spatial understanding, and underutilized temporal dynamics, resulting in sub-optimal planning under constrained data and compute budgets. Latent-WAM addresses these limitations with two core modules: a Spatial-Aware Compressive World Encoder (SCWE) that distills geometric knowledge from a foundation model and compresses multi-view images into compact scene tokens via learnable queries, and a Dynamic Latent World Model (DLWM) that employs a causal Transformer to autoregressively predict future world status conditioned on historical visual and motion representations. Extensive experiments on NAVSIM v2 and HUGSIM demonstrate new state-of-the-art results: 89.3 EPDMS on NAVSIM v2 and 28.9 HD-Score on HUGSIM, surpassing the best prior perception-free method by 3.2 EPDMS with significantly less training data and a compact 104M-parameter model.",
       "authors": [
-        "Bowen Jing",
-        "Ruiyang Hao",
-        "Weitao Zhou",
-        "Haibao Yu"
+        "Linbo Wang",
+        "Yupeng Zheng",
+        "Qiang Chen",
+        "Shiwei Li",
+        "Yichen Zhang",
+        "Zebin Xing",
+        "Qichao Zhang",
+        "Xiang Li",
+        "Deheng Qian",
+        "Pengxuan Yang",
+        "Yihang Dong",
+        "Ce Hao",
+        "Xiaoqing Ye",
+        "Junyu han",
+        "Yifeng Pan",
+        "Dongbin Zhao"
       ],
-      "primary_category": "cs.RO",
+      "primary_category": "cs.CV",
       "categories": [
-        "cs.RO",
-        "cs.CV"
+        "cs.CV",
+        "cs.RO"
       ],
-      "published": "2026-03-22T07:44:16+00:00",
-      "link": "https://arxiv.org/pdf/2603.21104v1",
+      "published": "2026-03-25T17:56:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.24581v1",
       "tags": [
         "keyword:WMODEL"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Generative BEV world models framework",
-      "llm_evidence_cn": "生成式BEV世界模型框架",
-      "llm_evidence": "生成式BEV世界模型框架",
-      "canonical_evidence": "生成式BEV世界模型框架",
-      "llm_tldr_en": "CounterScene endows closed-loop generative world models with counterfactual reasoning for safety-critical driving scenario generation.",
-      "llm_tldr_cn": "CounterScene为闭环生成式世界模型赋予反事实推理能力，用于安全关键驾驶场景生成。",
-      "llm_tldr": "CounterScene为闭环生成式世界模型赋予反事实推理能力，用于安全关键驾驶场景生成。",
+      "llm_evidence_en": "Latent World Model with learnable queries for autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶的潜在世界模型与可学习查询",
+      "llm_evidence": "用于自动驾驶的潜在世界模型与可学习查询",
+      "canonical_evidence": "用于自动驾驶的潜在世界模型与可学习查询",
+      "llm_tldr_en": "Proposes Latent-WAM, a world model framework using learnable queries for end-to-end autonomous driving.",
+      "llm_tldr_cn": "提出Latent-WAM世界模型框架，使用可学习查询实现端到端自动驾驶。",
+      "llm_tldr": "提出Latent-WAM世界模型框架，使用可学习查询实现端到端自动驾驶。",
       "llm_tags": [
         "query:wmodel:composite"
       ],
@@ -341,7 +186,7 @@
       "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
       "matched_requirement_id": "req-composite-wmodel",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.21104v1",
+      "paper_id": "2603.24581v1",
       "carry_days": 1
     }
   ]

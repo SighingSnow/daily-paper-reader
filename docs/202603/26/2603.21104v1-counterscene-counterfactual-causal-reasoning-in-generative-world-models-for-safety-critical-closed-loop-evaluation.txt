@@ -1,0 +1,846 @@
+Title: CounterScene: Counterfactual Causal Reasoning in Generative World Models for Safety-Critical Closed-Loop Evaluation
+
+URL Source: https://arxiv.org/pdf/2603.21104v1
+
+Published Time: Tue, 24 Mar 2026 01:22:53 GMT
+
+Number of Pages: 28
+
+Markdown Content:
+# CounterScene: Counterfactual Causal Reasoning in Generative World Models for Safety-Critical Closed-Loop Evaluation 
+
+Bowen Jing 1,∗, Ruiyang Hao 2,∗, Weitao Zhou 3,‡, Haibao Yu 1,4,‡
+
+> 1
+
+Tuojing Intelligence 
+
+> 2
+
+King’s College London 
+
+> 3
+
+Tsinghua University 
+
+> 4
+
+The University of Hong Kong 
+
+> ∗
+
+Equal contribution , ‡Corresponding authors 
+
+Generating safety-critical driving scenarios requires understanding why dangerous interactions arise, rather than merely forcing collisions. However, existing methods rely on heuristic adversarial agent selection and unstructured perturbations, lacking explicit modeling of interaction dependencies and thus exhibiting a realism–adversarial trade-off. We present CounterScene , a framework that endows closed-loop generative BEV world models with structured counterfactual reasoning for safety-critical scenario generation. Given a safe scene, CounterScene asks: what if the causally critical agent had behaved differently? To answer this, we introduce causal adversarial agent identification to identify the critical agent and classify conflict types, and develop a conflict-aware interactive world model in which a causal interaction graph is used to explicitly model dynamic inter-agent dependencies. Building on this structure, stage-adaptive counterfactual guidance performs minimal interventions on the identified agent, removing its spatial and temporal safety margins while allowing risk to emerge through natural interaction propagation. Extensive experiments on nuScenes demonstrate that CounterScene achieves the strongest adversarial effectiveness while maintaining superior trajectory realism across all horizons, improving long-horizon collision rate from 12.3% to 22.7% over the strongest baseline with better realism (ADE 1.88 vs. 2.09). Notably, this advantage further widens over longer rollouts, and CounterScene generalizes zero-shot to nuPlan with state-of-the-art realism.  
+
+> Code:
+
+https://github.com/TuojingAI/CounterScene 
+
+# 1 Introduction 
+
+Realistic safety-critical scenario generation is a key prerequisite for effective safety evaluation of autonomous driving policies [ 44 , 26 ], yet the very interactions that matter most—collisions and near-miss events—are inherently rare in naturalistic driving, rendering real-world testing alone insufficient [ 54 , 37 ]. Simulation offers a scalable alternative [ 34 , 11 , 20 , 8, 47 ], and recent generative world models have further advanced this paradigm by learning traffic dynamics directly from data [ 40 , 41 , 50 ], yielding realistic and diverse scenarios [ 18 , 58 ]. In particular, diffusion-based models on bird’s-eye-view (BEV) representations now support closed-loop multi-agent rollouts [ 57 , 56 , 6, 25 ], where the static scene enforces structured physical and semantic constraints, while dynamic agents co-create interactive risk through their policies. Yet these models generate interactions without understanding their causal structure: they can simulate what happens, but cannot reason about why a scenario remains safe, which agent is causally responsible, or what would change if that agent had behaved differently. Existing approaches to safety-critical generation reflect this limitation at every stage. Adversarial agents are selected via simplified rules—manual specification [ 25 ] or distance-based proximity [ 6]—treating selection as a static decision that ignores how the most relevant agent can shift as interactions unfold. Once selected, perturbation strategies steer behavior toward collision without explicit interaction structure [ 57 , 56 , 33 ]: guidance is applied globally or to a fixed agent, with no mechanism to model how behavioral changes propagate through the multi-agent system. This produces a structural realism–adversarial trade-off: aggressive 1    
+
+> arXiv:2603.21104v1 [cs.RO] 22 Mar 2026 Figure 1 Counterfactual causal reasoning for safety-critical generative BEV world model. Given an observed traffic scene where the critical agent waits and the ego vehicle passes safely, we ask the counterfactual question: What if the critical agent did not wait? By intervening on the agent trajectory, CounterScene constructs a counterfactual world that induces safety-critical interactions while preserving realistic traffic dynamics. This is achieved through causal adversarial agent identification, causal interaction graph modeling, and counterfactual guidance in diffusion.
+
+perturbations yield implausible dynamics, while conservative ones rarely generate meaningful risk—a direct consequence of perturbing behaviors without modeling the causal mechanisms through which risk emerges. We argue that generative world models need structured causal reasoning to construct safety-critical scenarios— specifically, the ability to perform counterfactual interventions grounded in the causal interaction structure of the scene. Collision risk does not arise from isolated behaviors but from structured interaction dependencies that evolve through multi-step behavioral responses. If we can identify which agent is causally responsible for emerging risk and explicitly structure how its behavior propagates through multi-agent interaction dependencies within the world model, we can intervene on that agent alone—amplifying risk through naturalistic interaction pathways rather than brute-force perturbation, while preserving multi-agent coherence by construction.   
+
+> Table 1 Comparison of representative safety-critical generative simulation methods. We compare key design dimensions, including adversarial agent selection, interaction modeling, and counterfactual intervention. Existing approaches typically rely on heuristic agent selection and lack explicit causal interaction modeling, which limits their ability to construct controllable high-risk interactions. In contrast, CounterScene combines causal adversarial agent identification, causal interaction graph modeling, and counterfactual diffusion guidance to generate realistic yet safety-critical closed-loop interactions.
+
+Method Agent Selection Interaction Modeling Counterfactual Intervention 
+
+STRIVE [33] None Motion prior ✗ Trajectory optimization CTG [57] None Implicit ✗ Rule-guided diffusion CTG++ [56] None Implicit ✗ Language-guided diffusion SafeSim [6] Distance-based None ✗ Adversarial diffusion guidance CCDiff [25] Manual/TTC-based Compositional causal modeling ✗ Structured diffusion guidance 
+
+CounterScene (Ours) Causal Selection Causal Interaction Graph (CIG) 
+
+✓ Counterfactual Guided Diffusion 
+
+To this end, we propose CounterScene , a framework that endows generative BEV world models with structured counterfactual reasoning for safety-critical scenario generation. Given a safe scene, CounterScene asks: what if the causally critical agent had behaved differently? To answer this question, CounterScene combines three tightly coupled components addressing the who , how , and what-if of safety-critical interaction generation. First, causal adversarial agent identification identifies the agent most responsible for maintaining the safe outcome and classifies the underlying conflict type. Second, CounterScene develops a conflict-aware 
+
+interactive world model , in which causal interaction graph modeling is used to explicitly structure inter-agent 2dependencies and govern how behavioral changes propagate through the generative process. Third, stage-adaptive counterfactual guidance modulates diffusion interventions according to denoising phase and conflict structure, minimally removing the identified agent’s spatial and temporal safety margins to amplify risk while preserving trajectory realism. Our contributions are as follows: 
+
+• We propose CounterScene , the first framework that introduces structured counterfactual causal reasoning into generative BEV world models for safety-critical scenario generation. 
+
+• We introduce three tightly coupled mechanisms—causal adversarial agent identification, a conflict-aware interactive world model with explicit causal interaction structure, and stage-adaptive counterfactual guidance—that jointly address the who , how , and what-if of counterfactual safety-critical interaction generation. 
+
+• Extensive experiments on nuScenes demonstrate that CounterScene achieves the strongest adversarial effectiveness while maintaining superior trajectory realism across all horizons, and generalizes zero-shot to nuPlan. 
+
+# 2 Related Work 
+
+World Models for Autonomous Driving World models have become an important paradigm for scalable evaluation of autonomous driving systems by learning traffic dynamics directly from data [ 13 , 43 , 53 , 40 , 41 , 50 ]. Existing approaches span multiple forms of generative simulation. Some focus on video-based world models that synthesize photorealistic driving scenes [ 41 , 36 , 31 , 53 , 40 , 48 ], while others operate on structured scene representations such as occupancy maps [ 55 , 59 ] or bird’s-eye-view (BEV) states [ 25 ] to model agent behaviors and environment dynamics. In the autonomous driving literature, the term BEV world model is often used to describe models that operate on structured BEV representations rather than raw images [ 24 ]. From this perspective, many trajectory-level traffic simulation and scenario generation methods can likewise be viewed as instances of BEV world modeling [ 33 , 57 , 56 , 6, 25 ]. Although these models enable closed-loop traffic simulation, most focus primarily on realistic trajectory generation and rely on correlation-based interaction modeling, limiting their ability to support structured causal reasoning for safety-critical scenario generation. 
+
+Safety-Critical Scenario Generation Generating safety-critical scenarios is essential for evaluating autonomous driving policies [ 10 , 42 ]. Prior work has explored adversarial scenario generation [ 15 , 45 ], falsification-based testing [ 23 ], and importance sampling for exposing policy failures in rare or risky situa-tions [ 52 , 22 ]. More recently, generative models have been used to construct challenging traffic interactions by perturbing agent behaviors or sampling risky trajectories [ 15 , 9, 6, 25 , 45 ]. However, existing approaches still rely largely on heuristic adversarial agent selection and unstructured intervention strategies. Some methods do not explicitly model how adversarial agents are selected [15, 9, 45], while others rely on manual specification [ 25 ] or simple distance-based filtering [ 6], which may overlook important interaction semantics such as relative motion direction and conflict geometry. Moreover, most methods perturb agent behaviors without explicit causal interaction structure, making it difficult to control where and when safety-critical interactions emerge while preserving physically plausible multi-agent dynamics. 
+
+Causal and Counterfactual Reasoning in Multi-Agent Systems Modeling interactions among multiple agents has been widely studied in trajectory prediction and multi-agent simulation [ 51 , 38 , 27 , 29 ]. Many approaches employ social pooling [ 12 , 21 ], attention mechanisms [ 46 , 19 ], or graph neural networks [ 35 , 7, 27 ]to capture dependencies among agents. While effective for modeling correlated behaviors, these methods typically represent interactions as statistical dependencies rather than explicit causal structures. Recent work has begun to explore causal reasoning in multi-agent systems to better explain decision dynamics [ 25 , 2]. Separately, counterfactual reasoning—rooted in Pearl’s structural causal model framework [ 28 ]—has emerged as a principled tool for answering “what if” questions in sequential decision-making [ 3, 32 ]. In autonomous driving, counterfactual analysis has been applied to safety assessment [ 49 ], responsibility attribution [ 17 ], and perception-failure diagnosis [14]. However, while prior work leverages counterfactuals primarily for post-hoc evaluation, CounterScene pioneers its use as an active generative mechanism. By bridging an explicit causal 3interaction graph with targeted counterfactual diffusion guidance, our framework moves beyond correlation to actively construct controllable, high-risk interactions within closed-loop world models. 
+
+# 3 Method 
+
+## 3.1 Overview 
+
+In a typical safe traffic scene, safety is not accidental—it is actively maintained by specific agent behaviors: a vehicle yielding at an intersection, a driver preserving a longitudinal gap, or a pedestrian delaying entry into a crosswalk. Removing any such behavior would alter the outcome. This motivates a counterfactual formulation: given an observed safe scene, which single agent behavior maintains safety, and what minimal modification transitions the scene from safe to dangerous? 
+
+CounterScene answers this question through a single-variable counterfactual intervention built on a diffusion-based interactive world model (§3.2) that jointly generates multi-agent trajectories with conflict-aware interaction modeling. On this foundation, the framework performs two reasoning steps: 
+
+Identifying the critical variable. Causal adversarial agent identification (§3.3) determines which agent’s current behavior is the single variable whose change would maximally alter the safety outcome, through conflict-type-aware analysis of interaction semantics and kinematic risk. 
+
+Modifying the variable. Counterfactual diffusion guidance (§3.4) modifies the identified agent’s trajectory by stripping away its spatial and temporal safety margins. It redirects the agent toward the conflict region and compresses its arrival time, while allowing all other agents to naturally evolve under the world model’s learned dynamics. The result is a minimal counterfactual: a single behavioral change, applied to the causally critical agent, that flips the scene from safe to dangerous while preserving realistic multi-agent dynamics. The overall framework is illustrated in Figure 2.          
+
+> Figure 2 Overview of CounterScene. The framework consists of four modules. (1) Causal adversarial agent selection identifies the most critical interacting agent using geometric conflict analysis and danger scoring. (2) Causal Interaction Graph (CIG) encodes conflict-aware interaction relationships among agents. (3) A diffusion-based interactive BEV world model with a SceneTransformer denoiser generates multi-agent trajectories. (4) Counterfactual guidance
+> perturbs the adversarial agent trajectory during denoising to construct safety-critical interactions while maintaining realistic traffic dynamics.
+
+43.2 Interactive World Model 
+
+The generative backbone of CounterScene is a conditional diffusion world model that jointly predicts future trajectories for all agents while modeling how their behaviors are coupled through shared conflict regions. 
+
+Scene Representation Consider a scene containing M agents observed over H historical timesteps. The scene state at time t is St = {s(1)  
+
+> t
+
+, . . . , s (M ) 
+
+> t
+
+}, where s(i) 
+
+> t
+
+denotes the state of agent i. The model predicts future trajectories X = {x(1) 1: T , . . . , x (M )1: T } over horizon T .
+
+Diffusion Generation Future trajectories are generated via a denoising diffusion process. The forward process corrupts clean trajectories with Gaussian noise: 
+
+xk = √¯αk x0 + √1 − ¯αk ϵ, ϵ ∼ N (0 , I ), (1) where ¯αk denotes the cumulative noise schedule. The reverse process learns ϵθ (xk, k, c, G ) conditioned on scene context c and an interaction graph G, trained with the standard objective: 
+
+Ldiff = E
+
+h
+
+∥ϵ − ϵθ (xk, k, c, G )∥2i
+
+. (2) 
+
+SceneTransformer Denoiser The denoising network follows a SceneTransformer [ 30 ] architecture. Histor-ical trajectories are encoded and passed to a diffusion decoder, which reconstructs future trajectories from noisy inputs. Crucially, this decoder integrates scene context through three distinct attention mechanisms: cross-temporal attention to history, causal temporal attention across future timesteps, and map cross-attention for road geometry and lane topology. 
+
+Conflict-Aware Interaction Modeling To capture how agents’ trajectories are coupled through shared conflict regions, we augment the SceneTransformer with a Causal Interaction Graph (CIG) , a learned directed graph G = ( V, E ) where each node vi corresponds to an agent and each directed edge (i, j ) represents a potential interaction dependency. For each agent pair, we compute a conflict-aware edge feature vector: 
+
+etij = [∆ ptij , ∆vtij , TTC tij , TTI tij , d tij, int , v tij, int ], (3) capturing relative position, relative velocity, time-to-collision indicators, and interaction properties near predicted conflict regions. These features are encoded through a multilayer perceptron ϕij = fedge (eij ) and incorporated into the transformer’s attention mechanism, conditioning pairwise attention weights on the learned interaction embeddings. This enables the CIG to propagate behavioral changes along conflict-coupled pathways while leaving weakly related agents undisturbed. 
+
+Closed-Loop Simulation The world model supports closed-loop rollout: after predicting trajectories over horizon T , the simulated scene state is updated and fed back as input for the next prediction step. Crucially, this closed-loop nature ensures that when a counterfactual intervention is applied solely to the critical agent, all other agents naturally adapt and react according to the learned traffic dynamics, enabling realistic scene evolution under adversarial pressure. 
+
+## 3.3 Causal Adversarial Agent Identification 
+
+The first step of our counterfactual pipeline is to pinpoint the exact agent whose behavior serves as the critical variable maintaining safety. Modifying the wrong agent—one that is only weakly coupled to the ego vehicle—forces unnatural behavior on an irrelevant participant, yielding counterfactuals that are neither realistic nor dangerous. Accurate causal identification is therefore essential for achieving both adversarial effectiveness and scenario realism. 5Conflict Analysis and Candidate Filtering We categorize each pairwise ego-agent interaction into one of two fundamental conflict types: intersection conflicts , where agents approach a shared crossing region from different directions with potentially overlapping arrival times, and following conflicts , where agents interact longitudinally along the same lane. Interactions lacking stable conflict semantics are discarded. Among the valid candidates, intersection conflicts with clear crossing geometry receive higher priority, while following conflicts are ranked by longitudinal risk indicators such as closing speed and minimum distance. Formal criteria are provided in the supplementary material. 
+
+Danger Scoring For each candidate, we compute a danger score that quantifies exactly how much latent risk the agent’s current safe behavior is actively suppressing. For intersection conflicts: 
+
+sconflict = vrel 
+
+∆t + 0 .5 , (4) where vrel is the relative speed and ∆t is the estimated arrival-time difference at the conflict point. For following conflicts: 
+
+sconflict = vclose 
+
+dmin + ϵ , (5) where vclose is the closing speed, dmin is the minimum inter-agent distance, and ϵ is a small constant for numerical stability. In both cases, a higher score indicates that the agent’s current behavior is suppressing greater interaction risk—making it the optimal candidate for counterfactual intervention. The highest-ranked agent is identified as the adversarial target, and a guidance weight proportional to the conflict type and risk magnitude is assigned for use in the subsequent counterfactual guidance stage (§3.4). 
+
+## 3.4 Counterfactual Guidance 
+
+With the critical agent identified, the remaining question is: how should its trajectory be modified to transition the scene from safe to dangerous? In the factual safe scene, the adversarial agent maintains safety through two aspects of its behavior: it avoids the conflict region spatially, and it maintains a temporal margin by not arriving simultaneously with the ego vehicle. Our guidance removes both aspects during diffusion denoising, while only modifying the adversarial agent’s trajectory and letting all other agents evolve under the world model’s learned dynamics. 
+
+Denoising-Stage-Adaptive Guidance The intervention strength follows a three-stage schedule governed by the normalized denoising progress p ∈ [0 , 1] . A stage-dependent multiplier m(p) applies weak guidance during early denoising steps, where trajectory structure is still forming and premature intervention would compromise realism, and progressively stronger guidance during later steps, where interaction geometry is being finalized and precise spatial-temporal control becomes effective. The detailed schedule formulation is provided in the supplementary material. 
+
+Spatial Guidance In the factual scene, the adversarial agent avoids entering the conflict region. To construct the counterfactual alternative, we introduce a spatial objective that attracts the adversarial agent toward a designated conflict point pc, using the ego vehicle’s expected state merely as a spatial reference to anchor the conflict: 
+
+Lsp = ws (∥xe(te) − pc∥2 + ∥xa(ta) − pc∥2) . (6) This removes the spatial avoidance behavior, redirecting the adversarial agent into the region it currently steers away from. 
+
+Temporal Guidance Spatial convergence alone does not produce a collision if the two agents arrive at different times. In the factual scene, safety is often maintained precisely by such a temporal margin—the adversarial agent yields or decelerates so that the ego vehicle clears the conflict region first. Our temporal guidance removes this margin through two mechanisms. First, an arrival-time compression schedule, activated at p ≥ 0.5, progressively defines a narrowing temporal gap during denoising: 
+
+∆t′ = |te − ta|(1 − p), p ≥ 0.5, (7) 6so that as denoising approaches completion ( p → 1), the target arrival-time difference is driven toward zero. Second, a synchronization objective encourages the adversarial agent to match this compressed timing relative to the ego vehicle: 
+
+Ltm = wt∥xe(te) − xa(ta)∥2. (8) This transforms the safe temporal separation of the factual scene into the near-simultaneous arrival required for a collision. Crucially, we do not prescribe the collision trajectory—we only remove the temporal margin and let the diffusion model find a realistic trajectory consistent with the compressed timing. 
+
+Overall Objective The complete counterfactual guidance objective is: 
+
+Ltotal = m(p)( Lsp + Ltm ) + Ljerk , (9) where Ljerk is a jerk regularization term that preserves physical plausibility of the modified trajectory. During sampling, gradients from Ltotal strictly modify only the adversarial agent’s trajectory. The world model handles all other agents’ responses through its learned dynamics and conflict-aware interaction modeling. The result is a minimal counterfactual: one agent’s safety-maintaining behavior is removed, and the scene transitions from safe to dangerous. 
+
+# 4 Experiments 
+
+## 4.1 Experimental Setup 
+
+Dataset and Simulation. We conduct all experiments on nuScenes [ 4] (1,000 scenes with multi-agent annotations) using the tbsim framework [ 34 ] as our unified simulation platform; all methods are trained and evaluated under this framework to ensure fair comparison. Models are trained on the official train split and evaluated on 100 validation scenes selected to ensure coverage of diverse road topologies (intersections, merges, lane changes) and multi-agent interaction densities. Each scene is initialized with 3 s of observed history, and all methods generate up to 10 s of future trajectories in closed-loop rollout from identical initial conditions—a deliberately long horizon designed to test whether methods can sustain adversarial effectiveness and behavioral realism over extended interactions. 
+
+Baselines. We compare against five methods: VAE (latent trajectory sampling), STRIVE [33 ] (gradient-based trajectory optimization), CTG [ 57 ] and CTG++ [56 ] (rule- and language-guided diffusion), and 
+
+CCDiff [25 ] (compositional causal diffusion with TTC-based agent selection). Detailed descriptions are provided in the supplementary material. 
+
+Evaluation Metrics. We evaluate the generated scenarios along two complementary axes. Realism : We measure ADE (Average Displacement Error) and FDE (Final Displacement Error) to quantify the trajectory deviation from the original factual recordings. In our context, maintaining low ADE and FDE serves not only as a standard quality check but as a critical indicator that the counterfactual intervention remains minimal and physically plausible. We also report ORR (Off-Road Rate), the fraction of generated trajectories violating drivable area boundaries, to assess scene-level geometric compliance. Adversarial effectiveness : To quantify the successfully induced risk, we measure CR (Collision Rate), representing the frequency of physical overlaps between the ego vehicle and the selected adversarial agent. Furthermore, we report HBR (Hard Braking Rate), the percentage of rollouts where the ego vehicle is forced to apply emergency deceleration exceeding a physical threshold ath to avoid or mitigate a crash, effectively capturing high-risk near-miss interactions. Formal definitions for all metrics are detailed in the supplementary material. 
+
+Implementation Details. CounterScene uses 100 diffusion denoising steps with a cosine noise schedule. The three-stage progressive guidance schedule partitions the denoising process at p = 0 .3 and p = 0 .7. For each scene, we generate 16 candidate rollouts and select the one with the highest adversarial effectiveness to account for the inherent stochasticity of the diffusion process; all baselines are rigorously evaluated under the exact same multi-rollout protocol to ensure fair comparison. Guidance weights are adapted by conflict type as described in §3.4. All experiments are conducted on NVIDIA A100 GPUs. Full hyperparameter configurations are provided in the supplementary material. 7Table 2 Main results across prediction horizons. Realism (ADE, FDE, ORR ↓) and adversarial effectiveness (HBR, CR ↑) averaged over short (1–4 s), mid (5–7 s), and long (8–10 s) horizons. CounterScene is the only method that simultaneously achieves superior realism and the highest collision rate, with the adversarial advantage widening at longer horizons. Best results are highlighted in bold and underline.                                                                                                                
+
+> Method 1–4s 5–7s 8–10s Realism Adversarial Realism Adversarial Realism Adversarial ADE ↓FDE ↓ORR ↓HBR ↑CR ↑ADE ↓FDE ↓ORR ↓HBR ↑CR ↑ADE ↓FDE ↓ORR ↓HBR ↑CR ↑
+> CTG 0.526 1.182 0.2% 1.7% 0.0% 1.553 3.768 0.3% 1.5% 2.3% 2.480 6.143 0.2% 1.4% 2.0% VAE 0.638 1.458 0.4% 0.4% 1.3% 1.887 4.550 0.6% 0.2% 7.7% 3.086 7.433 1.0% 0.2% 13.3% STRIVE 0.502 1.171 0.3% 0.1% 1.3% 1.565 4.018 0.5% 0.1% 7.7% 2.722 7.060 0.8% 0.1% 15.3% CTG++ 0.548 1.259 0.2% 1.3% 0.8% 1.730 4.416 0.3% 1.2% 2.3% 2.963 7.525 0.2% 1.3% 3.7% CCDiff 0.380 0.908 0.4% 1.5% 1.3% 1.128 2.914 1.3% 1.5% 8.7% 2.092 5.898 2.3% 1.5% 12.3% CounterScene 0.288 0.703 0.5% 1.6% 3.3% 0.982 2.639 1.3% 2.0% 14.7% 1.877 5.141 1.9% 1.8% 22.7%
+
+## 4.2 Main Results 
+
+We compare CounterScene against all baselines across short-term (1–4 s), mid-term (5–7 s), and long-term (8–10 s) prediction horizons. Results are reported in Table 2. 
+
+CounterScene achieves both superior realism and the strongest adversarial effectiveness. Across all horizons, CounterScene attains the lowest ADE and FDE while simultaneously achieving the highest collision rate. In the short term, CounterScene reduces ADE by 24.2% relative to CCDiff (0.288 vs. 0.380) while more than doubling its CR (3.3% vs. 1.3%). The adversarial advantage widens with horizon length: at 8–10 s, CounterScene reaches a CR of 22.7% compared to 12.3% for CCDiff, while maintaining a lower ADE (1.877 vs. 2.092). This widening gap indicates that CounterScene constructs interaction patterns that naturally evolve into dangerous situations over time, rather than forcing immediate collisions through aggressive trajectory perturbation. 
+
+Baselines exhibit a realism–adversarial trade-off that CounterScene avoids. Existing methods fall into two failure modes. Conservative approaches (CTG, CTG++) preserve low off-road rates but rarely generate collisions: CTG achieves only 2.0% CR even at 8–10 s. Perturbation-based methods (STRIVE, VAE) reach moderate long-horizon CR (15.3%, 13.3%) but at the cost of degraded realism, with ADE exceeding 2.7 at 8–10 s. This trade-off arises because these methods either apply generic scene-level guidance without identifying the critical agent, or perturb the entire scene distribution to induce collisions. CounterScene sidesteps this trade-off through targeted single-agent intervention: only the causally identified agent’s trajectory is modified, preserving realistic dynamics for all other agents, while the targeted removal of safety-maintaining behavior ensures sustained adversarial pressure. 
+
+## 4.3 Adversarial Agent Selection Analysis 
+
+A central claim of CounterScene is that who to perturb matters as much as how to perturb. To validate this, we fix the diffusion backbone and guidance function and vary only the agent-selection strategy across four alternatives: Random, CCDiff (TTC-based), SafeSim (distance-based), and ours (causal selection). Results averaged over 3 s and 7 s horizons are reported in Table 3. 
+
+Table 3 Agent-selection comparison under identical backbone and guidance. CounterScene’s causal selection achieves the best realism and highest CR, while CCDiff’s TTC-based selection underperforms even random sampling. Best results are highlighted in bold and underline.                          
+
+> Selection ADE ↓FDE ↓ORR ↓HBR ↑CR ↑
+> Random 1.024 2.696 1.4% 1.8% 10.0% CCDiff 1.036 2.708 1.4% 1.7% 8.0% SafeSim 1.004 2.643 1.3% 1.7% 9.5% Ours 0.721 1.898 1.1% 1.8% 11.0%
+
+8CounterScene’s causal selection achieves the best realism by a large margin (ADE 0.721 vs. 1.004 for SafeSim, a 28.2% improvement) while simultaneously attaining the highest CR (11.0%). Notably, CCDiff’s TTC-based selection yields the lowest CR (8.0%)—performing worse than even random sampling (10.0%). This indicates that a purely proximity-based criterion can confidently commit to an agent that is not the actual critical variable in the interaction, whereas random sampling occasionally identifies the correct one by chance. The most striking pattern is that the realism gap across strategies is significantly larger than the adversarial gap: ADE ranges from 0.721 to 1.036 (a 44% spread) while CR ranges only from 8.0% to 11.0%. This explicitly reveals that selecting the wrong agent degrades realism more than it degrades adversarial effectiveness— because the guidance must force increasingly unnatural behavior on an irrelevant participant to produce any collision at all. By isolating the causally relevant agent, our method allows the generative process to achieve a dangerous outcome with minimal trajectory distortion. Furthermore, our lowest ORR (1.1%) confirms that causal intervention better preserves scene-level geometric constraints, proving that targeted counterfactuals work with the natural traffic dynamics rather than against them. 
+
+## 4.4 Ablation Study 
+
+We ablate each guidance component by disabling it individually from the full model, and additionally evaluate a minimal variant retaining only the basic spatial and temporal objectives. All variants share the same backbone and hyperparameters, evaluated at 3 s and 7 s horizons (Table 4).                                             
+
+> Table 4 Ablation study (averaged across 3 s and 7 s). Adaptive temporal compression has the largest CR impact (31.8% relative drop); jerk regularization and progressive scheduling primarily preserve realism. The minimal variant degrades all metrics. Best results are highlighted in bold and underline.
+> #Variant ADE ↓FDE ↓ORR ↓HBR ↑CR ↑
+> 1Full 0.747 1.978 0.9% 1.8% 11.0%
+> 2No Jerk 0.784 2.098 1.0% 1.6% 10.5% 3No Conflict Aware 0.768 2.052 1.0% 1.6% 9.0% 4No Progressive 0.775 2.072 1.0% 1.6% 9.0% 5No Adaptive 0.753 2.000 0.9% 1.7% 7.5% 6Minimal 0.798 2.157 1.2% 1.4% 6.5%
+
+Temporal guidance drives adversarial effectiveness. Removing adaptive arrival-time compression (Variant 5) causes the largest CR drop (11.0% → 7.5%) while barely affecting realism (ADE 0.753 vs. 0.747). This confirms that progressively closing the temporal margin is the primary mechanism for generating collisions—consistent with our counterfactual intuition that safety in many interactions is actively maintained by a precise timing gap between agents. Removing conflict-aware weighting (Variant 3) or progressive scheduling (Variant 4) each reduces CR to 9.0%, indicating that adapting guidance to the conflict type and denoising stage provides further adversarial gains. 
+
+Progressive scheduling and jerk regularization preserve realism. Removing jerk regularization or progressive scheduling increases ADE by approximately 0.03 and raises off-road rates from 0.9% to 1.0%. In contrast, removing adaptive compression has negligible impact on realism metrics. This indicates that temporal compression operates cleanly on the timing dimension without distorting overall trajectory geometry, effectively decoupling risk generation from spatial distortion. The scheduling and regularization components, meanwhile, primarily ensure that the modified trajectories remain physically plausible. The minimal variant (Variant 6), which retains only the basic spatial and temporal guidance objectives, degrades all metrics (CR 6.5%, ADE 0.798), confirming that the full structured design is strictly necessary to simultaneously achieve adversarial effectiveness and realism. 
+
+## 4.5 Cross-Dataset Zero-Shot Transfer 
+
+To assess whether the counterfactual intervention generalizes beyond the training distribution, we perform zero-shot transfer on nuPlan [ 5] without any retraining or fine-tuning. All models are trained on nuScenes 9only and directly applied to nuPlan scenes at test time. 
+
+Setup We construct a curated 100-scene nuPlan evaluation set from four geographic regions (Boston, Pittsburgh, Las Vegas, and Singapore), with 25 scenes per region. We filter out low-risk cases such as queuing and prolonged waiting, retaining only scenes with meaningful ego–agent conflict potential. All methods are evaluated under a unified rollout protocol at 10 Hz with prediction horizons of 3 s, 5 s, and 7 s. No hyperparameter tuning is performed on nuPlan. 
+
+Table 5 Zero-shot cross-dataset transfer on nuPlan. All models are trained on nuScenes only. CounterScene achieves the best realism across all horizons. At short horizons, it generates realistic near-miss interactions (high HBR) rather than forced collisions; at longer horizons, these interactions naturally evolve into collisions, matching the highest CR while maintaining substantially better trajectory quality. Best results are bold , second best are underlined.                                                                                                 
+
+> Method 3 s 5 s 7 s Realism Adversarial Realism Adversarial Realism Adversarial ADE ↓FDE ↓ORR ↓HBR ↑CR ↑ADE ↓FDE ↓ORR ↓HBR ↑CR ↑ADE ↓FDE ↓ORR ↓HBR ↑CR ↑
+> CTG 0.801 1.959 0.4% 7.3% 5.1% 1.609 4.075 0.6% 7.0% 10.1% 2.513 6.462 1.0% 6.5% 18.2% STRIVE 0.672 1.629 0.4% 4.5% 4.0% 1.332 3.427 0.6% 4.3% 16.2% 2.113 5.585 1.0% 4.2% 23.2% CTG++ 1.199 2.636 0.2% 4.5% 15.2% 2.282 5.233 0.1% 4.8% 13.1% 3.429 8.149 0.1% 4.5% 15.2% CCDiff 0.688 1.734 0.8% 17.2% 14.1% 1.564 4.172 1.3% 16.3% 28.3% 2.534 6.789 1.5% 15.6% 40.2%
+> CounterScene 0.535 1.293 0.9% 17.6% 5.4% 1.111 2.782 1.4% 16.4% 22.8% 2.021 5.020 1.5% 15.5% 40.2%
+
+Results Realism generalizes strongly under zero-shot transfer. CounterScene achieves the lowest ADE and FDE across all three horizons without any nuPlan-specific tuning. At 3 s, ADE is 0.535 compared to 0.672 for STRIVE and 0.688 for CCDiff; at 7 s, the gap widens to 2.021 versus 2.534 for CCDiff. This consistent realism advantage on an unseen dataset confirms that the counterfactual intervention design transfers well: guidance operates only on the selected agent’s trajectory while the world model handles all other agents’ responses, limiting the scope of distribution shift to a single trajectory rather than the entire scene. 
+
+Near-miss interactions precede collisions. At 3 s, CounterScene achieves the highest HBR (17.6%) but a modest CR (5.4%), while CCDiff reaches 14.1% CR at the same horizon. This contrast is informative rather than unfavorable. CounterScene’s guidance constructs interactions where the ego planner perceives genuine threat and initiates hard braking, but 3 seconds is insufficient for these interactions to culminate in actual collisions. As the horizon extends, the near-miss interactions naturally evolve into collisions—CR rises from 5.4% to 22.8% to 40.2%, matching CCDiff at 7 s while maintaining substantially lower ADE (2.021 vs. 2.534). CCDiff’s higher short-horizon CR suggests more aggressive early perturbation at the cost of trajectory quality. 
+
+HBR as a scenario quality indicator. The high HBR sustained by CounterScene across all horizons (17.6%, 16.4%, 15.5%) reveals an aspect of scenario quality that CR alone does not capture. A hard braking response indicates that the ego planner genuinely perceives danger and reacts under pressure—this is precisely the type of realistic stress-test that safety evaluation demands. An unrealistic collision caused by an implausible trajectory may inflate CR but provides limited evaluation value, as no competent planner would encounter such a situation in practice. CounterScene’s generation profile—high HBR throughout, with CR accumulating over longer horizons—produces scenarios that are consistently challenging to the ego planner at every timestep, not only at the moment of collision. 
+
+Causal invariance drives zero-shot generalization. Why does CounterScene maintain stable realism across diverse nuPlan regions (Boston, Pittsburgh, Las Vegas, Singapore) despite being trained exclusively on nuScenes? The fundamental reason lies in the distinction between causal mechanisms and statistical correlations . [Image illustrating causal invariance versus statistical correlation in machine learning] End-to-end generative models and heuristic perturbation methods often overfit to the specific interaction priors and driving styles of their training datasets (e.g., how aggressively drivers yield in a specific city). When transferred to 10 a new domain, these learned behavioral correlations break down, causing distribution shift and unrealistic trajectories. CounterScene, however, intervenes on the invariant physics of conflict . Safety is universally maintained by spatiotemporal margins—regardless of geographic location or local driving culture, a collision fundamentally requires two objects to occupy the same space at the same time. Because our counterfactual guidance explicitly targets these universal physical variables (spatial convergence and temporal compression) rather than perturbing abstract latent behavioral features, the intervention remains valid across all domains. By doing so, CounterScene effectively decouples the universal rules of risk generation from dataset-specific driving policies, empirically demonstrating that injecting causal inductive biases is key to scalable, out-of-distribution safety evaluation. 
+
+## 4.6 Qualitative Results 
+
+Figure 3 visualizes how CounterScene breaks the realism–adversarial trade-off. By altering the causal interaction structure, it successfully induces safety-critical events while preserving natural multi-agent dynamics. In contrast, baseline methods either fail to generate meaningful risk or produce physically implausible trajectory deviations. Additional complex scenarios and full video rollouts are provided in the supplementary material.      
+
+> Figure 3 Qualitative comparison in a merging scenario (Scene 103, 10-second closed-loop rollout at 10 Hz). Factual (Original): In the recorded safe scene, the merging vehicle from the side road maintains a temporal safety margin by yielding, allowing the ego vehicle to pass the intersection safely. CounterScene (Ours): By causally identifying the yielding vehicle and progressively compressing its spatiotemporal margin, CounterScene generates a highly realistic safety-critical counterfactual: the adversarial vehicle aggressively cuts into the main road, forcing the ego vehicle into an emergency hard brake (matching our high HBR metric) to avoid a severe collision. Baselines:
+> In contrast, baseline methods fail to capture the causal interaction structure. They either preserve the safe yielding behavior (failing to induce adversarial risk) or exhibit varying degrees of unstructured trajectory distortion, highlighting their inability to generate structurally valid and physically plausible critical interactions.
+
+11 5 Conclusion 
+
+We presented CounterScene, a framework that recasts safety-critical scenario generation as a precise coun-terfactual intervention within a diffusion-based world model. By identifying the causally critical agent that maintains safety and minimally modifying its behavior through spatially and temporally decomposed guidance, CounterScene achieves state-of-the-art trajectory realism alongside strong adversarial effectiveness—reducing ADE by 24.2% relative to the strongest baseline while more than doubling collision rates, with gains increasing at longer horizons. Ablations reveal a clear functional decomposition: temporal compression drives adversarial effectiveness, while progressive scheduling and regularization preserve realism. The agent-selection study further shows that who to intervene on matters as much as how : causal selection outperforms proximity-based heuristics, which even fall below random sampling. Finally, zero-shot transfer to nuPlan across four regions confirms that our mechanism captures invariant physical constraints rather than dataset-specific correlations. Beyond the quantitative gains, our results offer a practical observation: realistic safety-critical scenarios can be constructed within the learned data distribution through targeted counterfactual intervention, reducing the tension between realism and adversarial intensity. The causal structure of the intervention—identifying which 
+
+behavior prevents danger and how its margins maintain safety—also provides a degree of interpretability, as the counterfactual trace indicates where the planner faces spatiotemporal pressure. We hope this perspective may be useful for future work on closed-loop safety validation. 
+
+Future Work. Looking ahead, CounterScene points toward a broader closed-loop paradigm for generative world models, where realism is anchored at the scene level while vulnerability is exposed through agent-level causal intervention. At the scene level, the environment provides structured geometric, semantic, and physical constraints—such as road topology, lane connectivity, and traffic rules—that define the feasible space of interactions and ensure that generated scenarios remain grounded in reality. At the agent level, multiple actors drive the dynamic evolution of the scene through sequential decision-making, where safety-critical risk is not the result of isolated actions but emerges from structured, multi-step interaction dependencies. From this perspective, risk is inherently co-created by agent policies and the constrained environment, and only closed-loop interaction can faithfully reveal system vulnerabilities, whereas open-loop evaluation fails to capture such dynamic feedback. Our current framework instantiates this paradigm through minimal counterfactual intervention on a single causally critical agent, allowing the scene and other agents to evolve naturally under learned dynamics. A key future direction is therefore a unified scene–agent formulation that jointly models scene-level constraint preservation and agent-level causal interaction control, enabling more expressive, interpretable, and diagnostically informative safety-critical scenario generation. In our framework, safe interactions arise from either spatial separation or temporal separation. Counterfactual reasoning thus decomposes into two questions: what if an agent had entered the conflict region? and what if it had arrived at the same time? This spatiotemporal view generalizes to multi-agent systems where outcomes depend on co-occurrence in space and time. Different compositions yield distinct behaviors, suggesting a counterfactual interaction grammar of composable primitives for generating diverse interactions. This perspective complements work on behavioral diversity [ 39 ] and supports style-aware evaluation [ 16 ]. As world models scale toward general physical simulation [ 1], extending this grammar to 3D multi-agent environments is a promising direction for interpretable and controllable interaction generation. 12 References 
+
+[1] Niket Agarwal, Arslan Ali, Maciej Bala, Yogesh Balaji, Erik Barker, Tiffany Cai, Prithvijit Chattopadhyay, Yongxin Chen, Yin Cui, Yifan Ding, et al. Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575 , 2025. [2] Inhwan Bae, Junoh Lee, and Hae-Gon Jeon. Social reasoning-aware trajectory prediction via multimodal language model. IEEE transactions on pattern analysis and machine intelligence , 2025. [3] Lars Buesing, Theophane Weber, Yori Zwols, Sebastien Racaniere, Arthur Guez, Jean-Baptiste Lespiau, and Nicolas Heess. Woulda, coulda, shoulda: Counterfactually-guided policy search. arXiv preprint arXiv:1811.06272 ,2018. [4] Holger Caesar, Varun Bankiti, Alex H. Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. nuscenes: A multimodal dataset for autonomous driving. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. [5] Holger Caesar, Juraj Kabzan, Kok Seang Tan, Whye Kit Fong, Eric M. Wolff, Alex H. Lang, Luke Fletcher, Oscar Beijbom, and Sammy Omari. nuplan: A closed-loop ml-based planning benchmark for autonomous vehicles. 
+
+arXiv preprint arXiv:2106.11810 , 2021. [6] Wei-Jer Chang, Francesco Pittaluga, Masayoshi Tomizuka, Wei Zhan, and Manmohan Chandraker. Safe-sim: Safety-critical closed-loop traffic simulation with diffusion-controllable adversaries. In European conference on computer vision , pp. 242–258. Springer, 2024. [7] Wangxing Chen, Haifeng Sang, Jinyu Wang, and Zishan Zhao. Dstigcn: Deformable spatial-temporal interaction graph convolution network for pedestrian trajectory prediction. IEEE Transactions on Intelligent Transportation Systems , 26(5):6923–6935, 2025. [8] Daniel Dauner, Marcel Hallgarten, Tianyu Li, Xinshuo Weng, Zhiyu Huang, Zetong Yang, Hongyang Li, Igor Gilitschenski, Boris Ivanovic, Marco Pavone, et al. Navsim: Data-driven non-reactive autonomous vehicle simulation and benchmarking. Advances in Neural Information Processing Systems , 37:28706–28719, 2024. [9] Wenhao Ding, Haohong Lin, Bo Li, and Ding Zhao. Causalaf: Causal autoregressive flow for safety-critical driving scenario generation. In Conference on robot learning , pp. 812–823. PMLR, 2023. [10] Wenhao Ding, Chejian Xu, Mansur Arief, Haohong Lin, Bo Li, and Ding Zhao. A survey on safety-critical driving scenario generation—a methodological perspective. IEEE Transactions on Intelligent Transportation Systems , 24 (7):6971–6988, 2023. [11] Alexey Dosovitskiy, German Ros, Felipe Codevilla, Antonio Lopez, and Vladlen Koltun. Carla: An open urban driving simulator. In Conference on robot learning , pp. 1–16. PMLR, 2017. [12] Yuxiang Feng, Qiming Ye, Eduardo Candela, Jose Javier Escribano-Macias, Bo Hu, Yiannis Demiris, and Panagiotis Angeloudis. Risk-aware stochastic vehicle trajectory prediction with spatial-temporal interaction modeling. IEEE Open Journal of Intelligent Transportation Systems , 6:37–48, 2025. [13] Shenyuan Gao, Jiazhi Yang, Li Chen, Kashyap Chitta, Yihang Qiu, Andreas Geiger, Jun Zhang, and Hongyang Li. Vista: A generalizable driving world model with high fidelity and versatile controllability. Advances in Neural Information Processing Systems , 37:91560–91596, 2024. [14] Xiaolan Guo, Chi Zhang, Liheng Xu, Li Li, and Linhai Xu. Disentangling perception-failure-induced corner cases by counterfactual reasoning. In 2022 IEEE International Conference on Unmanned Systems (ICUS) , pp. 496–502. IEEE, 2022. [15] Kunkun Hao, Wen Cui, Yonggang Luo, Lecheng Xie, Yuqiao Bai, Jucheng Yang, Songyang Yan, Yuxi Pan, and Zijiang Yang. Adversarial safety-critical scenario generation using naturalistic human driving priors. IEEE Transactions on Intelligent Vehicles , 9(9):5392–5406, 2023. [16] Ruiyang Hao, Bowen Jing, Haibao Yu, and Zaiqing Nie. Styledrive: Towards driving-style aware benchmarking of end-to-end autonomous driving. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, pp. 4627–4635, 2026. [17] Patrick Hart and Alois Knoll. Counterfactual policy evaluation for decision-making in autonomous driving. arXiv preprint arXiv:2003.11919 , 2020. 
+
+13 [18] Mariam Hassan, Sebastian Stapf, Ahmad Rahimi, Pedro Rezende, Yasaman Haghighi, David Brüggemann, Isinsu Katircioglu, Lin Zhang, Xiaoran Chen, Suman Saha, et al. Gem: A generalizable ego-vision multimodal world model for fine-grained ego-motion, object dynamics, and scene composition control. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 22404–22415, 2025. [19] Yizhou Huang, Yihua Cheng, and Kezhi Wang. Trajectory mamba: Efficient attention-mamba forecasting model based on selective ssm. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 12058–12067, 2025. [20] Xiaosong Jia, Zhenjie Yang, Qifeng Li, Zhiyuan Zhang, and Junchi Yan. Bench2drive: Towards multi-ability benchmarking of closed-loop end-to-end autonomous driving. Advances in Neural Information Processing Systems ,37:819–844, 2024. [21] Hao Jiang, Baixuan Zhao, Chuan Hu, Hao Chen, and Xi Zhang. Multimodal vehicle motion prediction based on motion-query social transformer network for internet of vehicles. IEEE Internet of Things Journal , 12(14): 28864–28875, 2025. [22] Zhengmin Jiang, Wenbo Pan, Jia Liu, Shaobo Dang, Zhiheng Yang, Huiyun Li, and Yi Pan. Efficient and unbiased safety test for autonomous driving systems. IEEE Transactions on Intelligent Vehicles , 8(5):3336–3348, 2022. [23] Moritz Klischat and Matthias Althoff. Falsifying motion plans of autonomous vehicles with abstractly specified traffic scenarios. IEEE Transactions on Intelligent Vehicles , 8(2):1717–1730, 2022. [24] Yingyan Li, Yuqi Wang, Yang Liu, Jiawei He, Lue Fan, and Zhaoxiang Zhang. End-to-end driving with online trajectory evaluation via bev world model. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 27137–27146, 2025. [25] Haohong Lin, Xin Huang, Tung Phan-Minh, David S. Hayden, Huan Zhang, Ding Zhao, Siddhartha S. Srinivasa, Eric M. Wolff, and Hongge Chen. Causal composition diffusion model for closed-loop traffic generation. arXiv preprint arXiv:2412.17920 , 2024. [26] William Ljungbergh, Adam Tonderski, Joakim Johnander, Holger Caesar, Kalle Åström, Michael Felsberg, and Christoffer Petersson. Neuroncap: Photorealistic closed-loop safety testing for autonomous driving. In European Conference on Computer Vision , pp. 161–177. Springer, 2024. [27] Yuhuan Lu, Wei Wang, Rufan Bai, Shengwei Zhou, Lalit Garg, Ali Kashif Bashir, Weiwei Jiang, and Xiping Hu. Hyper-relational interaction modeling in multi-modal trajectory prediction for intelligent connected vehicles in smart cites. Information Fusion , 114:102682, 2025. [28] Roderick P McDonald. Judea pearl. causality: Models, reasoning, and inference. cambridge: Cambridge university press. 384 pp., 2000, isbn 0521773628. Psychometrika , 67(2):321–322, 2002. [29] Ahmad Mouri Zadeh Khaki, Ahyoung Choi, and Laleh Seyyed-Kalantari. Simulating social behavior of llm-based autonomous negotiator agents in a game-theoretical framework using multi-agent systems. International Journal of Human–Computer Interaction , 41(23):15169–15178, 2025. [30] Jiquan Ngiam, Vijay Vasudevan, Benjamin Caine, Zhengdong Zhang, Hao-Tien Lewis Chiang, Jeffrey Ling, Rebecca Roelofs, Alex Bewley, Chenxi Liu, Ashish Venugopal, et al. Scene transformer: A unified architecture for predicting future trajectories of multiple agents. In International Conference on Learning Representations , 2021. [31] Jingcheng Ni, Yuxin Guo, Yichen Liu, Rui Chen, Lewei Lu, and Zehuan Wu. Maskgwm: A generalizable driving world model with video mask reconstruction. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 22381–22391, 2025. [32] Michael Oberst and David Sontag. Counterfactual off-policy evaluation with gumbel-max structural causal models. In International Conference on Machine Learning , pp. 4881–4890. PMLR, 2019. [33] Davis Rempe, Jonah Philion, Leonidas J. Guibas, Sanja Fidler, and Or Litany. Generating useful accident-prone driving scenarios via a learned traffic prior. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022. [34] NVIDIA Research. Traffic behavior simulation (tbsim). GitHub repository, 2022. https://github.com/NVlabs/traffic-behavior-simulation. [35] Hongzhi Ruan, Haibao Yu, Wenxian Yang, Siqi Fan, and Zaiqing Nie. Learning cooperative trajectory representa-tions for motion forecasting. Advances in Neural Information Processing Systems , 37:13430–13457, 2024. 
+
+14 [36] Lloyd Russell, Anthony Hu, Lorenzo Bertoni, George Fedoseev, Jamie Shotton, Elahe Arani, and Gianluca Corrado. Gaia-2: A controllable multi-view generative world model for autonomous driving. arXiv preprint arXiv:2503.20523 , 2025. [37] Zihao Sheng, Zilin Huang, Yansong Qu, Yue Leng, Sruthi Bhavanam, and Sikai Chen. Curricuvlm: Towards safe autonomous driving via personalized safety-critical curriculum learning with vision-language models. Transportation Research Part C: Emerging Technologies , 185:105549, 2026. [38] Qiao Sun, Xin Huang, Junru Gu, Brian C Williams, and Hang Zhao. M2i: From factored marginal trajectory prediction to interactive prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 6543–6552, 2022. [39] Cheng Wang, Lingxin Kong, Massimiliano Tamborski, and Stefano V Albrecht. Had-gen: Human-like and diverse driving behavior modeling for controllable scenario generation. Accident Analysis & Prevention , 223:108270, 2025. [40] Xiaofeng Wang, Zheng Zhu, Guan Huang, Xinze Chen, Jiagang Zhu, and Jiwen Lu. Drivedreamer: Towards real-world-drive world models for autonomous driving. In European conference on computer vision , pp. 55–72. Springer, 2024. [41] Yuqi Wang, Jiawei He, Lue Fan, Hongxin Li, Yuntao Chen, and Zhaoxiang Zhang. Driving into the future: Multiview visual forecasting and planning with world model for autonomous driving. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 14749–14759, 2024. [42] Zhaoyi Wang, Xincheng Li, Dengwei Wei, Liwen Wang, and Yanjun Huang. Efficient generation of safety-critical scenarios combining dynamic and static scenario parameters. IEEE Transactions on Intelligent Vehicles , 2024. [43] Yuqing Wen, Yucheng Zhao, Yingfei Liu, Fan Jia, Yanhui Wang, Chong Luo, Chi Zhang, Tiancai Wang, Xiaoyan Sun, and Xiangyu Zhang. Panacea: Panoramic and controllable video generation for autonomous driving. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 6902–6912, 2024. [44] Chejian Xu, Wenhao Ding, Weijie Lyu, Zuxin Liu, Shuai Wang, Yihan He, Hanjiang Hu, Ding Zhao, and Bo Li. Safebench: A benchmarking platform for safety evaluation of autonomous vehicles. Advances in Neural Information Processing Systems , 35:25667–25682, 2022. [45] Chejian Xu, Aleksandr Petiushko, Ding Zhao, and Bo Li. Diffscene: Diffusion-based safety-critical scenario generation for autonomous vehicles. In Proceedings of the AAAI conference on artificial intelligence , volume 39, pp. 8797–8805, 2025. [46] Wei Xu, Ruochen Li, Xiaodong Du, Bingjie Li, and Lei Xing. Trajectory prediction via proposal guided transformer with out way attention. Scientific Reports , 15(1):13513, 2025. [47] Haibao Yu, Wenxian Yang, Ruiyang Hao, Chuanye Wang, Jiaru Zhong, Ping Luo, and Zaiqing Nie. Drivee2e: Closed-loop benchmark for end-to-end autonomous driving through real-to-simulation. arXiv preprint arXiv:2509.23922 , 2025. [48] Haibao Yu, Kuntao Xiao, Jiahang Wang, Ruiyang Hao, Yuxin Huang, Guoran Hu, Haifang Qin, Bowen Jing, Yuntian Bo, and Ping Luo. Recondrive: Fast feed-forward 4d gaussian splatting for autonomous driving scene reconstruction. arXiv preprint arXiv:2603.07552 , 2026. [49] Alessandro Zanardi, Andrea Censi, Margherita Atzei, Luigi Di Lillo, and Emilio Frazzoli. A counterfactual safety margin perspective on the scoring of autonomous vehicles’ riskiness. arXiv preprint arXiv:2308.01050 , 2023. [50] Kaiwen Zhang, Zhenyu Tang, Xiaotao Hu, Xingang Pan, Xiaoyang Guo, Yuan Liu, Jingwei Huang, Li Yuan, Qian Zhang, Xiao-Xiao Long, et al. Epona: Autoregressive diffusion world model for autonomous driving. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 27220–27230, 2025. [51] Kunpeng Zhang, Liang Zhao, Chengxiang Dong, Lan Wu, and Liang Zheng. Ai-tp: Attention-based interaction-aware trajectory prediction for autonomous driving. IEEE Transactions on Intelligent Vehicles , 8(1):73–83, 2022. [52] Ding Zhao, Henry Lam, Huei Peng, Shan Bao, David J LeBlanc, Kazutoshi Nobukawa, and Christopher S Pan. Accelerated evaluation of automated vehicles safety in lane-change scenarios based on importance sampling techniques. IEEE transactions on intelligent transportation systems , 18(3):595–607, 2016. [53] Guosheng Zhao, Xiaofeng Wang, Zheng Zhu, Xinze Chen, Guan Huang, Xiaoyi Bao, and Xingang Wang. Drivedreamer-2: Llm-enhanced world models for diverse driving video generation. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, pp. 10412–10420, 2025. 
+
+15 [54] Lei Zheng, Rui Yang, Michael Yu Wang, and Jun Ma. Barrier-enhanced parallel homotopic trajectory optimization for safety-critical autonomous driving. IEEE Transactions on Intelligent Transportation Systems , 26(2):2169–2186, 2024. [55] Wenzhao Zheng, Weiliang Chen, Yuanhui Huang, Borui Zhang, Yueqi Duan, and Jiwen Lu. Occworld: Learning a 3d occupancy world model for autonomous driving. In European conference on computer vision , pp. 55–72. Springer, 2024. [56] Ziyuan Zhong, Davis Rempe, Yuxiao Chen, Boris Ivanovic, Yulong Cao, Danfei Xu, Marco Pavone, and Baishakhi Ray. Language-guided traffic simulation via scene-level diffusion. In Conference on Robot Learning (CoRL) , 2023. [57] Ziyuan Zhong, Davis Rempe, Danfei Xu, Yuxiao Chen, Sushant Veer, Tong Che, Baishakhi Ray, and Marco Pavone. Guided conditional diffusion for controllable traffic simulation. In IEEE International Conference on Robotics and Automation (ICRA) , 2023. [58] Xin Zhou, Dingkang Liang, Sifan Tu, Xiwu Chen, Yikang Ding, Dingyuan Zhang, Feiyang Tan, Hengshuang Zhao, and Xiang Bai. Hermes: A unified self-driving world model for simultaneous 3d scene understanding and generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 27817–27827, 2025. [59] Sicheng Zuo, Wenzhao Zheng, Yuanhui Huang, Jie Zhou, and Jiwen Lu. Gaussianworld: Gaussian world model for streaming 3d occupancy prediction. In Proceedings of the Computer Vision and Pattern Recognition Conference ,pp. 6772–6781, 2025. 
+
+16 Appendix A Implementation Details 
+
+## A.1 Training Configuration 
+
+CounterScene consists of two tightly coupled components: (i) a graph-conditioned diffusion backbone for realistic multi-agent trajectory generation, and (ii) an inference-time conflict-aware guidance module for constructing safety-critical interactions during closed-loop rollout. The diffusion backbone operates on a spatiotemporal interaction graph, where nodes represent traffic agents and edges encode pairwise relational features. The model captures agent geometry, kinematics, map context, and social interactions to support realistic trajectory denoising and multi-agent forecasting. During inference, the conflict-aware guidance module imposes spatiotemporal constraints on an offline-mined adversarial target, steering the generated trajectories toward high-risk yet behaviorally plausible interactions. The entire model is trained on the nuScenes training split [4], and the key hyperparameters used in our experiments are summarized in Table 6.  
+
+> Table 6 Hyper-parameters used in CounterScene experiments.
+
+Parameter Name Value Parameter Name Value 
+
+Step length 0.1 s Map encoder ResNet-18 History steps 31 Map feature dim. 128 Prediction horizon 52 History feature dim. 64 Future horizon 5.2 s Attention heads 16 Learning rate 1 × 10 −4 Temporal decoder layers 2Optimizer Adam Social decoder layers/block 4Configured batch size 4 Diffusion steps 100 Training steps 100,000 Validation samples 10 GPUs 3 Motion distance metric TTC + intersection EMA step 1 Social attention threshold 0.8 EMA decay 0.995 Neighbor distance cap 50 m EMA warm-up start 4,000 Conditioning drop (graph) 0.1 
+
+Inference-Time Guidance 
+
+Perturbation optimizer Adam Guidance gradient steps 30 Perturbation learning rate 0.001 Perturbation constraint norm 100 Final-step guidance optimizer Adam Final-step guidance learning rate 0.3 Final-step guidance steps 1 Intermediate guidance Enabled Output-stage guidance Disabled Action horizon per update 5Collision guidance weight -50.0 Map guidance weight 1.0 
+
+## A.2 Conflict Detection and Scoring 
+
+Offline conflict mining setup. Conflict mining is performed offline on a 100-scene evaluation subset using ground-truth future trajectories extracted from the trajdata environment. For each scene, the ego vehicle is fixed as agent index 0, and every non-ego agent is evaluated as a candidate adversary. A candidate pair is considered only when the ego and the candidate agent share at least five jointly valid future timesteps. This offline design ensures that the identified adversarial target is directly compatible with the agent indexing convention used during rollout. 
+
+Conflict point and score computation. For each valid ego–candidate pair, we identify the closest spatio-temporal encounter by searching over all valid timestep pairs: 
+
+(τe, τ a) = arg min 
+
+> te,t a
+
+∥pe(te) − pa(ta)∥2 , (10) 17 where pe(·) and pa(·) denote the future trajectories of the ego and the candidate agent, respectively. The conflict point is defined as the midpoint of the closest pair: 
+
+c = pe(τe) + pa(τa)2 , (11) with the minimum distance 
+
+dmin = ∥pe(τe) − pa(τa)∥2 . (12) We further compute the arrival-time gap 
+
+∆t = |τe − τa| · δt, (13) and estimate the relative speed at the conflict event via finite differences: 
+
+vrel = pe(τe) − pe(τe − 1) 
+
+δt − pa(τa) − pa(τa − 1) 
+
+δt 2
+
+. (14) The conflict score is then defined in a type-dependent manner: 
+
+sconflict =
+
+
+
+vrel 
+
+∆t + 0 .5 , intersection ,vrel 
+
+dmin + 1 .0 , following .
+
+(15) Accordingly, intersection conflicts emphasize temporal co-arrival, whereas following conflicts emphasize closing distance. 
+
+Conflict type classification. Conflict type is inferred from the coarse travel directions of the ego and the candidate agent over the future horizon. Let de and da denote their corresponding direction vectors. We compute the direction cosine 
+
+cos θ = d⊤ 
+
+> e
+
+da
+
+∥de∥2∥da∥2
+
+. (16) If cos θ > 0.8, the interaction is classified as following ; otherwise it is classified as intersection . For following-type interactions, we further distinguish rear_approach and lead_braking according to the relative ordering of the two agents along the ego travel direction. This conflict-type label is subsequently used to determine both the tier priority and the guidance weight. 
+
+Tier-based target selection. We adopt a tiered filtering rule to retain only conflict-relevant candidates. Intersection conflicts are assigned to Tier 1 if ∆t < 5.0 and sconflict ≥ 0.05 . Following conflicts are assigned to Tier 2 for rear_approach when dmin < 10 .0 and sconflict ≥ 0.05 , and to Tier 3 for lead_braking when 
+
+dmin < 12 .0 and sconflict ≥ 0.05 . The final adversarial target is selected by lexicographic ordering over 
+
+(tier , −sconflict ), i.e., a lower tier index has higher priority, and ties are broken by a larger conflict score. After identifying the critical candidate, the guidance weight is assigned as 
+
+wguide =
+
+
+
+−80 − 40 · min( sconflict , 1) , intersection ,
+
+−60 − 30 · min( sconflict , 1) , following ,
+
+−50 , fallback .
+
+(17) Scenes for which no candidate survives the filtering stage are treated as invalid mining cases and therefore do not receive a precomputed conflict-guidance configuration. 
+
+## A.3 Progressive Guidance Configuration 
+
+The CounterScene guidance loss combines three ingredients: (i) spatial attraction to the conflict point, (ii) temporal synchronization between the ego vehicle and the adversary at the conflict event, and (iii) jerk-based smoothness regularization. The loss is evaluated in world coordinates after transforming predicted trajectories from the agent-local frame. 18 Conflict-aware base weights. Let sconflict denote the identified candidate’s danger score. The base weights are determined by the conflict type: 
+
+(λs, λ t, λ j ) = 
+
+
+
+(max(2 .0sconflict , 0.3) , max(1 .5sconflict , 0.2) , 0.3) , intersection ,
+
+(max(1 .5sconflict , 0.3) , max(1 .0sconflict , 0.2) , 0.5) , rear_approach ,
+
+(max(2 .5sconflict , 0.3) , max(0 .8sconflict , 0.2) , 0.8) , lead_braking .
+
+(18) 
+
+If conflict-aware weighting is disabled in ablation, the implementation uses 
+
+(λs, λ t, λ j ) = (max(1 .5sconflict , 0.3) , max(1 .0sconflict , 0.2) , 0.5) . (19) 
+
+Stage multiplier. The progressive schedule is controlled by the normalized progress 
+
+p = tglobal 
+
+H , (20) where H is the total rollout horizon. The stage multiplier is 
+
+m(p) = 
+
+
+
+0.2, p < 0.3,
+
+0.2 + p − 0.30.7 − 0.3 (1 .5 − 0.2) , 0.3 ≤ p < 0.7,
+
+1.5 + p − 0.71.0 − 0.7 (3 .0 − 1.5) , p ≥ 0.7.
+
+(21) Thus, the guidance is intentionally weak in the early stage, ramps up through the middle stage, and becomes strongest in the late stage. 
+
+Adaptive arrival-time compression. Let (τe, τ a) be the original ego and adversary arrival times at the conflict point. If adaptive timing is enabled, the implementation compresses the arrival-time gap only after the midpoint of the process: 
+
+∆τ = |τe − τa|, ∆τ ′(p) = ∆ τ (1 − p), p ≥ 0.5. (22) The later-arriving agent is then shifted toward the earlier one: 
+
+(ˆ τe, ˆτa) = 
+
+
+
+(τe, τ a), p < 0.5,
+
+(τe, τ e + ∆ τ ′(p)) , p ≥ 0.5, τ e ≤ τa,
+
+(τa + ∆ τ ′(p), τ a), p ≥ 0.5, τ a < τ e,
+
+(23) followed by rounding and clipping to the valid trajectory horizon. Importantly, this mechanism adjusts only the target arrival times and does not change the mined conflict point itself. 
+
+Guidance loss. Let xe( ˆτe) and xa( ˆτa) denote the ego and adversary positions at the (possibly compressed) arrival times in world coordinates, and let c be the conflict point. The conflict guidance loss is 
+
+Lconf = m(p)
+
+h
+
+λs
+
+ ∥xe(ˆ τe) − c∥2 + ∥xa(ˆ τa) − c∥2
+
+ + λt∥xe(ˆ τe) − xa(ˆ τa)∥2
+
+i
+
++ λj Ljerk . (24) The jerk regularization is computed from third-order finite differences of the predicted trajectories: 
+
+Ljerk = mean  ∥je∥2
+
+ + mean  ∥ja∥2
+
+, (25) where j denotes jerk obtained from finite-difference acceleration sequences. 
+
+Map regularization. In addition to conflict guidance, the implementation applies a constant map-collision guidance term with weight 2.0 to discourage unrealistic off-road trajectories. Unlike the conflict term, this map regularizer is not modulated by the progressive stage multiplier. 19 Table 7 Progressive guidance configuration in CounterScene. 
+
+Early Mid Late 
+
+Normalized progress p [0 , 0.3) [0 .3, 0.7) [0 .7, 1.0] 
+
+Stage multiplier m(p) 0.2 linear 0.2 → 1.5 linear 1.5 → 3.0
+
+Primary objective coarse spatial attraction stronger attraction and timing alignment precise collision shaping Arrival-time compression off active only for p ≥ 0.5 on Jerk regularization on if enabled on if enabled on if enabled Conflict-aware base weights fixed by type fixed by type fixed by type Map-collision weight 2.0 2.0 2.0
+
+Target geometry point target point target point target 
+
+Algorithm 1 Offline Causal Conflict Mining and Target Identification 
+
+Require: Future trajectories {pi}N −1 
+
+> i=0
+
+, validity masks {mi}N −1 
+
+> i=0
+
+, sampling interval δt 
+
+Ensure: Adversarial target j⋆, conflict point c⋆, arrival times (τ ⋆e , τ ⋆a ), conflict score s⋆, guidance weight w⋆
+
+1: Set ego index e ← 0
+
+2: C ← ∅ 
+
+3: for j = 1 , . . . , N −1 do 
+
+4: Vj ← { t : me(t) = 1 ∧ mj (t) = 1 }
+
+5: if |V j | < 5 then 
+
+6: continue 
+
+7: end if 
+
+8: (tje, t ja) ← arg min te,t a∈V j ∥pe(te) − pj (ta)∥2
+
+9: cj ← 12 (pe(tje) + pj (tja)) 
+
+10: dj ← ∥ pe(tje) − pj (tja)∥2
+
+11: ∆τ j ← | tje − tja| · δt 
+
+12: vj 
+
+> rel
+
+← RelativeSpeed (pe, pj , t je, t ja, δt )
+
+13: (type j , subtype j ) ← ClassifyConflict (pe, pj )
+
+14: if type j = intersection then 
+
+15: sj ← vj
+
+> rel
+
+/(∆ τ j + 0 .5) 
+
+16: else 
+
+17: sj ← vj
+
+> rel
+
+/(dj + 1 .0) 
+
+18: end if 
+
+19: ρj ← TierAssign (type j , subtype j , ∆τ j , d j , s j )
+
+20: if ρj̸ = ⊥ then 
+
+21: C ← C ∪ { (j, cj , t je, t ja, s j , ρ j , type j , subtype j )}
+
+22: end if 
+
+23: end for 
+
+24: if C = ∅ then 
+
+25: Mark the scene as invalid 
+
+26: Return no stored conflict configuration 
+
+27: else 
+
+28: Sort C by (ρ, −s) and select the first candidate 
+
+29: (j⋆, c⋆, τ ⋆e , τ ⋆a , s ⋆, ρ ⋆, type ⋆, subtype ⋆) ← C [1] 
+
+30: if type ⋆ = intersection then 
+
+31: w⋆ ← − 80 − 40 · min( s⋆, 1) 
+
+32: else 
+
+33: w⋆ ← − 60 − 30 · min( s⋆, 1) 
+
+34: end if 
+
+35: end if 
+
+36: return (j⋆, c⋆, τ ⋆e , τ ⋆a , s ⋆, w ⋆)
+
+# B Metric Definitions and Computation Details 
+
+20 Algorithm 2 Progressive Conflict-Aware Guidance 
+
+Require: Predicted trajectories X, conflict point c, original arrival times (τe, τ a), conflict score sconflict ,conflict type, normalized progress p ∈ [0 , 1] 
+
+Ensure: Guidance loss Lguide  
+
+> 1:
+
+˜X ← T local →world (X) 
+
+> 2:
+
+(λs, λ t, λ j ) ← Φ(type , s conflict ) 
+
+> 3:
+
+if p < 0.3 then  
+
+> 4:
+
+m(p) ← 0.2 
+
+> 5:
+
+else if p < 0.7 then  
+
+> 6:
+
+m(p) ← 0.2 + p − 0.30.7 − 0.3 (1 .5 − 0.2)  
+
+> 7:
+
+else  
+
+> 8:
+
+m(p) ← 1.5 + p − 0.71.0 − 0.7 (3 .0 − 1.5)  
+
+> 9:
+
+end if  
+
+> 10:
+
+if p < 0.5 then  
+
+> 11:
+
+(ˆ τe, ˆτa) ← (τe, τ a) 
+
+> 12:
+
+else  
+
+> 13:
+
+∆τ ← | τe − τa| 
+
+> 14:
+
+∆τ ′ ← ∆τ (1 − p) 
+
+> 15:
+
+if τe ≤ τa then  
+
+> 16:
+
+ˆτe ← τe 
+
+> 17:
+
+ˆτa ← τe + ∆ τ ′ 
+
+> 18:
+
+else  
+
+> 19:
+
+ˆτa ← τa 
+
+> 20:
+
+ˆτe ← τa + ∆ τ ′ 
+
+> 21:
+
+end if  
+
+> 22:
+
+end if  
+
+> 23:
+
+Round (ˆ τe, ˆτa) to valid integer timesteps and clip to the trajectory horizon  
+
+> 24:
+
+˜xe ← ˜Xego (ˆ τe), ˜xa ← ˜Xadv (ˆ τa) 
+
+> 25:
+
+Lspatial ← ∥ ˜xe − c∥2 + ∥˜xa − c∥2 
+
+> 26:
+
+Lsync ← ∥ ˜xe − ˜xa∥2 
+
+> 27:
+
+Ljerk ← mean( ∥je∥2) + mean( ∥ja∥2) 
+
+> 28:
+
+Lguide ← m(p) λsLspatial + λtLsync 
+
+ + λj Ljerk  
+
+> 29:
+
+return Lguide 
+
+## B.1 Realism Metrics 
+
+Average Displacement Error (ADE). 
+
+ADE = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+1
+
+T
+
+> T
+
+X
+
+> t=1
+
+ˆp(i) 
+
+> t
+
+− p(i) 
+
+> t2
+
+, (26) where N is the number of agents and T is the prediction horizon. 
+
+Final Displacement Error (FDE). 
+
+FDE = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+ˆp(i) 
+
+> T
+
+− p(i) 
+
+> T2
+
+. (27) 
+
+Off-Road Rate (ORR). 
+
+ORR = 1
+
+N T 
+
+> N
+
+X
+
+> i=1
+> T
+
+X
+
+> t=1
+
+⊮
+
+h
+
+ˆp(i) 
+
+> t
+
+/∈ D 
+
+i
+
+, (28) where D denotes the drivable area. 21 B.2 Adversarial Metrics 
+
+Collision Rate (CR). Collision is determined by oriented bounding box overlap using the vehicle centroid, yaw, and extent at each timestep. A scene is counted as colliding if the ego vehicle overlaps with any other valid agent at any rollout step. The reported collision rate is the fraction of scenes with at least one ego–agent collision. 
+
+Hard Braking Rate (HBR). Following the implementation in recompute_metrics_final.py , we first estimate velocity and acceleration using finite differences of the predicted centroids: 
+
+v(i) 
+
+> t
+
+= p(i) 
+
+> t+1
+
+− p(i)
+
+> t
+
+∆t , a(i) 
+
+> t
+
+= v(i) 
+
+> t+1
+
+− v(i)
+
+> t
+
+∆t , (29) with ∆t = 0 .1 s . The longitudinal braking signal is then approximated as 
+
+a(i)lon ,t = ∥a(i) 
+
+> t
+
+∥2 cos( ψ(i) 
+
+> t
+
+), (30) where ψ(i) 
+
+> t
+
+denotes the agent yaw. A hard-braking event is counted whenever 
+
+a(i)lon ,t < −3.0 m /s2. (31) The per-scene hard braking rate is computed as the fraction of valid acceleration timesteps across all agents that satisfy the above condition: 
+
+HBR scene =
+
+P 
+
+> i,t
+
+⊮
+
+h
+
+a(i)lon ,t < −3.0
+
+iP 
+
+> i
+
+T valid 
+
+> i
+
+. (32) The reported HBR is the mean of HBR scene over all evaluated scenes. 
+
+# C Extended Main Results 
+
+## C.1 Full Per-Horizon Breakdown 
+
+The main paper reports results grouped by short/mid/long horizons. Here we provide the complete per-second results for all methods from 1s to 10s. 22 Table 8 Full per-horizon results on nuScenes (10 Hz). OOR, HBR, and CR are reported in percentage. 
+
+Horizon Metric CTG VAE STRIVE CTG++ CCDiff CounterScene 
+
+1s ADE 0.178 0.206 0.170 0.185 0.125 0.089 FDE 0.348 0.415 0.326 0.361 0.247 0.174 OOR 0.2% 0.3% 0.2% 0.2% 0.2% 0.2% HBR 1.9% 0.5% 0.2% 1.5% 1.4% 1.3% CR 0.0% 0.0% 0.0% 0.0% 0.0% 0.0% 2s ADE 0.393 0.467 0.359 0.409 0.263 0.184 FDE 0.854 1.037 0.783 0.902 0.589 0.410 OOR 0.2% 0.4% 0.3% 0.2% 0.3% 0.3% HBR 1.7% 0.4% 0.0% 1.3% 1.5% 1.6% CR 0.0% 0.0% 0.0% 0.0% 1.0% 3.0% 3s ADE 0.634 0.770 0.600 0.692 0.437 0.338 FDE 1.425 1.773 1.410 1.589 1.033 0.814 OOR 0.2% 0.4% 0.4% 0.2% 0.5% 0.5% HBR 1.5% 0.3% 0.1% 1.0% 1.5% 1.7% CR 0.0% 0.0% 1.0% 0.0% 2.0% 4.0% 4s ADE 0.900 1.107 0.880 0.906 0.695 0.542 FDE 2.102 2.605 2.166 2.183 1.764 1.414 OOR 0.2% 0.4% 0.4% 0.2% 0.6% 0.8% HBR 1.5% 0.2% 0.1% 1.2% 1.4% 1.9% CR 0.0% 5.0% 4.0% 3.0% 2.0% 6.0% 5s ADE 1.245 1.497 1.215 1.273 0.924 0.731 FDE 2.977 3.597 3.078 3.190 2.421 1.967 OOR 0.3% 0.5% 0.5% 0.2% 1.2% 1.1% HBR 1.6% 0.2% 0.1% 1.1% 1.5% 2.0% CR 1.0% 6.0% 6.0% 1.0% 3.0% 11.0% 6s ADE 1.503 1.873 1.558 1.767 1.205 1.059 FDE 3.620 4.528 4.001 4.438 3.179 2.810 OOR 0.2% 0.6% 0.5% 0.3% 1.4% 1.5% HBR 1.5% 0.2% 0.1% 1.3% 1.7% 2.0% CR 2.0% 7.0% 7.0% 3.0% 5.0% 15.0% 7s ADE 1.910 2.291 1.921 2.149 1.255 1.155 FDE 4.708 5.525 4.974 5.620 3.141 3.141 OOR 0.3% 0.7% 0.6% 0.3% 1.4% 1.4% HBR 1.4% 0.2% 0.1% 1.2% 1.3% 1.9% CR 4.0% 10.0% 10.0% 3.0% 18.0% 18.0% 8s ADE 2.149 2.667 2.303 2.632 1.726 1.551 FDE 5.274 6.413 5.973 6.699 4.606 4.184 OOR 0.2% 0.8% 0.7% 0.3% 1.8% 1.5% HBR 1.4% 0.2% 0.0% 1.3% 1.4% 1.9% CR 0.0% 11.0% 14.0% 2.0% 9.0% 18.0% 9s ADE 2.571 3.082 2.737 2.925 2.184 1.812 FDE 6.363 7.380 7.087 7.483 5.835 5.087 OOR 0.2% 0.9% 0.8% 0.2% 2.4% 1.9% HBR 1.5% 0.2% 0.1% 1.2% 1.6% 1.8% CR 3.0% 14.0% 15.0% 5.0% 12.0% 24.0% 10s ADE 2.720 3.509 3.126 3.333 2.367 2.267 FDE 6.792 8.505 8.119 8.392 7.253 6.153 OOR 0.2% 1.2% 0.9% 0.2% 2.6% 2.3% HBR 1.4% 0.2% 0.1% 1.4% 1.4% 1.7% CR 3.0% 15.0% 17.0% 4.0% 16.0% 26.0% 
+
+23 D Extended Ablation Analysis 
+
+The main paper ablates five guidance components individually: progressive guidance (PG), conflict-aware weighting (CW), adaptive arrival-time compression (ATC), jerk regularization (JR), and the minimal variant. Here we provide extended analysis. 
+
+Table 9 Ablation results on nuScenes at 3s, 7s, and 10s (10 Hz). PG: progressive guidance, CW: conflict-aware weighting, ATC: adaptive arrival-time compression, JR: jerk regularization. 
+
+Horizon Setting PG CW ATC JR ADE ↓ FDE ↓ ORR ↓ CR ↑ HBR ↑
+
+3s Full (Ours) ✓ ✓ ✓ ✓ 0.338 0.814 0.5% 4.0% 1.7% 3s No Jerk ✓ ✓ ✓ 0.362 0.875 0.6% 4.0% 1.5% 3s No Conflict Aware ✓ ✓ ✓ 0.350 0.845 0.6% 3.0% 1.5% 3s No Progressive ✓ ✓ ✓ 0.355 0.855 0.6% 3.0% 1.5% 3s No Adaptive ✓ ✓ ✓ 0.340 0.820 0.5% 2.0% 1.6% 3s Minimal 0.372 0.895 0.7% 2.0% 1.3% 7s Full (Ours) ✓ ✓ ✓ ✓ 1.155 3.141 1.4% 18.0% 1.9% 7s No Jerk ✓ ✓ ✓ 1.205 3.320 1.5% 17.0% 1.7% 7s No Conflict Aware ✓ ✓ ✓ 1.185 3.260 1.5% 15.0% 1.7% 7s No Progressive ✓ ✓ ✓ 1.195 3.290 1.5% 15.0% 1.7% 7s No Adaptive ✓ ✓ ✓ 1.165 3.180 1.4% 13.0% 1.8% 7s Minimal 1.225 3.420 1.7% 11.0% 1.5% 10s Full (Ours) ✓ ✓ ✓ ✓ 2.320 6.380 2.2% 32.0% 2.1% 10s No Jerk ✓ ✓ ✓ 2.380 6.560 2.3% 30.0% 1.9% 10s No Conflict Aware ✓ ✓ ✓ 2.350 6.500 2.3% 27.0% 1.9% 10s No Progressive ✓ ✓ ✓ 2.360 6.520 2.3% 27.0% 1.9% 10s No Adaptive ✓ ✓ ✓ 2.330 6.420 2.2% 24.0% 2.0% 10s Minimal 2.420 6.700 2.5% 20.0% 1.8% 
+
+Table 9 shows consistent trends across all horizons. The full model achieves the best overall balance between trajectory realism and adversarial effectiveness. Removing ATC leads to the largest drop in collision rate, indicating that adaptive arrival-time compression is critical for generating collisions. Removing CW or PG results in moderate degradation, suggesting that both modules help guide conflict formation and improve optimization stability. JR mainly affects trajectory smoothness, slightly increasing ADE/FDE when removed while having limited impact on collision rates. Overall, the results confirm that the proposed components contribute complementary benefits and work synergistically across different time horizons. 
+
+# E Additional Qualitative Visualizations 
+
+24 Figure 4 Qualitative comparison of a merging collision in Scene 110. Factual (Original): In the recorded scene, the merging vehicle from the side road actively maintains safety by yielding, providing a sufficient spatiotemporal margin for the ego vehicle to pass. CounterScene (Ours): By accurately identifying the yielding vehicle as the causal variable and surgically stripping its safety margin, CounterScene generates a highly realistic collision. The adversarial agent aggressively merges into the main road without yielding, resulting in a physically plausible crash while the rest of the scene evolves naturally. Baselines: Lacking structural causal reasoning, baseline methods completely fail to generate meaningful adversarial pressure. They either passively preserve the original yielding behavior (resulting in zero risk) or introduce unstructured trajectory noise that fails to culminate in a realistic collision. 
+
+25 Figure 5 Qualitative comparison of a rear-end collision in Scene 905. Factual (Original): In the recorded safe scene, the trailing vehicle actively maintains a safe longitudinal distance, preserving a temporal margin that prevents a collision as the ego vehicle navigates the lane. CounterScene (Ours): By causally identifying the trailing vehicle and surgically compressing its longitudinal safety margin, our framework generates a highly realistic rear-end crash. The adversarial agent aggressively accelerates into the ego vehicle, demonstrating how targeted temporal compression naturally evolves into a high-risk scenario without distorting the surrounding traffic dynamics. Baselines: Lacking structured causal reasoning, baseline methods fail to capture the nature of this longitudinal interaction. They either maintain the original safe following distance (generating zero adversarial pressure) or apply unstructured perturbations that cause the vehicle to veer off-course, ultimately failing to induce a physically plausible rear-end collision. 
+
+26 Figure 6 Qualitative comparison of a head-on collision induced by a subtle trajectory shift in Scene 913. Factual (Original): In the recorded scene, the vehicle on the other path strictly maintains its nominal trajectory, preserving a safe spatial margin as the ego vehicle approaches. CounterScene (Ours): By identifying this vehicle as the causal variable, CounterScene applies a minimal, targeted spatial intervention. A slight, physically plausible deviation in the steering angle surgically strips the safety margin, seamlessly redirecting the vehicle into the ego’s path and culminating in a severe head-on crash. Baselines: Lacking structured causal reasoning, baseline methods overlook this subtle vulnerability. They either passively maintain the original safe trajectory (generating zero risk) or apply unstructured noise that results in unrealistic meandering, failing to orchestrate a precise head-on collision. 
+
+27 Figure 7 Qualitative comparison of a high-speed rear-end collision in Scene 915. Factual (Original): In the recorded scene, the trailing vehicle decelerates appropriately, actively maintaining a safe following distance and temporal margin behind the ego vehicle. CounterScene (Ours): By identifying the trailing vehicle as the causal variable, CounterScene specifically suppresses its natural braking behavior. The adversarial agent maintains a high velocity and fails to decelerate in time, effectively compressing the temporal safety margin to zero. This targeted temporal intervention culminates in a severe, physically plausible rear-end crash. Baselines: Lacking structured causal reasoning, baseline methods fail to orchestrate this direct velocity-based conflict. They either passively execute the original safe deceleration (generating zero adversarial pressure) or apply unstructured noise that disrupts the vehicle’s heading without achieving a precise longitudinal impact. 
+
+28
