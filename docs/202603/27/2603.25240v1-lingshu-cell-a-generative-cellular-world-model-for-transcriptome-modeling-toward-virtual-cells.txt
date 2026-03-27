@@ -1,0 +1,1775 @@
+Title: Lingshu-Cell: A generative cellular world model for transcriptome modeling toward virtual cells
+
+URL Source: https://arxiv.org/pdf/2603.25240v1
+
+Published Time: Fri, 27 Mar 2026 01:07:18 GMT
+
+Number of Pages: 28
+
+Markdown Content:
+# Lingshu-Cell: A generative cellular world model for transcriptome modeling toward virtual cells 
+
+Han Zhang ♣, Guo-Hua Yuan ♣, Chaohao Yuan ♣, Tingyang Xu , Tian Bian , Hong Cheng , Wenbing Huang ,
+
+Deli Zhao ♠, Yu Rong ♠
+
+DAMO Academy, Alibaba Group 
+
+> ♣
+
+Equal Contribution , ♠Project Leader 
+
+Modeling cellular states and predicting their responses to perturbations are central challenges in computational biology and the development of virtual cells. Existing foundation models for single-cell transcriptomics provide powerful static representations, but they do not explicitly model the distribution of cellular states for generative simulation. Here, we introduce Lingshu-Cell, a masked discrete diffusion model that learns transcriptomic state distributions and supports conditional simulation under perturbation. By operating directly in a discrete token space that is compatible with the sparse, non-sequential nature of single-cell transcriptomic data, Lingshu-Cell captures complex transcriptome-wide expression dependencies across approximately 18,000 genes without relying on prior gene selection, such as filtering by high variability or ranking by expression level. Across diverse tissues and species, Lingshu-Cell accurately reproduces transcriptomic distributions, marker-gene expression patterns and cell-subtype proportions, demonstrating its ability to capture complex cellular heterogeneity. Moreover, by jointly embedding cell type or donor identity with perturbation, Lingshu-Cell can predict whole-transcriptome expression changes for novel combinations of identity and perturbation. It achieves leading performance on the Virtual Cell Challenge H1 genetic perturbation benchmark and in predicting cytokine-induced responses in human PBMCs. Together, these results establish Lingshu-Cell as a flexible cellular world model for in silico simulation of cell states and perturbation responses, laying the foundation for a new paradigm in biological discovery and perturbation screening.  
+
+> Date:
+
+March 27, 2026  
+
+> Correspondence:
+
+Deli Zhao and Yu Rong, {deli.zdl, royrong.ry}@alibaba-inc.com 
+
+## 1 Introduction 
+
+Over the past decade, the rapid expansion of large-scale single-cell RNA sequencing (scRNA-seq) datasets has enabled increasingly comprehensive characterization of cell states across diverse tissues, species, and physiological conditions. Yet most analyses built on these atlases remain primarily descriptive, focusing on annotation, clustering, and comparative characterization rather than predictive modeling. A central challenge is therefore to develop computational frameworks that can capture the distribution of cellular states, generate realistic cellular heterogeneity, and simulate how cells respond to perturbation. Developing such generative capacities would unlock profound biological applications, empowering researchers to conduct large-scale in silico experiments to dissect disease mechanisms, screen potential therapeutics, and map complex developmental trajectories. To encapsulate this overarching goal, we formally conceptualize such a comprehensive framework as a cellular world model . Analogous to world models in artificial intelligence that learn compact representations of an environment and support conditional simulation, a cellular world model aims to represent the distribution of transcriptomic states and their conditional dynamics. By explicitly modeling this intrinsic state space, such systems can move single-cell biology beyond static cataloging toward in silico environments capable of simulating high-fidelity cellular states and their responses under intervention. Inspired by the success of foundation models in natural language processing, recent advances in large-scale self-supervised learning for transcriptomics, including scGPT (Cui et al., 2024), Geneformer (Theodoris et al., 
+
+> arXiv:2603.25240v1 [q-bio.QM] 26 Mar 2026
+
+2023), scFoundation (Hao et al., 2024), and CellFM (Zeng et al., 2025) have shown that pretrained foundation models can capture transferable structure in gene expression and organize cells in shared representation spaces across diverse datasets. However, these models are primarily optimized for learning static representations rather than generative simulation. Existing generative approaches, such as scDiffusion (Luo et al., 2024) and scVI (Lopez et al., 2018), have shown promise for transcriptome generation and perturbation modeling. However, their performance is limited by continuous data assumptions that misalign with the sparse, discrete, and non-sequential nature of single-cell transcriptome data. In parallel, perturbation-focused methods, such as STATE (Adduri et al., 2025), CellFlow (Klein et al., 2025), scDFM (Yu et al., 2026), and AlphaCell (Chuai et al., 2026), commonly learn direct mappings from control states and perturbation conditions to perturbed outcomes. While effective for specific prediction tasks, these methods do not model the underlying distribution of transcriptomic states or their conditional dynamics. Together, these limitations highlight the need for a cellular world model that explicitly represents transcriptomic state space and supports conditional simulation under perturbation. Here, we present Lingshu-Cell, a masked discrete diffusion model for transcriptome-wide generative modeling of cellular states. Lingshu-Cell is trained with a masking-and-prediction objective over discrete gene-expression tokens. This design enables non-autoregressive, bidirectional refinement of whole-transcriptome profiles, while remaining compatible with the sparse, non-sequential nature of scRNA-seq data. Lingshu-Cell directly models transcriptome-wide expression across approximately 18,000 genes without requiring prior gene selection, such as filtering by high variability or ranking by expression level, and captures complex combinatorial gene-expression patterns underlying cellular heterogeneity. Across large-scale single-cell datasets spanning nine tissues and five species, Lingshu-Cell reproduces the transcriptomic distributions, marker-gene expression patterns and cell-subtype proportions of real scRNA-seq data, enabling realistic simulation of heterogeneous cell populations. Furthermore, Lingshu-Cell embeds cell type or donor identity with perturbation context (such as genetic or cytokine perturbation) into a joint latent space for modeling whole-transcriptome expression changes to perturbations. It achieves leading performance on the Virtual Cell Challenge H1 genetic perturbation benchmark (Roohani et al., 2025) using only approximately 0.6 million training cells, and demonstrates strong results on cytokine perturbation prediction in human PBMCs. Together, these results position Lingshu-Cell as a flexible cellular world model for virtual cell modeling and in silico perturbation analysis across diverse biological contexts, laying the foundation for a new paradigm in biological discovery and perturbation screening. 
+
+## 2 Results 
+
+2.1 Overview of the Lingshu-Cell framework 
+
+To comprehensively model gene expression and characterize cellular states at single-cell resolution, we developed Lingshu-Cell, a novel generative framework for single-cell transcriptomic data based on a masked discrete diffusion model architecture. Specifically, given a real scRNA-seq expression matrix, Lingshu-Cell operates through two coupled processes: in the forward process, gene expression values of each cell are progressively masked from the original observed state ( t = 0 ) to a fully masked state ( t = T ); in the reverse process, the model iteratively predicts the masked gene expression values, ultimately generating biologically realistic scRNA-seq profiles (Fig. 1a and Appendix Fig. C1). This masking-and-prediction paradigm enables Lingshu-Cell to learn complex gene regulatory dependencies while naturally accommodating the orderless structure of gene expression profiles. Accordingly, it eliminates the need for an arbitrary generation order required by AR models and avoids the global continuous-noise corruption used in DDPMs (Ho et al., 2020) (Fig. 1b), which is poorly matched to the discrete and often highly sparse nature of raw scRNA-seq counts. Leveraging this design, we apply Lingshu-Cell to unconditional generation to simulate transcriptomic profiles across diverse human tissues and species, and to conditional generation to predict cellular responses to genetic and cytokine perturbations (Fig. 1c), moving toward a practical virtual cell model. 
+
+2.2 Lingshu-Cell enables accurate simulation of cell states across diverse species and tissues 
+
+To validate the fundamental capacity of Lingshu-Cell to model cellular gene expression, we first trained the model on the PBS control subset of the PARSE 10M PBMC dataset (629,701 cells) and then randomly 2[Mask]  0 … 3                                                                 
+
+> [Mask] [Mask] …3
+> [Mask] [Mask] …[Mask]
+> [Mask] [Mask] …[Mask]
+> 10…3
+> 10…3
+> 14…14
+> 02…5
+> …………
+> 01…0
+> 10…3
+> 14…14
+> 02…5
+> …………
+> 01…0
+> Real scRNA-seq
+> expression matrix Generated scRNA-seq
+> expression matrix Cell
+> Cells
+> Genes
+> Cells
+> Genes
+> t = 0 Forward
+> Reverse
+> t = T
+> Unconditional generation Conditional generation
+> Species level
+> Tissue level Genetic perturbation
+> Cytokine perturbation
+> Noise Noise Noise Noise
+> AR model
+> 1[Mask] 13
+> 101[Mask]
+> 1013
+> 1013
+> Lingshu-Cell
+> DDPM
+> 0.69 0.00 0.69 1.39
+> Sp Cas9
+
+a
+
+cbFigure 1 Overview of the Lingshu-Cell framework. a , Lingshu-Cell employs a masked discrete diffusion model to learn and generate single-cell transcriptomic data. In the forward process, gene expression values are progressively masked (from 
+
+t = 0 to t = T ); in the reverse process, the model iteratively predicts masked values to generate realistic scRNA-seq expression profiles. b, Comparison of generative paradigms. Unlike autoregressive (AR) models that rely on a fixed sequential order and denoising diffusion probabilistic models (DDPMs) that corrupt all positions with continuous noise, Lingshu-Cell randomly masks and predicts gene expression values in an order-independent manner, which is inherently compatible with the orderless structure of gene expression data. c, Application scenarios of Lingshu-Cell, including unconditional generation across diverse human tissues and species, and conditional generation for genetic perturbation and cytokine perturbation response prediction. 
+
+generated 10,000 cells, a scale comparable to that of a typical scRNA-seq experiment. By comparing real and generated data, we found that Lingshu-Cell faithfully recapitulated marker-gene expression patterns across the five major PBMC lineages, T cells, NK cells, B cells, monocytes and dendritic cells (Fig. 2a). The generated cell-type proportions were also highly consistent with those in the real dataset (Fig. 2b). To reduce potential sampling variability due to the relatively small number of generated cells, we further scaled generation to 200,000 cells. As expected, both marker-gene expression patterns (Appendix Fig. C2a) and cell-type proportions (Appendix Fig. C2b) remained highly concordant with the real data. At this larger scale, we performed higher-resolution annotation and further subdivided PBMCs into 17 subtypes (Appendix Fig. C2c). The generated and real data continued to align closely, indicating that Lingshu-Cell can robustly simulate cellular gene expression at both standard and very large scales. 3a 100 
+
+75 
+
+50 
+
+25 
+
+0
+
+> Proportion (%)
+
+T cells 
+
+NK cells 
+
+B cells 
+
+Monocytes 
+
+DCs 
+
+> Real
+> Generated
+
+Annotation  T cells, CD3D  NK cells, KLRF1  B cells, CD79A  Monocytes, CD68  DCs, FLT3 
+
+Real 
+
+Generated 
+
+b
+
+Neural cells 
+
+Mature neurons 
+
+Immature neurons 
+
+Glia cells 
+
+e
+
+d
+
+Real 
+
+Generated 
+
+Neocortex 
+
+Excitatory neurons 
+
+Inhibitory neurons 
+
+Astrocytes 
+
+Oligodendrocyte 
+
+precursor cells 
+
+Microglial cells 
+
+Oligodendrocytes 
+
+Heart 
+
+Endothelial cells 
+
+Perivascular/SMC 
+
+Fibroblasts 
+
+Cardiomyocytes 
+
+T & NK cells 
+
+Myeloid cells 
+
+Mesothelial cells 
+
+Lung 
+
+Epithelial cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+Mast cells 
+
+B & Plasma cells 
+
+Myeloid cells 
+
+T & NK cells 
+
+Epithelial cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+Myeloid cells 
+
+Colon 
+
+Ovary (Mouse) 
+
+Granulosa cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+Oocytes 
+
+B & Plasma cells 
+
+Myeloid cells 
+
+T & NK cells 
+
+Theca cells 
+
+Epithelial cells 
+
+Pre-theca cells 
+
+Lung (Rhesus macaque) 
+
+Endothelial cells 
+
+Perivascular/SMC 
+
+Fibroblasts 
+
+Erythroid cells 
+
+T & NK cells 
+
+Myeloid cells 
+
+Epithelial cells 
+
+Embryo (Zebrafish) 
+
+Epithelial cells 
+
+Neurons 
+
+Glia cells 
+
+Endothelial cells 
+
+Mesenchymal cells 
+
+Muscle cells 
+
+Mesoderm cells 
+
+Myeloid cells 
+
+Brain (Fly) 
+
+Real 
+
+Generated 
+
+0
+
+1
+
+2
+
+3
+
+4 Normalized log1p 
+
+c
+
+Pearson ( ↑)
+
+Lingshu-Cell 
+
+scDiffusion 
+
+scVI 
+
+1.0000 
+
+0.9900 
+
+0.9950 
+
+> 0.9993
+> 0.9990
+> 0.9993
+
+1.0000 
+
+0.9950 
+
+0.9975 
+
+> 0.9963
+> 0.9891
+> 0.9962
+
+Spearman ( ↑)
+
+0.9 
+
+0.7 
+
+0.8 
+
+> 0.9095
+> 0.8966
+> 0.7429
+
+iLISI ( ↑)
+
+1.0 
+
+0
+
+0.02 
+
+> 0.0088
+> 0.0178
+> 0.0343
+
+MMD ( ↓)
+
+0.04 
+
+0
+
+0.1 
+
+> 0.0064
+> 0.1594
+> 0.0102
+
+1-WD ( ↓)
+
+0.2 
+
+> Performance
+
+Model Figure 2 Unconditional generation of cell states across diverse species and tissues by Lingshu-Cell. a , UMAP visualization of real and generated cells (10,000 each, randomly sampled) from the PARSE-PBMC dataset, colored by cell type annotation (left) and normalized expression (log1p) of canonical marker genes for each cell type. b, Comparison of cell type proportions between real and generated data. c, Quantitative benchmark comparing Lingshu-Cell, scDiffusion and scVI across five metrics (Pearson correlation, Spearman correlation, MMD, 1-WD and iLISI) on the PARSE-PBMC dataset. d, Unconditional generation results across human tissues, including neocortex, heart, lung and colon, with UMAP plots showing real (top) and generated (bottom) cells colored by cell type. e, Unconditional generation results across multiple species, including mouse, rhesus macaque, zebrafish and fly. 
+
+4Table 1 Unconditional generation performance of Lingshu-Cell across human tissues and non-human species.                                              
+
+> Tissue Pearson ( ↑)Spearman ( ↑)MMD ( ↓)iLISI ( ↑)1-WD ( ↓)Human tissues (CZ CELLxGENE) Neocortex 0.9995 0.9991 0.0128 0.9053 0.0105 Heart 0.9992 0.9987 0.0196 0.8972 0.0096 Lung 0.9967 0.9970 0.0314 0.8906 0.0159 Colon 0.9966 0.9960 0.0376 0.8815 0.0152 Non-human species - Tissues Mouse - Ovary 0.9996 0.9989 0.0116 0.9011 0.0077 Rhesus macaque - Lung 0.9985 0.9970 0.0218 0.8926 0.0149 Zebrafish - Embryo 0.9983 0.9974 0.0143 0.9035 0.0089 Fly - Brain 0.9984 0.9929 0.0163 0.8876 0.0107
+
+We quantified these observations by benchmarking Lingshu-Cell against scDiffusion (Luo et al., 2024) and scVI (Lopez et al., 2018) on the PBMC dataset using five complementary metrics, including Pearson and Spearman correlations to assess expression concordance, as well as maximum mean discrepancy (MMD), gene-averaged 1-Wasserstein distance (1-WD), and integration local inverse Simpson’s index (iLISI) to evaluate distributional similarity and integration quality (Fig. 2c). All three methods achieved uniformly high gene expression correlations, suggesting that they were all able to capture global gene expression patterns. By contrast, MMD, 1-WD, and iLISI revealed clearer differences in generative quality. In particular, Lingshu-Cell achieved the lowest MMD (0.0088, compared with 0.0178 for scDiffusion and 0.0343 for scVI), indicating the closest overall match between generated and real expression distributions, consistent with the trends observed in cell-level UMAP visualizations and cell-type proportion analyses. These results further suggest that, by achieving the best performance across all five metrics, Lingshu-Cell provides the most faithful modeling of the PBMC scRNA-seq dataset. To further assess generalizability across tissues and minimize dataset-specific effects, we assembled 2,602,318 cells from the CZ CELLxGENE database (Program et al., 2025) spanning eight human tissues (neocortex, thymus, heart, lung, liver, colon, kidney and breast). Quality control and summary statistics revealed substantial heterogeneity across tissues and batches, including large differences in cell numbers, detected genes, total counts and the percentage of mitochondrial reads (Appendix Fig. C3). Despite this variability, Lingshu-Cell consistently produced high-quality samples that accurately captured major cell types as well as tissue-specific cell types in each tissue (Fig. 2d, Appendix Fig. C4 and Table 1). Moreover, we extended Lingshu-Cell to single-cell datasets from four additional species, totaling 247,899 cells across diverse tissues, including mouse ovary, rhesus macaque lung, zebrafish embryo, and fly brain. Although these datasets also exhibited pronounced differences in quality-control metrics and data distributions (Appendix Fig. C5), Lingshu-Cell accurately generated the corresponding cell types with high fidelity (Fig. 2e and Table 1). Together, these results established that Lingshu-Cell generalizes reliably in the unconditional setting across tissues and species, providing a foundation for evaluating its performance under controlled perturbations. 
+
+2.3 Lingshu-Cell accurately predicts single-cell transcriptomic responses to genetic perturba-tions in cell lines 
+
+Given the strong performance of Lingshu-Cell in modeling cellular gene expression distributions in the unconditional setting, we next asked whether the same framework could support conditional generation of genetic perturbation responses (Fig. 3a). Because Lingshu-Cell operates directly in a discrete token space, cell-type identity and perturbation-target information can be introduced as additional tokens prepended to the expression sequence, enabling conditional generation within a unified modeling framework (Fig. 3b). This formulation allows the model to exploit shared perturbation-response patterns across cell types and generalize to previously unseen combinations of cell type and perturbation target. We evaluated conditional generation on the H1 genetic perturbation dataset from the Virtual Cell Challenge (VCC) (Roohani et al., 2025). The training data comprised perturbation profiles from external cell lines for all perturbations whose target genes overlapped the 300 perturbation targets defined in the H1 dataset (n = 323,913 cells), together with H1 cells from the 150 training targets (n = 183,097 cells). Unperturbed control 5Performance 
+
+a
+
+> Genetic perturbation
+> Sp Cas9
+
+b
+
+c   
+
+> Transformer backbone
+> Gene embedding
+> Random grouping
+> Compressed
+> embedding
+> Pre-fill
+> Classifier-free guidance Sequence compression Biological prior injection
+> Unconditional
+> prediction Conditional
+> prediction
+
+auncond acond
+
+afinal = auncond + (w + 1) ⋅ (acond − auncond )                                                        
+
+> Cell line A
+> Cell line B
+> [M] 1…1
+> [M] 1…1
+> …………
+> [M] 1…1
+> Cell line C
+> Union down-
+> regulated DEGs
+> A549 CHMP3 [Mask] 0…3
+> A549 CHMP3 [Mask] [Mask] …3
+> A549 CHMP3 [Mask] [Mask] …[Mask]
+> A549 CHMP3 [Mask] [Mask] …[Mask]
+> A549 CHMP3 10…3
+> t = 0 Forward
+> Reverse
+> t = T
+> 10…3
+> 14…14
+> 02…5
+> …………
+> 01…0
+> Cells
+> Genes
+> A549
+> K562
+> K562
+> …
+> HeLa
+> CHMP3
+> ANXA6
+> IGF1R
+> …
+> CTSV
+> Cell types Genetic
+> perturbations Cell #1
+
+d
+
+e  
+
+> 0.40
+> CFG = 0
+> CFG = 1
+> CFG = 2
+> Performance
+> Ablation
+> 0.20
+> 00
+> 0.20
+> 0.40 1.00
+> 0.50
+> 0
+> 0.50
+> 0.25
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.10
+> 0
+> 0.05
+> 0.40
+> 0.20
+> 0
+> Ablation
+> Performance
+
+f                 
+
+> Ablation
+> No patchify
+> PS = 8
+> PS = 32
+> 0.40
+> 0.20
+> 00
+> 0.20
+> 0.40 1.00
+> 0.50
+> 0
+> 0.50
+> 0.25
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.10
+> 0
+> 0.05
+> 0.40
+> 0.20
+> 0
+> Without prior
+> injection
+> With prior
+> injection
+> 0.40
+> 0.20
+> 00
+> 0.20
+> 0.40 1.00
+> 0.50
+> 0
+> 0.50
+> 0.25
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.40
+> 0.20
+> 0
+> 0.10
+> 0
+> 0.05 0.20
+> 0
+> DES PDS MAE Spearman #DEG Spearman LFC AUPRC Pearson ΔAverage score
+> DES PDS MAE Spearman #DEG Spearman LFC AUPRC Pearson ΔAverage score
+> DES PDS MAE Spearman #DEG Spearman LFC AUPRC Pearson ΔAverage score
+
+Figure 3 Accurate prediction of single-cell transcriptomic responses to genetic perturbations in cell lines by Lingshu-Cell. a ,Schematic of CRISPR-based genetic perturbation and the resulting transcriptomic changes. b, Conditional generation framework for perturbation prediction. Cell type and perturbation target are provided as conditioning inputs, and a masked diffusion model iteratively predicts gene expression values to generate perturbation-specific expression profiles. 
+
+c, Three design components of Lingshu-Cell: classifier-free guidance (CFG), sequence compression, and biological prior injection (see Methods). d, Ablation study of CFG guidance weight. Bar plots show prediction performance across eight metrics (DES, PDS, MAE, Spearman #DEG, Spearman LFC, AUPRC, Pearson-∆, and average score) on the H1 test set ( n = 100 perturbation targets). e, Ablation study of sequence compression, comparing uncompressed input with patch sizes of 8 and 32. f, Ablation study of biological prior injection, comparing prediction performance with and without prior injection. In d–f , metrics highlighted in red denote improved performance relative to the corresponding baseline in each ablation setting. 
+
+6Table 2 Genetic perturbation prediction on the VCC leaderboard (Roohani et al., 2025). Teams are ordered by final ranking. Avg Rank: average rank across the top 25 teams. Best per column in bold. See Table B1 for the full top-25 ranking.                                                         
+
+> Team Avg Rank ↓DES ↑PDS ↑MAE ↓Sp. #DEG ↑Sp. LFC ↑AUPRC ↑Pearson-∆↑
+> Lingshu-Cell 8.7 0.216 0.748 0.052 0.394 0.331 0.272 0.306
+> cleopatra 9.1 0.228 0.747 0.086 0.473 0.396 0.266 0.203 xBio 10.7 0.305 0.811 0.770 0.564 0.087 0.252 0.217 Cellock Holmes 10.9 0.356 0.679 0.239 00.238 0.576 0.125 Shippers 11.0 0.354 0.699 0.231 00.227 0.576 0.123 Mean Predictors 11.4 0.305 0.741 6.723 0.294 0.213 0.582 0.217
+
+cells were also included in the training set to enable classifier-free guidance (Ho and Salimans, 2021) (see Methods Section 4.4 and Appendix Section C.2 for details). Model performance was evaluated on H1 cells from 50 validation targets (n = 60,751 cells) and 100 test targets (n = 132,670 cells) that were held out during training. To improve prediction accuracy, we incorporated three strategies targeting complementary aspects of conditional generation. First, we applied classifier-free guidance (CFG) to steer sampling toward transcriptomic states more consistent with the perturbed condition, thereby improving the fidelity of generated perturbation responses (Fig. 3c, left). Second, we adopted sequence compression to transform the high-dimensional gene expression sequence into a shorter sequence of embeddings with higher information density, improving modeling efficiency while facilitating the capture of global expression patterns (Fig. 3c, middle). Third, we introduced biological prior projection, in which perturbation-responsive genes were identified from external cell lines by first determining affected genes within each cell line and then taking their union to form a perturbation-specific prior gene set. This prior set was preferentially used to initialize masked positions at the start of generation, thereby injecting biologically informed prior knowledge into the sampling process (Fig. 3c, right). We then performed ablation experiments to quantify the contribution of each component individually. As expected, all three strategies yielded measurable performance gains (Fig. 3d). In particular, removing CFG led to poorer results, especially on perturbation direction similarity and correlation based metrics, consistent with its role in biasing generation toward the perturbed expression manifold. Among the tested guidance strengths, 
+
+CFG = 2 achieved the best overall performance (Fig. 3e). Sequence compression also had a substantial effect: a patch size of 32 outperformed smaller patch sizes in both average score and Spearman #DEG correlation, reaching 0.405 compared with 0.292 for a patch size of 8 (Fig. 3f), indicating that moderate compression improves representation of high dimensional gene expression signals. Incorporating biological priors further improved perturbation direction similarity and Pearson-∆ correlation (Fig. 3g), supporting the value of incorporating perturbation priors aggregated across external cell lines into the generation process. After integrating all three strategies, Lingshu-Cell achieved its best overall performance on the VCC H1 test set. We further compared the full model with the top performing published methods from the Virtual Cell Challenge (see Methods). Across seven evaluation metrics, Lingshu-Cell obtained the best average rank (Table 2), indicating the most consistent overall performance among all compared methods. It achieved the lowest MAE (0.052) and the highest Pearson-∆ correlation (0.306). Although other methods ranked first on individual metrics, Lingshu-Cell provided the best overall balance across all seven evaluation criteria. Together, these results demonstrate that Lingshu-Cell, as a general-purpose generative model, can effectively predict transcriptomic responses to genetic perturbations and outperform task-specific predictive models on a standard benchmark. 
+
+2.4 Lingshu-Cell accurately predicts single-cell transcriptomic responses to cytokine perturba-tions in PBMCs 
+
+Having demonstrated strong performance on genetic perturbation prediction in the cell-line system, we next investigated whether Lingshu-Cell could extrapolate to a distinct perturbation modality and a higher level of biological complexity. We therefore evaluated Lingshu-Cell on cytokine-driven transcriptomic perturbations in the PARSE 10M PBMC dataset, which profiles peripheral blood mononuclear cells (PBMCs) from 12 donors, each exposed to 90 distinct cytokine conditions alongside an unperturbed (PBS) control (Fig. 4a). As in the genetic perturbation setting, conditional generation was implemented by prepending condition 7Cytokine perturbation                                                   
+
+> ab
+> P1 IL-9 [Mask] 0…3
+> P1 IL-9 [Mask] [Mask] …3
+> P1 IL-9 [Mask] [Mask] …[Mask]
+> P1 IL-9 [Mask] [Mask] …[Mask]
+> P1 IL-9 10…3
+> t = 0 Forward
+> Reverse
+> t = T
+> 10…3
+> 14…14
+> 02…5
+> …………
+> 01…0
+> Cells
+> Genes
+> P1
+> P2
+> P3
+> …
+> P12
+> IL-9
+> IL-33
+> IL-20
+> …
+> IL-7
+> Donors Cytokine
+> perturbations Cell #1
+> DES
+> 0.4
+> c
+> Lingshu-Cell
+> PerturbMean
+> STATE
+> scGPT
+> scVI
+> PDS MAE Spearman #DEG Spearman LFC AUPRC Pearson ΔAverage score
+> Performance
+> Model
+> 0.3
+> 0.2
+> 0.1
+> 00
+> 0.2
+> 0.4
+> 1.00
+> 0.75
+> 0.50
+> 0.25
+> 0
+> 0.50
+> 0.25
+> 0
+> -0.25
+> 0.6
+> 0.4
+> 0.2
+> 0
+> 0.6
+> 0.4
+> 0.2
+> 0
+> 0.08
+> 0.06
+> 0.02
+> 0
+> 0.04
+> 0.4
+> 0.2
+> 0Figure 4 Accurate prediction of single-cell transcriptomic responses to cytokine perturbations in PBMCs by Lingshu-Cell. a
+
+, Schematic of cytokine-induced transcriptomic perturbation. b, Conditional generation framework for cytokine perturbation prediction. Donor identity and cytokine condition are provided as conditioning inputs, and a masked diffusion process iteratively predicts gene expression values to generate perturbation-specific expression profiles. c,Prediction performance of Lingshu-Cell, PertMean, STATE, scGPT, and scVI on the PARSE 10M PBMC dataset, evaluated across eight metrics (as defined in Fig. 3d). Bar plots show performance on a test set comprising 4 of 12 donors, with 70% of cytokine conditions (63 of 90) held out for each donor. Bars indicate mean performance across donors; error bars, interquartile range (Q1–Q3); points, individual donor values. Metrics for which Lingshu-Cell achieves the best performance among all methods are highlighted in red. 
+
+tokens to the expression sequence; here, donor identity and cytokine condition were introduced as additional tokens, enabling the model to generate transcriptomic responses conditioned jointly on donor context and stimulation type (Fig. 4b). Unlike the previous benchmark based on genetic perturbations in cell lines, this task requires modeling signaling-induced responses in donor-derived immune cells across individuals. To assess generalization, we randomly selected 4 of the 12 donors and, for each donor, held out 70% of cytokine conditions (63 of 90) as the test set. Lingshu-Cell achieved the highest average score across all evaluated methods (Fig. 4c). At the level of overall expression profiles, it ranked first in both PDS and Pearson-∆ correlation, indicating that the predicted transcriptomes preserved the distinct identity of each cytokine condition and accurately captured the direction and magnitude of cytokine-induced expression changes. At the differential expression level, Lingshu-Cell also achieved the highest Spearman #DEG correlation across perturbations, indicating that it correctly recovered the relative strength of transcriptional responses induced by different cytokines. Together with strong performance on DES, Spearman LFC, and AUPRC, these results show that Lingshu-Cell not only identified the genes responsive to each cytokine but also captured the overall scale and structure of their transcriptional effects. These findings demonstrate that Lingshu-Cell generalizes from genetic perturbations in cell lines to cytokine stimulations in donor-derived PBMCs, supporting its applicability across perturbation modalities and biological contexts. Although genetic perturbations and cytokine stimulations act through fundamentally different mechanisms, Lingshu-Cell achieved leading performance in both settings (Fig. 3; Fig. 4). This consistency highlights the potential of the conditional generation framework as a unified approach for predicting cellular responses to diverse perturbations across experimental contexts. 
+
+## 3 Discussion 
+
+Lingshu-Cell demonstrates that MDDM can serve as a unified generative framework for single-cell tran-scriptomics, establishing a computational foundation for a cellular world model. By directly modeling 8transcriptome-wide expression across approximately 18,000 genes without prior gene selection based on high variability or expression level, Lingshu-Cell shifts single-cell foundation models from static representation learning to generative simulation. Within a single architecture, it achieves high-fidelity cell generation across diverse tissues and species, capturing true cellular heterogeneity, while successfully predicting responses to both genetic (VCC) and cytokine perturbations (PARSE). Together, these results mark a critical step toward interactive virtual cells. This success stems from aligning the computational paradigm with the physical properties of biological data. By operating in a discrete expression space, masked discrete diffusion model avoids the artificial gene-ordering bias of autoregressive models (Austin et al., 2021; Nie et al., 2025), the information bottleneck of variational autoencoders (Alemi et al., 2017), and the distributional mismatch between continuous noise processes and sparse, discrete count data (Risso et al., 2018; Vignac et al., 2023), aligning naturally with the permutation invariance and zero-inflated sparsity intrinsic to transcriptomic measurements. Despite these strong empirical results, several limitations, however, merit discussion. First, current evaluations rely on population-level distributional metrics (e.g., MMD, iLISI) and pseudobulk correlations, which cannot fully assess single-cell biological plausibility or the preservation of extremely rare states. More fundamentally, high-fidelity generation does not imply biological causality: faithful recapitulation of expression distributions does not necessarily reflect the causal regulatory mechanisms that produce them. Therefore, Lingshu-Cell should currently be regarded as a powerful tool for probabilistic hypothesis generation. Its predictions still require rigorous wet-lab experimental validation. Finally, the current model operates exclusively on transcrip-tomic data; a more complete virtual cell would additionally integrate epigenomic, proteomic, metabolomic, and spatial modalities (Hao et al., 2021; Argelaguet et al., 2020; Dries et al., 2021). Several promising directions extend naturally from the present study. An important next step is to extend the current framework beyond single-gene perturbations to more complex interventions, including drug-induced, multi-target, and combinatorial interventions, where dose dependence and temporal dynamics are likely to play critical roles (Lotfollahi et al., 2019; Hetzel et al., 2022; Bergen et al., 2020). More broadly, we envision jointly modeling chromatin accessibility, protein abundances, and spatially resolved transcriptomics within the same discrete diffusion framework, and incorporating temporal structure to simulate dynamic cellular trajectories such as differentiation and disease progression. Ultimately, one of the most compelling applications may be closed-loop experimentation, in which model predictions guide targeted perturbations and newly generated data iteratively refine the model itself. Such a framework would move beyond static data fitting toward an adaptive platform for biological discovery. In this sense, Lingshu-Cell establishes MDDM as a promising paradigm for modeling cellular behavior, paving the way for a truly predictive cellular world model. 
+
+## 4 Methods 
+
+We first introduce the general masked diffusion formulation underlying Lingshu-Cell, and then describe how single-cell expression profiles are represented as discrete token sequences for model training and generation. We next present the main methodological components of the framework, including embedding-space sequence compression, conditional generation and inference-time biological prior injection. 
+
+4.1 Preliminaries 
+
+Here we introduce the preliminary concepts of masked discrete diffusion models (MDDMs) that form the foundation of Lingshu-Cell. Let x0 = [ x10, x 20, . . . , x L 
+
+> 0
+
+] be a fully observed discrete sequence of length L, where each token xi 
+
+> 0
+
+belongs to a predefined vocabulary V. To model the joint distribution pdata (x0) without the left-to-right inductive bias of autoregressive models, MDDMs introduce a forward masking process and a learnable reverse generation process.  
+
+> Forward Process.
+
+The forward process gradually and independently masks tokens in x0 over a continuous time variable t ∈ [0 , 1] . At t = 0 , the sequence is completely clean; at t = 1 , the sequence is fully masked, representing a sequence of special mask tokens M / ∈ V . For any intermediate timestep t, each token xit in the 9partially masked sequence xt is independently replaced by M with probability t, or remains the original token with probability 1 − t. Formally, the transition probability is defined as: 
+
+qt|0(xit|xi
+
+> 0
+
+) = 
+
+(
+
+1 − t, xit = xi
+
+> 0
+
+,t, xit = M. (1)  
+
+> Reverse Process and Training Objective.
+
+The reverse process aims to recover the true data distribution by iteratively predicting the masked tokens as t transitions from 1 back to 0. The core of this process is a parametric mask predictor neural network, pθ (·| xt), which takes the partially masked sequence xt as input and predicts the original tokens for all masked positions simultaneously. The model is optimized using a cross-entropy loss computed exclusively on the masked tokens: 
+
+L(θ) ≜ −Et,x 0,x t
+
+"
+
+1
+
+t
+
+> L
+
+X
+
+> i=1
+
+I[xit = M ] log pθ (xi
+
+> 0
+
+|xt)
+
+#
+
+, (2) where t ∼ U (0 , 1) , and I[·] is the indicator function. This objective provides a principled variational upper bound on the negative log-likelihood of the true data distribution.  
+
+> Inference and Sampling.
+
+During inference, the generation begins with a fully masked sequence x1 of length L.The reverse process is discretized into N steps. At an intermediate step transitioning from time t ∈ (0 , 1] to 
+
+s ∈ [0 , t ), the mask predictor pθ (·| xt) estimates all masked tokens. Subsequently, a proportion (specifically st
+
+in expectation) of the predicted tokens are remasked to construct xs, ensuring the transition aligns with the forward process dynamics. 
+
+4.2 Representing Single-Cell Data as Discrete Sequences 
+
+MDDMs operate on discrete token sequences (Section 4.1). Here we describe how each cell’s gene expression profile, measured as UMI counts, is mapped to such a discrete sequence, defining the modeling space for both training and generation.  
+
+> Single-cell data preparation.
+
+Let X ∈ ZN ×G 
+
+> ≥0
+
+denote the cell-by-gene UMI count matrix, where N is the number of cells and G is the number of genes. The i-th cell is represented by a count vector x(i) = ( x(i)1 , . . . , x (i) 
+
+> G
+
+) ∈ ZG
+
+> ≥0
+
+over a fixed gene list. The UMI count matrix is preprocessed using standard single-cell analysis pipelines; details are deferred to the Appendix.  
+
+> Quantization.
+
+Although UMI counts are discrete, they span a broad dynamic range with a heavy tail, making exact-count tokenization inefficient. We therefore quantized each gene’s count into a finite set of expression levels, reducing the size of the discrete state space while preserving resolution at low counts. We define a shared quantization function with B non-overflow bins and a unified overflow token OVF: 
+
+q : Z≥0 → { 0, 1, . . . , B − 1} ∪ { OVF }, (3) and map each entry to a bin index z(i) 
+
+> g
+
+= q(x(i) 
+
+> g
+
+). The modeled range is capped at C. Specifically, we define: 
+
+q(x) = 
+
+
+
+x, 0 ≤ x < 100 ,
+
+100 + 90 · max(0 , k (x) − 2) + r(x), 100 ≤ x ≤ C, 
+
+OVF , x > C, 
+
+(4) where 
+
+k(x) = ⌊log 10 (max( x, 1)) ⌋ , (5) and, for x ≥ 100 ,
+
+r(x) = 
+
+ x − 10 k(x)
+
+∆( x)
+
+
+
+, (6) 10 with 
+
+∆( x) = 10 k(x)−1. (7) Here, k(x) denotes the decade index of x, r(x) denotes the within-decade offset, and ∆( x) is the adaptive step size at that scale. This construction yields 100 bins for [0 , 99] and 90 bins per decade for [10 k, 10 k+1 )
+
+with k ≥ 2. Thus, the quantization preserves approximately the first two significant digits of x.Unless specified otherwise, we use C = 9999 throughout; in this case, the non-overflow vocabulary size is 
+
+B = 100 + 90 + 90 = 280 , and |V| = 281 after including the overflow token (excluding special tokens such as 
+
+[MASK] that are part of the MDDM training setup).  
+
+> Discrete sequence representation.
+
+Finally, each cell is represented as a discrete sequence z(i) ∈ ZG 
+
+> ≥0
+
+obtained by applying the quantization function element-wise, 
+
+z(i) =
+
+
+
+q
+
+
+
+x(i)1
+
+
+
+, q 
+
+
+
+x(i)2
+
+
+
+, . . . , q 
+
+
+
+x(i)
+
+> G
+
+ 
+
+, (8) which serves as the input/output space of our MDDM for modeling single-cell data as discrete sequences. 
+
+4.3 Embedding-Space Sequence Compression 
+
+Single-cell expression profiles are represented over a large fixed gene set, resulting in long input sequences that make full-sequence Transformer modeling computationally expensive. To reduce this cost without changing the token-level modeling objective, we introduced a sequence compression module operating in embedding space. This module shortens the internal sequence processed by the Transformer while preserving the original input and output interfaces of the model. Let E ∈ RG×D denote the token embedding sequence for a cell, where G is the number of genes and D is the embedding dimension. At model initialization, we sample and fix a random permutation π over gene positions, apply it to E, and partition the reordered sequence into consecutive groups of size S, padding at the end if necessary. Writing Gc = ⌈G/S ⌉ for the compressed sequence length, each grouped embedding block Eπ (i) ∈ RS×D is flattened and projected to a single D-dimensional vector through a shared linear map 
+
+Wdown ∈ RD×(SD ):
+
+Hi = Wdown vec 
+
+
+
+Eπ
+
+> (i)
+
+
+
+, i = 1 , . . . , G c, (9) with Eπ = π (E). The resulting compressed sequence H = [ H1, . . . , HGc ]⊤ ∈ RGc×D is then processed by the Transformer backbone of MDDMs. After the Transformer blocks, we expand the embedding sequence back to full-length before the output projection layer using a shared linear up-projection Wup ∈ R(SD )×D . Each compressed representation is mapped back to an S × D block, concatenated across groups, and reordered with π−1 to restore the original gene order: 
+
+bEπ 
+
+> (i)
+
+= unvec( Wup Hi) , i = 1 , . . . , G c, (10) 
+
+bE = π−1
+
+concat 
+
+bEπ
+
+> (1)
+
+, . . . , bEπ
+
+> (Gc)
+
+ 
+
+. (11) Thus, compression is applied only to the model’s internal computation, while the token-level prediction space remains unchanged. In practice, this substantially reduces computation during training and inference. Moreover, the random grouping with linear projection performs a simple linear mixing of multi-gene signals, thereby reducing the influence of single-gene noise and improving robustness under perturbation. 11 4.4 Conditional Generation  
+
+> Condition encoding.
+
+For perturbation response prediction, Lingshu-Cell generates single-cell expression token sequences conditioned on a context c. In our setting, c consists of two components: a source context specifying the cellular background (for example, a cell line or donor), and a perturbation identity specifying the applied intervention (for example, a target gene or cytokine). Each condition value is represented by a dedicated discrete token appended to the expression-token vocabulary, V. The resulting condition tokens are therefore encoded in the same discrete token space as the expression sequence. The two condition tokens are prepended to the expression token sequence to form the full model input. These condition tokens are exempt from masking throughout the forward corruption process, so that the conditioning signal remains available at every diffusion step. Under this formulation, the mask predictor is extended from the unconditional setting, pθ (x0|xt), to a conditional distribution, pθ (x0|xt, c ). 
+
+> Training process.
+
+Beyond the unconditional model that follows equation 2 to learn p(x), we trained the conditional variant that augments the input with unmasked condition tokens and models p(x | c) using the same objective. For the conditional model, both perturbed cells and control cells are included during training. Cells without a perturbation-specific target condition are assigned the biologically neutral control label cnt (for example, the 
+
+non-targeting condition), rather than being treated as missing-condition inputs. This allows the conditional model to learn both perturbation-specific and control-state generation within a single parameterization.  
+
+> Sampling with classifier-free guidance (CFG).
+
+At inference time, we use CFG to strengthen perturbation-specific generation. At each denoising step, the conditional model is evaluated under both the target condition c and the control condition cnt as described above. Let aθ (v | xt, c ) denote the logits for vocabulary token v at a masked position under condition c, and 
+
+˜aθ (v | xt, c ) denote the corresponding guided logits under CFG. The guided logits are computed as 
+
+˜aθ (v | xt, c ) = aθ (v | xt, c nt ) + ( w + 1)  aθ (v | xt, c ) − aθ (v | xt, c nt ), (12) where w ≥ 0 is the guidance scale. Setting w = 0 recovers standard conditional generation, whereas larger values of w place greater emphasis on perturbation-specific signal relative to the control condition. The guided logits are converted to sampling probabilities by a softmax at each denoising step. 
+
+4.5 Inference-Time Biological Prior Injection 
+
+Perturbation response prediction is challenging because perturbation-induced transcriptional changes are often subtle relative to background variability. We therefore introduced a lightweight biological prior at inference time using perturbation profiles from other human cell lines for the target perturbations in the test set. For each perturbation, we constructed a set of downregulated genes G↓ consisting of the perturbed target gene together with genes identified as downregulated in individual reference cell lines; the final prior set was obtained by taking the union across available reference cell lines. Details of the data sources and selection criteria are provided in the Appendix. Sampling was initialized by assigning a low initial expression value μ = 1 to positions corresponding to g ∈ G↓
+
+and leaving all other positions masked: 
+
+˜xg =
+
+(
+
+μ, g ∈ G↓,
+
+MASK , g / ∈ G↓. (13) We then mapped ˜x to the discrete token space via q(·) to obtain the initial state for reverse diffusion. Positions specified by the biological prior were kept fixed during sampling, while the remaining positions were generated by the model. This strategy provides a directional downregulation signal from other cell lines without assuming direct quantitative transferability across cell systems. 12 References 
+
+Abhinav K Adduri, Dhruv Gautam, Beatrice Bevilacqua, Alishba Imran, Rohan Shah, Mohsen Naghipourfar, Noam Teyssier, Rajesh Ilango, Sanjay Nagaraj, Mingze Dong, et al. Predicting cellular responses to perturbation across diverse contexts with state. BioRxiv , pages 2025–06, 2025. Alexander A. Alemi, Ian Fischer, Joshua V. Dillon, and Kevin Murphy. Deep variational information bottleneck. In 
+
+International Conference on Learning Representations , 2017. https://openreview.net/forum?id=HyxQzBceg .Ricard Argelaguet, Damien Arnol, Danila Bredikhin, Yonatan Deloro, Britta Velten, John C Marioni, and Oliver Stegle. MOFA+: a statistical framework for comprehensive integration of multi-modal single-cell data. Genome biology , 21(1):111, 2020. Jacob Austin, Daniel D Johnson, Jonathan Ho, Daniel Tarlow, and Rianne Van Den Berg. Structured denoising diffusion models in discrete state-spaces. Advances in neural information processing systems , 34:17981–17993, 2021. Volker Bergen, Marius Lange, Stefan Peidli, F Alexander Wolf, and Fabian J Theis. Generalizing rna velocity to transient cell states through dynamical modeling. Nature biotechnology , 38(12):1408–1414, 2020. Parse Biosciences. Parse 10m pbmc 12donor 90cytokines dataset, 2024. https://www.parsebiosciences.com/ datasets/10-million-human-pbmcs-in-a-single-experiment .Guohui Chuai, Xiaohan Chen, Xingbo Yang, Cheng Zhang, Kairu Qu, Yiheng Wang, Wannian Li, Jingya Yang, Duanmiao Si, Feiyang Xing, et al. Towards building a world model to simulate perturbation-induced cellular dynamics by alphacell. bioRxiv , pages 2026–03, 2026. Haotian Cui, Chloe Wang, Hassaan Maan, Kuan Pang, Fengning Luo, Nan Duan, and Bo Wang. scGPT: toward building a foundation model for single-cell multi-omics using generative ai. Nature methods , 21(8):1470–1480, 2024. Ruben Dries, Qian Zhu, Rui Dong, Chee-Huat Linus Eng, Huipeng Li, Kan Liu, Yuntian Fu, Tianxiao Zhao, Arpan Sarkar, Feng Bao, et al. Giotto: a toolbox for integrative analysis and visualization of spatial expression data. 
+
+Genome biology , 22(1):78, 2021. Minsheng Hao, Jing Gong, Xin Zeng, Chiming Liu, Yucheng Guo, Xingyi Cheng, Taifeng Wang, Jianzhu Ma, Xuegong Zhang, and Le Song. Large-scale foundation model on single-cell transcriptomics. Nature methods , 21(8):1481–1491, 2024. Yuhan Hao, Stephanie Hao, Erica Andersen-Nissen, William M Mauck, Shiwei Zheng, Andrew Butler, Maddie J Lee, Aaron J Wilk, Charlotte Darby, Michael Zager, et al. Integrated analysis of multimodal single-cell data. Cell , 184 (13):3573–3587, 2021. Leon Hetzel, Simon Boehm, Niki Kilbertus, Stephan Günnemann, Fabian Theis, et al. Predicting cellular responses to novel drug perturbations at a single-cell resolution. Advances in Neural Information Processing Systems , 35: 26711–26722, 2022. Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. In NeurIPS 2021 Workshop on Deep Generative Models and Downstream Applications , 2021. https://openreview.net/forum?id=qw8AKxfYbI .Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems , 33:6840–6851, 2020. Ann C Huang, Tsung-Han S Hsieh, Jiang Zhu, Jackson Michuda, Ashton Teng, Soohong Kim, Elizabeth M Rumsey, Sharon K Lam, Ikenna Anigbogu, Philip Wright, et al. X-atlas/Orion: Genome-wide perturb-seq datasets via a scalable fix-cryopreserve platform for training dose-dependent biological foundation models. bioRxiv , pages 2025–06, 2025. Longda Jiang, Carol Dalgarno, Efthymia Papalexi, Isabella Mascio, Hans-Hermann Wessels, Huiyoung Yun, Nika Iremadze, Gila Lithwick-Yanai, Doron Lipson, and Rahul Satija. Systematic reconstruction of molecular pathway signatures using scalable single-cell perturbation screens. Nature cell biology , 27(3):505–517, 2025. Tero Karras, Miika Aittala, Jaakko Lehtinen, Janne Hällström, Timo Aila, and Samuli Laine. Analyzing and improving the training dynamics of diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 24174–24184, 2024. Rhoda J Kinsella, Andreas Kähäri, Syed Haider, Jorge Zamora, Glenn Proctor, Giulietta Spudich, Jeff Almeida-King, Daniel Staines, Paul Derwent, Arnaud Kerhornou, et al. Ensembl BioMarts: a hub for data retrieval across taxonomic space. Database , 2011:bar030, 2011. 
+
+13 Dominik Klein, Jonas Simon Fleck, Daniil Bobrovskiy, Lea Zimmermann, Sören Becker, Alessandro Palma, Leander Dony, Alejandro Tejada-Lapuerta, Guillaume Huguet, Hsiu-Chuan Lin, et al. CellFlow enables generative single-cell phenotype modeling with flow matching. bioRxiv , pages 2025–04, 2025. Ilya Korsunsky, Nghia Millard, Jean Fan, Kamil Slowikowski, Fan Zhang, Kevin Wei, Yuriy Baglaenko, Michael Brenner, Po-ru Loh, and Soumya Raychaudhuri. Fast, sensitive and accurate integration of single-cell data with harmony. Nature methods , 16(12):1289–1296, 2019. Romain Lopez, Jeffrey Regier, Michael B Cole, Michael I Jordan, and Nir Yosef. Deep generative modeling for single-cell transcriptomics. Nature methods , 15(12):1053–1058, 2018. Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. In International Conference on Learning Representations , 2019. https://openreview.net/forum?id=Bkg6RiCqY7 .Mohammad Lotfollahi, F Alexander Wolf, and Fabian J Theis. scGen predicts single-cell perturbation responses. 
+
+Nature methods , 16(8):715–721, 2019. Erpai Luo, Minsheng Hao, Lei Wei, and Xuegong Zhang. scDiffusion: conditional generation of high-quality single-cell data using diffusion model. Bioinformatics , 40(9):btae518, 2024. Ajay Nadig, Joseph M Replogle, Angela N Pogson, Mukundh Murthy, Steven A McCarroll, Jonathan S Weissman, Elise B Robinson, and Luke J O’Connor. Transcriptome-wide analysis of differential expression in perturbation atlases. Nature Genetics , 57(5):1228–1237, 2025. Shen Nie, Fengqi Zhu, Zebin You, Xiaolu Zhang, Jingyang Ou, Jun Hu, JUN ZHOU, Yankai Lin, Ji-Rong Wen, and Chongxuan Li. Large language diffusion models. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. https://openreview.net/forum?id=KnqiC0znVF .CZI Cell Science Program, Shibla Abdulla, Brian Aevermann, Pedro Assis, Seve Badajoz, Sidney M Bell, Emanuele Bezzi, Batuhan Cakir, Jim Chaffer, Signe Chambers, et al. CZ CELLxGENE Discover: a single-cell data platform for scalable exploration, analysis and modeling of aggregated data. Nucleic acids research , 53(D1):D886–D900, 2025. Joseph M Replogle, Reuben A Saunders, Angela N Pogson, Jeffrey A Hussmann, Alexander Lenail, Alina Guna, Lauren Mascibroda, Eric J Wagner, Karen Adelman, Gila Lithwick-Yanai, et al. Mapping information-rich genotype-phenotype landscapes with genome-scale perturb-seq. Cell , 185(14):2559–2575, 2022. Davide Risso, Fanny Perraudeau, Svetlana Gribkova, Sandrine Dudoit, and Jean-Philippe Vert. A general and flexible method for signal extraction from single-cell rna-seq data. Nature communications , 9(1):284, 2018. Yusuf H Roohani, Tony J Hua, Po-Yuan Tung, Lexi R Bounds, Feiqiao B Yu, Alexander Dobin, Noam Teyssier, Abhinav Adduri, Alden Woodrow, Brian S Plosky, et al. Virtual Cell Challenge: Toward a turing test for the virtual cell. Cell , 188(13):3370–3374, 2025. Christina V Theodoris, Ling Xiao, Anant Chopra, Mark D Chaffin, Zeina R Al Sayed, Matthew C Hill, Helene Mantineo, Elizabeth M Brydon, Zexian Zeng, X Shirley Liu, et al. Transfer learning enables predictions in network biology. Nature , 618(7965):616–624, 2023. Clement Vignac, Igor Krawczuk, Antoine Siraudin, Bohan Wang, Volkan Cevher, and Pascal Frossard. DiGress: Discrete denoising diffusion for graph generation. In The Eleventh International Conference on Learning Representations ,2023. https://openreview.net/forum?id=UaAD-Nu86WX .Samuel L Wolock, Romain Lopez, and Allon M Klein. Scrublet: computational identification of cell doublets in single-cell transcriptomic data. Cell systems , 8(4):281–291, 2019. Yan Wu, Esther Wershof, Sebastian M Schmon, Marcel Nassar, Błażej Osiński, Ridvan Eksi, Zichao Yan, Rory Stark, Kun Zhang, and Thore Graepel. Perturbench: Benchmarking machine learning models for cellular perturbation analysis. arXiv preprint arXiv:2408.10609 , 2024. Nicholas D Youngblut, Christopher Carpenter, Jaanak Prashar, Chiara Ricci-Tam, Rajesh Ilango, Noam Teyssier, Silvana Konermann, Patrick D Hsu, Alexander Dobin, David P Burke, et al. scBaseCount: an ai agent-curated, uniformly processed, and continually expanding single cell data repository. bioRxiv , pages 2025–02, 2025. Chenglei Yu, Chuanrui Wang, Bangyan Liao, and Tailin Wu. scDFM: Distributional flow matching model for robust single-cell perturbation prediction. In The Fourteenth International Conference on Learning Representations , 2026. 
+
+https://openreview.net/forum?id=QSGanMEcUV .
+
+14 Yuansong Zeng, Jiancong Xie, Ningyuan Shangguan, Zhuoyi Wei, Wenbing Li, Yun Su, Shuangyu Yang, Chengyang Zhang, Jinbo Zhang, Nan Fang, et al. CellFM: a large-scale foundation model pre-trained on transcriptomics of 100 million human cells. Nature Communications , 16(1):4679, 2025. 
+
+15 Appendix 
+
+## A Datasets 
+
+A.1 Data processing   
+
+> A.1.1 Data processing for unconditional generation Human datasets.
+
+Human single-cell RNA-seq data used for unconditional generation were compiled from two sources: the PARSE 10M PBMC dataset (Biosciences, 2024) and the CZ CELLxGENE resource (Program et al., 2025). From PARSE, only cells under the PBS control condition were retained. From CZ CELLxGENE, we included cells from eight human tissues: neocortex, lung, breast, thymus, liver, colon, kidney, and heart, restricted to samples annotated as normal, profiled with 10x Genomics 3 ′ v3, and derived from whole cells. For the human CZ CELLxGENE data, quality control was performed at both the cell and gene levels. Cells were retained if they contained at least 200 detected genes, at least 500 total counts, and a mitochondrial transcript fraction ≤ 20% . Genes detected in fewer than 3 cells were excluded. Putative doublets were identified using Scrublet (Wolock et al., 2019) with an expected doublet rate of 0.06, 30 principal components, and a simulated doublet ratio of 2.0, and were removed from downstream analyses. To harmonize features across all human datasets, gene expression matrices were aligned to a reference set of 18,080 genes used in the Virtual Cell Challenge H1 genetic perturbation dataset (Roohani et al., 2025). For the PARSE dataset, cell level quality control metrics, including total counts, number of detected genes, and mitochondrial transcript fraction, were recalculated after gene alignment. Because PARSE is large in scale and of high overall quality, no additional filtering was applied beyond retaining PBS control cells and aligning genes to the reference set.  
+
+> Non-human datasets.
+
+Non-human single-cell RNA-seq datasets were collected from two sources. Mouse and rhesus macaque datasets were obtained from CZ CELLxGENE (Program et al., 2025), whereas zebrafish and fly datasets were obtained from scBaseCount (Youngblut et al., 2025). For mouse and rhesus macaque, samples were filtered using criteria similar to those applied to the human CZ CELLxGENE data. Specifically, only samples annotated as normal, profiled with 10x Genomics 3 ′ v3, and derived from whole cells were retained. We used mouse ovary data and rhesus macaque lung data in the downstream experiments. For zebrafish and fly, we retained samples without explicit evidence of disease or perturbation. Specifically, samples were required to have disease annotations indicating the absence of disease, perturbation annotations indicating the absence of treatment or genetic manipulation, library type corresponding to 10x 3 ′ gene expression, and cell preparation annotated as single cell. We used zebrafish embryo data and fly brain data in the downstream experiments. Quality control for all non-human datasets followed the same general procedure used for the CZ CELLxGENE datasets. Cells were retained if they had at least 200 detected genes, at least 500 total counts, and a mitochondrial transcript fraction no greater than 20%. Genes detected in fewer than 3 cells were removed. Putative doublets were identified using Scrublet (Wolock et al., 2019) with an expected doublet rate of 0.06, 30 principal components, and a simulated doublet ratio of 2.0, and were excluded prior to downstream analysis. For non-human species, gene annotations were obtained from Ensembl BioMart (Kinsella et al., 2011) using Ensembl gene identifiers, external gene names, and gene biotypes. Only genes annotated as protein-coding and associated with valid gene names were retained. These annotation tables were used to standardize gene identifiers across datasets and to restrict each dataset to protein-coding genes.  
+
+> A.1.2 Data processing for conditional generation
+
+Conditional generation experiments were conducted in two distinct settings: genetic perturbation generation and cytokine perturbation generation. 16 Genetic perturbation datasets. For genetic perturbation generation, we used the Virtual Cell Challenge (VCC) H1 cell line dataset (Roohani et al., 2025) as the primary benchmark. This dataset contains perturbation targets partitioned into 150 training targets, 50 validation targets, and 100 test targets, enabling evaluation of model generalization to unseen perturbations within the same cellular context. To increase perturbation diversity during training, we additionally incorporated several publicly available single-cell CRISPR perturbation datasets. These included the genome-wide CRISPRi dataset in K562 and the essential gene perturbation datasets in K562 and RPE1 from Replogle et al. (2022) (Replogle et al., 2022), the essential-gene Perturb-seq datasets in HepG2 and Jurkat from Nadig et al. (2025) (Nadig et al., 2025), the multi-cell-line Perturb-seq datasets in A549, MCF7, HT29, HAP1, BxPC3, and K562 from Jiang et al. (2025) (Jiang et al., 2025), and the HCT116 and HEK293T CRISPRi datasets from X-Atlas/Orion (Huang et al., 2025). From these external datasets, we retained only perturbations whose target genes overlapped with the 300 targets defined in the H1 benchmark, so that the auxiliary training data remained consistent with the target space used for evaluation. Across all genetic perturbation datasets, gene expression matrices were harmonized to a shared feature space before model training. When combining data from multiple sources, perturbation labels were standardized according to target gene identity, and only cells with unambiguous perturbation annotations were retained for downstream analysis.  
+
+> Cytokine perturbation dataset.
+
+For cytokine perturbation generation, we used the PARSE 10M PBMC cytokine perturbation dataset (Biosciences, 2024), in which perturbation conditions are defined by the cytokine annotation and PBS serves as the control. In this setting, cells with cytokine labels other than PBS were treated as perturbed samples, whereas PBS cells were retained as controls. Gene expression features were aligned to the same reference set of 18,080 genes used in the unconditional setting. After alignment, cell-level quality control metrics, including total counts, number of detected genes, and mitochondrial transcript fraction, were recalculated. No additional quality control filtering was applied because of the large scale and high overall quality of the dataset. To evaluate model generalization across both donors and perturbation conditions, the dataset was partitioned into training, validation, and test subsets at the donor level. The training set included all cytokine perturbations from six randomly selected donors, together with all PBS control cells across donors. For validation, two donors were randomly selected; for each donor, 70% of cytokine perturbation conditions were included in training, whereas the remaining 30% were held out for validation. PBS cells from these donors were retained as controls. For testing, four additional donors were selected; for each donor, 30% of cytokine perturbation conditions were included in training, whereas the remaining 70% were held out for testing. PBS cells from these donors were likewise retained as controls. 
+
+## B Evaluation metrics 
+
+B.1 Metrics for unconditional generation 
+
+We evaluate unconditional generation quality using five metrics that assess gene-level expression fidelity and distributional similarity between real and generated cells. Let Xreal ∈ RNr ×G and Xgen ∈ RNg ×G denote the log1p-normalized expression matrices of Nr real and Ng generated cells over G genes. All metrics are computed on log1p-normalized expression values unless otherwise noted.  
+
+> B.1.1 Gene expression correlation
+
+These metrics quantify how well the generated data recapitulate gene-level expression patterns observed in the real data.  
+
+> Pearson correlation.
+
+For each gene g, we compute the mean expression across cells in the real and generated populations, yielding mean expression vectors ¯xreal , ¯xgen ∈ RG. The Pearson correlation between these two 17 vectors measures gene-level concordance: 
+
+rPearson = corr( ¯ xreal , ¯xgen ) . (14)  
+
+> Spearman correlation.
+
+The Spearman rank correlation between the same mean expression vectors, capturing monotonic agreement in gene expression ranks: 
+
+rSpearman = ρrank ( ¯ xreal , ¯xgen ) . (15)  
+
+> B.1.2 Distributional fidelity
+
+These metrics assess whether the generated cell population matches the overall distribution of the real data in expression space.  
+
+> Maximum Mean Discrepancy (MMD).
+
+MMD measures the distance between two distributions by comparing their mean embeddings in a reproducing kernel Hilbert space. We first compute a joint PCA embedding of real and generated cells and evaluate MMD in this PCA space. Given PCA-projected real samples {xi}Nr
+
+> i=1
+
+and generated samples {yj }Ng 
+
+> j=1
+
+with kernel function k(·, ·):
+
+MMD 2 = 1
+
+N 2
+
+> r
+
+X
+
+> i,i ′
+
+k(xi, xi′ ) − 2
+
+Nr Ng
+
+X
+
+> i,j
+
+k(xi, yj ) + 1
+
+N 2
+
+> g
+
+X
+
+> j,j ′
+
+k(yj , yj′ ). (16) We use a multi-scale Gaussian kernel defined as k(x, y) = PSs=1 exp  −∥ x − y∥2/σ s
+
+, where S = 5 scales are constructed by setting a base bandwidth σ0 equal to the mean squared pairwise distance, and then generating bandwidths σs = σ0 · αs−⌈ S/ 2⌉ for s = 1 , . . . , S with multiplier α = 2 . Lower values indicate better distributional agreement.  
+
+> Gene-averaged 1-Wasserstein distance (1-WD).
+
+We compute the 1-Wasserstein (earth mover’s) distance indepen-dently for each gene and report the average across all genes: 1-WD = 1
+
+G
+
+> G
+
+X
+
+> g=1
+
+W1
+
+
+
+P (g)real , P (g)gen 
+
+
+
+, (17) where P (g)real and P (g)gen are the marginal distributions of gene g in the real and generated populations, respectively. For univariate distributions, W1 reduces to the integral of the absolute difference between the two cumulative distribution functions. Note that this is a per-gene averaged distance, not the multivariate Wasserstein distance over the full G-dimensional expression space. Lower values indicate better agreement.  
+
+> Integration Local Inverse Simpson’s Index (iLISI).
+
+iLISI quantifies how well real and generated cells are mixed in a shared embedding space. For each cell, the local inverse Simpson’s index measures the effective number of groups (real vs. generated) in its k-nearest neighborhood. An iLISI value of 2 indicates perfect mixing, meaning the neighborhood contains equal proportions of real and generated cells; a value of 1 indicates complete separation. We compute iLISI on a joint PCA embedding of real and generated cells, following the procedure of Korsunsky et al. (Korsunsky et al., 2019). Higher values indicate better distributional overlap. 
+
+B.2 Metrics for perturbation prediction 
+
+We adopt a panel of seven complementary metrics, implemented in the Cell-Eval toolkit (Adduri et al., 2025), to evaluate perturbation prediction performance. All metrics are computed on pseudobulked expression profiles averaged over cells sharing the same perturbation condition. Let T denote the number of distinct perturbations, ¯pt and ˆpt the observed and predicted pseudobulk expression vectors for perturbation t, and ¯c the control (unperturbed) pseudobulk. We define expression deltas as ∆t = |¯pt − ¯c| (observed) and ˆ∆t = |ˆpt − ¯c|
+
+(predicted). Unless stated otherwise, differentially expressed (DE) genes are identified by the Wilcoxon rank-sum test with Benjamini–Hochberg correction at padj < 0.05 .18 The seven metrics can be grouped into two categories: transcriptome-wide accuracy , which evaluates overall expression-level fidelity across all modeled genes, and differential expression recovery , which assesses the identification and ranking of perturbation-responsive genes.  
+
+> B.2.1 Transcriptome-wide accuracy
+
+These metrics assess how closely the predicted pseudobulk profiles match the observed profiles across all genes in terms of expression patterns and perturbation distinguishability.  
+
+> Mean Absolute Error (MAE).
+
+The average ℓ1 distance between predicted and observed pseudobulks across all perturbations: 
+
+MAE = 1
+
+T
+
+> T
+
+X
+
+> t=1
+
+∥ˆpt − ¯pt∥1. (18) 
+
+> Pearson Delta Correlation (Pearson-
+
+∆). The Pearson correlation between predicted and observed expression deltas, computed element-wise across all genes and aggregated over perturbations: 
+
+Pearson −∆ = corr 
+
+ ˆ∆, ∆
+
+
+
+. (19) This metric measures how well the model captures the direction and magnitude of perturbation-induced expression changes at the gene level.  
+
+> Perturbation Discrimination Score (PDS).
+
+Adapted from Wu et al. (2024) (Wu et al., 2024), PDS evaluates whether a model can distinguish different perturbation effects. For each perturbation t, let rt be the number of other perturbation ground truths that are closer (in Manhattan distance) to the predicted profile ˆpt than the correct ground truth ¯pt. The normalized score is 
+
+PDS = 1 − 2
+
+T
+
+> T
+
+X
+
+> t=1
+
+rt
+
+T , (20) where PDS = 1 indicates perfect discrimination and PDS = 0 corresponds to random performance.  
+
+> B.2.2 Differential expression recovery
+
+These metrics evaluate how well the model recovers the set of genes that are significantly differentially expressed in response to each perturbation, as well as the relative effect sizes of different perturbations.  
+
+> DE Overlap Accuracy (DES).
+
+For each perturbation, we identify the set of significant DE genes (at padj < 0.05 )in both ground truth and predictions, ranked by absolute log-fold change. Let G(N ) 
+
+> t, true
+
+and G(N ) 
+
+> t, pred
+
+be the top-N
+
+DE genes, where N equals the total number of significant DE genes in the ground truth. The overlap accuracy is 
+
+DES t = |G (N ) 
+
+> t, true
+
+∩ G (N )
+
+> t, pred
+
+|
+
+N . (21)  
+
+> Spearman Effect Size Correlation (Spearman #DEG).
+
+The Spearman rank correlation between the number of significant DE genes (DEG) in predictions and ground truth across all perturbations, assessing whether the model captures relative perturbation effect sizes: 
+
+Spearman #DEG = ρrank 
+
+ (nt)Tt=1 , (ˆ nt)Tt=1 
+
+ , (22) where nt = |G (DE) 
+
+> t, true
+
+| and ˆnt = |G (DE) 
+
+> t, pred
+
+|. 
+
+> Spearman Log-Fold-Change Correlation (Spearman LFC).
+
+The Spearman rank correlation between predicted and observed log-fold changes, restricted to genes that are significantly DE in the ground truth: 
+
+Spearman LFC t = ρrank 
+
+ ˆ∆t, G∗ 
+
+> t
+
+, ∆t, G∗
+
+> t
+
+
+
+, (23) 19 where G∗ 
+
+> t
+
+is the set of significant DE genes for perturbation t. 
+
+> Precision–Recall AUC (AUPRC).
+
+To measure the model’s ability to identify significant DE genes with high precision, we assign binary labels to each gene (1 if padj < 0.05 in ground truth, 0 otherwise) and use predicted 
+
+−log 10 (padj ) values as confidence scores. AUPRC is the area under the precision–recall curve: 
+
+AUPRC t =
+
+Z 10
+
+Precision t(r) d Recall . (24)  
+
+> Average score.
+
+To summarize overall performance across the seven perturbation-prediction metrics, we define an average score that measures how much a method improves over the cell-mean baseline, relative to the baseline’s remaining room for improvement. Here, the cell-mean baseline predicts each perturbation as the control pseudobulk, i.e., ˆpt = ¯ c for all t.For each metric m ∈ { MAE , Pearson-∆, PDS , DES , Spearman #DEG , Spearman LFC , AUPRC }, let s(m)
+
+> method
+
+and s(m) 
+
+> base
+
+denote the score of the evaluated method and the cell-mean baseline, respectively. We define the relative improvement for metric m as 
+
+r(m) =
+
+
+
+max 
+
+(
+
+s(m) 
+
+> base
+
+− s(m)
+
+> method
+
+s(m)
+
+> base
+
+, 0
+
+)
+
+, m = MAE ,
+
+max 
+
+(
+
+s(m) 
+
+> method
+
+− s(m)
+
+> base
+
+1 − s(m)
+
+> base
+
+, 0
+
+)
+
+, otherwise ,
+
+(25) where MAE is smaller-is-better, while the other six metrics are larger-is-better and upper-bounded by 1. The average score is the arithmetic mean of these seven relative improvements: 
+
+Average score = 17
+
+X
+
+> m
+
+r(m). (26) A score of zero indicates no improvement over the cell-mean baseline on any metric, while a score of one indicates perfect performance on all metrics. 
+
+B.3 Full VCC generalist leaderboard 
+
+Table B1 reports detailed results for all 26 entries on the Virtual Cell Challenge (VCC) generalist leaderboard, including Lingshu-Cell evaluated post-hoc. For each of the seven perturbation-prediction metrics, we list both the raw value and the per-metric rank across all entries. Entries are sorted by average rank (ascending). Lingshu-Cell achieves the best average rank (8.7) and ranks first on two of seven metrics (MAE and Pearson-∆). 
+
+## C Details on Lingshu-Cell 
+
+C.1 Model architecture 
+
+The mask predictor network of Lingshu-Cell is a bidirectional Transformer operating on compressed token sequences (Figure C1). Given an input sequence of G = 18 ,080 gene expression tokens plus a short condition prefix, the model first maps all tokens to D-dimensional embeddings through a shared embedding layer. The gene token embeddings are then compressed from length G to Gc = ⌈G/S ⌉ using the sequence compression module described in Section 4.3. The default group size is S = 8 (Gc = 2 ,260 ); for genetic perturbation prediction, S = 32 (Gc = 565 ) is used, as ablation experiments showed improved prediction performance at this compression ratio in addition to reduced computational cost. The condition prefix tokens bypass compression and are concatenated with the compressed tokens before entering the Transformer backbone. The Transformer backbone follows a LLaMA-style architecture and consists of L = 13 identical blocks. Each block applies two sub-layers with pre-normalization and residual connections: 
+
+x ← x + Attn(RMSNorm( x)) , x ← x + FFN(RMSNorm( x)) . (27) 20 Table B1 Full VCC generalist track leaderboard. Bold values indicate the best performance for each metric. Lingshu-Cell was evaluated post-hoc and is separated by a horizontal rule. For each metric, “val” denotes the metric value and “rk” denotes the per-metric rank across all 26 entries. Abbreviated metric names: Sp. #DEG = Spearman #DEG; Sp. LFC = Spearman LFC; Pear.-∆ = Pearson-∆. Metric definitions are given in Section B. Original leaderboard data are available at https://virtualcellchallenge.org/leaderboard .                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+> DES ↑PDS ↑MAE ↓Sp. #DEG ↑Sp. LFC ↑AUPRC ↑Pear.-∆↑
+> Team Avg Rank ↓val rk val rk val rk val rk val rk val rk val rk Lingshu-Cell 8.7 0.216 25 0.748 90.052 10.394 12 0.331 30.272 10 0.306 1cleopatra 9.1 0.228 24 0.747 10 0.086 30.473 90.396 10.266 11 0.203 6xBio 10.7 0.305 13 0.811 60.770 13 0.564 40.087 20 0.252 16 0.217 3Cellock Holmes 10.9 0.356 30.679 26 0.239 70.000 19 0.238 60.576 40.125 11 Shippers 11.0 0.354 60.699 22 0.231 60.000 19 0.227 80.576 40.123 12 Mean Predictors 11.4 0.305 13 0.741 11 6.72 26 0.294 15 0.213 11 0.582 10.217 3rdbs 12.1 0.332 80.696 24 0.536 10 0.000 19 0.233 70.576 40.119 13 WIND 12.7 0.305 13 0.735 13 0.621 11 0.141 16 0.280 40.165 22 0.127 10 vegansnail 12.9 0.330 90.687 25 0.526 90.000 19 0.222 10 0.576 40.117 14 Nathan LaPierre 13.1 0.246 21 0.710 18 0.121 40.444 10 0.114 18 0.225 19 0.218 2Outlier 13.3 0.361 20.845 34.22 25 0.354 13 0.083 21 0.572 80.098 21 BM_xTVCBM 13.3 0.349 70.872 11.03 15 0.000 19 0.046 24 0.582 10.045 26 LIUtest 13.6 0.273 19 0.698 23 0.084 20.305 14 0.208 12 0.245 18 0.187 7BioCai 13.7 0.366 10.799 71.45 18 0.000 19 0.045 25 0.582 10.047 25 XLearning Lab 13.9 0.356 30.851 21.07 16 0.042 18 0.056 23 0.263 12 0.055 23 NetPhar 14.1 0.269 20 0.736 12 1.53 19 0.582 30.129 16 0.262 13 0.109 16 Xcompass 14.3 0.318 10 0.812 54.21 24 0.135 17 0.108 19 0.182 20 0.212 5Turtle 14.6 0.239 23 0.723 15 2.18 22 0.669 20.239 50.261 15 0.099 20 xinheng 14.7 0.310 11 0.702 21 0.687 12 0.511 60.139 15 0.165 22 0.109 16 4vcc 14.7 0.121 26 0.760 80.124 5-0.112 26 0.367 20.166 21 0.113 15 Gavin 15.0 0.241 22 0.721 16 2.18 22 0.684 10.226 90.262 13 0.093 22 SIMON 15.0 0.355 50.818 41.11 17 -0.049 25 0.059 22 0.278 90.055 23 VCC 15.1 0.303 16 0.703 20 0.409 80.511 60.141 14 0.164 24 0.107 18 TF_Boys 15.9 0.296 17 0.719 17 1.73 21 0.443 11 0.163 13 0.164 24 0.161 8Anyone 16.0 0.309 12 0.705 19 0.835 14 0.562 50.124 17 0.163 26 0.106 19 dpdg3157 16.0 0.294 18 0.730 14 1.67 20 0.506 80.041 26 0.249 17 0.156 9
+
+The self-attention sub-layer uses multi-head attention with nh = 10 heads (head dimension dh = 64 ) and applies rotary position embeddings (RoPE) to the query and key vectors in every block. Attention is bidirectional (no causal mask), consistent with the order-independent nature of masked diffusion models. The feed-forward sub-layer uses a SwiGLU activation with an intermediate dimension of dff = 2 ,560 . All linear layers are bias-free. After the final Transformer block, a final RMSNorm is applied, and the decompression module (inverse of compression; Section 4.3) restores the sequence to the original gene-level length. A linear output head then maps each position to logits over the expression vocabulary. Table C2 summarizes the key architectural hyperparameters. 
+
+C.2 Training and inference details 
+
+Training. All models were trained using AdamW (Loshchilov and Hutter, 2019) with β1 = 0 .9, β2 = 0 .95 , and weight decay 0.1. Gradients were clipped to a maximum norm of 1.0. The learning rate followed a cosine annealing schedule with linear warmup, decaying from the peak value to a minimum of 2 × 10 −5. Training was performed in bfloat16 mixed precision with distributed data parallel (DDP) on NVIDIA A800 GPUs. We maintained two exponential moving average (EMA) copies of the model weights using the power-function EMA schedule (Karras et al., 2024) with relative standard deviations σrel ∈ { 0.050 , 0.100 }; all reported results use the σrel = 0 .050 checkpoint. The global batch size was 256 for all settings. Table C3 summarizes additional training configurations. For genetic perturbation prediction, the model was trained on the combined H1 training set and external perturbation datasets (Section A), with the proportion of control cells capped at 10% . The same control ratio 21 Table C2 Architectural hyperparameters of Lingshu-Cell. 
+
+Hyperparameter Value Embedding dimension ( D) 640 Transformer blocks ( L) 13 Attention heads ( nh) 10 Head dimension ( dh) 64 Feed-forward dimension ( dff ) 2,560 Position encoding RoPE Attention type Bidirectional Normalization RMSNorm Activation SwiGLU Compression group size ( S) 8 (32 for genetic perturbation prediction) Gene sequence length ( G) 18,080  
+
+> Table C3 Training configurations for different experimental settings.
+
+Unconditional Conditional Setting PARSE Per-tissue Genetic perturbation Cytokine perturbation Dataset PARSE PBS CZ CELLxGENE scBaseCount VCC H1 + auxiliary PARSE 10M GPUs 8 2–4 16 8
+
+Peak LR 1 × 10 −4 2 × 10 −4 2 × 10 −4 2 × 10 −4
+
+Warmup steps 100 100 1,000 1,000  
+
+> Table C4 Training data composition for conditional generation tasks.
+
+Task Dataset #Perturbed cells #Original control cells #Sub-sampled control cells Genetic perturbation H1 221,273 38,176 20,344 External 323,913 583,377 35,990 Cytokine perturbation PARSE 10M 6,499,077 629,701 629,701 was used for cytokine perturbation prediction on the PARSE 10M dataset. The resulting training set sizes are summarized in Table C4. Unconditional models were trained independently per tissue or species dataset.  
+
+> Inference.
+
+We used a cosine timestep schedule to discretize the reverse diffusion process into N steps. Before sampling begins, the number of tokens to unmask at each step was precomputed and fixed from this schedule. Within each step, the positions to unmask were selected uniformly at random from the remaining masked tokens, and the token values at those positions were drawn from the model’s predicted categorical distribution without temperature scaling or top-k truncation. For unconditional generation, we used N = 256 steps without CFG. For conditional generation, we used N = 3 steps with classifier-free guidance (CFG); the guidance weight was set to w = 2 for genetic perturbation prediction and w = 3 for cytokine perturbation prediction. 
+
+C.3 Identification of perturbation-specific prior genes 
+
+To introduce biologically informed priors into conditional generation, we derived perturbation-specific prior genes from external single-cell CRISPR perturbation datasets using the pdex Python package (Adduri et al., 2025). For each external dataset, differential expression analysis was performed by comparing each perturbation group against the corresponding non-targeting control group across the shared 18,080-gene feature space. We used the default differential expression procedure implemented in pdex , which computes per-gene statistics using Mann–Whitney U tests followed by false discovery rate (FDR) correction. 22 For each perturbation target and each gene, pdex reports the mean expression in perturbed cells ( target_mean )and the mean expression in the corresponding non-targeting control cells ( reference_mean ), together with fold change and FDR. We defined perturbation-specific prior genes as those satisfying 
+
+FDR < 0.05 , (28) 
+
+|target _mean − reference _mean | > 1, (29) 
+
+| log 2(fold _change) | > 1, (30) 
+
+reference _mean > 2, (31) 
+
+target _mean < 1. (32) Thus, retained genes were significantly differentially expressed, showed large effect sizes, and were strongly downregulated from the non-targeting control state to the perturbed state. When the same perturbation target was observed in multiple external cell lines, the corresponding prior gene sets were merged by taking their union across cell lines to construct a unified perturbation-specific prior. During conditional generation, these prior genes were preferentially used to initialize masked positions at the start of generation, thereby injecting biologically informed perturbation signals into the sampling process. 23 Input Tokens 
+
+Token Embedding 
+
+Compression 
+
+RMSNorm 
+
+Bidirectional Self-Attention + RoPE 
+
++
+
+RMSNorm 
+
+SwiGLU Feed-Forward 
+
++
+
+× 13 
+
+RMSNorm 
+
+Decompression 
+
+Linear Head 
+
+Per-token Logits a 
+
+> Gene Token Embeddings Cond Tail Input
+
+Random Permutation ( π)
+
+Group 
+
+Linear Projection ( Wdown ) 
+
+> Compressed Tokens Cond Tail Output
+
+b 
+
+> Compressed Tokens Cond Tail Input
+
+Linear Projection ( Wup )
+
+Ungroup 
+
+Inverse Permutation ( π−1) 
+
+> Gene Token Representations Cond Tail Output
+
+cFigure C1 Model architecture of Lingshu-Cell. a , Overall model network architecture. Input tokens are first embedded and then passed through a compression module that reduces the gene token sequence length. The compressed sequence is processed by a stack of 13 Transformer blocks, each consisting of RMSNorm, bidirectional self-attention with rotary position embeddings (RoPE), and a SwiGLU feed-forward network, with residual connections around each sub-layer. A final RMSNorm is applied before the decompression module restores the original gene-level resolution, and a linear head produces per-token logits over the expression vocabulary. b, Compression module. Gene token embeddings are reordered with a fixed random permutation π, partitioned into consecutive groups, and linearly projected via Wdown to produce a shorter sequence of compressed tokens. Condition prefix and tail tokens bypass this module. c, Decompression module. The inverse of compression: compressed tokens are linearly projected via Wup ,ungrouped, and reordered with the inverse permutation π−1 to recover gene-level representations. 
+
+24 100 
+
+75 
+
+50 
+
+25 
+
+0
+
+> Proportion (%)
+
+T cells 
+
+NK cells 
+
+B cells 
+
+Monocytes 
+
+DCs 
+
+> Real
+> Generated
+
+Annotation  T cells, CD3D  NK cells, KLRF1  B cells, CD79A  Monocytes, CD68  DCs, FLT3 
+
+Real 
+
+Generated 
+
+b
+
+0
+
+1
+
+2
+
+3
+
+4 Normalized log1p 
+
+100 
+
+75 
+
+50 
+
+25 
+
+0
+
+> Proportion (%)
+
+CD8 + Naive T 
+
+CD8 + Memory T 
+
+> Real
+> Generated
+
+Real 
+
+200,000 cells  Generated 
+
+200,000 cells 
+
+UMAP1 
+
+> UMAP2
+
+CD4 + Naive T 
+
+CD4 + Memory T 
+
+MAIT 
+
+Treg 
+
+NKT 
+
+NK 
+
+NK CD56bright 
+
+CD14 + Monocyte 
+
+CD16 + Monocyte 
+
+Naive B 
+
+Memory B 
+
+Plasmablast 
+
+cDC 
+
+pDC 
+
+HSPC 
+
+a
+
+c d            
+
+> CD8 +Naive
+> CD8 +Memory
+> CD4 +Naive
+> CD4 +Memory
+> MAIT
+> NKT
+> Treg
+> NK
+> NK CD56bright
+> Naive B
+> Memory B
+> Plasmablast
+> CD14 +Mono
+> CD16 +Mono
+> cDC
+> pDC
+> HSPC
+> CD8 +Naive
+> CD8 +Memory
+> CD4 +Naive
+> CD4 +Memory
+> MAIT
+> NKT
+> NK
+> NK CD56bright
+> Naive B
+> Memory B
+> Plasmablast
+> CD14 +Mono
+> CD16 +Mono
+> cDC
+> pDC
+> HSPC
+
+Figure C2 Scaling unconditional generation to larger cell populations. a , UMAP visualization of real and generated cells from the PARSE 10M PBMC dataset, colored by cell type annotation (left) and normalized expression (log1p) of canonical marker genes. b, Comparison of major cell type proportions between real and generated data. c, UMAP visualization at higher resolution, showing that generated cells accurately recapitulate cell subtype structure of real data. d, Comparison of cell subtype proportions between real and generated data, demonstrating robust consistency at higher resolution. 
+
+25 b
+
+Number of genes 
+
+0
+
+3k 
+
+6k 
+
+9k 
+
+Number of total counts 
+
+10 4
+
+10 2
+
+10 6
+
+> Neocortex
+> Thymus
+> Heart
+> Lung
+> Liver
+> Colon
+> Kidney
+> Breast
+
+Source  Species  Tissue  N_cell 
+
+PARSE 10M  Homo sapiens  PBMC (PBS)  629,701 
+
+CZ CELLxGENE  Homo sapiens  Neocortex  376,883 
+
+CZ CELLxGENE  Homo sapiens  Thymus  56,817 
+
+CZ CELLxGENE  Homo sapiens  Heart  6,769 
+
+CZ CELLxGENE  Homo sapiens  Lung  314,569 
+
+CZ CELLxGENE  Homo sapiens  Liver  147,304 
+
+CZ CELLxGENE  Homo sapiens  Colon  72,137 
+
+CZ CELLxGENE  Homo sapiens  Kidney  22,904 
+
+CZ CELLxGENE  Homo sapiens  Breast  1,604,935 
+
+Neocortex  Thymus  Heart 
+
+Lung  Liver  Colon  Kidney  Breast 
+
+20 
+
+15 
+
+10 
+
+5
+
+0
+
+20 
+
+15 
+
+10 
+
+5
+
+0
+
+10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5
+
+10 3 10 4 10 510 3 10 4 10 510 3 10 4 10 5
+
+> Percent mitochondrial (%)
+
+Number of total counts 
+
+a
+
+10 3 10 4 10 5
+
+PBMC (PBS) 
+
+Density 
+
+Low 
+
+High 
+
+e Neocortex  Thymus  Heart 
+
+Lung  Liver  Colon  Kidney  Breast 
+
+10 3 10 4 10 510 3 10 4 10 510 3 10 4 10 5
+
+10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5 10 3 10 4 10 5
+
+> Number of genes
+
+10k 
+
+8k 
+
+6k 
+
+4k 
+
+2k 
+
+0
+
+10k 
+
+8k 
+
+6k 
+
+4k 
+
+2k 
+
+0
+
+Number of total counts 
+
+10 3 10 4 10 5
+
+PBMC (PBS) 
+
+Density 
+
+Low 
+
+High 
+
+c
+
+d
+
+> PBMC (PBS)
+
+Figure C3 Quality control of human unconditional generation datasets. a , Summary of datasets used for unconditional generation, including data source, species, tissue type and cell number. b,c, Distribution of the number of detected genes ( b) and total counts ( c) across tissues. d, Density scatter plots of mitochondrial gene percentage versus total counts for each tissue. e, Density scatter plots of the number of detected genes versus total counts for each tissue. 
+
+26 Real 
+
+Generated 
+
+Thymus  Kidney  Breast 
+
+Epithelial cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+B & Plasma cells 
+
+Myeloid cells 
+
+T & NK cells 
+
+Epithelial cells 
+
+Hepatoblasts 
+
+Hepatic stellate cells 
+
+Endothelial cells 
+
+Myeloid cells 
+
+Liver 
+
+Epithelial cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+CD4 +CD8 + T cells 
+
+B cells 
+
+CD4 + T cells 
+
+CD8 + T cells 
+
+CD4 -CD8 - T cells 
+
+Plasma cells 
+
+NK cells 
+
+Macrophages 
+
+Dendritic cell 
+
+Epithelial cells 
+
+Fibroblasts 
+
+Perivascular/SMC 
+
+Endothelial cells 
+
+B & Plasma cells 
+
+Myeloid cells 
+
+T & NK cells  B & Plasma cells 
+
+T & NK cells 
+
+HPC 
+
+Erythrocytes Figure C4 Unconditional generation results for additional human tissues. UMAP visualization of real (top) and generated (bottom) cells for thymus, kidney, breast and liver, colored by cell type annotation. 
+
+27 b
+
+Number of genes 
+
+> Ovary
+> (Mouse)
+
+0
+
+3k 
+
+6k 
+
+9k 
+
+Number of total counts 
+
+10 4
+
+10 2
+
+10 6
+
+> Lung
+> (Rhesus macaque)
+> Embryo
+> (Zebrafish)
+> Brain (Fly)
+
+Source  Species  Tissue  N_cell 
+
+CZ CELLxGENE  Mus musculus 
+
+(Mouse)  Ovary  13,092 
+
+CZ CELLxGENE  Macaca mulatta 
+
+(Rhesus macaque)  Lung  101,151 
+
+scBaseCount  Danio rerio (Zebrafish)  Embryo  50,304 
+
+scBaseCount  Drosophila melanogaster 
+
+(Fly)  Brain  83,352 
+
+Ovary (Mouse) 
+
+10 3 10 4 10 510 3 10 4 10 5
+
+> Percent mitochondrial (%)
+
+Number of total counts 
+
+a
+
+Density 
+
+Low 
+
+High 
+
+e
+
+10 3 10 4 10 5 10 3 10 4 10 510 3 10 4 10 5
+
+> Number of genes
+
+Number of total counts 
+
+c
+
+d
+
+10 6 10 3 10 4 10 5 10 6
+
+10 3 10 410 6 10 6
+
+20 
+
+15 
+
+10 
+
+5
+
+0
+
+Embryo (Zebrafish)  Brain (Fly) 
+
+10k 
+
+8k 
+
+6k 
+
+4k 
+
+2k 
+
+0
+
+Ovary (Mouse)  Lung (Rhesus macaque)  Embryo (Zebrafish)  Brain (Fly) 
+
+12k Figure C5 Quality control of non-human species unconditional generation datasets. a, Summary of datasets used for unconditional generation across non-human species, including data source, species, tissue type and cell number. b,c,Distribution of the number of detected genes ( b) and total counts ( c) across species. d, Density scatter plots of mitochondrial gene percentage versus total counts for each species. The rhesus macaque lung dataset is not shown owing to the absence of annotated mitochondrial genes. e, Density scatter plots of the number of detected genes versus total counts for each species. 
+
+28

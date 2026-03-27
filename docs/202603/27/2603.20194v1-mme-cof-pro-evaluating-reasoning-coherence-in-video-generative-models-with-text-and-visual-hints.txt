@@ -1,0 +1,1368 @@
+Title: MME-CoF-Pro: Evaluating Reasoning Coherence in Video Generative Models with Text and Visual Hints
+
+URL Source: https://arxiv.org/pdf/2603.20194v1
+
+Published Time: Mon, 23 Mar 2026 01:17:14 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# MME-CoF-Pro : Evaluating Reasoning Coherence in Video Generative Models with Text and Visual Hints 
+
+Yu Qi ∗† 1, Xinyi Xu ∗1, Ziyu Guo B∗† 2, Siyuan Ma ∗23 , Renrui Zhang 4, Xinyan Chen 2
+
+Ruichuan An 5, Ruofan Xing 1, Jiayi Zhang 1, Haojie Huang 1, Pheng-Ann Heng 2
+
+Jonathan Tremblay 6, Lawson L.S. Wong 11 Northeastern University 2 The Chinese University of Hong Kong 3 Westlake University 
+
+4 ByteDance Seed 5 Peking University 6 NVIDIA 
+
+Abstract 
+
+Video generative models show emerging reasoning behaviors. It is essential to ensure that generated events remain causally consistent across frames for reliable deployment, a property we define as reasoning coherence . To bridge the gap in literature for missing reasoning coherence evaluation, we propose MME-CoF-Pro ,a comprehensive video reasoning benchmark to assess reasoning coherence in video models. Specifically, MME-CoF-Pro contains 303 samples across 16 categories, ranging from visual logical to scientific reasoning. It introduces Reasoning Score as evaluation metric for assessing process-level necessary intermediate reasoning steps, and includes three evaluation settings, (a) no hint (b) text hint and (c) visual hint, enabling a controlled investigation into the underlying mechanisms of reasoning hint guidance. Evaluation results in 7 open and closed-source video models reveals insights including: (1) Video generative models exhibit weak reasoning coherence, decoupled from generation quality. (2) Text hints boost apparent correctness but often cause inconsistency and hallucinated reasoning (3) Visual hints benefit structured perceptual tasks but struggle with fine-grained perception. Website: https://video-reasoning-coherence.github.io/ Visual hint 
+
+Text hint Generate the apple falls down 
+
+> into container.
+
+No hint Generate the apple falls down .
+
+Previous Works 
+
+Ours 
+
+> No hint
+> a. No hint
+> VLM -as -judge
+
+Untrackable 
+
+Reasoning 
+
+behaviors 
+
+Uncontrolled 
+
+Reasoning 
+
+Guidance 
+
+Evaluation Settings 
+
+> c. Visual hint
+> b. Text hint
+
+Interpretable 
+
+Reasoning 
+
+Diagnosis  
+
+> Generate the apple falls down
+> as indicated by red arrow.
+
+Controllable 
+
+Reasoning 
+
+Guidance         
+
+> Step 1: An apple falls straight down by a continuous trajectory.
+> Step 2: It reaches the container and collides with apples inside.
+> Step 3: The apple bounces out and does not stay inside.
+> Step 4: It exits the container and lands on the table.
+> Reasoning step as rubric
+> a. Step1 Step2 Step3 Step4
+> b. Step1 Step2 Step3 Step4
+> c. Step1 Step2 Step3 Step4
+> Reasoning Score:
+> b (1.0) = c (1.0)
+> > a (0.25)
+> Based on the last frame of the
+> video, the apple eventually falls
+> onto the table; therefore, the
+> success rate is 1.0.
+
+Figure 1: MME-CoF-Pro evaluates video model capacity to model world behaviour. This evaluation is shown under the numbered multi steps section (shown in darker green), this matches with “reasoning steps as rubric” section (human generated to match expected behaviour). Using different prompting mechanisms, our benchmark evaluates video model behaviour at a fine grain. Red box indicates input image. 
+
+> ∗
+
+Equal contribution. †Project lead. B Corresponding to: guoziyu86@gmail.com 
+
+> arXiv:2603.20194v1 [cs.CV] 20 Mar 2026
+
+Visual Detail Reasoning 
+
+2D Geometry Reasoning 
+
+3D Geometry Reasoning 
+
+4D Dynamics Reasoning 
+
+Embodied Reasoning 
+
+GUI Reasoning 
+
+Medical Reasoning 
+
+Natural Science Reasoning 
+
+Object Counting Reasoning 
+
+Physics -based Reasoning 
+
+Real -world Spatial Reasoning 
+
+Rotation Reasoning 
+
+Table and Chart Reasoning 
+
+Text -based Reasoning 
+
+Visual Logical Reasoning 
+
+Visual Trace Reasoning 
+
+W/o hint: Zoom in on the Apple logo. 
+
+With text hint: Zoom in on black bag on 
+
+the chair and focus on its Apple logo. 
+
+W/o hint: Generate the correct trajectory for 
+
+the gripper to place spatula on the pot 
+
+With text hint: Generate … The gripper should 
+
+first approach the pot and then release …
+
+W/o hint: AB = n, BC = 6, diameter = 10, 
+
+draw an auxiliary line to calculate the value 
+
+of n. 
+
+With text hint: AB = n, BC = 6, diameter = 
+
+10, draw an auxiliary line between AC in 
+
+order to calculate the value of n. 
+
+W/o hint: Generate the motion after 
+
+releasing the block at P. Note that the 
+
+track has friction. 
+
+With text hint: Generate the motion 
+
+after releasing the block at P. The blocks 
+
+stops below the rim. The track Note that 
+
+the track has friction. 
+
+W/o hint: According to the patterns, 
+
+generate orange squares in the bottom -
+
+right cell. 
+
+With text hint: Generate two orange 
+
+squares in the bottom -right cell, each 
+
+filling the missing gaps. 
+
+W/o hint : Make the car move forward in a 
+
+straight line. 
+
+With text hint: Make the car move 
+
+forward in a straight line and collides with 
+
+the plant .
+
+W/o hint: Pan and zoom smoothly to 
+
+examine which lobe contains the 
+
+pulmonary nodule 
+
+With text hint: Pan and zoom smoothly to 
+
+the right lung so the nodule is clear. 
+
+W/o hint: Rotate the scene certain degrees 
+
+clockwise to make the person upright … 
+
+With text hint: Rotate the scene 45 
+
+degrees clockwise … 
+
+W/o hint: Animate step -by -step moves for 
+
+the red dot to reach location C. 
+
+With text hint: Animate step -by -step 
+
+moves for the red dot by going down 1 cell, 
+
+left 2 cell, and up 1 cell, to reach to location 
+
+C.
+
+W/o hint: Choose face 4 as the base. 
+
+Fold to generate a cube. 
+
+With text hint: Choose face 4 as the 
+
+base. First fold its adjacent faces … then 
+
+fold … to generate a cube. 
+
+W/o hint: The dropper releases several 
+
+drops of brown iodine solution into beaker. 
+
+With text hint: … A beaker of cloudy starch 
+
+suspension sits beside a dropper of brown 
+
+iodine solution . … the liquid quickly turns 
+
+deep blue -black, spreading uniformly …
+
+W/o hint: Generate a red arrow pointing from 
+
+the green chair toward the door. Another red 
+
+arrow points from the door to balcony. 
+
+With text hint: Generate a red arrow point 
+
+from the green chair upwards toward the 
+
+door. Another red arrow point from the door 
+
+left -upwards toward the balcony. 
+
+W/o hint: Solve the problem step by 
+
+step by generating the human hand in 
+
+writing the solution on the whiteboard. 
+
+With text hint: Solve the problem step 
+
+by step by ... Calculate the results of 6 -
+
+4 and 14 – 6.
+
+W/o hint: Highlight rectangular in the 
+
+figure. 
+
+With text hint: Highlight rectangular in 
+
+the bottom part of the figure. 
+
+W/o hint: Draw a bounding box around the 
+
+end market for the Engineered Systems 
+
+segment. 
+
+With text hint: Draw a … in the second row 
+
+on the right side of the chart. 
+
+W/o hint: Click the calendar icon. 
+
+With text hint: Click the calendar icon 
+
+located to the right of the flight date. Figure 2: MME-CoF-Pro consists of 303 samples from 16 basic reasoning categories, covering from Visual Detail Reasoning to Visual Trace Reasoning . Each sample is provided with no-hint and text-hint evaluation prompt. In text-hint setting, models are provided with additional textual details to facilitate reasoning. 
+
+1 Introduction 
+
+Video generative models have rapidly progressed, producing high-fidelity outputs with realistic temporal dynamics. Emerging evidence [ 69 , 17 ] suggests reasoning abilities such as planning and causal inference. It is now possible to prompt a generative video model to simulate an apple falling onto a jar (Fig. 1), predict the causal outcome of closing a window pane on a computer screen, or even perform zero-shot object identification from a single image. While these emerging abilities remain largely understudied by existing benchmarks, it is essential to ensure that generated events remain causally consistent across frames for reliable deployment. We formalize this gap as reasoning coherence : the extent to which generated events follow consistent and plausible cause–effect dynamics across frames. Recent efforts such as V-ReasonBench [ 48 ] and Gen-ViRe [ 41 ] have taken steps toward evaluating reasoning in video generative models, introducing benchmarks across spatial, physical, and abstract dimensions. While these approaches move beyond surface-level fidelity, they primarily assess outcome correctness through last-frame verification. Concurrently, VIPER [ 37 ] and VBVR [ 64 ]introduced process-aware and large-scale verifiable evaluation of intermediate reasoning steps, but do not target the consistency of cause-and-effect chains specifically. In parallel, Morpheus [ 78 ]and VideoPhy [ 6] evaluate physical plausibility of individual phenomena but do not assess whether multi-step causal relationships remain coherent across the full generated sequence. While these directions are promising, none explicitly capture what we define as reasoning coherence : the degree to which generated video events maintain consistent cause-and-effect relationships over time, spanning long-horizon dependencies, interaction reasoning, and the fidelity of intermediate transitions. 2Visual Detail Reasoning Visual Trace Reasoning Object Counting Reasoning 4D Dynamics Reasoning 
+
+Embodied Reasoning GUI Reasoning Medical Reasoning Table and Chart Reasoning                 
+
+> With visual hint: Zoom in on
+> the Apple logo as indicated by
+> red bounding box.
+> With visual hint: Starting at
+> the red dot animate moves to
+> reach location C as indicated by
+> red arrow.
+> With visual hint: Draw boxes
+> around each missing brick to
+> count them, with size as
+> indicated as red brick.
+> With visual hint: Generate the
+> bat falls freely downward as
+> indicated by red arrow.
+> With visual hint: Generate the
+> correct trajectory for the gripper
+> to place the spatula into the pot
+> as indicated by red arrow.
+> With visual hint: Close the front
+> window as indicated by red
+> bounding box.
+> With visual hint: pan and zoom
+> smoothly to examine the
+> distribution pattern of stenotic
+> segments as indicated by red bbox .
+> With visual hint: s tart with a full
+> chart view, then smoothly zoom
+> into the 2014 area as indicated by
+> red lines .
+
+Figure 3: Visual Hints in MME-CoF-Pro . For controlled comparison, we additionally add visual hints to 8 categories which requires visual reasoning capabilities, using bounding boxes and arrows to indicate positions, trajectories to facilitate reasoning. To bridge this gap, we introduce MME-CoF-Pro , a benchmark for evaluating reasoning coherence in video generative models. In greater details, it covers 16 categories and 303 samples, as illustrated in Fig. 2. We introduce two key components for evaluating reasoning coherence, the reasoning score, and visual and text prompt-hints. First, the Reasoning Score (RS) provides process-level evaluation by assessing intermediate reasoning steps which are necessary in order to accomplish a task, allowing fine-grained analysis of how reasoning unfolds across frames. Each sample in MME-CoF-Pro is paired with a human-validated step-level rubric, scored automatically over k equidistant frames sampled from the generated video. Second, we design three controllable hint prompting settings: 
+
+(a) no hints (standard setting), (b) text hints (Fig. 2), and (c) visual hints (Fig. 3). The hint-based settings provide explicit reasoning scaffolds through visual or text guidance, whereas the no-hint setting requires models to reason without external assistance. As shown in Fig. 5, all remaining parts of instructions are kept identical across settings so any performance differences can be directly attributed to the presence of structured reasoning guidance. Evaluation results of MME-CoF-Pro across 7 open and closed-source models reveal insights: (1) 
+
+Video generative models exhibit generally weak reasoning coherence, and their reasoning performance shows no clear correlation with generation quality. (2) Explicit text hints may improve apparent correctness, but the gains are often superficial and can induce hallucinated reasoning, inflating scores without genuine understanding and leading to partial comprehension or overfitting to reasoning patterns. (3) Visual hints are more effective for structured and spatially guided tasks but are less reliable for fine-grained visual tasks. They also introduce hallucinations by being mistakenly rendered as part of the scene rather than purely as guidance. Our contributions can be summarized as follows: • We introduce MME-CoF-Pro , the first video reasoning benchmark that explicitly decouples reasoning hints evaluation which covers 303 samples across 16 categories (Fig. 4). • We propose Reasoning Score, a process-level evaluation metric for evaluate intermediate reasoning steps instead of generation quality against human validated rubrics. • Results on 7 open and closed-source video models uncover key insights including the performance of reasoning capabilities, limitations of explicit hints, the role of visual and text hints. 
+
+2 Related Works 
+
+2.1 Video Generative Models as Reasoning Models 
+
+Recent advances in large reasoning models such as DeepSeek-R1 [ 18 ] have accelerated video reasoning. Prior work enhances MLLMs and VLMs [ 70 , 24 , 45 ] with causal reasoning [ 50 , 75 , 34 ], spatio-temporal modeling [ 76 , 9, 44 , 40 , 35 ], and chain-of-thought [ 5, 54 , 15 , 80 ], using RL or 3Statistic Number               
+
+> Total questions 673 - no hint questions 303 - text hint questions 303 - visual hint questions 67 Total samples 303 Total images 370 Total categories 16 Categories with visual hints 8Max question words 191 Avg question words 81.6 Max reasoning step 10 Avg reasoning step 4.6 Avg extra word for text hint 17.4 Avg extra word for visual hint 5.2
+
+(a) Key Statistics. Embodied    
+
+> Visual Logical
+> Text Based
+> Physics Based
+> 4D Dynamics
+> 3D Geometry
+> Visual Detail
+> Visual Trace
+> Real World Spatial
+> Table & Chart
+> Object Counting
+> GUI
+> Medical
+> Nature Science
+> Rotation
+> 2D Geometry
+> Embodied
+> Visual Logical
+> Text Based
+> Physics Based
+> 4D Dynamics
+> 3D Geometry
+> Visual Detail
+> Visual Trace
+> Real World Spatial
+> Table & Chart
+> Object Counting
+> GUI
+> Medical
+> Nature Science
+> Rotation
+> 2D Geometry
+> 9.2%
+> 7. 6%
+> 7. 6%
+> 6.6%
+> 6.6%
+> 6.6%
+> 6.3%
+> 5.9%
+> 5.9%
+> 5.9%
+> 5.9%
+> 5.9%
+> 5.9%
+> 5.9%
+> 5. 3%
+> 3.3%
+
+(b) Category Distribution. Visual Detail    
+
+> Reasonin g
+> Visual Logical
+> Reasonin g
+> Visual Trace
+> Reasonin g
+> 2D Geometry
+> Reasoning 3D Geometry
+> Reasoning
+> 4D Dynamics
+> Reasoning
+> Embodied
+> Reasoning
+> GUI
+> Reasoning
+> Medical
+> Reasonin g
+> Nature Science
+> Reasoning
+> Object Counting
+> Reasonin gPhysics -based
+> Reasonin g
+> Real -world
+> Spatial Reasoning
+> Rotation
+> Reasonin g
+> Table & Chart
+> Reasonin g
+> Text -based
+> Reasonin g
+
+(c) Evaluation Map. 
+
+Figure 4: Statistics, Distribution and Evaluation Results of MME-CoF-Pro. supervised fine-tuning [ 26 , 63 , 68 ]. Recent large-scale video generative models [ 62 , 2, 11 , 10 ,66 , 56 , 17 , 57 , 43 ] implicitly learn temporal dynamics, causal structures, and physical regularities through predictive video modeling. By forecasting future frames, diffusion-based and autoregressive frameworks [ 23 , 71 ] capture object interactions, motion patterns, and long-horizon dependencies. Such temporal consistency and coherent scene evolution suggest that these models acquire structured world knowledge from large-scale video data, even without explicit reasoning supervision. 
+
+2.2 Resaoning Evaluation in Video Generative Models 
+
+Existing image and video reasoning benchmarks propose reasoning-related tasks, but they do not explicitly isolate and control reasoning as an independent evaluation variable in either the input design or the evaluation metrics [ 72 , 59 , 48 , 21 , 41 , 22 , 37 , 58 , 39 , 4 , 3, 14 ]. Prior work evaluates generation quality and creativity in T2V(Text-to-Video) models [ 27 , 42 ], comprehensive reasoning tasks [ 20 ], maze-based spatial reasoning [ 50 ], synthetic dynamics prediction [ 59 , 48 ], structured reasoning patterns [8], and scientific problem-solving [13, 25]. 
+
+(1) Existing benchmarks embed reasoning guidance implicitly within task prompts rather than treating it as an explicit, controllable input. Without varying guidance independently, these benchmarks cannot measure how explicit reasoning instructions affect performance. (2) Existing evaluation metrics mainly focus on instruction alignment [ 20 ], visual consistency [ 50 , 20 ], rule-based correct-ness [ 22 ], pass@k based final-frame correctness [ 59 , 48 , 8 ], spatial accuracy by hard coded rules [ 64 ], goal-conditioned success rate [ 51 ], process-consistency [ 37 ] but do not evaluate intermediate reason-ing processes, limiting their ability to diagnose reasoning trajectory failures or providing targeted improvement suggestions. In contrast to previous approaches, our proposed MME-CoF-Pro treats reasoning prompts as an explicit, controllable variable—injecting text and visual hints into the input while keeping the remaining instructions unchanged. By keeping all other task components identical, any performance difference can be causally attributed to reasoning capability and hint guidance. Finally, we introduce 
+
+Reasoning Score , a process-level evaluation metric for step-wise reasoning coherence (generated with humans), enabling interpretable diagnosis of where and why models fail. 
+
+3 The MME-CoF-Pro Benchmark 
+
+3.1 Overview of MME-CoF-Pro Benchmark. 
+
+In order to study reasoning behaviors of video generative models under controlled hint conditions, we propose MME-CoF-Pro , the first benchmark that treats reasoning guidance as an explicitly controllable variable and incorporates Reasoning Score as process-level evaluation metric for in-terpretable reasoning coherence diagnosis, as shown in Fig. 2, 3, and 4. MME-CoF-Pro contains 303 samples across 16 reasoning categories, spanning a broad range of reasoning capabilities, from perceptual tasks such as visual detail reasoning, to physically grounded and causal tasks including 4D Dynamics Reasoning. All samples include no-hint and text-hint settings. For a subset of 8 perceptually demanding categories, designated MME-CoF-Pro-mini , we additionally introduce a 4Process -level Evaluation for Reasoning Score      
+
+> The dog on the left, which is on a leash,
+> tries to run to the path behind it. Static
+> shot.
+> Real -world
+> Spatial Reasoning
+> 3D Geometry
+> Reasoning
+> Generate the net is folded into a cube
+> using face 2 as the base. Static shot.
+> The upper string breaks. Then, show the
+> trajectory of both objects. Ensure the
+> motion is physically accurate. Static shot.
+> 1. The dog moves backward toward the
+> path on a leash.
+> 2. The leash stretches fully before the dog
+> reaches the path.
+> 3. The tight leash restrains the dog from
+> stepping onto the path.
+> 4. The leash is too short for the dog to
+> reach the path.
+> 1. Initial static setup clearly visible.
+> 2. Upper string breaks.
+> 3. Both objects begin falling
+> simultaneously.
+> 4. Relative spacing between objects
+> remains constant during fall.
+> Object Counting
+> Reasoning
+> Physics -based
+> Reasoning Untangle and neatly lay out all the
+> strings from the image, showing them
+> clearly as separate entities. Static shot.
+> 1. Strings untangled without merging or
+> breaking.
+> 2. All endpoints clearly visible
+> 3. Exactly 3 distinct strings visible (2
+> orange, 1 green).
+> 1. Highlight face 2 as the base.
+> 2. Fold the faces adjacent to face 2 upward
+> to form the side walls.
+> 4. Fold the remaining faces inward.
+> 5. Final frame shows a complete closed
+> cube
+
+Figure 6: Process-level Evaluation Metric for Reasoning Score in MME-CoF-Pro. Videos are evaluated against fine-grained reasoning steps, enabling interpretable assessment beyond final-answer accuracy. visual-hint setting (see Fig. 3). (2) We further annotate each sample with key reasoning steps as intermediate checkpoints (Fig. 6) and provide details in Section 3.1.2, allowing fine-grained diagnosis of reasoning trajectories. These annotations define the evaluation criteria for the Reasoning Score (RS). 
+
+3.1.1 Evaluation settings with no hint, text hint, and visual hint Evaluation Settings              
+
+> (a.) No hint
+> (b.) Text hint
+> (c.) Visual hint
+> Animate the elf so it
+> moves to the gift.
+> Animate the elf so it
+> moves to the gift by
+> moving 3 cell down and
+> 1 cell right.
+> 1. The elf starts at the
+> correct cell on the map.
+> 2. The first movement
+> goes dow nexactly 3cell.
+> 3. The second movement
+> goes righ texactly 1 cell.
+> 4. The elf reaches and
+> stops at the the gift while
+> avoiding all frozen lake
+> cells.
+> Animate the elf so it
+> moves to the gift as
+> indicated by the red
+> arrow.
+> Process -level Reasoning Score
+
+Figure 5: Setting Comparisons. All three settings share the same evaluation metrics and identical instructions except for the hint components. As illustrated in Fig. 2 and 3, MME-CoF-Pro 
+
+evaluates each sample under controlled settings that differ only in the type of reasoning guid-ance provided. The (a) no-hint setting serves as the standard baseline, where models must reason purely from the task instruction without any additional scaffolding. The (b) text-hint 
+
+setting augments the prompt with explicit tex-tual descriptions of key reasoning steps, pro-viding structured guidance to facilitate infer-ence. For the 8 visually demanding categories in MME-CoF-Pro-mini , we provide an addi-tional (c) visual-hint setting (Fig. 3) in which bounding boxes or directional arrows are drawn on the input image to direct attention to relevant regions or motion directions. Since every part of the instruction except the hint remains iden-tical across conditions, performance differences isolate the effect of reasoning guidance, supporting controlled and causal analysis of how models reason under different guidance types. Each hint guidance also shares the same reasoning score rubric for fair comparison. 
+
+3.1.2 Reasoning Score (RS) over process-level key step. 
+
+MME-CoF-Pro introduces a process-level evaluation framework that assesses reasoning coherence for each intermediate step which is necessary to accomplish a task. As illustrated in Fig. 6, each question is annotated as shown in Section 3.3.2 with a sequence of key reasoning steps, where each step represents a critical checkpoint for a correct video generation. Formally, given a generated video 5V and N annotated reasoning steps {s1, s 2, . . . , s N }, the Reasoning Score is computed as: 
+
+RS = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+⊮[si is correctly completed ] (1) where each step si is evaluated independently by a judge model, such as Gemini-2.5-Flash [ 12 ]. This design allows fine-grained diagnosis of where along the reasoning chain a video generative model succeeds or fails, and supports more reliable cross-model comparison by capturing partial correctness rather than discarding it. 
+
+3.2 Category Distribution 
+
+The 16 categories in MME-CoF-Pro are organized into four groups, progressing from low-level perceptual understanding to high-level task-oriented reasoning, ensuring comprehensive coverage of the reasoning capabilities required for video generation. 
+
+Perceptual Reasoning covers fine-grained visual understanding, including Visual Detail Reasoning 
+
+(identifying attributes by zooming into specific regions), Rotation Reasoning (interpreting scenes at non-standard orientations and restoring correct viewpoints), and Object Counting Reasoning 
+
+(accurately enumerating objects of specific types within cluttered scenes). 
+
+Spatial and Structural Reasoning requires understanding of geometric and spatial relationships, spanning Visual Trace Reasoning (animating step-by-step navigation on mazes while avoiding ob-stacles), Real World Spatial Reasoning (inferring egocentric and allocentric spatial relationships in real-world environments), and 2D /3D Geometry Reasoning (constructing auxiliary lines over planar figures and reasoning about 3D object structure across viewpoints). 
+
+Physical and Causal Reasoning evaluates grounded understanding of how the world behaves over time, covering Physics-Based Reasoning (animating motion governed by physical laws such as gravity and collision), 4D Dynamics Reasoning (predicting object interactions over time such as occlusion, collision, and containment), and Nature Science Domain (reasoning grounded in domain knowledge across chemistry, biology, and optics). 
+
+Task-oriented Reasoning covers reasoning embedded in real-world application contexts, including 
+
+Embodied Reasoning (generating correct robotic manipulation trajectories), GUI Reasoning (identify-ing and interacting with interface elements in desktop or mobile screenshots), Medical Reasoning 
+
+(analyzing clinical images such as CT scans and X-rays), Table and Chart Reasoning (locating specific data entries via zoom or bounding box operations), Text-Based Reasoning (mathematical problem solving and code execution tracing), and Visual Logical Reasoning (pattern completion and rule inference over structured visual grids and board games). 
+
+3.3 Benchmark Curation 3.3.1 Data Source. 
+
+MME-CoF-Pro is curated from 27 existing real-world and synthetic benchmarks, including where each of the 16 reasoning categories is constructed by selectively sampling datasets that best represent the target reasoning skill (see Appendix for details). Real-world datasets provide ecological validity and grounded visual understanding, while synthetic benchmarks enable precise geometric, spatial, and procedural reasoning with controllable layouts and clear annotations. We respect all original licenses and usage terms and use only publicly available data. We provide more details in Appendix. 
+
+3.3.2 Data Annotation Pipeline. 
+
+To ensure annotation reliability, each sample was annotated and reviewed by multiple human an-notators. The reasoning steps were first drafted by Gemini-2.5-Pro [ 12 ] and subsequently refined through three rounds of manual verification and correction by domain experts. Images with visual hints are manually annotated by human annotators using Photopea, strictly preserving the original image resolution. During this process, annotators cross-checked each reasoning step to ensure that it was (1) necessary for the intended reasoning trajectory and (2) unambiguously verifiable from the generated video. Disagreements were resolved through discussion until consensus was reached. The annotated reasoning steps represent minimal necessary checkpoints required for successful task completion, which reduces ambiguity while preserving evaluation consistency. 64 Experiment and Analysis 
+
+After detailing the experimental setup including models, metrics, hint configurations, and human study design in Section 4.1, we validate the proposed Reasoning Score via human evaluation in Section 4.3. Section 4.2 assesses how well current video generative models reason and how reasoning relates to generation quality, while Sections 4.4 and 4.5 explore whether reasoning hints enhance reasoning and how hint modality shapes the outcome. 
+
+4.1 Experiment Setup. Models. We evaluated 7 closed and open-source models, Veo-3.1 [ 69 ], Veo-3.1-fast [ 69 ], Sora-2 [ 53 ], Seedance-1.0-pro [ 17 ], Seedance-1.0-fast [ 17 ], Kling-v2.1 [ 57 ] and Cosmos-Predict2-14B [ 1]. We use default configurations of these video models, with further inference configurations provided in Appendix. 
+
+Evaluation Protocols. Following recent video reasoning benchmarks, we adopt an VLM-as-a-judge protocol for automated evaluation, employing Gemini-2.5-Flash [ 12 ] as our judge model. During evaluation, each generated video is uniformly sampled at every 10th frame. Videos are 4 or 5 seconds long depending on the generative model, all at 24 fps. The reliability of judge model is validated via human study in Section 4.3, where RS achieves the highest Spearman correlation (0.61) with human scores. 
+
+Evaluation Metrics. We evaluate models from two perspectives: Reasoning Score (RS) and 
+
+Generation Quality (GQ) . (1) For RS, Gemini uses the annotated process-level reasoning steps, as shown in Fig. 6, to identify whether each reasoning step is successfully achieved in the output video. Reasoning Score is reported as percentages , higher is better. (2) GQ is evaluated along five dimensions: Consistency Score (CS), temporal consistency, visual stability, hallucination, and physics grounding. CS measures cross-frame content coherence and the absence of abrupt content changes. Temporal consistency evaluates motion smoothness across frames. Visual stability assesses the steadiness of camera, objects, and scene composition. Hallucination penalizes unexpected or spurious visual artifacts. Physics grounding measures whether motions and interactions are physically plausible. We report the percentage value of CS and the average (Avg) across all five dimensions representing Generation Quality, and higher is better. 
+
+Evaluation Baselines. We evaluate three settings: no hint , text hint , and visual hint . The no hint 
+
+and text hint settings are tested on the full MME-CoF-Pro (16 categories), where no hint serves as the baseline to measure gains from text hints. The visual hint setting is evaluated on MME-CoF-Pro-mini ,a curated subset covering 8 perceptually intensive categories, with its corresponding no hint results as the baseline. 
+
+Human Study Setup. To validate that RS serves as an effective and relatively independent measure of video reasoning capability, we conduct a human study on 10 randomly selected generated videos with 10 human participants, each of whom scores the videos according to the annotated reasoning steps. Furthermore, we compare RS with two alternative metrics adopted from prior work: Instruction Alignment [ 20 ] and Pass@5 last-frame correctness [ 59 ]. The Spearsman correlation is computed between the average of human scores and each metric to assess their respective reliability in capturing reasoning performance. 
+
+4.2 Result Analysis of Reasoning Score Overall models fall short in reasoning coherence. In Tab. 1, we report the RS under no-hint and text-hint settings. Model-level averages show clear stratification: frontier proprietary models lead, with Veo achieving the highest RS (56), followed by Sora (50), while Seedance, Cosmos, and Kling lag behind. Notably, even the best model only slightly exceeds 50, indicating that reasoning in video generation remains challenging. 7Table 1: Evaluation results of MME-CoF-Pro. We report the percentage of Reasoning Score (RS) 
+
+and Consistency Score (CS) in no-hint settings , with text-hint performance shown in parentheses. Color indicates the value of change brought by text-hint : ↑ improvement and ↓ degradation . We additionally evaluate Hallucination Score , Visual Stability , and Physics Grounding , and present the overall average score with Consistency Score here. Details are provided in the Appendix. 
+
+Category Metric Closed-Source Models Open-Source Models 
+
+Veo3.1 [69] Veo3.1-fast [69] Sora2 [53] Seedance 1.0-pro [17] Seedance 1.0-fast [17] Kling-v2.1 [57] Cosmos Predict [1] Visual Detail Reasoning RS 61.5( +18.6 ) 65.7( +6.0 ) 40.3( +27.8 ) 19.8( +29.3 ) 26.1( +11.7 ) 2.0( -2.0 ) 30.2( +8.1 ) CS 51.2(0.0) 47.6( -1.8 ) 22.8( +13.3 ) 50.0( +7.6 ) 55.6( -13.3 ) 64.7( -16.6 ) 36.1( -10.6 ) 
+
+Avg 56.8( -1.1 ) 56.7( -3.2 ) 30.7( +13.7 ) 54.8( +6.6 ) 58.1( -5.3 ) 72.3( -7.3 ) 37.9( -8.6 ) Embodied Reasoning RS 81.7( -0.2 ) 78.5( +0.8 ) 38.4( -3.9 ) 48.7( +6.8 ) 57.0( -6.4 ) 2.5( -1.4 ) 49.4( +20.1 ) CS 72.9( +1.1 ) 62.5( +8.2 ) 61.8( -1.1 ) 56.9( -3.3 ) 52.8( +0.1 ) 44.1( -3.8 ) 58.6( -6.6 ) 
+
+Avg 76.1( +1.6 ) 63.4( +9.9 ) 65.4( -4.3 ) 58.9( -3.6 ) 58.8( -2.2 ) 54.8( -2.4 ) 57.9( -4.4 ) Object Counting Reasoning RS 51.7( +5.8 ) 55.8( -2.1 ) 57.1( +5.1 ) 35.4( +14.2 ) 31.2( +4.6 ) 11.8( -3.8 ) 16.6( -5.3 ) CS 47.2( -0.6 ) 46.7( +8.3 ) 69.4( -10.6 ) 36.5( -1.8 ) 30.0( +3.9 ) 75.3( -6.5 ) 36.1( +3.3 ) 
+
+Avg 46.1( +3.4 ) 49.0( +7.1 ) 70.2( -2.9 ) 39.3( -2.2 ) 36.7( +3.2 ) 81.9( -4.0 ) 37.0( +11.3 ) Table and Chart Reasoning RS 49.4( +4.4 ) 52.3( -5.4 ) 61.3( +0.2 ) 33.7( -11.2 ) 29.9( +15.3 ) 33.5( -4.8 ) 23.8( +10.5 ) CS 31.1( +3.3 ) 38.3( -11.1 ) 72.2( -2.8 ) 25.7( -7.9 ) 33.3( +2.8 ) 85.7( -2.1 ) 33.9( +12.2 ) 
+
+Avg 33.6( +3.3 ) 41.6( -8.4 ) 68.3( -2.8 ) 29.0( -9.3 ) 37.2( +1.8 ) 88.0( -5.6 ) 33.9( +5.2 ) 2D Geometry Reasoning RS 29.2( -6.9 ) 22.2( -4.6 ) 54.2( -19.2 ) 22.5( -9.2 ) 9.2( +25.8 ) 0.0( +3.3 ) 9.2( -5.8 ) CS 28.0( -4.7 ) 27.8( +14.4 ) 64.0( +2.0 ) 32.0( +12.0 ) 22.0( +14.0 ) 46.0( +10.0 ) 15.0( +9.0 ) 
+
+Avg 32.4( +0.5 ) 31.1( +12.2 ) 68.2( +2.6 ) 41.0( +11.8 ) 33.8( +3.8 ) 58.2( +12.4 ) 23.0( +4.4 ) GUI Reasoning RS 69.3( -10.1 ) 72.0( -4.6 ) 47.2( -3.1 ) 15.6( -0.4 ) 26.7( +1.1 ) 7.5( -1.8 ) 18.8( +5.7 ) CS 68.9( -6.1 ) 66.7( -2.2 ) 57.5( +8.8 ) 33.9( +2.8 ) 53.9( -2.2 ) 77.2( -15.6 ) 39.4( +17.2 ) 
+
+Avg 69.7( -7.1 ) 65.6( +0.2 ) 51.8( +14.1 ) 33.2( +2.2 ) 52.3( -2.1 ) 66.0( -1.9 ) 39.6( +10.2 ) Physics-based Reasoning RS 55.9( +6.6 ) 65.8( -20.1 ) 62.2( +9.5 ) 53.2( -4.2 ) 45.5( -5.2 ) 18.9( -4.5 ) 25.9( +7.9 ) CS 30.5( -2.0 ) 36.5( -2.5 ) 51.0( +6.5 ) 48.5( -12.3 ) 34.5( +4.0 ) 45.4( +20.0 ) 30.5( -2.8 ) 
+
+Avg 27.1( +2.5 ) 36.0( -4.4 ) 47.6( +7.6 ) 47.9( -7.9 ) 32.0( +5.0 ) 56.8( +6.3 ) 31.3( -1.3 ) Text-based Reasoning RS 62.3( +8.4 ) 62.0( +4.6 ) 75.4( +1.8 ) 35.6( -6.8 ) 44.9( -1.7 ) 20.7( -5.0 ) 29.1( -2.0 ) CS 49.6( +6.9 ) 49.6( +4.9 ) 55.6( -2.2 ) 49.6( -2.2 ) 54.8( -8.7 ) 34.8( +10.4 ) 43.5( -1.7 ) 
+
+Avg 52.5( +9.1 ) 52.4( +9.9 ) 64.6( -5.0 ) 55.8( -3.7 ) 58.8( -8.1 ) 53.3( -0.8 ) 48.7( -3.3 ) 3D Geometry Reasoning RS 43.9( +13.2 ) 41.7( +7.2 ) 37.7( +14.6 ) 36.4( -7.8 ) 48.5( -23.8 ) 13.4( +0.5 ) 22.1( +3.1 ) CS 27.2( +4.4 ) 27.2( +1.7 ) 42.8( -8.3 ) 28.2( -7.1 ) 22.8( -3.9 ) 50.6( +9.4 ) 26.7( +5.6 ) 
+
+Avg 32.2( +0.1 ) 30.4( -2.8 ) 40.6( -2.9 ) 28.8( -4.4 ) 29.8( -5.1 ) 56.5( +4.5 ) 28.6( +9.2 ) Medical Reasoning RS 41.7( -0.2 ) 35.8( +3.2 ) 49.6( +10.0 ) 32.4( +10.1 ) 45.3( -6.4 ) 38.7( -2.5 ) 31.3( +13.0 ) CS 22.8( -1.1 ) 21.7( -3.3 ) 67.8( -7.2 ) 40.0(0.0) 51.2( -0.6 ) 54.4( +21.7 ) 37.8( +2.2 ) 
+
+Avg 27.1( -2.6 ) 23.0( -2.2 ) 72.3( -10.4 ) 40.3( +1.0 ) 52.5( +3.1 ) 65.2( +6.0 ) 36.2( +6.2 ) Real-world Spatial Reasoning RS 54.0( -0.8 ) 58.7( +9.6 ) 35.0( +26.5 ) 30.6( -0.4 ) 26.2( +19.1 ) 9.4( -2.3 ) 41.4( +11.7 ) CS 57.8( -0.7 ) 63.3( +1.4 ) 62.6( -2.6 ) 53.2( -7.0 ) 60.0( -7.2 ) 58.4( +12.7 ) 52.6( +6.3 ) 
+
+Avg 62.1( -0.4 ) 64.2( +1.8 ) 65.7( -0.3 ) 52.0(0.0) 59.0( -6.7 ) 68.6( +6.8 ) 50.6( +6.5 ) Visual Logical Reasoning RS 72.0( -7.4 ) 58.2( +8.9 ) 49.4( +12.3 ) 22.4( +11.2 ) 36.5( +3.2 ) 9.8( +4.6 ) 4.3( +49.3 ) CS 55.5( -5.5 ) 44.5( -1.9 ) 64.5( -7.6 ) 20.6( +2.6 ) 32.6( -6.5 ) 48.7( -1.7 ) 15.0( +14.6 ) 
+
+Avg 55.5( -5.0 ) 45.7( +0.3 ) 64.5( -6.2 ) 25.6( +3.6 ) 37.1( -8.4 ) 65.1(0.0) 19.4( +10.4 ) 4D Dynamics Reasoning RS 66.2( +12.4 ) 64.7( +11.3 ) 51.3( +6.9 ) 61.2( +2.7 ) 52.0( +9.1 ) 9.7( -0.9 ) 52.2( -3.4 ) CS 68.2( -1.2 ) 62.8( -7.2 ) 73.3( -13.9 ) 56.1( -11.1 ) 59.4( -2.2 ) 65.0( -15.6 ) 55.6( -11.1 ) 
+
+Avg 65.4( +0.1 ) 62.4( -1.7 ) 69.0( -11.0 ) 56.0( -8.6 ) 60.0( -3.7 ) 60.8( -6.6 ) 46.8( -8.6 ) Natural Science Reasoning RS 49.6( +1.8 ) 55.3( +17.0 ) 60.3( -1.1 ) 46.0( -5.2 ) 49.6( +1.8 ) 11.3( +2.8 ) 51.0( +2.8 ) CS 57.3( -5.3 ) 51.1( +11.7 ) 66.7( -4.4 ) 53.8( +1.0 ) 57.3( -5.3 ) 62.8( -26.1 ) 57.5( -20.8 ) 
+
+Avg 56.7( +0.7 ) 54.9( +9.0 ) 62.9( -0.3 ) 57.6( +0.6 ) 56.7( +0.7 ) 67.7( -14.9 ) 56.3( -15.3 ) Rotation Reasoning RS 60.2( -2.5 ) 56.0( +4.6 ) 30.1( +9.8 ) 41.8( +5.0 ) 35.8( -10.4 ) 11.9( +11.8 ) 25.0( +6.0 ) CS 44.4( +2.3 ) 34.4( +13.8 ) 71.2( -6.2 ) 40.0( +9.3 ) 47.5( -11.2 ) 79.3( -5.3 ) 41.2( -4.1 ) 
+
+Avg 45.8( +2.1 ) 35.6( +9.6 ) 66.4( -0.6 ) 38.1( +10.9 ) 46.8( -12.5 ) 73.1( +2.5 ) 37.2( -5.5 ) Visual Trace Reasoning RS 45.5( +24.0 ) 49.8( +17.5 ) 49.7( +21.9 ) 35.7( +7.5 ) 36.0( +12.2 ) 19.5( -0.1 ) 27.9( +4.1 ) CS 47.8( +6.3 ) 43.3( +4.9 ) 63.9( -1.7 ) 38.9( +0.6 ) 44.4( -1.7 ) 40.0( +8.9 ) 20.6( +1.6 ) 
+
+Avg 53.0( +5.7 ) 49.3( +1.8 ) 66.0( +2.3 ) 44.0(0.0) 48.7( -4.4 ) 53.7( +0.4 ) 20.7( +6.2 ) Average RS 55.9( +4.2 ) 55.9( +3.4 ) 49.9( +7.4 ) 35.7( +2.6 ) 37.5( +3.1 ) 13.8( -0.4 ) 28.6( +7.9 ) CS 47.5( -0.2 ) 45.3( +2.4 ) 60.5( -2.4 ) 41.5( -1.0 ) 44.5( -2.4 ) 58.3( -0.0 ) 37.5( +0.9 ) 
+
+Avg 49.5( +0.8 ) 47.6( +2.4 ) 60.9( -0.4 ) 43.9( -0.2 ) 47.4( -2.6 ) 65.1( -0.3 ) 37.8( +1.4 ) 
+
+8Animate the elf moving right and then downwards and in the end 
+
+turn right to reach the gift while carefully avoiding the icy frozen lake. With Text Hint:  
+
+> 1st frame
+
+Input Image: 
+
+Input Image: 
+
+(c) 
+
+(b) With Visual Hint:  
+
+> 1st frame
+
+(d)  
+
+> 1st frame
+
+A hand clicks the laser pointer. A thin, coherent beam emerges and enters the reddish colloidal 
+
+liquid. The beam becomes clearly visible as a bright, solid line cutting through the solution 
+
+Input Image: Generate the motion that an apple falls straight down as indicated 
+
+by the red arrow.  
+
+> 1st frame
+
+(a) Input Image: Gradually zoom in on the handbag. Keep the surrounding park and 
+
+benches softly blurred to emphasize the handbag's color. Without Hint :Figure 7: Failure Examples of Video Generative Models. Subfigure (a) shows that the Kling model prioritizes perceptual fidelity (e.g., wind and forest dynamics) over the intended reasoning trajectory of gradual zoom-in. Subfigures (b) to (d) reveal hallucinations and inconsistencies arising under different hint conditions. 
+
+Decoupling between generation quality and reasoning score. We observe a clear mismatch between overall generation quality (Avg) and RS, indicating that strong visual quality does not necessarily reflect strong reasoning ability. Some models achieve competitive Avg scores while exhibiting low RS, suggesting they generate visually coherent videos without correctly executing reasoning steps. An illustrative case is Kling, which achieves a high Avg score (65.1) but a low RS (13.8), showing that strong visual fidelity can coexist with weak process-level reasoning. As shown in Fig. 7, the Kling model prioritizes the fidelity of wind dynamics over faithfully following the zoom-in instruction and searching for the handbag. This decoupling suggests that reasoning is a distinct capability, underscoring the need for dedicated reasoning-centric evaluation. 
+
+Takeaway 1 
+
+Video generative models exhibit generally weak reasoning ability, and their reasoning perfor-mance shows no clear correlation with generation quality. 
+
+4.3 Result Analysis of Human Study Human   
+
+> Instruction
+> Alignmen t
+> Pass@5
+> Correctnes s
+> Reasoning
+> Score
+> (Ours)
+> Human Instruction
+> Alignmen t
+> Pass@5
+> Correctnes s
+> Reasoning
+> Score 1.0 0
+> 0.75
+> 0.50
+> 0.25
+> 0
+> -0.25
+> -0.50
+> -0.75
+> -1.00
+
+Figure 8: Human study spearman correlation map. In Section 4.1, we validate whether Reasoning Score (RS) aligns better with human judgment than existing metrics. As shown in Fig. 8, RS achieves the highest Spearman correlation (0.61), outperforming Instruction Alignment [20 ] (0.17) and contrasting with Pass@5 Correctness [ 37 ](-0.41), which supports the claim that our proposed RS better captures human reasoning behavior and is an effective metric for reasoning coherence evaluation. 94.4 Result Analysis of Text Hints Text hints consistently improve Reasoning Score but hurt consistency. Across 16 categories, the majority of models show positive RS changes when text hints are provided, for instance, Veo3.1 gains +4.5, Sora2 +7.6, and Cosmos Predict2-14B +6.7 at the overall average level, indicating that textual guidance helps models complete reasoning steps and improve task performance. However, this improvement comes at the cost of consistency: all of the 7 evaluated models experiencing CS degradation, Sora2 and Seedance 1.0-fast, suggesting that text hints broadly weaken temporal consistency and cross-video stability. Most strikingly, in 4D Dynamics Reasoning, all 7 models suffer CS drops under text hints (ranging from -1.2 to -15.6), raising the question of whether models are genuinely understanding the content or merely leveraging textual cues to produce superficially correct answers. As shown in Fig. 7(b)(c), these cases illustrate instruction-induced hallucination and inconsistency under textual hints. In the elf example, the model fails to ground the instruction in the original scene and instead ‘forks’ an extra elf to satisfy the motion directive, introducing a non-existent object and causing scene inconsistency. Overall, the model might overfits to textual hints and renders descriptions literally, prioritizing instruction completion over visual faithfulness and physical plausibility. 
+
+Takeaway 2 
+
+Text hints generally improve Reasoning Score, but consistently degrade Consistency Score and cause hallucination, suggesting that explicit guidance may shift model attention rather than enhance genuine understanding. Table 2: Evaluation results (visual-hint). We report Reasoning Score (RS) and Consistency Score (CS) in no-hint settings for items that have visual-hint, with visual-hint change in parentheses. Color: ↑ improvement , ↓ degradation . Only categories with visual-hint data are shown. 
+
+Category Metric Closed-Source Models Open-Source Models 
+
+Veo3.1 [69] Veo3.1-fast [69] Sora2 [53] Seedance 1.0-pro [17] Seedance 1.0-fast [17] Kling-v2.1 [57] Cosmos Predict [1] 4D Dynamics Reasoning RS 51.7( -0.4 ) 70.5( +8.5 ) 62.0( -3.9 ) 67.4( -25.8 ) 51.7( -6.6 ) 9.0( -5.6 ) 50.8( -7.0 ) CS 63.3( -15.6 ) 63.3( +2.2 ) 74.4( -12.2 ) 53.3( -4.4 ) 63.3( -21.1 ) 60.0( +3.3 ) 56.7( -2.2 ) 
+
+Avg 62.4( -10.9 ) 62.2( +5.1 ) 71.6( -17.1 ) 55.3( -5.8 ) 62.4( -23.8 ) 61.8( -1.3 ) 52.0( +0.7 ) Embodied Reasoning RS 60.8( +22.9 ) 91.2( -17.5 ) 68.8( -8.3 ) 50.4( +8.3 ) 63.8( +12.4 ) 9.2( -2.9 ) 22.4( +20.5 ) CS 60.0( +17.5 ) 80.0( -3.8 ) 70.0( +5.0 ) 51.2( +8.8 ) 57.1( +17.1 ) 23.8( +2.5 ) 55.7( +12.9 ) 
+
+Avg 61.5( +12.0 ) 81.0( -4.2 ) 69.2( +2.5 ) 58.8( +5.8 ) 60.3( +18.3 ) 42.0( +2.0 ) 56.3( +13.1 ) GUI Reasoning RS 27.5( +17.5 ) 82.5( +5.4 ) 48.3( +14.2 ) 25.0( +20.0 ) 27.5( +17.5 ) 2.1(0.0) 12.5(0.0) CS 50.0( +1.2 ) 60.0( -3.8 ) 40.0( +7.5 ) 35.0( -2.5 ) 50.0( +1.2 ) 71.2( +8.8 ) 35.0( +13.8 ) 
+
+Avg 49.8( +1.8 ) 61.0( -6.8 ) 38.2( +13.0 ) 33.8( -6.0 ) 49.8( +1.8 ) 64.0( +9.5 ) 33.2( +10.8 ) Medical Reasoning RS 35.7( +6.4 ) 31.9(0.0) 37.9( +7.7 ) 21.2( +21.5 ) 35.7( -6.4 ) 46.4( +10.0 ) 23.1( +10.6 ) CS 48.6( -12.9 ) 27.5( +5.0 ) 47.5( +17.5 ) 37.5( +23.8 ) 48.6( -2.9 ) 65.7(0.0) 31.2( -12.5 ) 
+
+Avg 48.9( -4.9 ) 29.2( +4.0 ) 56.8( +7.5 ) 40.0( +22.5 ) 48.9( +1.4 ) 72.0( -1.4 ) 26.0( +1.2 ) Object Counting Reasoning RS 40.0( +15.8 ) 60.8( -9.2 ) 76.7( +0.8 ) 36.7( -1.7 ) 37.5( +2.9 ) 9.2( +10.0 ) 26.7( -11.1 ) CS 40.0( -2.5 ) 58.8( -6.2 ) 75.0( -13.8 ) 48.8( -3.8 ) 28.8( +3.8 ) 70.0( +10.0 ) 35.0( +15.0 ) 
+
+Avg 46.5( -6.5 ) 58.0( -6.8 ) 76.2( -13.5 ) 50.0( -0.8 ) 36.5( +3.0 ) 82.0( -0.5 ) 35.7( +16.0 ) Table and Chart Reasoning RS 26.7( +31.2 ) 52.7( -7.3 ) 56.7( -2.9 ) 31.7( -9.3 ) 26.7( +21.9 ) 34.8( +17.1 ) 9.5( +26.9 ) CS 33.8( +8.8 ) 45.0( -16.2 ) 61.2( -7.5 ) 28.6( -5.7 ) 33.8( +8.8 ) 84.3( +5.7 ) 17.1( +15.7 ) 
+
+Avg 34.0( +6.0 ) 48.2( -18.0 ) 55.5( +7.8 ) 32.3( -6.3 ) 34.0( +4.5 ) 88.6( -8.0 ) 18.9( +13.7 ) Visual Detail Reasoning RS 27.8( -13.0 ) 45.8( +2.8 ) 37.6( +17.0 ) 22.6( -5.2 ) 27.8( -13.0 ) 4.2( -4.2 ) 12.5( +6.2 ) CS 54.4( -14.4 ) 56.7( -1.7 ) 20.0( +25.6 ) 47.8( -10.0 ) 54.4( -13.3 ) 68.8( -8.8 ) 42.5( +1.2 ) 
+
+Avg 56.4( -10.4 ) 62.7( -2.3 ) 23.6( +28.0 ) 54.0( -15.3 ) 56.4( -8.7 ) 77.0( -10.8 ) 41.8( +4.0 ) Visual Trace Reasoning RS 23.7( +6.1 ) 35.9( -2.8 ) 40.0( +10.0 ) 29.4( -2.8 ) 23.7( +15.5 ) 16.4(0.0) 15.3( +2.1 ) CS 40.0( +2.2 ) 27.8( +7.8 ) 61.1( -5.6 ) 32.2( -6.7 ) 40.0( +7.8 ) 27.8( +15.6 ) 12.5( +17.5 ) 
+
+Avg 42.0( +2.0 ) 34.4( +8.2 ) 59.6( -2.7 ) 40.0( -10.2 ) 42.0( +8.7 ) 52.2( +3.8 ) 14.5( +18.2 ) Average RS 36.9( +10.8 ) 58.9( -2.5 ) 53.5( +4.3 ) 35.5( +0.6 ) 36.8( +5.5 ) 16.4( +3.1 ) 21.6( +6.0 ) CS 48.8( -2.0 ) 52.4( -2.1 ) 56.2( +2.1 ) 41.8( -0.1 ) 47.0( +0.2 ) 58.9( +4.6 ) 35.7( +7.7 ) 
+
+Avg 50.2( -1.4 ) 54.6( -2.6 ) 56.3( +3.2 ) 45.5( -2.0 ) 48.8( +0.6 ) 67.4( -0.8 ) 34.8( +9.7 ) 
+
+10 4.5 Result Analysis of Visual Hints 
+
+Visual hints do not consistently improve performance and can even degrade results on fine-grained visual tasks such as Visual Detail and Object Counting Reasoning. As shown in Tab. 2, several models exhibit notable drops in both RS and CS under visual-hint settings for detail-sensitive categories. For example, in Visual Detail Reasoning, Veo3.1 shows a 13.0 drop in RS and 14.4 in CS, while Seedance-1.0-fast drops by 13.0 in RS and 13.3 in CS. We hypothesize that visual hints add salient cues that bias the model toward coarse hint-following rather than precise visual grounding, causing it to overlook subtle details and thus degrade consistency and reasoning accuracy. In contrast, visual hints are more beneficial for structured or spatially guided tasks such as Embodied and GUI Reasoning, where directional cues better align with the reasoning process. As shown in Fig. 7, visual hints can also induce hallucination and inconsistency, where the hint itself becomes part of the generated content. In many cases, the arrow used to indicate motion is implicitly rendered or transformed during generation (e.g., in Fig. 7(b) the arrow turning into a curved trajectory), suggesting that the model treats the visual hint as a drawable object rather than a guiding cue. We hypothesize that this behavior stems from training data distribution biases, where annotated visual markers (e.g., arrows, highlights) frequently co-occur with edited or synthetic content, leading the model to reproduce the hint as part of the scene instead of using it solely for guidance. 
+
+Takeaway 3 
+
+Visual hints are more effective for structured and spatially guided tasks but are less reliable for fine-grained visual tasks. They also introduce hallucinations by being mistakenly rendered as part of the scene. 
+
+4.6 Do More Hints Always Improve Reasoning Coherence? A Case Study Scaling visual hints:      
+
+> Scaling text hints:
+> Stage0: Generate the elf move to the gift.
+> Stage1: Generate the elf move to the gift, starting from
+> moving 2 cell right then 2 cell down.
+> Stage2: Generate the elf move to the gift, starting from
+> moving 2 cell right , 3 cell down then 2 cell right.
+> Reasoning Score
+> Stage
+> ……
+> Stage0 Stage1 Stage2 Stage6
+
+Figure 9: Scaling case study on Frozen Lake. 
+
+A natural question aris-ing from our hint analy-sis is whether providing more hints monotonically improves reasoning perfor-mance. To investigate this, we conduct a prelimi-nary scaling experiment on the Frozen Lake [ 60 ] using Sora2, progressively increas-ing the number of text and visual hints and measuring reasoning score accordingly. More specifically, as shown in the left part in Fig. 9, we define the scaling of stage by providing more visual (red arrows for potential directions) and cor-respondingly, more text instructions. For each setting, we roll out 10 times and report the average reasoning score. Results on the right suggest both text and visual hints generally yield reasoning scores above the no-hint baseline (0.23), suggesting that hint guidance is broadly beneficial. However, neither modality exhibits a monotonic improvement, both curves display substantial fluctuation across stages with no clear upward trend, indicating that current models cannot reliably leverage increasingly detailed hint information in a cumulative manner. This instability suggests that simply increasing hint information is insufficient to guarantee improved reasoning performance. This points to an open research direction: developing models capable of stably grounding multi-step hints into coherent reasoning trajectories. 
+
+5 Conclusion 
+
+In this work, we introduce MME-CoF-Pro, the first benchmark for reasoning coherence evaluation in video generative models. We propose Reasoning Score as process-level evaluation metric, and use 11 three hint settings: no-hint , text-hint , and visual-hint to further discover hint-guided performance. Our experiments across seven state-of-the-art models reveal that reasoning ability remains limited and is largely decoupled from generation quality. We further show that hints reshape model behavior in modality-specific ways: text hints generally improve step completion but often reduce consistency and induce hallucinations. Visual hints tend to have task-dependent effects, they are helpful for struc-tured and spatial reasoning, but less reliable for fine-grained perception and sometimes mistakenly incorporated into the scene itself. These findings suggest that current models tend to follow hints rather than truly ground them, highlighting the need for video generative models with stronger visual grounding, instruction understanding abilities and anti-hallucination mechanisms. 
+
+References 
+
+[1] Agarwal, N., Ali, A., Bala, M., Balaji, Y., Barker, E., Cai, T., Chattopadhyay, P., Chen, Y., Cui, Y., Ding, Y., et al.: Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575 (2025) [2] Ali, A., Bai, J., Bala, M., Balaji, Y., Blakeman, A., Cai, T., Cao, J., Cao, T., Cha, E., Chao, Y.W., et al.: World simulation with video foundation models for physical ai. arXiv preprint arXiv:2511.00062 (2025) [3] An, A., Sun, S., Huang, D., Cheng, M., Gao, Y., Li, J., Qiao, Y., Bian, J.: Can vision language models assess graphic design aesthetics? a benchmark, evaluation, and dataset perspective (2026), https://arxiv.org/abs/2603.01083 
+
+[4] An, R., Yang, S., Guo, Z., Dai, W., Shen, Z., Li, H., Zhang, R., Wei, X., Li, G., Wu, W., Zhang, W.: Genius: Generative fluid intelligence evaluation suite (2026), https://arxiv.org/abs/ 2602.11144 
+
+[5] Arnab, A., Iscen, A., Caron, M., Fathi, A., Schmid, C.: Temporal chain of thought: Long-video understanding by thinking in frames. arXiv preprint arXiv:2507.02001 (2025) [6] Bansal, H., Lin, Z., Xie, T., Zong, Z., Yarom, M., Bitton, Y., Jiang, C., Sun, Y., Chang, K.W., Grover, A.: Videophy: Evaluating physical commonsense for video generation. arXiv preprint arXiv:2406.03520 (2024) [7] Brockman, G., Cheung, V., Pettersson, L., Schneider, J., Schulman, J., Tang, J., Zaremba, W.: Openai gym. arXiv preprint arXiv:1606.01540 (2016) [8] Chen, H.H., Lan, D., Shu, W.J., Liu, Q., Wang, Z., Chen, S., Cheng, W., Chen, K., Zhang, H., Zhang, Z., et al.: Tivibench: Benchmarking think-in-video reasoning for video generative models. arXiv preprint arXiv:2511.13704 (2025) [9] Cheng, Z., Leng, S., Zhang, H., Xin, Y., Li, X., Chen, G., Zhu, Y., Zhang, W., Luo, Z., Zhao, D., et al.: Videollama 2: Advancing spatial-temporal modeling and audio understanding in video-llms. arXiv preprint arXiv:2406.07476 (2024) [10] Chi, X., Jia, P., Fan, C.K., Ju, X., Mi, W., Zhang, K., Qin, Z., Tian, W., Ge, K., Jia, Y., et al.: Wow: Scaling embodied omni-world model for generalizable manipulation simulation [11] Chi, X., Jia, P., Fan, C.K., Ju, X., Mi, W., Zhang, K., Qin, Z., Tian, W., Ge, K., Li, H., et al.: Wow: Towards a world omniscient world model through embodied interaction. arXiv preprint arXiv:2509.22642 (2025) [12] Comanici, G., Bieber, E., Schaekermann, M., Pasupat, I., Sachdeva, N., Dhillon, I., Blistein, M., Ram, O., Zhang, D., Rosen, E., et al.: Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 (2025) [13] Deng, A., Yang, T., Yu, S., Spencer, L., Bansal, M., Chen, C., Yeung-Levy, S., Wang, X.: Scivideobench: Benchmarking scientific video reasoning in large multimodal models. arXiv preprint arXiv:2510.08559 (2025) 12 [14] Duan, H., Yu, H.X., Chen, S., Fei-Fei, L., Wu, J.: Worldscore: A unified evaluation benchmark for world generation. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 27713–27724 (2025) [15] Fei, H., Wu, S., Ji, W., Zhang, H., Zhang, M., Lee, M.L., Hsu, W.: Video-of-thought: Step-by-step video reasoning from perception to cognition. arXiv preprint arXiv:2501.03230 (2024) [16] Gao, J., Pi, R., Zhang, J., Ye, J., Zhong, W., Wang, Y., Hong, L., Han, J., Xu, H., Li, Z., et al.: G-llava: Solving geometric problem with multi-modal large language model. arXiv preprint arXiv:2312.11370 (2023) [17] Gao, Y., Guo, H., Hoang, T., Huang, W., Jiang, L., Kong, F., Li, H., Li, J., Li, L., Li, X., et al.: Seedance 1.0: Exploring the boundaries of video generation models. arXiv preprint arXiv:2506.09113 (2025) [18] Guo, D., Yang, D., Zhang, H., Song, J., Wang, P., Zhu, Q., Xu, R., Zhang, R., Ma, S., Bi, X., et al.: Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025) [19] Guo, M.H., Chu, X., Yang, Q., Mo, Z.H., Shen, Y., Li, P.l., Lin, X., Zhang, J., Chen, X.S., Zhang, Y., et al.: Rbench-v: A primary assessment for visual reasoning models with multi-modal outputs. arXiv preprint arXiv:2505.16770 (2025) [20] Guo, Z., Chen, X., Zhang, R., An, R., Qi, Y., Jiang, D., Li, X., Zhang, M., Li, H., Heng, P.A.: Are video models ready as zero-shot reasoners? an empirical study with the mme-cof benchmark. arXiv preprint arXiv:2510.26802 (2025) [21] Haodong Chen, H., Lan, D., Shu, W.J., Liu, Q., Wang, Z., Chen, S., Cheng, W., Chen, K., Zhang, H., Zhang, Z., et al.: Tivibench: Benchmarking think-in-video reasoning for video generative models. arXiv e-prints pp. arXiv–2511 (2025) [22] He, X., Fan, Z., Li, H., Zhuo, F., Xu, H., Cheng, S., Weng, D., Liu, H., Ye, C., Wu, B.: Ruler-bench: Probing rule-based reasoning abilities of next-level video generation models for vision foundation intelligence. arXiv preprint arXiv:2512.02622 (2025) [23] Ho, J., Chan, W., Saharia, C., Whang, J., Gao, R., Gritsenko, A., Kingma, D.P., Poole, B., Norouzi, M., Fleet, D.J., et al.: Imagen video: High definition video generation with diffusion models. arXiv preprint arXiv:2210.02303 (2022) [24] Hong, W., Wang, W., Ding, M., Yu, W., Lv, Q., Wang, Y., Cheng, Y., Huang, S., Ji, J., Xue, Z., et al.: Cogvlm2: Visual language models for image and video understanding. arXiv preprint arXiv:2408.16500 (2024) [25] Hu, M., Chen, T., Zou, Y., Lei, Y., Chen, Q., Li, M., Mu, Y., Zhang, H., Shao, W., Luo, P.: Text2world: Benchmarking large language models for symbolic world model generation. In: Findings of the Association for Computational Linguistics: ACL 2025. pp. 26043–26066 (2025) [26] Hu, Y., Song, Z., Feng, N., Luo, Y., Yu, J., Chen, Y.P.P., Yang, W.: Sf2t: Self-supervised fragment finetuning of video-llms for fine-grained understanding. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 29108–29117 (2025) [27] Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al.: Vbench: Comprehensive benchmark suite for video generative models. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 21807–21818 (2024) [28] Jia, M., Qi, Z., Zhang, S., Zhang, W., Yu, X., He, J., Wang, H., Yi, L.: Omnispatial: To-wards comprehensive spatial reasoning benchmark for vision language models. arXiv preprint arXiv:2506.03135 (2025) [29] Jin, E., Hu, J., Huang, Z., Zhang, R., Wu, J., Fei-Fei, L., Mart ´ın-Mart ´ın, R.: Mini-behavior: A procedurally generated benchmark for long-horizon decision-making in embodied ai. arXiv preprint arXiv:2310.01824 (2023) 13 [30] Jing, M., Jia, M., Lin, J., Shen, Z., Gao, H., Xu, M., Li, S.: Beyond classification ac-curacy: Neural-medbench and the need for deeper reasoning benchmarks. arXiv preprint arXiv:2509.22258 (2025) [31] Kim, Y., Yim, M., Song, K.Y.: Tablevqa-bench: A visual question answering benchmark on multiple table domains. arXiv preprint arXiv:2404.19205 (2024) [32] Li, C., Wu, W., Zhang, H., Xia, Y., Mao, S., Dong, L., Vuli ´c, I., Wei, F.: Imagine while reasoning in space: Multimodal visualization-of-thought. arXiv preprint arXiv:2501.07542 (2025) [33] Li, K., Meng, Z., Lin, H., Luo, Z., Tian, Y., Ma, J., Huang, Z., Chua, T.S.: Screenspot-pro: Gui grounding for professional high-resolution computer use. In: Proceedings of the 33rd ACM International Conference on Multimedia. pp. 8778–8786 (2025) [34] Li, K., He, Y., Wang, Y., Li, Y., Wang, W., Luo, P., Wang, Y., Wang, L., Qiao, Y.: Videochat: Chat-centric video understanding. Science China Information Sciences 68 (10), 200102 (2025) [35] Li, K., Li, X., Wang, Y., He, Y., Wang, Y., Wang, L., Qiao, Y.: Videomamba: State space model for efficient video understanding. In: European conference on computer vision. pp. 237–255. Springer (2024) [36] Li, L., Bigverdi, M., Gu, J., Ma, Z., Yang, Y., Li, Z., Choi, Y., Krishna, R.: Unfolding spatial cog-nition: Evaluating multimodal models on visual simulations. arXiv preprint arXiv:2506.04633 (2025) [37] Li, Y., Gu, Y., Min, Y., Liu, Z., Du, Y., Zhou, K., Yang, M., Zhao, W.X., Qiu, M.: Viper: Process-aware evaluation for generative video reasoning. arXiv preprint arXiv:2512.24952 (2025) [38] Li, Z., Wang, X., Stengel-Eskin, E., Kortylewski, A., Ma, W., Van Durme, B., Yuille, A.L.: Super-clevr: A virtual benchmark to diagnose domain robustness in visual reasoning. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 14963–14973 (2023) [39] Liang, A., Kong, L., Yan, T., Liu, H., Yang, W., Huang, Z., Yin, W., Zuo, J., Hu, Y., Zhu, D., et al.: Worldlens: Full-spectrum evaluations of driving world models in real world. arXiv preprint arXiv:2512.10958 (2025) [40] Liao, R., Erler, M., Wang, H., Zhai, G., Zhang, G., Ma, Y., Tresp, V.: Videoinsta: Zero-shot long video understanding via informative spatial-temporal reasoning with llms. In: Findings of the Association for Computational Linguistics: EMNLP 2024. pp. 6577–6602 (2024) [41] Liu, X., Xu, Z., Li, M., Wang, K., Lee, Y.J., Shang, Y.: Can world simulators reason? gen-vire: A generative visual reasoning benchmark. arXiv preprint arXiv:2511.13853 (2025) [42] Liu, Y., Cun, X., Liu, X., Wang, X., Zhang, Y., Chen, H., Liu, Y., Zeng, T., Chan, R., Shan, Y.: Evalcrafter: Benchmarking and evaluating large video generation models. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 22139–22149 (2024) [43] Liu, Y., Zhang, K., Li, Y., Yan, Z., Gao, C., Chen, R., Yuan, Z., Huang, Y., Sun, H., Gao, J., et al.: Sora: A review on background, technology, limitations, and opportunities of large vision models. arXiv preprint arXiv:2402.17177 (2024) [44] Liu, Z., Xu, K., Su, B., Zou, X., Peng, Y., Zhou, J.: Stop: Integrated spatial-temporal dynamic prompting for video understanding. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 13776–13786 (2025) [45] Lu, H., Jian, H., Poppe, R., Salah, A.A.: Enhancing video transformers for action understanding with vlm-aided training. arXiv preprint arXiv:2403.16128 (2024) [46] Lu, P., Mishra, S., Xia, T., Qiu, L., Chang, K.W., Zhu, S.C., Tafjord, O., Clark, P., Kalyan, A.: Learn to explain: Multimodal reasoning via thought chains for science question answering. Advances in neural information processing systems 35 , 2507–2521 (2022) 14 [47] Luo, R., Zheng, Z., Wang, Y., Ni, X., Lin, Z., Jiang, S., Yu, Y., Shi, C., Wang, L., Chu, R., et al.: Unlocking multimodal mathematical reasoning via process reward model. arXiv preprint arXiv:2501.04686 (2025) [48] Luo, Y., Zhao, X., Lin, B., Zhu, L., Tang, L., Liu, Y., Chen, Y.C., Qian, S., Wang, X., You, Y.: V-reasonbench: Toward unified reasoning benchmark suite for video generation models. arXiv preprint arXiv:2511.16668 (2025) [49] Ma, W., Wang, C., Yuan, R., Chen, H., Dai, N., Zhou, S.K., Yang, Y., Yuille, A., Chen, J.: Causalspatial: A benchmark for object-centric causal spatial reasoning. arXiv preprint arXiv:2601.13304 (2026) [50] Maaz, M., Rasheed, H., Khan, F.S., Khan, S.: Video-r2: Reinforcing consistent and grounded reasoning in multimodal language models. arXiv preprint arXiv:2511.23478 (2025) [51] Maes, L., Lidec, Q.L., Haramati, D., Massaudi, N., Scieur, D., LeCun, Y., Balestriero, R.: stable-worldmodel-v1: Reproducible world modeling research and evaluation. arXiv preprint arXiv:2602.08968 (2026) [52] Masry, A., Do, X.L., Tan, J.Q., Joty, S., Hoque, E.: Chartqa: A benchmark for question answering about charts with visual and logical reasoning. In: Findings of the association for computational linguistics: ACL 2022. pp. 2263–2279 (2022) [53] Peng, X., Zheng, Z., Shen, C., Young, T., Guo, X., Wang, B., Xu, H., Liu, H., Jiang, M., Li, W., et al.: Open-sora 2.0: Training a commercial-level video generation model in 200 k. arXiv preprint arXiv:2503.09642 (2025) [54] Rasheed, H., Zumri, M., Maaz, M., Yang, M.H., Khan, F.S., Khan, S.: Video-com: Interactive video reasoning via chain of manipulations. arXiv preprint arXiv:2511.23477 (2025) [55] Royer, C., Menze, B., Sekuboyina, A.: Multimedeval: A benchmark and a toolkit for evaluating medical vision-language models. arXiv preprint arXiv:2402.09262 (2024) [56] Seedance, T., Chen, H., Chen, S., Chen, X., Chen, Y., Chen, Y., Chen, Z., Cheng, F., Cheng, T., Cheng, X., et al.: Seedance 1.5 pro: A native audio-visual joint generation foundation model. arXiv preprint arXiv:2512.13507 (2025) [57] Team, K., Chen, J., Ding, Y., Fang, Z., Gai, K., Gao, Y., He, K., Hua, J., Jiang, B., Lao, M., et al.: Klingavatar 2.0 technical report. arXiv preprint arXiv:2512.13313 (2025) [58] Tian, J., Li, S., He, C., Wu, L., Tan, C.: Envision: Benchmarking unified understanding & generation for causal world process insights. arXiv preprint arXiv:2512.01816 (2025) [59] Tong, J., Mou, Y., Li, H., Li, M., Yang, Y., Zhang, M., Chen, Q., Liang, T., Hu, X., Zheng, Y., et al.: Thinking with video: Video generation as a promising multimodal reasoning paradigm. arXiv preprint arXiv:2511.04570 (2025) [60] Towers, M., Kwiatkowski, A., Terry, J., Balis, J.U., De Cola, G., Deleu, T., Goul ˜ao, M., Kallinteris, A., Krimmel, M., KG, A., et al.: Gymnasium: A standard interface for reinforcement learning environments. arXiv preprint arXiv:2407.17032 (2024) [61] Walke, H.R., Black, K., Zhao, T.Z., Vuong, Q., Zheng, C., Hansen-Estruch, P., He, A.W., Myers, V., Kim, M.J., Du, M., et al.: Bridgedata v2: A dataset for robot learning at scale. In: Conference on Robot Learning. pp. 1723–1736. PMLR (2023) [62] Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.W., Chen, D., Yu, F., Zhao, H., Yang, J., et al.: Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 (2025) [63] Wang, G., Zhou, Y., He, Z., Lu, K., Feng, Y., Liu, Z., Wang, G.: Knowledge-guided pre-training and fine-tuning: Video representation learning for action recognition. Neurocomputing 571 ,127136 (2024) [64] Wang, M., Wang, R., Lin, J., Ji, R., Wiedemer, T., Gao, Q., Luo, D., Qian, Y., Huang, L., Hong, Z., et al.: A very big video reasoning suite. arXiv preprint arXiv:2602.20159 (2026) 15 [65] Wang, S., Pei, M., Sun, L., Deng, C., Shao, K., Tian, Z., Zhang, H., Wang, J.: Spatialviz-bench: An mllm benchmark for spatial visualization. arXiv preprint arXiv:2507.07610 (2025) [66] Wang, X., Zhu, Z., Huang, G., Wang, B., Chen, X., Lu, J.: Worlddreamer: Towards general world models for video generation via predicting masked tokens. arXiv preprint arXiv:2401.09985 (2024) [67] Wang, X., Wu, Z., Xie, J., Ding, Z., Yang, B., Li, Z., Liu, Z., Li, Q., Dong, X., Chen, Z., et al.: Mmbench-gui: Hierarchical multi-platform evaluation framework for gui agents. arXiv preprint arXiv:2507.19478 (2025) [68] Wang, Z., Liu, C., Zhang, S., Dou, Q.: Foundation model for endoscopy video analysis via large-scale self-supervised pre-train. In: International conference on medical image computing and computer-assisted intervention. pp. 101–111. Springer (2023) [69] Wiedemer, T., Li, Y., Vicol, P., Gu, S.S., Matarese, N., Swersky, K., Kim, B., Jaini, P., Geirhos, R.: Video models are zero-shot learners and reasoners. arXiv preprint arXiv:2509.20328 (2025) [70] Xu, H., Ghosh, G., Huang, P.Y., Arora, P., Aminzadeh, M., Feichtenhofer, C., Metze, F., Zettlemoyer, L.: Vlm: Task-agnostic video-language model pre-training for video understanding. In: Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021. pp. 4227– 4239 (2021) [71] Yan, W., Zhang, Y., Abbeel, P., Srinivas, A.: Videogpt: Video generation using vq-vae and transformers. arXiv preprint arXiv:2104.10157 (2021) [72] Yang, C., Wan, H., Peng, Y., Cheng, X., Yu, Z., Zhang, J., Yu, J., Yu, X., Zheng, X., Zhou, D., et al.: Reasoning via video: The first evaluation of video models’ reasoning abilities through maze-solving tasks. arXiv preprint arXiv:2511.15065 (2025) [73] Yang, S., Xu, R., Xie, Y., Yang, S., Li, M., Lin, J., Zhu, C., Chen, X., Duan, H., Yue, X., et al.: Mmsi-bench: A benchmark for multi-image spatial intelligence. arXiv preprint arXiv:2505.23764 (2025) [74] Ye, J., Wu, Y., Gao, S., Huang, C., Li, S., Li, G., Fan, X., Zhang, Q., Gui, T., Huang, X.J.: Rotbench: A multi-level benchmark for evaluating the robustness of large language models in tool learning. In: Proceedings of the 2024 conference on empirical methods in natural language processing. pp. 313–333 (2024) [75] Yi, K., Gan, C., Li, Y., Kohli, P., Wu, J., Torralba, A., Tenenbaum, J.B.: Clevrer: Collision events for video representation and reasoning. arXiv preprint arXiv:1910.01442 (2019) [76] Yuan, Y., Zhang, H., Li, W., Cheng, Z., Zhang, B., Li, L., Li, X., Zhao, D., Zhang, W., Zhuang, Y., et al.: Videorefer suite: Advancing spatial-temporal object understanding with video llm. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 18970–18980 (2025) [77] Yue, X., Ni, Y., Zhang, K., Zheng, T., Liu, R., Zhang, G., Stevens, S., Jiang, D., Ren, W., Sun, Y., et al.: Mmmu: A massive multi-discipline multimodal understanding and reasoning benchmark for expert agi. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 9556–9567 (2024) [78] Zhang, C., Cherniavskii, D., Tragoudaras, A., Vozikis, A., Nijdam, T., Prinzhorn, D.W., Bodrac-ska, M., Sebe, N., Zadaianchuk, A., Gavves, E.: Morpheus: Benchmarking physical reasoning of video generative models with real physical experiments. arXiv preprint arXiv:2504.02918 (2025) [79] Zhang, R., Wei, X., Jiang, D., Guo, Z., Li, S., Zhang, Y., Tong, C., Liu, J., Zhou, A., Wei, B., et al.: Mavis: Mathematical visual instruction tuning with an automatic data engine. arXiv preprint arXiv:2407.08739 (2024) [80] Zhang, S., Hao, X., Tang, Y., Zhang, L., Wang, P., Wang, Z., Ma, H., Zhang, S.: Video-cot: A comprehensive dataset for spatiotemporal understanding of videos based on chain-of-thought. In: Proceedings of the 33rd ACM International Conference on Multimedia. pp. 12745–12752 (2025) 16 [81] Zhuang, W., Huang, X., Zhang, X., Zeng, J.: Math-puma: Progressive upward multimodal alignment to enhance mathematical reasoning. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 39, pp. 26183–26191 (2025) 17 6 Reproducibility Statement 
+
+We provide detailed information about the dataset sources, benchmark composition, prompts, and inference configurations in Appendix to facilitate reproducibility. 
+
+7 Ethical Statement 
+
+Our benchmark is designed to evaluate spatial reasoning and physical understanding in video-based environments. All scenes involve synthetic or everyday objects performing simple physical interactions (e.g., movement, collision, occlusion, and spatial relationships). The benchmark does not contain sensitive, harmful, or violent content. Human annotators and volunteers are involved in the evaluation pipeline as well as to assess model outputs. Before participating, annotators are provided with clear instructions describing the annotation tasks and evaluation criteria. All annotators and volunteers provide informed consent prior to participation and take part in the annotation process voluntarily. They may withdraw from the annotation process at any time. The benchmark is intended solely for academic research and aims to facilitate systematic evaluation of spatial reasoning capabilities in video generation models. It is not intended for any commercial, surveillance, or decision-making applications. 
+
+8 Data Source 
+
+MME-CoF-Pro comprises 27 diverse benchmarks and datasets, carefully selected to ensure com-prehensive coverage of relevant tasks and evaluation scenarios. We acknowledge all original data sources in Tab. 3 and strictly adhere to their respective licenses and usage terms. More specifically, the distribution of the data source for each category is listed as follows in Tab. 3. 
+
+9 Human Annotation Pipeline 
+
+To ensure annotation reliability, each sample was annotated and reviewed by multiple human anno-tators. The reasoning steps were initially drafted by Gemini 2.5 Pro [ 12 ] and subsequently refined through three rounds of manual verification and correction by 10 human annotators. Each annotator is a domain expert in computer science or is pursuing a relevant undergraduate degree in a related field. Images with visual hints were manually annotated using Photopea, while strictly preserving the original image resolution. During this process, annotators carefully cross-checked each reasoning step to ensure that it was (1) necessary for the intended reasoning trajectory and (2) unambiguously verifiable from the generated video. Any disagreements were resolved through discussion until consensus was reached. The final annotated reasoning steps represent the minimal set of necessary checkpoints required for successful task completion. This design reduces ambiguity while preserving evaluation consistency across annotators. 
+
+10 Human Study Experiment Details 
+
+More specifically, ten human participants took part in the study on a fully voluntary basis after providing informed consent. Participants were informed about the purpose of the study and were free to withdraw from the annotation process at any time without any penalty or consequences. The study involves only simple evaluation of model-generated videos and poses minimal risk to participants. No personally identifiable information was collected during the annotation process. The annotator group maintained a balanced distribution in terms of age and gender. Each participant was asked to score 10 videos numerically based on the coherence of the reasoning process rather than the visual generation quality. A portion of the study questionnaire is provided below. 
+
+> Human Study: Reasoning Quality Evaluation Please evaluate the quality of the reasoning process for each question (IDs 1–10). Score range: 0–10. Decimal scores are allowed (e.g., 7.5).
+
+18 Table 3: Overview of MME-CoF-Pro by Reasoning Category 
+
+Category Benchmark 
+
+Visual Detail Reasoning V* Bench [27] 3D Geometry Reasoning STARE [36] SpatialViz-Bench [65] Real-world Spatial Reasoning MMSI-Bench [73] OmniSpatial [28] Visual Trace Reasoning MVoT [32] FrozenLake [7] Mini-BEHAVIOR [29] OmniSpatial [28] RBench-V [19] SpatialViz-Bench [65] Physics-based Reasoning MMMU [77] ScienceQA [46] RBench-V [19] Natural Science Domain ScienceQA [46] 2D Geometry Reasoning G-LLaVA [16] Math-PUMA [81] MAVIS [79] RBench-V [19] URSA [47] Table and Chart Reasoning ChartQA [52] TableVQA [31] Object Counting Reasoning RBench-V [19] Super-CLEVR [38] GUI Reasoning ScreenSpot-Pro [33] MMBench-GUI [67] Medical Reasoning Neural-MedBench [30] MultiMedEval [55] Rotation Reasoning RotBench [74] Embodied Reasoning BridgeData-v2 [61] 4D Dynamics Reasoning CausalSpatial [49] Natural Science Domain RULER-Bench [22] Text-based Reasoning Thinking with Video [59] V-ReasonBench [48] Evaluation target: Based on whether the model behavior in the video satisfies the requirements of each question below, provide an overall assessment of the reasoning quality. Video description: The videos are generated by the Sora model. Each prompt corresponds to one video: videos/1/video.mp4 videos/10/video.mp4. The question ID matches the corresponding folder number. 
+
+The evaluation prompts and scoring protocols for Instruction Alignment [20 ] and Pass@5 Correct-ness [37 ] follow those defined in the original papers. We run the evaluation on the same batch of video, and calculate the Spearman Correlation. 
+
+11 Model Inference Configurations 
+
+All models are evaluated using their default inference configurations and recommended resolutions provided by the official APIs or repository. We provide details in Tab. 4. 19 Table 4: Default inference configurations for evaluated video generation models. When configurable, we follow the recommended settings from the official implementations or APIs.                         
+
+> Model Resolution Duration FPS Veo-3.1 [69] 1280 ×720 8s 24 Veo-3.1-fast [69] 1280 ×720 8s 24 Sora-2 [53] 1280 ×720 4s 30 Seedance-1.0-pro [17] 1920 ×1280 5s 24 Seedance-1.0-fast [17] 1280 ×720 5s 24 Kling-v2.1 [57] 1280 ×720 5s 24 Cosmos Predict-2.0-14B [1] 1280 ×720 5s 24
+
+12 Detailed Experiment Results 
+
+We provide the full experiment results in Tab. 5 and Tab. 6 regarding the four dimensions under generation quality: Temporal Consistency , Visual Stability , Hallucination , Physics Grounding . The remaining Consistency Score , which is used to evaluate the content consistency, is reported in the main paper. Reasoning Score , which is used to evaluation reasoning coherence, is also reported in the main paper. 20 Table 5: Evaluation results (text-hint): Temporal Consistency, Visual Stability, Hallucination, Physics Grounding. We report no-hint score (0-9 mean as %); parenthetical change is text-hint 
+
+minus no-hint. ↑ improvement , ↓ degradation . 
+
+Category Metric Closed-Source Models Open-Source Models 
+
+Veo3.1 [69] Veo3.1-fast [69] Sora2 [53] Seedance 1.0-pro [17] Seedance 1.0-fast [17] Kling-v2.1 [57] Cosmos Predict Visual Detail Reasoning TC 64.8( -7.4 ) 55.6( -2.0 ) 22.8( +11.7 ) 60.1( +9.2 ) 64.8( -7.4 ) 76.4( -6.2 ) 37.7( -8.0 ) VS 61.7( -1.9 ) 51.6( -2.0 ) 36.4( +5.6 ) 58.2( +7.2 ) 61.7( -1.9 ) 88.2( -17.4 ) 43.8( -7.4 ) Hallu 66.7( -4.9 ) 74.5( -6.5 ) 38.3( +30.9 ) 66.0( +1.3 ) 66.7( -4.9 ) 88.2( +4.2 ) 45.1( -9.3 ) PG 67.9( -0.6 ) 80.4( -5.2 ) 47.5( +13.0 ) 64.7( +10.5 ) 67.9( -0.6 ) 79.2( -4.9 ) 43.8( -11.1 ) Embodied Reasoning TC 65.9( -4.8 ) 68.3( +11.5 ) 76.6( -8.7 ) 66.7( -3.2 ) 65.9( -4.8 ) 72.0( -11.9 ) 56.8( -1.7 ) VS 71.0( -2.0 ) 71.0( +11.5 ) 80.6( -8.3 ) 69.4( -4.4 ) 71.0( -2.0 ) 85.4( -1.9 ) 66.7( -4.3 ) Hallu 66.3( -4.4 ) 72.6( +12.3 ) 71.0( -6.7 ) 60.7( -0.8 ) 66.3( -4.4 ) 88.9( +4.2 ) 67.9( -6.4 ) PG 63.5(0.0) 70.6( +10.7 ) 66.7( -2.4 ) 69.4( -10.3 ) 63.5(0.0) 9.2( +0.4 ) 56.0( +4.3 ) Object Counting Reasoning TC 41.4( -0.6 ) 40.1( +12.3 ) 67.3( -6.5 ) 48.4( -11.8 ) 41.4( -0.6 ) 94.8( -6.5 ) 40.1( +15.4 ) VS 49.4(0.0) 64.8( +6.8 ) 89.5( -5.9 ) 49.7( -1.3 ) 49.4(0.0) 100.0( -5.9 ) 48.1( +14.8 ) Hallu 28.4( +6.8 ) 51.2( +2.5 ) 79.7( -1.3 ) 28.8( +5.9 ) 28.4( +6.8 ) 94.1( +2.0 ) 34.6( +11.1 ) PG 51.2( +7.4 ) 64.2( +8.6 ) 79.1( +6.5 ) 51.0( -3.3 ) 51.2( +7.4 ) 82.4( -4.6 ) 42.6( +17.9 ) Table and Chart Reasoning TC 43.2( -1.2 ) 46.3( -5.6 ) 64.2( -2.5 ) 34.1( -7.9 ) 43.2( -1.2 ) 100.0( -7.1 ) 33.3( +1.9 ) VS 46.3( +1.9 ) 51.9( -15.4 ) 80.2( +3.1 ) 34.1( -11.9 ) 46.3( +1.9 ) 100.0( -7.1 ) 45.1( +11.1 ) Hallu 37.0( -3.7 ) 37.7( -6.8 ) 80.2( -10.5 ) 23.8( -9.5 ) 37.0( -3.7 ) 96.0( +3.2 ) 30.2( +1.9 ) PG 43.2( +9.9 ) 52.5( -6.8 ) 74.7( -2.5 ) 40.5( -13.5 ) 43.2( +9.9 ) 97.6( -17.5 ) 42.0( +0.6 ) 2D Geometry Reasoning TC 48.9( -7.8 ) 29.6( +27.2 ) 71.1( +10.0 ) 51.1( +8.9 ) 48.9( -7.8 ) 60.0( +40.0 ) 23.3( +13.3 ) VS 52.2( -1.1 ) 51.9( +9.9 ) 86.7( +7.8 ) 63.3( +17.8 ) 52.2( -1.1 ) 71.1( +28.9 ) 32.2( +12.2 ) Hallu 25.6( +11.1 ) 32.1( -2.5 ) 76.7( -7.8 ) 30.0( +11.1 ) 25.6( +11.1 ) 100.0( -11.1 ) 26.7( -3.3 ) PG 36.7( +3.3 ) 28.4( +17.3 ) 73.3( +2.2 ) 47.8( +14.4 ) 36.7( +3.3 ) 41.1(0.0) 28.9( -7.8 ) GUI Reasoning TC 58.6( -3.7 ) 65.4( +4.3 ) 45.1( +23.6 ) 40.7( +1.9 ) 58.6( -3.7 ) 89.5( -4.9 ) 48.8( +1.9 ) VS 65.4( +4.9 ) 75.9( +4.9 ) 69.4( +15.3 ) 50.0( -3.1 ) 65.4( +4.9 ) 90.1( -0.6 ) 53.7( +13.0 ) Hallu 53.7( -7.4 ) 71.6( +1.9 ) 60.4( +20.1 ) 24.7( +4.9 ) 53.7( -7.4 ) 94.4( +4.3 ) 40.7( +20.4 ) PG 53.1( -3.1 ) 77.2( -7.4 ) 48.6( +9.7 ) 31.5( +5.6 ) 53.1( -3.1 ) 6.8( +8.0 ) 32.7( +2.5 ) Physics-based Reasoning TC 39.4( +3.3 ) 37.8( -1.1 ) 44.4( +6.1 ) 59.0( -12.0 ) 39.4( +3.3 ) 57.3( +14.5 ) 42.6( -7.4 ) VS 47.8( +6.7 ) 43.3( -2.2 ) 66.1( +11.1 ) 61.5( -4.3 ) 47.8( +6.7 ) 100.0(0.0) 42.0( -1.9 ) Hallu 33.9( +12.8 ) 42.8( -5.6 ) 60.0( +12.8 ) 49.6( -1.7 ) 33.9( +12.8 ) 100.0( -2.6 ) 28.4(0.0) PG 18.3( +0.6 ) 35.6( -12.8 ) 37.2( +5.0 ) 41.9( -12.0 ) 18.3( +0.6 ) 7.7( +0.9 ) 21.6( +10.5 ) Text-based Reasoning TC 70.5( -9.7 ) 61.7( +12.2 ) 68.1( -8.2 ) 67.6( -5.3 ) 70.5( -9.7 ) 56.5( -5.3 ) 57.0( -2.4 ) VS 74.4( -12.1 ) 76.1( +6.7 ) 81.2( -6.3 ) 75.4( -1.9 ) 74.4( -12.1 ) 64.3( -0.5 ) 65.2( -4.3 ) Hallu 47.8( -3.4 ) 41.7( +5.6 ) 63.8( -5.3 ) 40.6( -11.6 ) 47.8( -3.4 ) 92.3( -10.1 ) 37.7( +0.5 ) PG 72.9( -10.1 ) 68.3( +13.3 ) 84.1( -5.8 ) 71.5( +0.5 ) 72.9( -10.1 ) 44.4(0.0) 62.3( -10.1 ) 3D Geometry Reasoning TC 47.5( -12.3 ) 41.4( -7.4 ) 43.2( +3.7 ) 37.3( -3.9 ) 47.5( -12.3 ) 71.9( +15.7 ) 37.0( +7.4 ) VS 38.3( -3.7 ) 40.7( -7.4 ) 46.3( +1.2 ) 41.2( -5.9 ) 38.3( -3.7 ) 83.7( +3.3 ) 40.7( +11.7 ) Hallu 27.2( -1.9 ) 29.0( -1.2 ) 47.5( -13.6 ) 22.2( -3.9 ) 27.2( -1.9 ) 94.8( -2.0 ) 34.6( +6.2 ) PG 27.2( -6.2 ) 27.8( -1.2 ) 40.7( +1.9 ) 28.1( -2.6 ) 27.2( -6.2 ) 7.2( -2.6 ) 16.7( +19.8 ) Medical Reasoning TC 62.1( +3.9 ) 29.6( -4.3 ) 71.0( -9.9 ) 48.8( +4.3 ) 62.1( +3.9 ) 78.4( +10.5 ) 38.9( +1.2 ) VS 54.9( +7.2 ) 23.5( -1.2 ) 74.7( -5.6 ) 42.6( +2.5 ) 54.9( +7.2 ) 79.6( +9.9 ) 36.4( +8.0 ) Hallu 58.8( -3.3 ) 25.3( -3.1 ) 90.7( -12.3 ) 47.5( -6.8 ) 58.8( -3.3 ) 85.2(0.0) 45.1( +13.0 ) PG 58.8( +9.8 ) 25.3(0.0) 90.1( -22.2 ) 40.7( +5.6 ) 58.8( +9.8 ) 58.6( -11.1 ) 38.9( +9.9 ) Real-world Spatial Reasoning TC 60.5( -8.6 ) 72.5( -7.2 ) 73.9( -5.9 ) 54.9( +0.6 ) 60.5( -8.6 ) 67.3( +16.7 ) 48.1( +12.3 ) VS 71.6( -11.7 ) 75.2( +2.0 ) 80.4( +1.3 ) 64.2(0.0) 71.6( -11.7 ) 89.5( +4.9 ) 60.5( +5.6 ) Hallu 60.5( -2.5 ) 67.3( +9.8 ) 57.5( +12.4 ) 47.5( +9.9 ) 60.5( -2.5 ) 87.0( -0.6 ) 50.6( +9.9 ) PG 64.2( -2.5 ) 74.5( +0.7 ) 79.7( -2.6 ) 63.6( -3.1 ) 64.2( -2.5 ) 84.0( -8.6 ) 55.6( +9.3 ) Visual Logical Reasoning TC 44.4( -13.5 ) 47.5( -3.5 ) 63.1( -7.6 ) 31.4( +3.9 ) 44.4( -13.5 ) 83.1( -12.6 ) 25.9( +3.2 ) VS 50.7( -11.1 ) 60.1( +2.0 ) 84.8( -10.6 ) 38.6( +3.9 ) 50.7( -11.1 ) 95.2( -1.9 ) 31.2( +6.3 ) Hallu 34.3( -6.3 ) 43.9( +2.0 ) 70.2( -0.5 ) 20.3( +11.1 ) 34.3( -6.3 ) 75.4( +6.3 ) 11.1( +19.0 ) PG 40.6( -8.7 ) 53.0( +4.0 ) 68.7( -2.0 ) 32.0( +5.9 ) 40.6( -8.7 ) 54.1( +10.1 ) 27.5( +11.6 ) 4D Dynamics Reasoning TC 65.4( -1.9 ) 66.0( +2.5 ) 78.4( -14.2 ) 62.3( -11.7 ) 65.4( -1.9 ) 83.3( -16.0 ) 47.5( -11.7 ) VS 76.5(0.0) 79.0(0.0) 88.3( -13.6 ) 72.8( -8.0 ) 76.5(0.0) 83.3( +4.9 ) 59.9( -6.2 ) Hallu 69.8( -5.6 ) 73.5( -6.2 ) 80.2( -8.6 ) 61.7( -11.1 ) 69.8( -5.6 ) 98.1( -8.0 ) 56.8( -10.5 ) PG 55.6( -10.5 ) 58.6( +2.5 ) 54.9( -9.3 ) 51.9( -4.3 ) 55.6( -10.5 ) 0.6(0.0) 34.0( -6.8 ) Natural Science Reasoning TC 65.2( +2.2 ) 57.4( +6.2 ) 62.3( +3.1 ) 70.1( -3.5 ) 65.2( +2.2 ) 83.3( -32.7 ) 59.3( -14.8 ) VS 74.1( -3.0 ) 69.1( +4.9 ) 73.5( +1.2 ) 77.1(0.0) 74.1( -3.0 ) 96.9( -7.4 ) 68.5( -16.7 ) Hallu 56.3( +7.4 ) 64.2( +13.0 ) 80.2( -7.4 ) 64.6( -1.4 ) 56.3( +7.4 ) 99.4( -4.3 ) 68.5( -25.0 ) PG 55.6( +3.0 ) 57.4( +13.0 ) 59.3( +6.2 ) 48.6( +2.8 ) 55.6( +3.0 ) 26.5( -9.3 ) 52.8( -5.6 ) Rotation Reasoning TC 52.1( -9.7 ) 39.6( +16.0 ) 76.4( -2.8 ) 40.5( +11.1 ) 52.1( -9.7 ) 94.1(0.0) 44.4( -2.6 ) VS 56.9( -12.5 ) 40.3( +11.8 ) 81.9( +3.5 ) 43.7( +12.7 ) 56.9( -12.5 ) 94.8( -0.7 ) 45.8( -6.5 ) Hallu 50.0( -10.4 ) 42.4( +3.5 ) 78.5( -2.1 ) 46.0( +7.1 ) 50.0( -10.4 ) 94.1( +3.7 ) 38.6( -7.8 ) PG 47.9( -24.3 ) 37.5( +6.9 ) 52.8( +4.9 ) 37.3( +19.0 ) 47.9( -24.3 ) 34.8( +17.0 ) 32.0( -9.2 ) Visual Trace Reasoning TC 50.0( -5.6 ) 49.7( +9.8 ) 59.9( +9.3 ) 44.4( -2.5 ) 50.0( -5.6 ) 63.6( -9.3 ) 14.4( +17.0 ) VS 74.1( -13.6 ) 69.3( -3.9 ) 90.7( +0.6 ) 64.2( +6.2 ) 74.1( -13.6 ) 89.5( -3.1 ) 33.3( +12.4 ) Hallu 56.8( -7.4 ) 56.2( -4.6 ) 80.9( -4.3 ) 54.3( -11.7 ) 56.8( -7.4 ) 88.3( +4.3 ) 27.5( -0.7 ) PG 40.1( +3.7 ) 52.3( +2.0 ) 64.2( +9.3 ) 38.3( +7.4 ) 40.1( +3.7 ) 12.3( +0.6 ) 17.0( +9.8 ) 
+
+21 Table 6: Evaluation results (visual-hint): Temporal Consistency, Visual Stability, Hallucina-tion, Physics Grounding. No-hint score (%); parenthetical change is visual-hint minus no-hint. 
+
+↑ improvement , ↓ degradation . Only categories with visual-hint data. 
+
+Category Metric Closed-Source Models Open-Source Models 
+
+Veo3.1 [69] Veo3.1-fast [69] Sora2 [53] Seedance 1.0-pro [17] Seedance 1.0-fast [17] Kling-v2.1 [57] Cosmos Predict 4D Dynamics Reasoning TC 67.9( -9.9 ) 67.9( +2.5 ) 74.1( -16.0 ) 63.0( -8.6 ) 67.9( -22.2 ) 88.9( -23.5 ) 51.9( +6.2 ) VS 77.8( -7.4 ) 77.8( +4.9 ) 87.7( -21.0 ) 76.5( -4.9 ) 77.8( -21.0 ) 88.9( +11.1 ) 69.1( +1.2 ) Hallu 75.3( -12.3 ) 72.8( +8.6 ) 86.4( -22.2 ) 64.2( -4.9 ) 75.3( -37.0 ) 98.8( +1.2 ) 67.9( -3.7 ) PG 55.6( -13.6 ) 56.8( +9.9 ) 66.7( -22.2 ) 44.4( -8.6 ) 55.6( -28.4 ) 0.0(0.0) 37.0( +2.5 ) Embodied Reasoning TC 69.4( +12.5 ) 86.1( -9.7 ) 70.8( +5.6 ) 63.9( +4.2 ) 68.3( +19.0 ) 50.0( -20.8 ) 60.3( +12.7 ) VS 76.4( +2.8 ) 95.8( -6.9 ) 79.2( +8.3 ) 72.2( +9.7 ) 74.6( +19.0 ) 75.0( +9.7 ) 76.2( +7.9 ) Hallu 75.0( +9.7 ) 93.1( +1.4 ) 86.1( -2.8 ) 61.1( +8.3 ) 71.4( +12.7 ) 75.0( +25.0 ) 66.7( +22.2 ) PG 54.2( +22.2 ) 86.1( -4.2 ) 70.8( -2.8 ) 72.2(0.0) 57.1( +31.7 ) 6.9( -5.6 ) 47.6( +15.9 ) GUI Reasoning TC 56.9(0.0) 59.7( -8.3 ) 34.7( +25.0 ) 41.7( -13.9 ) 56.9(0.0) 87.5( +12.5 ) 41.7( +6.9 ) VS 62.5( +5.6 ) 69.4( -2.8 ) 48.6( +20.8 ) 51.4( -9.7 ) 62.5( +5.6 ) 88.9( +11.1 ) 45.8( +13.9 ) Hallu 51.4( -5.6 ) 66.7( -8.3 ) 37.5( +12.5 ) 25.0( -8.3 ) 51.4( -5.6 ) 100.0(0.0) 34.7( +5.6 ) PG 50.0( +8.3 ) 76.4( -13.9 ) 47.2( +5.6 ) 30.6( +1.4 ) 50.0( +8.3 ) 0.0( +19.4 ) 23.6( +18.1 ) Medical Reasoning TC 57.1( -3.2 ) 37.5( +1.4 ) 43.1( +31.9 ) 50.0( +31.9 ) 57.1( +14.3 ) 85.7( -12.7 ) 30.6( -9.7 ) VS 55.6( -7.9 ) 26.4( +9.7 ) 58.3( +13.9 ) 45.8( +26.4 ) 55.6( +4.8 ) 85.7( -12.7 ) 30.6( -1.4 ) Hallu 49.2(0.0) 33.3(0.0) 79.2( -8.3 ) 38.9( +20.8 ) 49.2( -6.3 ) 76.2( +12.7 ) 27.8( +9.7 ) PG 55.6( -1.6 ) 34.7( +5.6 ) 81.9( -15.3 ) 45.8( +19.4 ) 55.6( -1.6 ) 79.4( +4.8 ) 20.8( +22.2 ) Object Counting Reasoning TC 52.8( -8.3 ) 37.5( +5.6 ) 63.9( -22.2 ) 63.9( -6.9 ) 40.3( +9.7 ) 88.9( -1.4 ) 37.0( +14.8 ) VS 55.6( -11.1 ) 75.0( -9.7 ) 87.5( -16.7 ) 65.3( -5.6 ) 45.8( +8.3 ) 100.0( -11.1 ) 44.4( +11.1 ) Hallu 33.3( -8.3 ) 63.9( -16.7 ) 93.1( -19.4 ) 27.8( +18.1 ) 25.0( -2.8 ) 88.9(0.0) 33.3( +20.4 ) PG 72.2( -5.6 ) 80.6( -9.7 ) 95.8( -1.4 ) 66.7( -5.6 ) 59.7( -2.8 ) 100.0( -1.4 ) 44.4( +25.9 ) Table and Chart Reasoning TC 38.9( -1.4 ) 56.9( -22.2 ) 55.6( +19.4 ) 41.3( -1.6 ) 38.9( -1.4 ) 100.0(0.0) 23.8( +4.8 ) VS 48.6( -6.9 ) 55.6( -20.8 ) 59.7( +16.7 ) 34.9( -4.8 ) 48.6( -6.9 ) 100.0(0.0) 25.4( +6.3 ) Hallu 37.5( +11.1 ) 48.6( -16.7 ) 72.2( +2.8 ) 31.7( -17.5 ) 37.5( +2.8 ) 100.0( -1.6 ) 7.9( +36.5 ) PG 26.4( +20.8 ) 56.9( -22.2 ) 52.8( +12.5 ) 39.7( -4.8 ) 26.4( +20.8 ) 98.4( -49.2 ) 28.6( +11.1 ) Visual Detail Reasoning TC 63.0( -12.3 ) 59.3( -1.9 ) 21.0( +22.2 ) 60.5( -9.9 ) 63.0( -13.6 ) 76.4( -9.7 ) 47.2( +2.8 ) VS 63.0( -7.4 ) 66.7( -9.3 ) 24.7( +29.6 ) 59.3( -12.3 ) 63.0( -6.2 ) 100.0( -11.1 ) 54.2(0.0) Hallu 64.2( -14.8 ) 75.9( -7.4 ) 27.2( +39.5 ) 63.0( -29.6 ) 64.2( -12.3 ) 100.0(0.0) 40.3( +8.3 ) PG 63.0( -7.4 ) 83.3( +7.4 ) 35.8( +35.8 ) 64.2( -22.2 ) 63.0( -1.2 ) 75.0( -29.2 ) 43.1( +9.7 ) Visual Trace Reasoning TC 45.7( -8.6 ) 28.4( +13.6 ) 49.4( +12.3 ) 40.7( -7.4 ) 45.7( +1.2 ) 69.1( -2.5 ) 8.3( +37.5 ) VS 66.7( -8.6 ) 55.6( +3.7 ) 86.4( -7.4 ) 61.7( -18.5 ) 66.7( +3.7 ) 88.9( +11.1 ) 22.2( +29.2 ) Hallu 45.7( +4.9 ) 34.6( +14.8 ) 70.4( -7.4 ) 43.2( -13.6 ) 45.7( +8.6 ) 87.7( -8.6 ) 25.0( +18.1 ) PG 30.9( +21.0 ) 42.0( +4.9 ) 56.8( -6.2 ) 40.7( -9.9 ) 30.9( +25.9 ) 13.6( +3.7 ) 11.1( -2.8 ) 
+
+22 13 Data Examples 
+
+We provide the following examples for visualizations. Text Hint :
+
+In the figure shown, let 'n' represent the length of 
+
+side AB of the inscribed rectangle ABCD, where n is 
+
+an undetermined value. With BC equal to 6.0 and the 
+
+diameter of circle O equal to 10.0. Generate an 
+
+auxiliary line in order to calculate the value of n. 
+
+In the figure shown, let 'n' represent the length of 
+
+side AB of the inscribed rectangle ABCD, where n is 
+
+an undetermined value. With BC equal to 6.0 and the 
+
+diameter of circle O equal to 10.0. Generate an 
+
+auxiliary line connecting point A and point C. 
+
+No Hint :
+
+Input Image: Input Image: Text Hint :
+
+The length of the unit of the square is known. Draw a
+
+auxiliary line to calculate the length of the segment 
+
+MO. The video ends once the connection process is 
+
+complete. 
+
+The length of the unit of the square is known. 
+
+Smoothly connecting point M and point N. The video 
+
+ends once the connection process is complete. 
+
+No Hint :
+
+Input Image: Input Image: 
+
+23 Text Hint :
+
+Rotate the pyramid 30 degrees toward the viewer 
+
+around the y -axis while keeping its shape unchanged. 
+
+Draw a bounding box around the pyramid. 
+
+Start with the pyramid centered near the origin 
+
+marker. Rotate the pyramid smoothly 30 degrees 
+
+toward the viewer around the y -axis , keeping its base 
+
+and edges rigid with no change in size or shape . Do 
+
+not translate the pyramid upward, downward, or 
+
+sideways. Draw a bounding box tightly around the 
+
+pyramid throughout the rotation to highlight the 
+
+object. The origin point remains fixed in the frame, 
+
+and the camera stays static with no zoom or pan. 
+
+Hold the final rotated position briefly. 
+
+No Hint :
+
+Input Image: Input Image: Text Hint :
+
+The dropper releases several drops of brown iodine 
+
+solution into the beaker. The camera holds as the 
+
+liquid quickly turns deep blue -black and spreads 
+
+uniformly with no bubbles or precipitate. 
+
+A beaker of cloudy starch suspension sits beside a 
+
+dropper of brown iodine solution. The dropper 
+
+releases several drops into the beaker. The camera 
+
+holds as the liquid quickly turns deep blue -black, 
+
+spreading uniformly with no bubbles or precipitate. 
+
+No Hint :
+
+Input Image: Input Image: 24 Text Hint :
+
+Animate the motion of releasing both blocks. Animate the motion of releasing both blocks and let 
+
+them move freely under gravity. The heavier mass 
+
+descends and the lighter rises, keeping tension and 
+
+acceleration physically accurate. 
+
+No Hint :
+
+Input Image: Input Image: Text Hint :
+
+A rectangular block labeled "W" rests on a 
+
+horizontal surface against a plain white background. 
+
+A force arrow labeled "F" pulls from the upper -right 
+
+corner at an angle θ above the horizontal, with a 
+
+dashed reference line. Generate an arrow indicating 
+
+the normal force in the image, with value labeled 
+
+either "<W", "=W" or ">W". The block moves right 
+
+at constant speed v while staying in contact with the 
+
+surface. 
+
+A rectangular block labeled "W" rests on a 
+
+horizontal surface against a plain white 
+
+background. A force arrow labeled "F" pulls from 
+
+the upper -right corner at an angle θ above the 
+
+horizontal, with a dashed reference line. Generate 
+
+an upward arrow at the contact point showing the 
+
+normal force, labeled "<W", and a downward 
+
+arrow showing the weight W. The block moves 
+
+right at constant speed v with smooth. 
+
+No Hint :
+
+Input Image: Input Image: Text Hint :
+
+Zoom in on the flag to focus 
+
+on its color. 
+
+Zoom in on the flag on the left 
+
+building to focus on its color. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Zoom in on the flag to focus on its 
+
+color as indicated by red bounding box. 
+
+Input Image: Input Image: 25 Text Hint :
+
+Starting at the red dot in the 
+
+middle -top cell, animate 
+
+moves to reach location B. 
+
+Starting at the red dot in the 
+
+middle -top cell, animate moves: 
+
+go first right, then down , to 
+
+reach location B. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Starting at the red dot in the middle -
+
+top cell, animate moves to reach 
+
+location B, as indicated by red arrow. 
+
+Input Image: Input Image: Text Hint :
+
+Generate the motion that 
+
+the elf starting from its 
+
+initial position and move 
+
+step -by -step to reach the 
+
+gift. 
+
+Generate the motion that the 
+
+elf starting from its initial 
+
+position and move 3 cells 
+
+down, then move 1 cell right to 
+
+reach the gift. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Starting at the red dot in the middle -
+
+top cell, animate moves to reach 
+
+location B, as indicated by red arrow. 
+
+Input Image: Input Image: Text Hint :
+
+Zoom in to focus on the 
+
+highest revenue from the 
+
+Asia -Pacific region in the 
+
+third column of the chart. 
+
+Zoom in to focus on the highest 
+
+revenue from the Asia -Pacific 
+
+region in the third column of the 
+
+chart. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Zoom in to focus on the highest 
+
+revenue from the Asia -Pacific region as 
+
+indicated by red bounding box. 
+
+Input Image: Input Image: 26 Text Hint :
+
+Draw bounding boxes 
+
+around the brown metal 
+
+mountain bikes. 
+
+Draw bounding boxes around 
+
+the brown metal mountain bikes 
+
+to the right of the origami crane 
+
+in the center of the image. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Draw bounding boxes around the 
+
+brown metal mountain bikes, as 
+
+indicated by red line. 
+
+Input Image: Input Image: Text Hint :
+
+Start with a full -view slice to 
+
+establish normal anatomy. 
+
+Then slowly zoom toward 
+
+any region that appears 
+
+abnormal in density or 
+
+shape while keeping nearby 
+
+tissue for comparison. Hold 
+
+briefly over the suspected 
+
+area to assess margins and 
+
+texture before deciding if a 
+
+mass is present. 
+
+Start with a full -view slice to 
+
+establish normal anatomy. Then 
+
+slowly zoom toward left region 
+
+that appears abnormal in 
+
+density or shape while keeping 
+
+nearby tissue for comparison. 
+
+Hold briefly over the suspected 
+
+area to assess margins and 
+
+texture before deciding if a mass 
+
+is present. 
+
+No Hint :
+
+Input Image: 
+
+Visual Hint :
+
+Start with a full -view slice to establish 
+
+normal anatomy. Then slowly zoom 
+
+toward any region that appears 
+
+abnormal in density or shape while 
+
+keeping nearby tissue for comparison 
+
+as indicated by red bounding box. Hold 
+
+briefly over the suspected area to 
+
+assess margins and texture before 
+
+deciding if a mass is present. 
+
+Input Image: Input Image: 27 14 Visualization Examples of Text and Visual Hint 
+
+We provide following examples to visualize the effect of text and visual hint to the generated videos. Animate the elf moving right and after some turns to reach the gift while carefully avoiding the icy frozen lake. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+Animate the elf moving right and then downwards and in the end turn right to reach the gift while carefully avoiding the icy frozen 
+
+lake. 
+
+Reasoning Video: Generate the motion that an apple falls straight down. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+Generate the motion that an apple falls straight down into the transparent container, collides with the apples inside, and is de flected 
+
+out of the container onto the table while the original apples remain inside. 
+
+Reasoning Video: 
+
+28 The camera shows a static tabletop scene on a wooden tray. Generate the motion that the red candle then moves slowly along th e w hite 
+
+arrow while all other objects remain stationary. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+The camera shows a static tabletop scene on a wooden tray. Generate the motion that the red candle then moves slowly along th e
+
+white arrow and partially occludes the black bottle while all other objects remain stationary. 
+
+Reasoning Video: Show the tic -tac -toe grid with one move remaining. Complete the board by placing the blue piece in the correct empty cell to win the 
+
+game. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+Show the tic -tac -toe grid clearly, centered in the frame. The board already contains several pieces, and Blue has a winning move 
+
+available. To win the game, place a blue “X ” in the center cell of the grid. After placing it, the final board should clearly show Blue 
+
+completing a winning line. 
+
+Reasoning Video: 29 A toy pickup truck is positioned on the floor facing several objects ahead. Generate the motion the truck begins moving forwa rd. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+A toy pickup truck is positioned on the floor facing several objects ahead. Generate the motion the truck begins moving forwa rd in a 
+
+straight line while all other objects remain stationary. As it continues moving, the truck doesn't collide with an object in fro nt of it and 
+
+immediately stops upon impact. 
+
+Reasoning Video: Generate the correct trajectory for the gripper to place the spatula into the pot. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+Generate the correct trajectory for the gripper to place the spatula in the gripper into the gray pot beneath it. The gripper sh ould 
+
+gradually move downwards, until the top of the pot, and then release on top of it. 
+
+Reasoning Video: 30 A toy pickup truck is positioned on the floor facing several objects ahead. Generate the motion the truck begins moving forwa rd. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Text Hint :
+
+A toy pickup truck is positioned on the floor facing several objects ahead. Generate the motion the truck begins moving forwa rd in a 
+
+straight line while all other objects remain stationary. As it continues moving, the truck doesn't collide with an object in fro nt of it and 
+
+immediately stops upon impact. 
+
+Reasoning Video: Generate the motion that an apple falls straight down. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Visual Hint :
+
+Generate the motion that an apple falls straight down as indicated by the red arrow. 
+
+Reasoning Video: 31 Generate the correct trajectory for the gripper to wipe the beans on the table from left to right. Static shot. 
+
+No Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video:  
+
+> 1st frame
+
+Input Image: 
+
+Visual Hint :
+
+Generate the correct trajectory for the gripper to wipe the beans on the table from left to right. Static shot. 
+
+Reasoning Video: Text -to -Video Prompt With Visual Hint :
+
+Generate the correct trajectory for the gripper to pick up the green cup. 
+
+Generate the correct trajectory for the gripper to pick up the green cup as indicated by red arrow. 
+
+Text -to -Video Prompt Without Hint :
+
+Input Image:  
+
+> 1st frame
+
+Reasoning Video Without Hint: 
+
+Reasoning Video With Visual Hint:  
+
+> 1st frame
+
+Input Image: 32

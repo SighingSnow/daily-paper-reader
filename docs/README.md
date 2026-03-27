@@ -6,91 +6,94 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-26
-- 运行时间：2026-03-26 20:42:57 UTC
+- 最新运行日期：2026-03-27
+- 运行时间：2026-03-27 20:31:49 UTC
 - 运行状态：成功
-- 本次总论文数：23
-- 精读区：11
+- 本次总论文数：24
+- 精读区：12
 - 速读区：12
 
 ### 今日简报（AI）
-聚焦AI Agents评测与代码生成，今日精读11篇论文揭示智能体前沿进展。
-推荐关注Data Agents能力基准测试，以及DomAgent如何利用知识图谱提升领域代码生成质量。
-建议深入了解智能体在数据分析任务中的表现瓶颈，并关注世界模型在安全关键场景的评估新思路。
-- 详情：[/202603/26/README](/202603/26/README)
+今日精读12篇论文，Coding Agent长周期退化问题获满分关注。
+满分论文揭示智能体在长周期迭代任务中性能显著退化，机器人操作框架CaP-X亦获高分推荐。
+建议关注智能体在长时间运行下的稳定性瓶颈，警惕“越用越笨”的风险。
+- 详情：[/202603/27/README](/202603/27/README)
 
 ### 精读区论文标签
-1. [Can AI Agents Answer Your Data Questions? A Benchmark for Data Agents](/202603/26/2603.20576v1-can-ai-agents-answer-your-data-questions-a-benchmark-for-data-agents)  
+1. [SlopCodeBench: Benchmarking How Coding Agents Degrade Over Long-Horizon Iterative Tasks](/202603/27/2603.24755v1-slopcodebench-benchmarking-how-coding-agents-degrade-over-long-horizon-iterative-tasks)  
+   标签：评分：10.0/10、query:agent
+   evidence：评估代码智能体的基准
+2. [CaP-X: A Framework for Benchmarking and Improving Coding Agents for Robot Manipulation](/202603/27/2603.22435v1-cap-x-a-framework-for-benchmarking-and-improving-coding-agents-for-robot-manipulation)  
    标签：评分：9.0/10、query:agent
-   evidence：通过自然语言查询和搜索数据的AI智能体
-2. [DomAgent: Leveraging Knowledge Graphs and Case-Based Reasoning for Domain-Specific Code Generation](/202603/26/2603.21430v2-domagent-leveraging-knowledge-graphs-and-case-based-reasoning-for-domain-specific-code-generation)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于领域特定代码生成的自主编程智能体
-3. [T-MAP: Red-Teaming LLM Agents with Trajectory-aware Evolutionary Search](/202603/26/2603.22341v1-t-map-red-teaming-llm-agents-with-trajectory-aware-evolutionary-search)  
-   标签：评分：9.0/10、query:agent
-   evidence：针对LLM智能体的轨迹感知进化搜索红队测试
-4. [VTAM: Video-Tactile-Action Models for Complex Physical Interaction Beyond VLAs](/202603/26/2603.23481v1-vtam-video-tactile-action-models-for-complex-physical-interaction-beyond-vlas)  
+   evidence：用于机器人操作编码智能体基准测试的框架
+3. [WildWorld: A Large-Scale Dataset for Dynamic World Modeling with Actions and Explicit State toward Generative ARPG](/202603/27/2603.23497v1-wildworld-a-large-scale-dataset-for-dynamic-world-modeling-with-actions-and-explicit-state-toward-generative-arpg)  
    标签：评分：9.0/10、query:wmodel
-   evidence：融合触觉感知的多模态世界建模框架，用于具身智能
-5. [Echoes: A semantically-aligned music deepfake detection dataset](/202603/26/2603.23667v1-echoes-a-semantically-aligned-music-deepfake-detection-dataset)  
+   evidence：用于动态世界建模的大规模数据集
+4. [AI-Supervisor: Autonomous AI Research Supervision via a Persistent Research World Model](/202603/27/2603.24402v2-ai-supervisor-autonomous-ai-research-supervision-via-a-persistent-research-world-model)  
+   标签：评分：9.0/10、query:agent
+   evidence：多智能体编排框架与持久化研究世界模型
+5. [CUA-Suite: Massive Human-annotated Video Demonstrations for Computer-Use Agents](/202603/27/2603.24440v1-cua-suite-massive-human-annotated-video-demonstrations-for-computer-use-agents)  
+   标签：评分：9.0/10、query:agent
+   evidence：面向计算机使用智能体的大规模视频演示数据集生态系统
+6. [Composer 2 Technical Report](/202603/27/2603.24477v1-composer-2-technical-report)  
+   标签：评分：9.0/10、query:agent
+   evidence：专为智能体软件工程设计的编码智能模型
+7. [Composer 2 Technical Report](/202603/27/2603.24477v2-composer-2-technical-report)  
+   标签：评分：9.0/10、query:agent
+   evidence：专为智能体软件工程设计的编程智能模型
+8. [Lingshu-Cell: A generative cellular world model for transcriptome modeling toward virtual cells](/202603/27/2603.25240v1-lingshu-cell-a-generative-cellular-world-model-for-transcriptome-modeling-toward-virtual-cells)  
    标签：评分：9.0/10、query:wmodel
-   evidence：用于音乐深度伪造检测基准的数据集
-6. [AgenticNet: Utilizing AI Coding Agents To Create Hybrid Network Experiments](/202603/26/2603.23763v1-agenticnet-utilizing-ai-coding-agents-to-create-hybrid-network-experiments)  
+   evidence：明确的生成式细胞世界模型用于转录组模拟
+9. [From Intent to Evidence: A Categorical Approach for Structural Evaluation of Deep Research Agents](/202603/27/2603.25342v1-from-intent-to-evidence-a-categorical-approach-for-structural-evaluation-of-deep-research-agents)  
    标签：评分：9.0/10、query:agent
-   evidence：用于创建网络实验的AI编程智能体
-7. [The Specification Gap: Coordination Failure Under Partial Knowledge in Code Agents](/202603/26/2603.24284v1-the-specification-gap-coordination-failure-under-partial-knowledge-in-code-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：基于LLM的代码智能体协调与集成研究
-8. [AI-Supervisor: Autonomous AI Research Supervision via a Persistent Research World Model](/202603/26/2603.24402v1-ai-supervisor-autonomous-ai-research-supervision-via-a-persistent-research-world-model)  
-   标签：评分：9.0/10、query:agent
-   evidence：多智能体编排框架用于自主AI研究监督
-9. [OneSearch-V2: The Latent Reasoning Enhanced Self-distillation Generative Search Framework](/202603/26/2603.24422v1-onesearch-v2-the-latent-reasoning-enhanced-self-distillation-generative-search-framework)  
-   标签：评分：9.0/10、query:agent
-   evidence：具有潜在推理的生成式搜索框架
-10. [Toward Physically Consistent Driving Video World Models under Challenging Trajectories](/202603/26/2603.24506v1-toward-physically-consistent-driving-video-world-models-under-challenging-trajectories)  
+   evidence：基于范畴论的深度研究智能体评估框架
+10. [Out of Sight but Not Out of Mind: Hybrid Memory for Dynamic Video World Models](/202603/27/2603.25716v1-out-of-sight-but-not-out-of-mind-hybrid-memory-for-dynamic-video-world-models)  
    标签：评分：9.0/10、query:wmodel
-   evidence：提出PhyGenesis世界模型用于驾驶视频生成
-11. [AVO: Agentic Variation Operators for Autonomous Evolutionary Search](/202603/26/2603.24517v1-avo-agentic-variation-operators-for-autonomous-evolutionary-search)  
+   evidence：视频世界模型与混合记忆及数据集
+11. [Agent Factories for High Level Synthesis: How Far Can General-Purpose Coding Agents Go in Hardware Optimization?](/202603/27/2603.25719v1-agent-factories-for-high-level-synthesis-how-far-can-general-purpose-coding-agents-go-in-hardware-optimization)  
    标签：评分：9.0/10、query:agent
-   evidence：用于进化搜索优化的自主编程智能体
+   evidence：智能体工厂框架，构建和协调多个自主编码智能体进行硬件优化
+12. [Natural-Language Agent Harnesses](/202603/27/2603.25723v1-natural-language-agent-harnesses)  
+   标签：评分：9.0/10、query:agent
+   evidence：智能体框架，使用自然语言线束并在编码基准上测试
 
 ### 速读区论文标签
-1. [CounterScene: Counterfactual Causal Reasoning in Generative World Models for Safety-Critical Closed-Loop Evaluation](/202603/26/2603.21104v1-counterscene-counterfactual-causal-reasoning-in-generative-world-models-for-safety-critical-closed-loop-evaluation)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：生成式世界模型结合智能体因果推理
-2. [The Library Theorem: How External Organization Governs Agentic Reasoning Capacity](/202603/26/2603.21272v1-the-library-theorem-how-external-organization-governs-agentic-reasoning-capacity)  
+1. [Conflict-Based Search for Multi Agent Path Finding with Asynchronous Actions](/202603/27/2603.18866v2-conflict-based-search-for-multi-agent-path-finding-with-asynchronous-actions)  
    标签：评分：8.0/10、query:agent
-   evidence：工具增强智能体外部记忆推理能力的理论分析
-3. [FluidWorld: Reaction-Diffusion Dynamics as a Predictive Substrate for World Models](/202603/26/2603.21315v1-fluidworld-reaction-diffusion-dynamics-as-a-predictive-substrate-for-world-models)  
+   evidence：多智能体路径规划算法
+2. [EgoForge: Goal-Directed Egocentric World Simulator](/202603/27/2603.20169v1-egoforge-goal-directed-egocentric-world-simulator)  
    标签：评分：8.0/10、query:wmodel
-   evidence：提出FluidWorld世界模型，使用PDE进行预测动力学
-4. [AdaRubric: Task-Adaptive Rubrics for LLM Agent Evaluation](/202603/26/2603.21362v1-adarubric-task-adaptive-rubrics-for-llm-agent-evaluation)  
+   evidence：以自我为中心的目标导向世界模拟器
+3. [Bypassing Document Ingestion: An MCP Approach to Financial Q&A](/202603/27/2603.20316v1-bypassing-document-ingestion-an-mcp-approach-to-financial-qa)  
    标签：评分：8.0/10、query:agent
-   evidence：LLM智能体评估框架，包含代码调试和网页导航任务
-5. [Identity as Presence: Towards Appearance and Voice Personalized Joint Audio-Video Generation](/202603/26/2603.17889v3-identity-as-presence-towards-appearance-and-voice-personalized-joint-audio-video-generation)  
+   evidence：使用MCP协议通过API工具搜索检索金融数据的LLM智能体
+4. [Do World Action Models Generalize Better than VLAs? A Robustness Study](/202603/27/2603.22078v1-do-world-action-models-generalize-better-than-vlas-a-robustness-study)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：基于世界模型构建的世界动作模型用于机器人动作规划
+5. [ConSearcher: Supporting Conversational Information Seeking in Online Communities with Member Personas](/202603/27/2603.19747v1-consearcher-supporting-conversational-information-seeking-in-online-communities-with-member-personas)  
    标签：评分：7.0/10、query:agent
-   evidence：身份感知音视频生成的统一框架
-6. [DarkDriving: A Real-World Day and Night Aligned Dataset for Autonomous Driving in the Dark Environment](/202603/26/2603.18067v2-darkdriving-a-real-world-day-and-night-aligned-dataset-for-autonomous-driving-in-the-dark-environment)  
+   evidence：基于LLM的对话式搜索工具用于信息检索
+6. [MME-CoF-Pro: Evaluating Reasoning Coherence in Video Generative Models with Text and Visual Hints](/202603/27/2603.20194v1-mme-cof-pro-evaluating-reasoning-coherence-in-video-generative-models-with-text-and-visual-hints)  
    标签：评分：7.0/10、query:wmodel
-   evidence：提出新的自动驾驶研究基准数据集
-7. [Physion-Eval: Evaluating Physical Realism in Generated Video via Human Reasoning](/202603/26/2603.19607v1-physion-eval-evaluating-physical-realism-in-generated-video-via-human-reasoning)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：大规模基准数据集，用于评估世界模拟器和视频生成模型
-8. [AIGQ: An End-to-End Hybrid Generative Architecture for E-commerce Query Recommendation](/202603/26/2603.19710v1-aigq-an-end-to-end-hybrid-generative-architecture-for-e-commerce-query-recommendation)  
+   evidence：视频生成模型作为世界模拟器，提供基准数据集
+7. [Speedup Patch: Learning a Plug-and-Play Policy to Accelerate Embodied Manipulation](/202603/27/2603.20658v1-speedup-patch-learning-a-plug-and-play-policy-to-accelerate-embodied-manipulation)  
    标签：评分：7.0/10、query:agent
-   evidence：用于搜索系统的端到端查询推荐生成框架
-9. [Interplay: Training Independent Simulators for Reference-Free Conversational Recommendation](/202603/26/2603.18573v1-interplay-training-independent-simulators-for-reference-free-conversational-recommendation)  
-   标签：评分：6.0/10、query:agent
-   evidence：训练独立LLM智能体进行对话模拟
-10. [Tursio Database Search: How far are we from ChatGPT?](/202603/26/2603.18835v1-tursio-database-search-how-far-are-we-from-chatgpt)  
-   标签：评分：6.0/10、query:agent
-   evidence：自然语言数据库搜索平台评估框架
-11. [Integrating Meta-Features with Knowledge Graph Embeddings for Meta-Learning](/202603/26/2603.19888v1-integrating-meta-features-with-knowledge-graph-embeddings-for-meta-learning)  
+   evidence：用于具身操作加速的策略无关即插即用框架
+8. [A Solicit-Then-Suggest Model of Agentic Purchasing](/202603/27/2603.20972v1-a-solicit-then-suggest-model-of-agentic-purchasing)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于产品搜索和推荐的AI购物智能体
+9. [V-Dreamer: Automating Robotic Simulation and Trajectory Synthesis via Video Generation Priors](/202603/27/2603.18811v1-v-dreamer-automating-robotic-simulation-and-trajectory-synthesis-via-video-generation-priors)  
    标签：评分：6.0/10、query:wmodel
-   evidence：使用元特征在数据集上进行元学习任务
-12. [Cerebra: Aligning Implicit Knowledge in Interactive SQL Authoring](/202603/26/2603.21363v1-cerebra-aligning-implicit-knowledge-in-interactive-sql-authoring)  
+   evidence：视频生成先验用于机器人仿真和轨迹合成，世界仿真框架
+10. [ReViSQL: Achieving Human-Level Text-to-SQL](/202603/27/2603.20004v1-revisql-achieving-human-level-text-to-sql)  
    标签：评分：6.0/10、query:agent
-   evidence：LLM驱动的交互式SQL编写工具含知识检索智能体
+   evidence：用于Text-to-SQL代码生成的AI智能体
+11. [ReBOL: Retrieval via Bayesian Optimization with Batched LLM Relevance Observations and Query Reformulation](/202603/27/2603.20513v1-rebol-retrieval-via-bayesian-optimization-with-batched-llm-relevance-observations-and-query-reformulation)  
+   标签：评分：6.0/10、query:agent
+   evidence：基于LLM的检索与迭代查询重写和相关性优化
+12. [User Preference Modeling for Conversational LLM Agents: Weak Rewards from Retrieval-Augmented Interaction](/202603/27/2603.20939v1-user-preference-modeling-for-conversational-llm-agents-weak-rewards-from-retrieval-augmented-interaction)  
+   标签：评分：6.0/10、query:agent
+   evidence：对话LLM智能体的流水线无关框架
 
 
 <div class="dpr-home-promo-card">
