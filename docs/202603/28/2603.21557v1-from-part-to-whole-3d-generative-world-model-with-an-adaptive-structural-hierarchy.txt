@@ -1,0 +1,323 @@
+Title: From Part to Whole: 3D Generative World Model with an Adaptive Structural Hierarchy
+
+URL Source: https://arxiv.org/pdf/2603.21557v1
+
+Published Time: Tue, 24 Mar 2026 01:47:01 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# From Part to Whole: 3D Generative World Model with an Adaptive Structural Hierarchy 
+
+Bi’an Du* 
+
+Wangxuan Institute of Computer Technology, Peking University Beijing, China pkudba@stu.pku.edu.cn 
+
+Daizong Liu* 
+
+Institute for Math & AI, Wuhan University Wuhan, China daizongliu@whu.edu.cn 
+
+Pufan Li 
+
+Wangxuan Institute of Computer Technology, Peking University Beijing, China lipufan@pku.edu.cn 
+
+Wei Hu †
+
+Wangxuan Institute of Computer Technology, Peking University Beijing, China forhuwei@pku.edu.cn 
+
+Abstract —Single-image 3D generation lies at the core of vision-to-graphics models in the real world. However, it remains a fundamental challenge to achieve reliable generalization across diverse semantic categories and highly variable structural com-plexity under sparse supervision. Existing approaches typically model objects in a monolithic manner or rely on a fixed number of parts, including recent part-aware models such as PartCrafter, which still require a labor-intensive user-specified part count. Such designs easily lead to overfitting, fragmented or missing structural components, and limited compositional generalization when encountering novel object layouts. To this end, this paper rethinks single-image 3D generation as learning an adaptive part–whole hierarchy in the flexible 3D latent space. We present a novel part-to-whole 3D generative world model that autonomously discovers latent structural slots by inferring soft and compositional masks directly from image tokens. Specifically, an adaptive slot-gating mechanism dynamically determines the slot-wise activation probabilities and smoothly consolidates re-dundant slots within different objects, ensuring that the emergent structure remains compact yet expressive across categories. Each distilled slot is then aligned to a learnable, class-agnostic prototype bank, enabling powerful cross-category shape sharing and denoising through universal geometric prototypes in the real world. Furthermore, a lightweight 3D denoiser is introduced to reconstruct geometry and appearance via unified diffusion objectives. Experiments show consistent gains in cross-category transfer and part-count extrapolation, and ablations confirm complementary benefits of the prototype bank for shape-prior sharing as well as slot-gating for structural adaptation. 
+
+Index Terms —Generative World Model, Structured Latent Slot, Part-whole-hierarchy, Prototype Bank 
+
+I. I NTRODUCTION 
+
+Single-image 3D generation [1], [2] is central to vari-ous real-world multimedia and vision-to-graphics applications, such as AR/VR content creation [2], [3], virtual retrieval [4], digital modification [5], and interactive 3D editing [6]. Given a single RGB image, the goal of this task is to recover a plausible 3D object or scene that is geometrically consistent, visually faithful, and structurally coherent. Recent advances [7]–[13] in implicit neural representations, radiance fields, Gaussian splatting, and latent diffusion or flow models have significantly improved 3D generation from sparse views. Yet in the single-image setting, the problem remains highly ill-posed, where 
+
+* Equal contribution.  
+
+> †
+
+Corresponding author: Wei Hu (forhuwei@pku.edu.cn). 
+
+Fig. 1: We rethink single-image 3D generation as learning a structured 3D world state with an adaptive part–whole hierar-chy. Specifically, latent structural slots are dynamically gated per instance, and a class-agnostic prototype bank provides shared part-level priors for improved structural coherence and generalization. only a single view is provided for many valid 3D explanations. Also, robustness under large shape variation, occlusion and complex layouts is still far from solved. Although several approaches [14]–[17] have been proposed to handle single-image 3D generation in recent years, as shown in Fig. 1, they still face two key limitations when applied to real-world scenarios. (1) Fixed-granularity shape representations : most methods either use a monolithic 3D representation or assume a fixed part decomposition per in-stance. In particular, image-to-3D generators that map an input to a single latent code often struggle to recover thin, articulated, or occluded structures, while part-based methods usually require a predefined number of parts, easily resulting in over-fragmentation on simple objects and under-segmentation on complicated realistic scenes. Even the latest compositional latent frameworks that can generate multiple parts still re-quire labor-intensive efforts to decide how many parts to generate [14] in advance. (2) Lack of shared common part-level structural priors : previous works explicitly model the 
+
+> arXiv:2603.21557v1 [cs.CV] 23 Mar 2026
+
+object parts by treating them as independent components without using commonsense knowledge of daily structural priors during the reconstruction process. That is, there is no mechanism to capture recurring elements such as legs, handles, shelves, or screens as reusable patterns across categories, limiting compositional generalization and making the learned representation less suitable as a structured generalized model for 3D real-world generation. Hence, based on the above observations, this work addresses the two limitations by viewing challenging single-image 3D generation as learning an adaptive 3D structural hierarchy from part to whole in the flexible latent space. First , to overcome the reliance on a fixed part count, we represent each object or scene with a set of 3D latent part slots and learn a gating module that predicts slot-wise activation probabilities from the input image, so the model can activate a variable number of parts per instance. This is further combined with a masked flow-matching objective that supervises only activated slots corresponding to ground-truth parts, preserving the reconstruction ability of a 3D Diffusion Transformer (DiT) backbone while encouraging stable and image-driven structural decompositions. Second , to overcome the missing shared structural priors, we introduce a class-agnostic proto-type bank in the latent slot space during the reconstruction process. Each active slot is softly aligned to a combination of global geometric prototypes, and prototype-guided residuals are injected back into the latents for promoting cross-category sharing of recurring 3D part patterns without imposing a hard bottleneck on fine-grained shape expressiveness. Together, these components realize a three-level hierarchy, from whole objects or scenes, through adaptive structural slots, down to detailed prototypes and tokens, which move towards a 3D generative world model with structured and reusable building blocks for diverse objects. In sum, our main contributions are as follows:  
+
+> •
+
+In this paper, we present a new part-to-whole 3D world model, formulating single-image 3D generation as learn-ing an adaptive structural hierarchy, where each object or scene is represented by latent structural slots.  
+
+> •
+
+We propose an adaptive slot-gating mechanism to learn variable object parts, together with a class-agnostic pro-totype bank that injects prototype-guided residuals into part latents, thereby achieving shape compositional gen-eralization while preserving fine-grained details.  
+
+> •
+
+We evaluate our model on both object- and scene-level benchmarks, showing improvement on cross-category generalization and robustness. Ablations confirm the ben-efits of adaptive slot-gating and the prototype bank for structural adaptation and geometric prior sharing. II. R ELATED WORK 
+
+A. Part-level Shape Generation 
+
+Part-level 3D generation aims to produce decomposable assets with editable components, but existing solutions differ in how they obtain parts and how they handle varying part counts. PartCrafter [14] is a representative unified model that directly denoises multiple part latents from a single image without external segmentation, and can hallucinate plausible amodal parts beyond the visible regions. However, it still assumes a user-specified part number at inference time. PartPacker [18] tackles the unknown part count by generating an arbitrary number of complete parts from one image in fixed time through a dual packing representation, but its packing-driven design does not explicitly organize parts into a reusable latent prior shared across categories. X-Part [19] instead targets controllable, high-fidelity part decomposition/generation with bounding-box prompts and injected point-wise semantics, fo-cusing on promptable and editable part creation rather than image-driven adaptive part discovery. These works motivate our goal of learning an image-conditioned adaptive part-whole-hierarchy while introducing a compact prototype bank to provide reusable part-level structural priors. 
+
+B. 3D Scene Generation 
+
+Scene-level generative modeling often treats scenes as col-lections of objects (instances) and focuses on layout, spatial relations, and scalability. ATISS synthesizes indoor scenes autoregressively as unordered sets of objects conditioned on room type and floor plan, enabling controllable and diverse layout generation [20]. For single-image scene generation, MIDI extends pretrained image-to-3D object generators to a multi-instance diffusion framework that generates multiple 3D instances jointly with learned inter-object interactions [21]. Beyond bounded indoor scenes, WorldGrow targets unbounded 3D world synthesis via hierarchical block-wise generation with block inpainting and coarse-to-fine refinement [22]. While these methods advance scene compositionality and scale, they typically operate at the instance/layout level rather than exposing a part-to-whole structural hierarchy with reusable part prototypes that generalize across categories and structural complexity. III. M ETHOD 
+
+This section details the proposed single-view 3D generative world model based on adaptive structural hierarchy, as illus-trated in Fig. 2. Our design is built on a pretrained PartCrafter-style 3D VAE + DiT rectified flow backbone, and extends it with i) latent structural slots and masked flow supervision to preserve and stabilize the pretrained geometric prior, ii) an adaptive slot-gating head to avoid manually specifying the part count at inference, and iii) a class-agnostic prototype bank to encourage cross-category sharing of recurring real-world part patterns. 
+
+A. 3D Generative World Model Backbone 
+
+Definition of 3D World States. We rethink single-view 3D generation as learning a conditional generative world model over structured 3D world states. Given a single RGB image 
+
+I, the model predicts a plausible yet coherent world state O
+
+that exposes explicit part structure and supports completion under occlusion. Concretely, we represent the world state as Part Number: 8   
+
+> Inactive
+> Image
+> Encoder
+> Slot-gating
+> Head g𝜙𝜙
+> Active
+> 𝐿𝐿 g𝑎𝑎𝑎𝑎𝑎𝑎
+> Activation
+> Probability
+> Noise Slots
+> Adaptive Slot Gating
+> Training Data
+> 3D VAE
+> Decoder
+> Prototype Bank
+
+(1) Training-time World-state Learning  (2) Test-time World-state Sampling 
+
+> World-state Dynamics as 3D Prior
+> Cross Attention
+> k, v
+> q
+> Prototype Guidance
+> Injection
+
+... 
+
+> Cross Attention
+> Cross Attention
+> Local-Global Attention
+> Local-Global Attention
+> k, v
+> q
+> World-state Representation
+> Adaptive Slot Gating
+> Real-world Structural Hierarchy
+> Prototype Guidance Injection
+
+... 
+
+... 
+
+> 3D VAE
+> Decoder
+> 3D VAE
+> Decoder
+> World-state Dynamics
+> 3D DiT Prior
+> Image
+> Encoder
+
+Fig. 2: Framework of our part-to-whole 3D generative world model. Given a single-view RGB image, our model builds a structured 3D world state with flexible-capacity part slots. An adaptive slot-gating head selects active slots, a prototype bank injects shared part priors, and a pretrained 3D DiT rectified-flow backbone denoises slot latents with canonical-masked supervision. Decoded part meshes are finally composed into the 3D object or scene for generation. a set of parts O = {P i} ˆNi=1 , where each Pi is a local 3D mesh or point cloud encoded by a small set of latent structural slots tied to part-level geometry, which are adaptively activated per instance. To instantiate this world model, we build on a pretrained 3D VAE + DiT rectified-flow generator, inheriting its strong category-agnostic latent 3D prior and its ability to generate plausible unseen geometry. 
+
+Representing World States using Structured Latent Slots. 
+
+To expose structural hierarchy while remaining compatible with the pretrained backbone, we first define a fixed-capacity latent slot representation in the 3D VAE latent space. Each training asset is assumed to have an object-level canonical part decomposition into {P gt  
+
+> i
+
+}Nobj  
+
+> i=1
+
+, where Nobj is the canonical number of semantic parts for this object. A pretrained 3D VAE encoder fenc maps each part mesh to a set of latent tokens as 
+
+{zij }Kj=1 = fenc (Pgt  
+
+> i
+
+) and zij ∈ RC , where K is the number of tokens per part and C is the latent dimension. We introduce a global maximum number of slots Pmax 
+
+and require the DiT backbone to always operate on a latent tensor Z0 ∈ RPmax ×K×C . For an object with Nobj canonical parts, we place the corresponding part latents into the top 
+
+Nobj slots and fill the remaining Pmax − Nobj slots with null latents. These null latents are initialized from a learned null embedding and are detached from gradients so that they act as inert placeholders rather than trainable tokens. We define a ground-truth slot mask mi to distinguish real-part slots and null slots: 
+
+mi =
+
+(
+
+1, i ≤ Nobj ,
+
+0, i > N obj . (1) We also summarize each slot by an averaged embedding 
+
+si = 1
+
+> K
+
+PKj=1 zij , which captures the coarse semantic and geometric information of the part associated with slot i.
+
+World-state Dynamics as Flow with Masked Supervision. 
+
+On top of the slot-wise latent representation, we adopt a rectified-flow formulation similar to [14], [18] in the 3D VAE latent space. Given a clean latent tensor Z0 and Gaussian noise 
+
+ϵ of the same shape, we sample a time t ∼ U (0 , 1) and form a noisy latent: Zt = tZ0 + (1 − t) ϵ. The DiT backbone vθ
+
+takes (Zt, t, c ) as input, where c denotes image conditioning features extracted from the input RGB image, and predicts a velocity field vθ (Zt, t, c ) ∈ RPmax ×K×C .In our structured setting, only those slots that correspond to canonical parts ( i.e. , mi = 1 ) should be supervised, while null slots should act as placeholders for flexible learning. We therefore adopt a masked flow-matching loss as: 
+
+Lm-flow = Et,ϵ Pmax X
+
+> i=1
+
+miKX
+
+> j=1
+
+vθ (zij,t , t, c ) − (zij, 0 − ϵij ) 22,
+
+(2) where zij,t and zij, 0 denote the noisy and clean latents for token j in slot i, respectively. The loss supervises only canonical real-part slots, preserving the reconstruction ability of the pretrained 3D DiT while preventing unstable gradients from dummy slots. Each slot is decoded by the pretrained 3D VAE as ˆPi = fdec ({zij }Kj=1 ). Crucially, the mask mi in Lflow 
+
+is always the ground-truth canonical mask, independent of the predicted slot gating. 
+
+B. Fitting Diverse Object Parts with Adaptive Slot Gating 
+
+To overcome the reliance on a fixed part count, we introduce an adaptive slot-gating head that predicts which latent struc-tural slots should be activated for diverse image objects. Given the feature map fimg of input image I encoded via DINOv2 [23], our slot-gating head gϕ maps fimg to an activation probability vector ˆα = gϕ(fimg ), where ˆαi ∈ (0 , 1) measures how likely slot i should be used for this instance. In particular, the gating target is object-level canonical structure, not view-dependent visibility. Even if a part is occluded in the image, the canonical decomposition still considers it present. For training stability, we decouple gating from flow super-vision. During backbone fine-tuning, the flow mask is always the ground-truth canonical mask mi, not the predicted ˆαi. The gating head is trained only by gating losses, so early gating noise does not change which slots the backbone is supervised on. We train the slot-gating head with two losses. Firstly, a slot-wise activation loss encourages each ˆαi to match mi via binary cross-entropy, pushing canonical part slots towards high activation and null slots towards low activation: 
+
+Lce = − 1
+
+Pmax 
+
+> Pmax
+
+X
+
+> i=1
+
+[mi log ˆ αi + (1 − mi) log (1 − ˆαi)] . (3) Secondly, a soft count loss constrains the sum of activations to match the canonical part count: 
+
+Lcount =
+
+ Pmax X
+
+> i=1
+
+ˆαi − Nobj 
+
+2
+
+. (4) Overall, the final training objective is: 
+
+Lgate = λce · L ce + λcount · L count . (5) At inference time, we use ˆα to obtain a variable number of active slots. A simple strategy is to select S = {i | ˆαi > τ }
+
+for a fixed threshold τ . Only slots in S are then used for later sampling and decoding, yielding an adaptive part decomposition per instance. 
+
+C. Real-world Structural Hierarchy via Prototype Bank 
+
+Although adaptive gating mechanisms address the limita-tions of fixed component counts, relying solely on slots can still isolate components from different objects and hinder cross-category reuse. To address this, we further propose a real-world prototype bank to learn shared component-level geometric priors in the slot embedding space, thereby improv-ing compositional generalization capabilities. In particular, we maintain M learnable prototype vectors P = {pk}Mk=1 with 
+
+M chosen to be much smaller than the total number of distinct part shapes in the training set. For each slot embedding si,we compute similarity to all prototypes to obtain the soft assignment and the resulting prototype-aligned embedding: 
+
+wik = exp  s⊤ 
+
+> i
+
+pk/√CP 
+
+> k′
+
+exp  s⊤ 
+
+> i
+
+pk′/√C , ˜si =
+
+> M
+
+X
+
+> k=1
+
+wik pk, (6) which can be interpreted as reconstructing si from a small set of global geometric prototypes. We inject prototype guidance back into the part latents via a residual update. For slot i and its tokens zij , we apply zij =
+
+zij +β ˜si, where β is a small scalar controlling the strength of prototype guidance. Because the update is residual and small, the prototype bank acts as a soft geometric prior rather than a hard bottleneck, encouraging slots with similar geometry to cluster in the prototype space, while preserving the backbone’s capacity for fine-grained detail. To ensure that prototypes are both reusable and truly useful for generation, we learn a prototype bank by combining struc-tural regularization and generation signals. Firstly, we align the slot embedding and prototype hybrid embedding on the real slots using the reconstruction loss Lrec = PNi=1 mi∥si − ˜si∥22.Secondly, to avoid overly uniform distribution, we add a negative entropy regularization Lent = P 
+
+> i
+
+mi
+
+P 
+
+> k
+
+αik log αik 
+
+to encourage each slot to primarily use a few prototypes. Combining the masked flow loss calculated with backbone flow matching Lm-flow , the overall prototype objective is: 
+
+Lall = Lrec + λent · L ent + λflow · L m-flow . (7) 
+
+D. Overall Training of Structured 3D World State Step 1: Adaptive Slot and Prototype Warm-up. We freeze the 3D VAE and most DiT layers, and train only the slot-gating head and the prototype bank. This stage focuses on learning to infer canonical slot activations from images and to organize slot embeddings into prototypes, without perturbing the core 3D prior. 
+
+Step 2: Backbone-aware Joint Fine-tuning. We unfreeze selected DiT blocks and jointly optimize the masked flow loss, slot-gating losses, prototype losses, and optional geometry losses with carefully tuned weights. The masked flow objec-tive keeps the backbone close to its original reconstruction behavior, while the structural and prototype modules gradually reshape the latent space into an adaptive, prototype-aware structural hierarchy. 
+
+Step 3: Test-Time World-state Sampling. At test time, given a single RGB image, we first encode it to obtain fimg and apply the slot-gating head to obtain ˆα. We select an adaptive set of active slots S based on ˆα, initialize latent tokens for these slots from the prior, and run the rectified-flow sampling process through the DiT backbone with prototype-guided residuals applied as during training. Finally, we decode each active slot with the 3D VAE decoder to obtain local part geometries ˆPi,and assemble all parts into the final 3D object or scene. Since the backbone is supervised on canonical part decompositions and the slot-gating head is trained on object-level canonical part counts shared across views, the model can infer reasonable canonical structures even under occlusion, while the prototype bank promotes cross-category sharing of recurring structural elements, moving towards a 3D generative world model with structured blocks for diverse real-world objects. IV. E XPERIMENT 
+
+A. Implementation Details 
+
+Datasets. Recent advances in large-scale 3D asset aggregation have substantially lowered the barrier to obtaining diverse object geometries, enabling category-agnostic 3D priors to be learned at scale. We train on the high-quality Objaverse Ours PartCrafter HoloPart Input Fig. 3: Generalization across diverse 3D object cases. Given an input RGB image (left), our approach reconstructs more complete and structurally coherent shapes with cleaner part boundaries and less part interpenetration. TABLE I: Evaluation on Part-based 3D Object Generation on the Objaverse [24], ShapeNet [25] and ABO [26] datasets. 
+
+Method Segment Mask Fixed Part Number Objaverse [24] ShapeNet [25] ABO [26] IoU ↓ F-Score ↑ CD ↓ IoU ↓ F-Score ↑ CD ↓ IoU ↓ F-Score ↑ CD ↓
+
+Dataset / / 0.080 / / 0.183 / / 0.014 / /TripoSG [15] / / / 0.594 0.311 / 0.505 0.375 / 0.710 0.202 HoloPart [28] ✓ ✓ 0.044 0.692 0.192 0.111 0.550 0.351 0.045 0.809 0.134 PartCrafter [14] × ✓ 0.036 0.747 0.173 0.029 0.567 0.321 0.024 0.862 0.105 Ours × × 0.032 0.781 0.159 0.026 0.573 0.317 0.022 0.891 0.089 
+
+[24] subset curated by LGM together with ShapeNet-Core [25] and Amazon Berkeley Objects (ABO) [26]. Following PartCrafter [14], we filter training assets with criteria tailored to stable part-level supervision. Specifically, assets without textures are excluded and we further keep only those whose canonical decomposition contains fewer than 16 parts and whose maximum pairwise part overlap, measured by IoU, is below 0.1. For scene-level generation, we use 3D-Front [27] for training. 
+
+Evaluation Metrics. We evaluate structured 3D generation at both the assembled-shape and part levels. Global fidelity is measured by first concatenating all predicted parts into a single mesh and computing the L2 Chamfer Distance and F-Score at threshold 0.1 against the ground-truth mesh. Part independence is quantified by voxelizing each predicted part in canonical space into a 64 3 grid and averaging the pairwise IoU among parts, where lower IoU indicates less overlap and interpenetration. 
+
+B. Generation Performance Comparison 
+
+Compared Methods. We compare against representative single-image 3D baselines: TripoSG [15] and HoloPart [28] and PartCrafter [14]. For object-composed scene generation on 3D-Front, we additionally compare with MIDI [21], a multi-instance diffusion baseline. 
+
+Part-based 3D Object Generation. Tab. I shows that our model consistently improves global fidelity and part inde-pendence on both Objaverse and ShapeNet. Compared with monolithic image-to-3D baselines ( e.g. , TripoSG), our struc-tured generation produces cleaner geometry with substantially better CD/F-Score, while also enabling part-level evaluation. Compared with part-based generators (e.g. , HoloPart and TABLE II: Evaluation on Compositional 3D Scene Generation.                             
+
+> Method 3D-Front [27] 3D-Front (Occluded) [27] IoU ↓F-Score ↑CD ↓IoU ↓F-Score ↑CD ↓
+> MIDI [21] 0.001 0.793 0.160 0.002 0.662 0.259 PartCrafter [14] 0.003 0.815 0.149 0.004 0.780 0.151 Ours 0.002 0.852 0.128 0.003 0.785 0.124 Ours Input PartCrafter
+
+Fig. 4: Generalization across complicated 3D scene cases. TABLE III: Ablation study on the key components of our method over the Objaverse [24] dataset.                        
+
+> Setting Metrics
+> ASG PB Warm-up IoU ↓F-Score ↑CD ↓
+> ✓✓0.035 0.751 0.168
+> ✓✓0.039 0.710 0.184
+> ✓✓0.048 0.602 0.265
+> ✓✓✓0.032 0.781 0.159
+
+PartCrafter), our method achieves lower overlap IoU and higher fidelity, indicating that the generated parts are not only more accurate as a whole but also less interpenetrating and easier to compose. Fig. 3 further supports these trends as prior methods may miss thin or articulated components, produce fragmented part boundaries, or introduce noticeable part conflicts, whereas our results maintain more coherent part layouts and preserve fine structures with cleaner separation across different categories. 
+
+Compositional 3D Scene Generation. We further benchmark object-composed scene generation on 3D-Front. As reported in Tab. II, our approach improves global fidelity on both the standard split and the occlusion split, with particularly clear gains under occlusion where single-view ambiguity is strongest. Fig. 4 highlights typical failure cases of prior com-positional generation such as missing or incomplete furniture substructures and local inconsistencies around small objects. In contrast, our model yields more complete object instances and more stable part composition, producing scenes that better match the input while reducing structural artifacts. Overall, these results indicate that learning an adaptive structural hier-archy with shared prototype priors improves both object-level part generation and scene-level composition under challenging single-view conditions. 
+
+C. Ablation Study 
+
+Tab. III reports a component-wise ablation over three key design choices, including w/o Adaptive Slot Gating (ASG), w/o the Prototype Bank (PB), and w/o the structural warm-up stage. When training is stabilized with warm-up, enabling PB alone already yields strong global fidelity (F-Score 0.751 ,CD 0.168 ), while enabling ASG alone is less effective (F-Score 0.710 , CD 0.184 ), indicating that shared part-level priors are important even before adaptive structure is introduced. Adding ASG on top of PB further improves both assembled-shape accuracy and part separation, reducing overlap (IoU 
+
+0.035 → 0.032 ) and improving fidelity (F-Score 0.751 →
+
+0.781 , CD 0.168 → 0.159 ), showing that image-conditioned slot activation complements prototype-based sharing by better fitting instance-dependent structural complexity. Finally, the warm-up stage is critical for reliable optimization: removing it while keeping ASG and PB causes a sharp degradation (IoU 0.048 , F-Score 0.602 , CD 0.265 ), suggesting that directly coupling gating/prototype learning with backbone updates can destabilize denoising and lead to fragmented, overlapping parts. Overall, ASG and PB provide complementary gains, and the staged warm-up is necessary to realize their benefits. V. C ONCLUSION 
+
+We propose a part-to-whole 3D generative model that learns an adaptive structural hierarchy for single-image 3D generation. Specifically, it introduces latent structural slots with image-conditioned activation to adapt the part count per instance, and canonical-masked flow supervision to fine-tune stably by supervising only canonical slots. A class-agnostic prototype bank further improves compositional generalization by softly aligning active slots to reusable geometric prototypes and injecting prototype-guided residuals, yielding structured and robust 3D generation under part variation and occlusion. REFERENCES [1] George Fahim, Khalid Amin, and Sameh Zarif, “Single-view 3d mesh reconstruction and generation,” in AICV , 2021, pp. 473–482. [2] Yicong Hong, Kai Zhang, Jiuxiang Gu, Sai Bi, Yang Zhou, Difan Liu, Feng Liu, Kalyan Sunkavalli, Trung Bui, and Hao Tan, “Lrm: Large reconstruction model for single image to 3d,” arXiv preprint arXiv:2311.04400 , 2023. [3] Zhimin Zhang, Bi’an Du, Caoyuan Ma, Zheng Wang, and Wei Hu, “Behave your motion: Habit-preserved cross-category animal motion transfer,” in Proceedings of the 33rd ACM International Conference on Multimedia , 2025, pp. 9638–9647. [4] Daizong Liu, Xiaoye Qu, Jianfeng Dong, Pan Zhou, Yu Cheng, Wei Wei, Zichuan Xu, and Yulai Xie, “Context-aware biaffine localizing network for temporal sentence grounding,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2021, pp. 11235–11244. [5] Daizong Liu and Wei Hu, “Seeing is not believing: Adversarial natural object optimization for hard-label 3d scene attacks,” in Proceedings of the Computer Vision and Pattern Recognition Conference , 2025, pp. 11886–11897. [6] Daizong Liu, Yang Liu, Wencan Huang, and Wei Hu, “A survey on text-guided 3d visual grounding: Elements, recent advances, and future directions,” arXiv preprint arXiv:2406.05785 , 2024. [7] Alex Yu, Vickie Ye, Matthew Tancik, and Angjoo Kanazawa, “pixelnerf: Neural radiance fields from one or few images,” in CVPR , 2021, pp. 4578–4587. [8] Daizong Liu, Wei Hu, and Xin Li, “Robust geometry-dependent attack for 3d point clouds,” IEEE Transactions on Multimedia , vol. 26, pp. 2866–2877, 2023. [9] Daizong Liu and Wei Hu, “Imperceptible transfer attack and defense on 3d point cloud classification,” IEEE transactions on pattern analysis and machine intelligence , vol. 45, no. 4, pp. 4727–4746, 2022. [10] Bi’an Du, Xiang Gao, Wei Hu, and Xin Li, “Self-contrastive learning with hard negative sampling for self-supervised point cloud learning,” in 
+
+Proceedings of the 29th ACM International Conference on Multimedia ,2021, pp. 3133–3142. [11] Haolan Chen, Bi’an Du, Shitong Luo, and Wei Hu, “Deep point set resampling via gradient fields,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 3, pp. 2913–2930, 2022. [12] Bi’an Du, Xiang Gao, Wei Hu, and Renjie Liao, “Generative 3d part assembly via part-whole-hierarchy message passing,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2024, pp. 20850–20859. [13] Bi’an Du, Wei Hu, and Renjie Liao, “Multi-scale latent point consistency models for 3d shape generation,” arXiv preprint arXiv:2412.19413 ,2024. [14] Yuchen Lin, Chenguo Lin, Panwang Pan, Honglei Yan, Yiqiang Feng, Yadong Mu, and Katerina Fragkiadaki, “Partcrafter: Structured 3d mesh generation via compositional latent diffusion transformers,” arXiv preprint arXiv:2506.05573 , 2025. [15] Yangguang Li, Zi-Xin Zou, Zexiang Liu, Dehu Wang, Yuan Liang, Zhipeng Yu, Xingchao Liu, Yuan-Chen Guo, Ding Liang, Wanli Ouyang, et al., “Triposg: High-fidelity 3d shape synthesis using large-scale rectified flow models,” arXiv preprint arXiv:2502.06608 , 2025. [16] Dmitry Tochilkin, David Pankratz, Zexiang Liu, Zixuan Huang, Adam Letts, Yangguang Li, Ding Liang, Christian Laforte, Varun Jampani, and Yan-Pei Cao, “Triposr: Fast 3d object reconstruction from a single image,” arXiv preprint arXiv:2403.02151 , 2024. [17] Pufan Li, Bi’an Du, and Wei Hu, “Geometry and perception guided gaussians for multiview-consistent 3d generation from a single image,” 
+
+arXiv preprint arXiv:2506.21152 , 2025. [18] Jiaxiang Tang, Ruijie Lu, Zhaoshuo Li, Zekun Hao, Xuan Li, Fangyin Wei, Shuran Song, Gang Zeng, Ming-Yu Liu, and Tsung-Yi Lin, “Efficient part-level 3d object generation via dual volume packing,” 
+
+arXiv preprint arXiv:2506.09980 , 2025. [19] Xinhao Yan, Jiachen Xu, Yang Li, Changfeng Ma, Yunhan Yang, Chunshi Wang, Zibo Zhao, Zeqiang Lai, Yunfei Zhao, Zhuo Chen, et al., “X-part: high fidelity and structure coherent shape decomposition,” 
+
+arXiv preprint arXiv:2509.08643 , 2025. [20] Despoina Paschalidou, Amlan Kar, Maria Shugrina, Karsten Kreis, Andreas Geiger, and Sanja Fidler, “Atiss: Autoregressive transformers for indoor scene synthesis,” NeurIPS , vol. 34, pp. 12013–12026, 2021. [21] Zehuan Huang, Yuan-Chen Guo, Xingqiao An, Yunhan Yang, Yang-guang Li, Zi-Xin Zou, Ding Liang, Xihui Liu, Yan-Pei Cao, and Lu Sheng, “Midi: Multi-instance diffusion for single image to 3d scene generation,” in CVPR , 2025, pp. 23646–23657. [22] Sikuang Li, Chen Yang, Jiemin Fang, Taoran Yi, Jia Lu, Jiazhong Cen, Lingxi Xie, Wei Shen, and Qi Tian, “Worldgrow: Generating infinite 3d world,” arXiv preprint arXiv:2510.21682 , 2025. [23] Maxime Oquab, Timoth´ ee Darcet, Th´ eo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al., “Dinov2: Learning robust visual features without supervision,” arXiv preprint arXiv:2304.07193 , 2023. [24] Matt Deitke, Ruoshi Liu, Matthew Wallingford, Huong Ngo, Oscar Michel, Aditya Kusupati, Alan Fan, Christian Laforte, Vikram Voleti, Samir Yitzhak Gadre, et al., “Objaverse-xl: A universe of 10m+ 3d objects,” NeurIPS , vol. 36, pp. 35799–35813, 2023. [25] Angel X Chang, Thomas Funkhouser, Leonidas Guibas, Pat Hanrahan, Qixing Huang, Zimo Li, Silvio Savarese, Manolis Savva, Shuran Song, Hao Su, et al., “Shapenet: An information-rich 3d model repository,” 
+
+arXiv preprint arXiv:1512.03012 , 2015. [26] Jasmine Collins, Shubham Goel, Kenan Deng, Achleshwar Luthra, Leon Xu, Erhan Gundogdu, Xi Zhang, Tomas F Yago Vicente, Thomas Dideriksen, Himanshu Arora, et al., “Abo: Dataset and benchmarks for real-world 3d object understanding,” in CVPR , 2022, pp. 21126–21136. [27] Huan Fu, Bowen Cai, Lin Gao, Ling-Xiao Zhang, Jiaming Wang, Cao Li, Qixun Zeng, Chengyue Sun, Rongfei Jia, Binqiang Zhao, et al., “3d-front: 3d furnished rooms with layouts and semantics,” in ICCV , 2021, pp. 10933–10942. [28] Yunhan Yang, Yuan-Chen Guo, Yukun Huang, Zi-Xin Zou, Zhipeng Yu, Yangguang Li, Yan-Pei Cao, and Xihui Liu, “Holopart: Generative 3d part amodal segmentation,” arXiv preprint arXiv:2504.07943 , 2025.

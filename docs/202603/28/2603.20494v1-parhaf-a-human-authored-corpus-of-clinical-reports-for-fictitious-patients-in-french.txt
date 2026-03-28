@@ -1,0 +1,308 @@
+Title: PARHAF, a human-authored corpus of clinical reports for fictitious patients in French
+
+URL Source: https://arxiv.org/pdf/2603.20494v1
+
+Published Time: Tue, 24 Mar 2026 00:29:30 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# PARHAF, a human-authored corpus of clinical reports for fictitious patients in French 
+
+## Xavier Tannier 1, Salam Abbara 2,3 , Rémi Flicoteaux 4, Youness Khalil 5, Aurélie Névéol 6, Pierre Zweigenbaum 6, and Emmanuel Bacry 5,7 1Sorbonne Université, Université Sorbonne Paris Nord, Inserm, Limics, F-75006 Paris, France 
+
+> 2
+
+## Université Paris-Saclay, UVSQ, Assistance Publique-Hôpitaux de Paris, Raymond Poincaré University Hospital, Infectious Disease Department, Garches, France 
+
+> 3
+
+## Yonsei University College of Medicine, Gangnam Severance Hospital, Department of Laboratory Medicine, Seoul, South Korea 
+
+> 4
+
+## Assistance Publique-Hôpitaux de Paris, Department of medical information, Paris, France 
+
+> 5
+
+## Health Data Hub, 75015, Paris, France 
+
+> 6
+
+## Université Paris-Saclay, CNRS, LISN, 91400, Orsay, France 
+
+> 7
+
+## Université Paris-Dauphine, PSL, CNRS, CEREMADE, 75016, Paris, France 
+
+Corresponding author: Xavier Tannier, xavier.tannier@sorbonne-universite.fr 
+
+Abstract 
+
+The development of clinical natural language processing (NLP) systems is severely hampered by the sensitive nature of medical records, which restricts data sharing un-der stringent privacy regulations, particularly in France and the broader European Union. To address this gap, we introduce PARHAF, a large open-source corpus of clinical documents in French. PARHAF comprises expert-authored clinical reports de-scribing realistic yet entirely fictitious patient cases, making it anonymous and freely shareable by design. The corpus was developed using a structured protocol that combined clinician expertise with epidemiological guidance from the French National Health Data System (SNDS), ensuring broad clinical coverage. A total of 104 med-ical residents across 18 specialties authored and peer-reviewed the reports following predefined clinical scenarios and document templates. The corpus contains 7,394 clinical reports covering 5,009 patient cases across a wide range of medical and surgical specialties. It includes a general-purpose component designed to approximate real-world hospitalization distributions, and four specialized subsets that support information-extraction use cases in oncology, infectious diseases, and diagnostic coding. Documents are released under a CC-BY open license, with a portion temporarily embargoed to enable future benchmarking under controlled conditions. PARHAF provides a valuable resource for training and evaluating French clinical language models in a fully privacy-preserving setting, and establishes a replicable methodology for building shareable synthetic clinical corpora in other languages and health systems. 
+
+1
+
+> arXiv:2603.20494v1 [cs.CL] 20 Mar 2026
+
+# 1 Background & Summary 
+
+## 1.1 Context and Motivation 
+
+Much of the information in electronic health records is conveyed by text such as clinical notes and discharge summaries (see, e.g., [1]). Natural language processing aims to unlock that information and make it available for downstream tasks. Publicly available clinical text corpora are a key asset to design, tune, and evaluate clinical natural language processing systems [2]. Sharing clinical text is, however, difficult: the tension between individual data privacy and corpus distributability has been widely acknowledged as the central obstacle to making clinical corpora publicly available [3]. Some resources have been made available for U.S. English clinical NLP over the past few decades [2], starting with the 2007 Computational Medicine Challenge [3] and the i2b2 series of clinical NLP shared tasks [4], many of which relied on the MIMIC database [5, 6]. However, access hurdles remain particularly salient in the French context. The European regulatory framework, among the most protective of health data, imposes severe restrictions on the circulation and sec-ondary use of medical records. This creates a marked scarcity of open and usable corpora of French medical reports [7]. Beyond data access, models trained on clinical reports may themselves become sensitive, as they can memorize patient information during training, making the sharing of trained models legally and ethically challenging [8]. Together, these factors create a fragmented ecosystem in which institutions and research teams operate in isolation, unable to effectively pool data or models. This combination of restricted data access, model sensitivity, lack of open resources, and resulting fragmentation severely limits the development and robust evaluation of NLP systems applied to French clinical text. This creates the following challenge: Given this privacy bottleneck, how can a large, realistic, and fully privacy-preserving corpus of clinical reports be created to help clinical language processing research and development while being freely shareable? 
+
+To address this challenge, NLP researchers have studied de-identification methods that remove personally identifying information from original clinical text [4, 9, 10, 11, 12] and used them to de-identify clinical datasets such as that in MIMIC [9]. However, the resulting text is pseudonymized (directly identifying information has been removed) but not anonymized (there is no guarantee that reidentification is impossible). This prevents it from being freely distributed. In the United States, the MIMIC database can be shared under a stringent data-use agreement, but it remains unclear whether this protocol is compatible with E.U. regulation. For this reason, clinical document collections in French (e.g., the MERLOT corpus [13] and other corpora extracted from French clinical data warehouses [14, 15]) were used in evaluation studies with explicit targeted ethical board approval but could not be shared due to privacy restrictions. Hahn [16] notes that, faced with the non-shareability of real patient records, NLP researchers have developed a variety of proxies for clinical text. One type of proxy is machine translation of English clinical datasets: Becker et al. [17] translated into German the ShARe/CLEF eHealth 2013 training dataset based on MIMIC-II data [5], Neves et al. [18] translated some clinical cases from English into French (with a focus on evaluating the performance of machine translation for measures and acronyms) and Frei et al. [19] translated into German the 2018 n2c2 shared task dataset that reused data from MIMIC-III [6]. However, translated text requires thorough human review, and cultural and health system differences make the resulting text sensibly different from native clinical text. Another proxy is synthetic clinical text. GraSCCo [20] manually edited 63 deidentified German discharge summaries and case reports at multiple linguistic levels to make reidentification virtually impossible. Recent efforts have also explored the use of autoregressive generative language models to produce synthetic clinical documents in English [21], French [22], German [23], Swedish and Spanish [24]. Nonetheless, the balance between privacy and utility of the resulting material needs further analysis [25, 26]. Published case reports are a more distant proxy for clinical text, but their open-source status and existence in multiple languages have made them particularly attractive for clinical NLP. Case reports have been collected, for instance, in the following corpora: CAS [27] (French), E3C [28] (Italian, English, French, Spanish, and Basque), CANTEMIST [29] and DISTEMIST [30] (Span-ish), and FRASIMED [31] (French translations of CANTEMIST and DISTEMIST). The style of case reports, however, is quite different from that of electronic health records. The closest proxy for true clinical texts is those written by health care professionals about fictitious patients, for instance, in medical textbooks or course material. The JSynCC corpus [32] extracted 400 operative reports and 470 case reports from such textbooks. The initial copyright 
+
+2on the textbooks, though, prevents the free distribution of the corpus. The PARROT corpus [33] contains 2,658 radiology reports about fictitious patients, including 475 in French, written on a volunteer basis by healthcare professionals from 21 countries. This endeavor was made possible through human networking, including leveraging professional radiological societies, which may be difficult to scale up to a diversity of medical specialties. 
+
+## 1.2 Objectives and Contributions 
+
+To overcome this limitation, the approach adopted in the present work was to ask healthcare professionals to write new clinical reports describing fictitious patients specifically for the creation of a shareable corpus, and to distribute these reports under an open license. Because the reports are created for this purpose and do not derive from real patient data, they are anonymous and shareable by design. However, this approach raises important methodological questions: how can such reports be generated in a way that ensures both medical realism and statistical representativeness while preserving privacy? To address this challenge, we designed a corpus creation protocol that leverages clinicians’ expertise while being guided by public health statistics, principles of corpus development [34, 35], and a set of predefined clinical scenarios. The protocol was implemented using a large pool of French-speaking clinicians through a partnership with associations and unions of medical residents across multiple medical and surgical specialties, which recruited 104 residents as report authors. Guidelines were developed for selecting clinical cases, using data from the French National Health Data System (SNDS [36]) as reference scenarios for report creation, and the residents authored synthetic medical reports following these guidelines. The resulting open-source French-language corpus can now be used to train and evaluate language models on targeted medical use cases. In this article, we introduce this open-source corpus of French clinical documents. PARHAF comprises 7,394 expert-authored clinical reports describing 5,009 realistic yet fictitious patient cases. Each case is accompanied by structured documentation of the underlying clinical scenario, including the primary diagnosis, main procedure, care pathway, and discharge information when applicable. We further provide three specialized subsets specifically designed to support informa-tion extraction tasks in oncology and infectious diseases. This corpus offers a valuable resource for the development and evaluation of clinical NLP models, directly tackling the root cause of all the challenges outlined above : the inherently sensitive nature of clinical data. We release 6,185 documents corresponding to 4,254 fictitious patients under an open-source CC-BY license. The remaining portion of the corpus will be temporarily embargoed to enable future evaluations under controlled conditions, thereby limiting the risk of large language model contamination through prior exposure to the data. 
+
+## 1.3 Intended uses of PARHAF 
+
+This corpus is intended for research, development, and educational purposes in clinical natural language processing. It enables the sharing of clinical-style notes and annotations and supports community-wide pooling of efforts around a common, openly accessible resource. The corpus is suitable for benchmarking French medical language models, including large language models, and for conducting reproducible clinical NLP research under controlled and privacy-safe conditions. The corpus also supports uses for medical teaching, such as training medical students and resi-dents in structured clinical report writing, diagnostic reasoning, and clinical information synthesis. It can also serve as a resource for clinical case preparation and supports training in clinical natural language processing using realistic yet fictitious reports without exposure to sensitive patient data. The corpus further enables privacy-preserving data augmentation, either as a standalone resource or as a complement to restricted-access clinical datasets, provided its fictitious nature is explicitly acknowledged. Finally, the representativeness of part of the corpus is geared towards three use cases of the PARTAGES project, allowing methodological comparisons across these specific use cases. 
+
+## 1.4 Limitations and non-intended uses 
+
+Although efforts were made to create a diverse corpus that includes a variety of document types and clinical specialties, the corpus does not cover all specialties and variations of French clinical text. This corpus is intended for research purposes only, specifically for training and evaluating natural language processing models on French clinical text. It is not a substitute for clinically 
+
+3validated data and must not be used to support regulatory approval, clinical certification, or deployment decisions in real healthcare settings. It is not suitable for clinical use. It cannot be used for clinical decision-making, diagnosis, prognosis, treatment, or patient care. Models trained or evaluated on this data are not clinically validated, and results obtained on this corpus cannot be presented as evidence of clinical performance or safety. The corpus does not support generalization claims to real hospitals, regions, or clinical prac-tices, nor does it allow epidemiological or population-level inference, as its distributions do not reflect real-world prevalence. It is also unsuitable for longitudinal studies or for assessing real-world clinical risk or safety, including rare adverse events or edge cases, and must not be used as a replacement for real clinical data in deployment settings. Finally, the corpus does not capture the operational constraints of real clinical environments (e.g., time pressure, workload, interruptions) and should not be used for stress-testing models under realistic clinical conditions. 
+
+# 2 Methods 
+
+## 2.1 Challenges 
+
+Building the PARHAF corpus required addressing two main challenges. The first was ensuring that recruited physicians and collected texts adequately represent the relevant dimensions of clin-ical language, while remaining within concrete implementation constraints (a limited author pool, a fixed corpus size, and the specific use cases targeted by the project). The second was encour-aging healthcare professionals to write reports that closely resemble real clinical documents, while minimizing the risk of privacy leaks. 
+
+## 2.2 Clinical Scenario Design 
+
+For the above reason, we deemed essential to provide relatively precise guidelines to assist health-care professionals in authoring clinical reports that closely resemble real-world documents while minimizing the risk of privacy breaches. These guidelines addressed both the content and the for-mat of the documents. Given that the recruited physicians primarily worked in hospital settings, the resulting corpus of documents focused predominantly on hospital-based clinical situations. 
+
+2.2.1 Content Development 
+
+The selection of clinical scenarios was guided by our goal of guaranteeing the representativeness of the clinical situations actually observed in French hospitals (see Section 2.3.1) and by the constraint of ensuring physicians were familiar with the clinical situation in relation to their specialty of practice or training. Both aspects were addressedusing hospitalization claims data available in the French National Health Data System (SNDS [36]). Scenarios were constructed by sampling observed distributions of Diagnosis-Related Groups (DRGs), principal diagnoses (ICD-10), age, sex, type of management (e.g., ambulatory surgery), admission and discharge modes (e.g., emergency department admission). DRGs were used (in a less formal format) to describe the type of hospitalization (e.g., surgery, medicine) and to map clinical cases to physicians’ qualifications (specialties). Secondary diagnoses were incorporated into the scenarios as a list of 10 randomly selected diagnoses from the pool of diagnoses frequently associated with the primary diagnosis-DRG pair. Patient name was randomly fixed. Based on these core elements, authors were encouraged to develop the clinical case details, enriching the content with relevant and realistic information, maintaining medical consistency with the baseline information, and ensuring depth and authenticity while adhering to principles of plausibility and ethics. 
+
+2.2.2 Document Format 
+
+For document format, we aligned official recommendations with physicians’ actual practices to develop specialized templates for each type of hospitalization: 
+
+• Medical hospitalization 
+
+– Hospital discharge summary 
+
+• Surgical hospitalization 
+
+4– Pre-operative consultation report (for scheduled admissions) 
+
+– Operative report 
+
+– Hospital discharge summary (for ambulatory surgery, a single document was requested combining both the operative report and the discharge summary) 
+
+• Obstetrics (childbirth) 
+
+– Pre-delivery hospitalization report (for high-risk pregnancies) or emergency department visit report (for low-risk pregnancies) 
+
+– Delivery room report 
+
+– Postpartum hospitalization report (maternity ward) 
+
+• Oncology 
+
+– Pathology report For discharge summaries, the template included: department name, reason for admission, medical history, surgical history, family history, allergies, lifestyle factors, treatment at admis-sion, history of the present illness, clinical examination, complementary investigations, in-hospital course, discharge treatment, and conclusion. Similar minimal templates were developed for surg-eries, obstetrics, and pathology reports. Authors were encouraged to follow these structures or to write in free text format, provided that all required information was included. Finally, a structured summary section was completed at the end of each report, in which the authors specified the primary diagnosis, length of stay, and associated diagnoses mentioned in the report. The use of generative artificial intelligence tools was discouraged because it could bias both the content and the stylistic features of the reports. 
+
+## 2.3 Document Type and Distribution Strategy 
+
+This corpus is structured in two complementary components, targeting a total of 5,000 patients. The primary component (n = 3,900) includes patients across a wide range of medical specialties and is designed to maximize diversity and approximate representativeness, although the target size does not allow full coverage of the spectrum of possible clinical cases. The secondary component focuses on specific use cases (ICD-10 coding, oncology, and infectious diseases) and comprises patients selected outside the main distribution to support more targeted evaluation scenarios. 
+
+2.3.1 Core distribution 
+
+To approximate real-world distributions of medical activity, we relied on diagnosis frequencies derived from SNDS [36], which provides exhaustive, nationwide hospital claims data and served as a proxy for the underlying epidemiological and care distribution across medical conditions. For the year 2024, the national claims database consisted of approximately 18 million hospitalizations drawn from the SNDS. From the data, we defined clinical cases as the association of a DRG, sex, age group, and length-of-stay group. With these associations, we created a sampling database of 100,000 different clinical cases. These cases covered around 4,000 distinct ICD-10 primary diagnoses. To ensure patient privacy and data confidentiality, the sampling strategy over this clinical cases distribution adheres to the principles of k-anonymity and l-diversity [37]. To preserve epidemiological realism while avoiding excessive over-representation of very fre-quent conditions, which would reduce clinical diversity in the corpus, we applied a square-root transformation to the empirical frequencies, yielding a preliminary sampling probability propor-tional to √fi, where fi is the frequency of condition i in the SNDS data. To further limit the dominance of the most common conditions, we capped this value at a maximum probability pmax 
+
+(corresponding to a 0.1% sampling chance) and renormalized, giving the final sampling probability for each condition: 
+
+pi = min( pmax , √fi)
+
+P 
+
+> j
+
+min( pmax , pfj )
+
+In practice, this theoretical distribution required iterative adjustment to account for operational constraints. Because hired authors had uneven expertise across medical specialties, document production could not be distributed uniformly, and not all specialties could be covered. The final allocation therefore used the square-root-with-cap model as a guiding principle, with reallocation 
+
+5based on actual case availability and author capacity, while preserving broad clinical coverage. Figures S1 and S2 in the Supplementary Materials provide, respectively, a detailed breakdown of these adjustments by specialty and the number of cases written per author. 
+
+2.3.2 Specific Use Cases 
+
+In addition to the documents from the initial distribution, four specific sets of reports were assem-bled. Each set was designed to address a specific clinical information extraction use case: 
+
+Coding Surgery reports from digestive surgery, orthopedic surgery, traumatology, and urology were specifically collected for a use case on ICD-10 diagnostic coding. 
+
+Identifying biomarkers in oncology Pathology reports containing descriptions of tumor biomark-ers used to inform diagnosis, prognosis, and targeted therapy selection in oncology: tissue and genomic alterations such as mutations, amplifications, and protein expression. The use case for this dataset is the automatic identification of these biomarkers. 
+
+Identifying the response to treatment in oncology Oncology consultation reports mention-ing treatment response (complete response, partial response, stable disease, progressive dis-ease, not applicable, or indeterminate). The associated use case aims at classifying RECIST-style information from these reports. 
+
+Infectiology Reports describing infectious episodes (including bacteremia) along with the causative bacteria and the primary site of infection. Other use cases (pseudonymization and summarization) are planned for the PARTAGES project (described below). However, the documents dedicated to these tasks do not require a distribution that differs from that described in the previous section. 
+
+## 2.4 Implementation 
+
+The PARTAGES project, funded by the French government under the France 2030 initiative (op-erated by Bpifrance), brings together a consortium of 32 partners, including research teams, public and private healthcare institutions, and AI-focused deeptech companies. Its aim is to develop open resources to support the emergence of generative AI solutions in healthcare. The creation of the PARHAF corpus of clinical reports is one of the consortium’s initiatives. The corpus development was initiated through a scoping phase involving NLP experts and physicians, aimed at balancing production volume with budgetary constraints. Writing time was estimated at 60 minutes per document: 45 minutes for the first author and 15 minutes for review, validation, and correction by a second expert. This estimation was based on the expertise of the physicians involved and consultation with twelve residents from different specialties, active within their respective residents’ associations. A maximum duration of 60 minutes per document was retained, with a gross hourly compensation of e40, corresponding to a maximum of e40 per completed and reviewed report. Recruitment was conducted through a temporary employment agency. A national outreach campaign targeted 21 residents’ associations across different specialties in France. Eleven associations disseminated the call for participation, representing the follow-ing specialties: internal medicine, infectious diseases, visceral surgery, obstetrics and gynecology, neurology, pulmonology, public health, urology, oncology, anesthesiology and intensive care, and anatomical pathology. The call for participation was further circulated via the project’s hospital partners and their associated medical networks, enabling the inclusion of residents from additional specialties: nephrology, hematology, orthopedics, pediatrics, gastroenterology and hepatology, and cardiology. More than 500 applications were received, reflecting strong engagement from the medi-cal community. A final panel of 104 residents was selected, prioritizing residents in the later stages of training and ensuring broad geographic representation. This response confirmed residents’ com-mitment to developing digital commons and supporting generative AI projects in healthcare. To ensure consistency and quality of the outputs, a structured support framework was im-plemented, including regular webinars, methodological guidelines, a centralized communication platform, and dedicated support. Contributors were also involved in methodological refinements through specialty-specific meetings, enabling adaptation of instructions to clinical practice and ensuring the validity and representativeness of the corpus. From a financial perspective, operational costs primarily consisted of physician compensation, increased by the management fees of the temporary employment agency (multiplicative coefficient 
+
+6of 1.9 applied to the gross remuneration). The production of the 7,394 clinical reports, totaling 5,518 hours of effective work, resulted in a total operational cost of approximately e495,000. 
+
+# 3 Data Records 
+
+PARHAF consists of a single JSON file containing structured metadata about fictitious patients and the clinical documents associated with them. Each entry in the data array corresponds to one patient record and includes patient-level metadata, contextual information about the care scenario, and a list of associated documents. The documents themselves are not embedded in the JSON file. Instead, each document is referenced via a relative file path pointing to an external text file. These text files are stored separately and organized by medical specialty, with one directory per specialty. Each document file contains raw, unannotated plain text in French, with no markup, labels, or structural tags applied. The JSON file, therefore, acts as the index and metadata layer of the corpus, while the di-rectory structure contains the raw textual content. The linkage between metadata and text relies exclusively on the relative paths specified in the documents[].path fields. The high-level structure of the JSON format and the path-based schema description are de-scribed in Figure 1 and Table 1, respectively. In addition to this standalone dataset, we also distribute a Hugging Face dataset (Parquet/Arrow) that is a derived representation generated automatically from the JSON files. Both formats, there-fore, contain identical information and differ only in storage layout. The PARHAF corpus is openly available under the Creative Commons Attribution 4.0 Inter-national (CC BY 4.0) license and the Etalab 2.0 license. It was released on March 25, 2026. The primary distribution is on Hugging Face ( https://huggingface.co/datasets/HealthDataHub/ PARHAF ). 
+
+# 4 Data Overview 
+
+A subset of the dataset is temporarily embargoed to enable future evaluations under controlled conditions, thereby limiting the risk of large language model contamination through prior expo-sure to the data. In total, we release 4,254 patients (6,185 documents) and keep 755 patients (1,209 documents) under embargo for future release. Figures 2, 3, and 4 provide details about, respectively, the patient count per medical specialty, the population pyramid chart, and the document and word counts by document type. 
+
+# 5 Technical Validation 
+
+All contributors involved in report writing and validation completed standardized online training covering the study objectives, authoring guidelines, and validation procedures. The full clinical scenario framework was presented in detail to ensure a consistent understanding of context and expectations. Additional specialty-specific instructions were provided where relevant, including requirements regarding the number and types of documents per patient and scenario-dependent constraints. To preserve ecological validity and avoid burdening contributors with rigid formatting that would diverge from real-world clinical practice, reports were produced as guided but free-text documents within an online text-editing environment. Human validators were responsible for content quality control, assessing clinical coherence and adherence to the instructions. This step resulted in a rejection rate of 3.6% of submitted documents. Beyond human review, an automated “sanity check” pipeline was implemented to verify compli-ance with key structural and procedural requirements. These checks included validating document type and the expected number of documents per patient, confirming final hospitalization dura-tion entries, and recording required clinical procedures or acts. This automated stage ensured the consistency of core structured elements across the corpus. Following automated validation, 120 documents required manual correction. These interven-tions addressed minor typographical errors within structured fields, format-style deviations that interfered with automated parsing, or unauthorized modifications to the original instruction tem-plate. No corrections altered the underlying clinical content; all changes were limited to restoring technical conformity with the dataset specifications. 
+
+7root (object) name: string version: string licenses: array of string license_urls: array of string description: string patient_count: integer document_count: integer data: array of object 
+
+element (patient) 
+
+id: string local_id: string specialty: string author: string reviewer: string pool: string suggested_scenario: object name: string age: object value: integer unit: string sex: string admission_mode: string (optional) discharge_mode: string (optional) primary_procedure: object (optional) code: string description: string primary_diagnosis: object code: string description: string type_of_care: string (optional) documents: array of object 
+
+element (document) 
+
+type: string header: string path: string word_count: integer structured_abstract: object (optional) primary_diagnosis: array of object (optional) 
+
+element (diagnosis) 
+
+code: string (optional) description: string primary_procedure: array of object 
+
+element (procedure) 
+
+code: string description: string admission_mode: string (optional) discharge_mode: string (optional) length_of_stay: object (optional) value: integer unit: string 
+
+Figure 1: High-level structure of the dataset (JSON format) 8Path Type Description 
+
+Root level 
+
+name string Name of the corpus 
+
+version string Version 
+
+licenses string Licenses of the dataset 
+
+license_urls string URL to license descriptions 
+
+description string Short description of the corpus 
+
+patient_count integer Number of patients in the corpus 
+
+document_count integer Number of documents (reports) in the corpus 
+
+data[] array List of patients 
+
+data[] (one patient) 
+
+id string Global unique patient identifier 
+
+local_id string Local id within the specialty 
+
+specialty string Medical specialty 
+
+author string Author trigram 
+
+reviewer string Reviewer trigram 
+
+pool string Dataset partition. Some patients are part of specific use cases (UC1–6). 
+
+suggested_scenario dict Basic scenario suggested to the report author 
+
+documents[] array List of reports for this patient 
+
+structured_abstract dict Optional and uncurated abstract filled by the author. May not reflect the real content of the report. 
+
+suggested_scenario (object) 
+
+name string Patient name (fictional) 
+
+age.value integer Age value 
+
+age.unit string Age unit 
+
+sex string Patient sex 
+
+admission_mode string Admission source 
+
+discharge_mode string Discharge destination 
+
+primary_procedure.code string CCAM code 
+
+primary_procedure.description string Procedure label 
+
+primary_diagnosis.code string ICD10 code 
+
+primary_diagnosis.description string Diagnosis label 
+
+type_of_care string Care description 
+
+documents[] (between 1 and 3 patient reports )
+
+type string Document type 
+
+header string Document title 
+
+word_count integer Number of words in the report 
+
+path string Relative path to raw text 
+
+Table 1: Path-based schema description 9Figure 2: Patient count per specialty. Specific documents, off distribution, were written for four use cases. A subset of the dataset is temporarily embargoed to enable future evaluations under controlled conditions, thereby limiting the risk of large language model contamination through prior exposure to the data. In total, we release 4,254 patients (6,185 documents) and keep 755 patients (1,209 documents) under embargo for future release. 
+
+Figure 3: PARHAF population pyramid chart. 10 Figure 4: Document and word count by document type. The number of documents to write for a patient was imposed by the initial scenario. Word count is computed by the library edsnlp (v0.20). 
+
+# 6 Data Availability 
+
+The PARHAF corpus is openly available under the Creative Commons Attribution 4.0 International (CC BY 4.0) license, and the Etalab 2.0 license. It was released on March 25, 2026. The primary distribution is on Hugging Face at https://huggingface.co/datasets/HealthDataHub/PARHAF .
+
+# 7 Code Availability 
+
+The code used for data processing and quality control is publicly available on GitHub at https:// github.com/xtannier/PAHRAF_cleaning_and_publication . This includes scripts for converting source documents from .docx to plain text, generating JSON metadata, building the Hugging Face Parquet dataset, and running the automated sanity-check pipeline described above. 
+
+# 8 References 
+
+[1] Laparra, E., Mascio, A., Velupillai, S. & Miller, T. A review of recent work in transfer learning and domain adaptation for natural language processing of electronic health records. Yearb Med Inform 30 , 239–244 (2021). [2] Gao, Y. et al. A scoping review of publicly available language tasks in clinical natural language processing. J Am Med Inform Assoc 29 , 1797–1806 (2022). [3] Pestian, J. P. et al. A shared task involving multi-label classification of clinical free text. In Cohen, K. B., Demner-Fushman, D., Friedman, C., Hirschman, L. & Pestian, J. (eds.) 
+
+Biol. Transl. Clin. Lang. Process. , 97–104 (Association for Computational Linguistics, Prague, Czech Republic, 2007). URL https://aclanthology.org/W07-1013/ .[4] Uzuner, O., Luo, Y. & Szolovits, P. Evaluating the state-of-the-art in automatic de-identification. J. Am. Med. Inform. Assoc. 14 , 550–563 (2007). [5] Saeed, M. et al. Multiparameter Intelligent Monitoring in Intensive Care II (MIMIC-II): A public-access intensive care unit database. Crit. Care Med. 39 , 952–960 (2011). 
+
+11 [6] Johnson, A. E. W. et al. MIMIC-III, a freely accessible critical care database. Sci. Data 3,160035 (2016). [7] Névéol, A., Dalianis, H., Velupillai, S., Savova, G. & Zweigenbaum, P. Clinical natural language processing in languages other than English: opportunities and challenges. J. Biomed. Semant. 9, 12 (2018). [8] Berthelier, G., Boutet, A. & Richard, A. Toward training NLP models to take into account privacy leakages. In 2023 IEEE Int. Conf. Big Data (BigData) , 4854–4862 (IEEE, 2023). [9] Neamatullah, I. et al. Automated de-identification of free-text medical records. BMC Med. Inform. Decis. Mak. 8 (2008). URL http://dx.doi.org/10.1186/1472-6947-8-32 .[10] Grouin, C., Rosier, A., Dameron, O. & Zweigenbaum, P. Testing tactics to localize de-identification. In Adlassnig, K.-P., Mantas, J. & Blobel, B. (eds.) Proc. MIE 2009 , vol. 150 of Studies in Health Technology and Informatics , 735–739 (IOS Press, Amsterdam, 2009). [11] Dernoncourt, F., Lee, J. Y., Uzuner, O. & Szolovits, P. De-identification of patient notes with recurrent neural networks. J. Am. Med. Inform. Assoc. (2016). [12] Chevrier, R., Foufi, V., Gaudet-Blavignac, C., Robert, A. & Lovis, C. Use and understanding of anonymization and de-identification in the biomedical literature: Scoping review. J. Med. Internet Res. 21 , e13484 (2019). [13] Campillos, L. et al. A French clinical corpus with comprehensive semantic annotations: de-velopment of the Medical Entity and Relation LIMSI annOtated Text corpus (MERLOT). 
+
+Lang. Resour. Eval. 52 , 571–601 (2018). [14] Jannot, A.-S. et al. The Georges Pompidou University hospital clinical data warehouse: a 8-years follow-up experience. Int. J. Med. Inform. 102 , 21–28 (2017). [15] Tannier, X. et al. Development and validation of a natural language processing algorithm to pseudonymize documents in the context of a clinical data warehouse. Methods Inf. Med. 63 ,021–034 (2024). [16] Hahn, U. Clinical document corpora-real ones, translated and synthetic substitutes, and assorted domain proxies: a survey of diversity in corpus design, with focus on German text data. JAMIA Open 8, ooaf024 (2025). [17] Becker, M. & Böckmann, B. Extraction of UMLS concepts using Apache cTAKES for German language. In Schreier, G., Ammenwerth, E., Hörbst, A. & Hayn, D. (eds.) Health Inform. Meets eHealth , vol. 223 of Studies in Health Technology and Informatics , 71–76 (IOS Press, 2016). URL https://doi.org/10.3233/978-1-61499-645-3-71 .[18] Neves, M. et al. Findings of the WMT 2022 biomedical translation shared task: Monolingual clinical case reports. In Proc. 7th Conf. Mach. Transl. (WMT) , 694–723 (2022). [19] Frei, J., Frei-Stuber, L. & Kramer, F. GERNERMED++: semantic annotation in German medical NLP through transfer-learning, translation and word alignment. J. Biomed. Inform. 
+
+147 , 104513 (2023). URL https://doi.org/10.1016/j.jbi.2023.104513 .[20] Modersohn, L., Schulz, S., Lohr, C. & Hahn, U. GRASCCO - the first publicly shareable, multiply-alienated German clinical text corpus. In Röhrig, R. et al. (eds.) Ger. Med. Data Sci. 2022 , vol. 296 of Studies in Health Technology and Informatics , 66–72 (IOS Press, 2022). URL https://doi.org/10.3233/SHTI220805 .[21] Ive, J. et al. Generation and evaluation of artificial mental health records for natural language processing. NPJ Digit. Med. 3, 69 (2020). [22] Hiebel, N., Ferret, O., Fort, K. & Névéol, A. Can synthetic text help clinical named entity recognition? a study of electronic health records in French. In Proc. 17th Conf. Eur. Chapter Assoc. Comput. Linguist. (EACL) , 2320–2338 (2023). [23] Frei, J. & Kramer, F. Annotated dataset creation through large language models for non-English medical NLP. J. Biomed. Inform. 145 , 104478 (2023). URL https://doi.org/10. 1016/j.jbi.2023.104478 .[24] Vakili, T., Henriksson, A. & Dalianis, H. Data-constrained synthesis of training data for de-identification. In Che, W., Nabende, J., Shutova, E. & Pilehvar, M. T. (eds.) Proc. 63rd Annu. Meet. Assoc. Comput. Linguist. (ACL) , 27414–27427 (Association for Computational Linguis-tics, Vienna, Austria, 2025). URL https://aclanthology.org/2025.acl-long.1329/ .
+
+12 [25] Melamud, O. & Shivade, C. Towards automatic generation of shareable synthetic clinical notes using neural language models. In Proc. 2nd Clinical NLP Workshop , 35–45 (2019). [26] Estignard, F., Ghannay, S., Girard-Satabin, J., Hiebel, N. & Névéol, A. Evaluating the confidentiality of synthetic clinical texts generated by language models. In Int. Conf. Artif. Intell. Med. (AIME) , 130–139 (Springer, 2025). [27] Grabar, N., Claveau, V. & Dalloux, C. CAS: French corpus with clinical cases. In Proc. 9th Int. Workshop Health Text Mining Inf. Anal. , 122–128 (2018). [28] Magnini, B., Altuna, B., Lavelli, A., Speranza, M. & Zanoli, R. The E3C project: Collection and annotation of a multilingual corpus of clinical cases. In Monti, J., Dell’Orletta, F. & Tamburini, F. (eds.) Proc. of the Seventh Italian Conf. on Computational Linguistics, CLiC-it 2020, Bologna, Italy, March 1-3, 2021 , vol. 2769 of CEUR Workshop Proceedings (CEUR-WS.org, 2020). URL https://ceur-ws.org/Vol-2769/paper_55.pdf .[29] Miranda-Escalada, A., Farré, E. & Krallinger, M. Named entity recognition, concept nor-malization and clinical coding: Overview of the Cantemist track for cancer text mining in Spanish, corpus, guidelines, methods and results. In Cumbreras, M. Á. G. et al. (eds.) Proc. IberLEF 2020 , vol. 2664 of CEUR Workshop Proceedings , 303–323 (CEUR-WS.org, 2020). URL https://ceur-ws.org/Vol-2664/cantemist_overview.pdf .[30] Miranda-Escalada, A. et al. Overview of DisTEMIST at BioASQ: Automatic detection and normalization of diseases from clinical texts: results, methods, evaluation and multilingual resources. In Faggioli, G., Ferro, N., Hanbury, A. & Potthast, M. (eds.) Proceedings of the Working Notes of CLEF 2022 - Conference and Labs of the Evaluation Forum, Bologna, Italy, September 5th - to - 8th, 2022 , vol. 3180 of CEUR Workshop Proceedings , 179–203 (CEUR-WS.org, 2022). URL https://ceur-ws.org/Vol-3180/paper-11.pdf .[31] Zaghir, J. et al. FRASIMED: A clinical French annotated resource produced through crosslin-gual BERT-based annotation projection. In Calzolari, N. et al. (eds.) Proc. LREC-COLING 2024 , 7450–7460 (ELRA and ICCL, Torino, Italia, 2024). URL https://aclanthology.org/ 2024.lrec-main.657/ .[32] Lohr, C., Buechel, S. & Hahn, U. Sharing copies of synthetic clinical corpora without physical distribution - A case study to get around IPRs and privacy constraints featuring the Ger-man JSYNCC corpus. In Calzolari, N. et al. (eds.) Proc. LREC 2018 (European Language Resources Association (ELRA), 2018). URL http://www.lrec-conf.org/proceedings/ lrec2018/summaries/701.html .[33] Le Guellec, B. et al. PARROT, an open multilingual radiology reports dataset. Eur. J. Radiol. Artif. Intell. 5, 100066 (2026). URL https://www.sciencedirect.com/science/article/ pii/S3050577125000647 .[34] Sinclair, J. Corpus and text: Basic priniciples. In Wynne, M. (ed.) Developing Linguistic Corpora: a Guide to Good Practice , chap. 1 (AHDS Guides to Good Practice, Oxford, 2004). [35] Zweigenbaum, P., Jacquemart, P., Grabar, N. & Habert, B. Building a text corpus for representing the variety of medical language. Stud Health Technol Inform 84 , 290–294 (2001). [36] Moore, N. et al. National health insurance claims database in France (SNIRAM), système national des données de santé (SNDS) and Health Data Hub (HDH). In Databases for phar-macoepidemiological research , 131–140 (Springer, 2021). [37] Sweeney, L. k-anonymity: a model for protecting privacy. Int. J. Uncertain. Fuzziness Knowl.-Based Syst. 10 , 557–570 (2002). URL https://doi.org/10.1142/S0218488502001648 .
+
+# 9 Author Contributions 
+
+Xavier Tannier : Conceptualization, Methodology, Software, Validation, Data Curation, Writing - Original Draft, Writing - Review & Editing, Visualization, Funding acquisition. Salam Ab-bara : Conceptualization, Methodology, Writing - Review & Editing, Funding acquisition. Rémi Flicoteaux : Conceptualization, Methodology, Validation, Writing - Review & Editing. Youness Khalil : Methodology, Writing - Review & Editing, Project administration. Aurélie Névéol :Conceptualization, Writing - Review & Editing, Funding acquisition. Pierre Zweigenbaum :Conceptualization, Writing - Review & Editing, Funding acquisition. Emmanuel Bacry : Con-ceptualization, Supervision, Project coordinator, Funding acquisition, Writing - Review & Editing. 
+
+13 10 Competing Interests 
+
+The authors declare no competing interests related to this work. 
+
+# 11 Acknowledgements 
+
+We thank the authors of the reports for their contribution and feedback on the protocol, as well as the PARTAGES consortium members for fruitful discussions towards corpus development. We also thank Florian Pons for helping with operational support and project coordination. 
+
+# 12 Funding 
+
+This work was carried out as part of the PARTAGES project, awardee of the Bpifrance France 2030 call for proposals “Digital Commons for Generative Artificial Intelligence.” 
+
+# 13 Ethics statement* 
+
+Through their affiliations with French public service agencies, the developers of the PARHAF corpus have benefited from access to SNDS data. The clinical scenarios used to write the clinical documents in the PARHAF corpus are based on aggregated public health statistics and do not pertain to identifiable real patients. No private information about individual subjects was used in this study; therefore, no IRB or ethics approval was required to create or distribute the PARHAF corpus. The clinical document authors involved in this study were apprised of the full document creation protocol. Participation was voluntary, and authors were compensated for their work in accordance with French labor laws. The PARHAF corpus is intended for use as educational material and as support for the devel-opment and evaluation of clinical NLP systems. It is not intended for clinical use. 
+
+# Supplementary Material 
+
+Figure S1 shows the changes in distribution for each specialty, after the adjustment described in Section 2.3.1. Figure S2 illustrates the number of patients written by each author. 
+
+Figure S1: Change in distribution for each specialty, after the adjustment described in Section 2.3.1. 14 Figure S2: Patient counts by author 15

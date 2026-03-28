@@ -1,389 +1,8 @@
 {
-  "generated_at": "2026-03-27T20:04:44.549472+00:00",
-  "updated_date": "20260327",
+  "generated_at": "2026-03-28T19:24:45.769930+00:00",
+  "updated_date": "20260328",
   "carryover_days": 9,
   "items": [
-    {
-      "id": "2603.24587v1",
-      "title": "DreamerAD: Efficient Reinforcement Learning via Latent World Model for Autonomous Driving",
-      "abstract": "We introduce DreamerAD, the first latent world model framework that enables efficient reinforcement learning for autonomous driving by compressing diffusion sampling from 100 steps to 1 - achieving 80x speedup while maintaining visual interpretability. Training RL policies on real-world driving data incurs prohibitive costs and safety risks. While existing pixel-level diffusion world models enable safe imagination-based training, they suffer from multi-step diffusion inference latency (2s/frame) that prevents high-frequency RL interaction. Our approach leverages denoised latent features from video generation models through three key mechanisms: (1) shortcut forcing that reduces sampling complexity via recursive multi-resolution step compression, (2) an autoregressive dense reward model operating directly on latent representations for fine-grained credit assignment, and (3) Gaussian vocabulary sampling for GRPO that constrains exploration to physically plausible trajectories. DreamerAD achieves 87.7 EPDMS on NavSim v2, establishing state-of-the-art performance and demonstrating that latent-space RL is effective for autonomous driving.",
-      "authors": [
-        "Pengxuan Yang",
-        "Yupeng Zheng",
-        "Deheng Qian",
-        "Zebin Xing",
-        "Qichao Zhang",
-        "Linbo Wang",
-        "Yichen Zhang",
-        "Shaoyu Guo",
-        "Zhongpu Xia",
-        "Qiang Chen",
-        "Junyu Han",
-        "Lingyun Xu",
-        "Yifeng Pan",
-        "Dongbin Zhao"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.RO"
-      ],
-      "published": "2026-03-25T17:57:09+00:00",
-      "link": "https://arxiv.org/pdf/2603.24587v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Latent world model framework for reinforcement learning in autonomous driving",
-      "llm_evidence_cn": "用于自动驾驶强化学习的潜在世界模型框架",
-      "llm_evidence": "用于自动驾驶强化学习的潜在世界模型框架",
-      "canonical_evidence": "用于自动驾驶强化学习的潜在世界模型框架",
-      "llm_tldr_en": "Introduces DreamerAD, a latent world model framework enabling efficient RL for autonomous driving.",
-      "llm_tldr_cn": "提出DreamerAD，一种用于自动驾驶高效强化学习的潜在世界模型框架。",
-      "llm_tldr": "提出DreamerAD，一种用于自动驾驶高效强化学习的潜在世界模型框架。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24587v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24581v1",
-      "title": "Latent-WAM: Latent World Action Modeling for End-to-End Autonomous Driving",
-      "abstract": "We introduce Latent-WAM, an efficient end-to-end autonomous driving framework that achieves strong trajectory planning through spatially-aware and dynamics-informed latent world representations. Existing world-model-based planners suffer from inadequately compressed representations, limited spatial understanding, and underutilized temporal dynamics, resulting in sub-optimal planning under constrained data and compute budgets. Latent-WAM addresses these limitations with two core modules: a Spatial-Aware Compressive World Encoder (SCWE) that distills geometric knowledge from a foundation model and compresses multi-view images into compact scene tokens via learnable queries, and a Dynamic Latent World Model (DLWM) that employs a causal Transformer to autoregressively predict future world status conditioned on historical visual and motion representations. Extensive experiments on NAVSIM v2 and HUGSIM demonstrate new state-of-the-art results: 89.3 EPDMS on NAVSIM v2 and 28.9 HD-Score on HUGSIM, surpassing the best prior perception-free method by 3.2 EPDMS with significantly less training data and a compact 104M-parameter model.",
-      "authors": [
-        "Linbo Wang",
-        "Yupeng Zheng",
-        "Qiang Chen",
-        "Shiwei Li",
-        "Yichen Zhang",
-        "Zebin Xing",
-        "Qichao Zhang",
-        "Xiang Li",
-        "Deheng Qian",
-        "Pengxuan Yang",
-        "Yihang Dong",
-        "Ce Hao",
-        "Xiaoqing Ye",
-        "Junyu han",
-        "Yifeng Pan",
-        "Dongbin Zhao"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.RO"
-      ],
-      "published": "2026-03-25T17:56:07+00:00",
-      "link": "https://arxiv.org/pdf/2603.24581v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Latent World Model with learnable queries for autonomous driving",
-      "llm_evidence_cn": "用于自动驾驶的潜在世界模型与可学习查询",
-      "llm_evidence": "用于自动驾驶的潜在世界模型与可学习查询",
-      "canonical_evidence": "用于自动驾驶的潜在世界模型与可学习查询",
-      "llm_tldr_en": "Proposes Latent-WAM, a world model framework for autonomous driving using spatial-aware encoders and dynamic latent modeling.",
-      "llm_tldr_cn": "提出Latent-WAM，用于自动驾驶的世界模型框架，采用空间感知编码器和动态潜在建模。",
-      "llm_tldr": "提出Latent-WAM，用于自动驾驶的世界模型框架，采用空间感知编码器和动态潜在建模。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24581v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25195v1",
-      "title": "On-Demand Instructional Material Providing Agent Based on MLLM for Tutoring Support",
-      "abstract": "Effective instruction in tutoring requires promptly providing instructional materials that match the needs of each student (e.g., in response to questions). In this study, we introduce an agent that automatically delivers supplementary materials on demand during one-on-one tutoring sessions. Our agent uses a multimodal large language model to analyze spoken dialogue between the instructor and the student, automatically generate search queries, and retrieve relevant Web images. Evaluation experiments demonstrate that our agent reduces the average image retrieval time by 44.4 s compared to cases without support and successfully provides images of acceptable quality in 85.7% of trials. These results indicate that our agent effectively supports instructors during tutoring sessions.",
-      "authors": [
-        "Takumi Kato",
-        "Masato Kikuchi",
-        "Tadachika Ozono"
-      ],
-      "primary_category": "cs.HC",
-      "categories": [
-        "cs.HC"
-      ],
-      "published": "2026-03-26T08:59:23+00:00",
-      "link": "https://arxiv.org/pdf/2603.25195v1",
-      "tags": [
-        "keyword:Agent",
-        "keyword:WMODEL",
-        "query:Agent",
-        "query:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Agent generates search queries and retrieves web images",
-      "llm_evidence_cn": "智能体生成搜索查询并检索网络图像",
-      "llm_evidence": "智能体生成搜索查询并检索网络图像",
-      "canonical_evidence": "智能体生成搜索查询并检索网络图像",
-      "llm_tldr_en": "An MLLM-based agent that automatically generates search queries and retrieves instructional images for tutoring support.",
-      "llm_tldr_cn": "基于MLLM的智能体自动生成搜索查询并检索教学图像以支持辅导。",
-      "llm_tldr": "基于MLLM的智能体自动生成搜索查询并检索教学图像以支持辅导。",
-      "llm_tags": [
-        "query:agent"
-      ],
-      "matched_query_tag": "query:agent",
-      "matched_query_text": "Search Agent",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25195v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25216v1",
-      "title": "A Wireless World Model for AI-Native 6G Networks",
-      "abstract": "Integrating AI into the physical layer is a cornerstone of 6G networks. However, current data-driven approaches struggle to generalize across dynamic environments because they lack an intrinsic understanding of electromagnetic wave propagation. We introduce the Wireless World Model (WWM), a multi-modal foundation framework predicting the spatiotemporal evolution of wireless channels by internalizing the causal relationship between 3D geometry and signal dynamics. Pre-trained on a massive ray-traced multi-modal dataset, WWM overcomes the data authenticity gap, further validated under real-world measurement data. Using a joint-embedding predictive architecture with a multi-modal mixture-of-experts Transformer, WWM fuses channel state information, 3D point clouds, and user trajectories into a unified representation. Across the five key downstream tasks supported by WWM, it achieves remarkable performance in seen environments, unseen generalization scenarios, and real-world measurements, consistently outperforming SOTA uni-modal foundation models and task-specific models. This paves the way for physics-aware 6G intelligence that adapts to the physical world.",
-      "authors": [
-        "Ziqi Chen",
-        "Yi Ren",
-        "Yixuan Huang",
-        "Qi Sun",
-        "Nan Li",
-        "Yuhong Huang",
-        "Chih-Lin I",
-        "Yifan Li",
-        "Liang Xia"
-      ],
-      "primary_category": "cs.NI",
-      "categories": [
-        "cs.NI",
-        "cs.AI",
-        "eess.SP"
-      ],
-      "published": "2026-03-26T09:16:55+00:00",
-      "link": "https://arxiv.org/pdf/2603.25216v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "multi-modal world model for wireless networks",
-      "llm_evidence_cn": "用于无线网络的多模态世界模型",
-      "llm_evidence": "用于无线网络的多模态世界模型",
-      "canonical_evidence": "用于无线网络的多模态世界模型",
-      "llm_tldr_en": "Introduces Wireless World Model predicting spatiotemporal evolution of wireless channels using multi-modal data.",
-      "llm_tldr_cn": "提出无线世界模型预测无线信道的时空演化。",
-      "llm_tldr": "提出无线世界模型预测无线信道的时空演化。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25216v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23566v1",
-      "title": "AscendOptimizer: Episodic Agent for Ascend NPU Operator Optimization",
-      "abstract": "AscendC (Ascend C) operator optimization on Huawei Ascend neural processing units (NPUs) faces a two-fold knowledge bottleneck: unlike the CUDA ecosystem, there are few public reference implementations to learn from, and performance hinges on a coupled two-part artifact - a host-side tiling program that orchestrates data movement and a kernel program that schedules and pipelines instructions. We present AscendOptimizer, an episodic agent that bootstraps this missing expertise by turning execution into experience. On the host side, AscendOptimizer performs profiling-in-the-loop evolutionary search to discover valid and high-performing tiling and data-movement configurations directly from hardware feedback. On the kernel side, it mines transferable optimization motifs by rewinding optimized kernels - systematically de-optimizing them to synthesize instructive \"bad-to-good\" trajectories - and distills these motifs into a retrievable experience bank for guided rewriting. By alternating host tuning and kernel rewriting in a closed loop, AscendOptimizer steadily expands feasibility and pushes latency down. On a benchmark of 127 real AscendC operators, AscendOptimizer achieves a 1.19x geometric-mean speedup over the open-source baseline, with 49.61% of operators outperforming their references, outperforming strong agent and search baselines.",
-      "authors": [
-        "Jiehao Wu",
-        "Zixiao Huang",
-        "Wenhao Li",
-        "Chuyun Shen",
-        "Junjie Sheng",
-        "Xiangfeng Wang"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-03-24T08:54:53+00:00",
-      "link": "https://arxiv.org/pdf/2603.23566v1",
-      "tags": [
-        "keyword:Agent"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Episodic agent for NPU operator optimization with code generation",
-      "llm_evidence_cn": "用于NPU算子优化的情景智能体",
-      "llm_evidence": "用于NPU算子优化的情景智能体",
-      "canonical_evidence": "用于NPU算子优化的情景智能体",
-      "llm_tldr_en": "AscendOptimizer is an episodic agent that automates NPU operator optimization through evolutionary search and code mining.",
-      "llm_tldr_cn": "AscendOptimizer是通过进化搜索和代码挖掘自动化NPU算子优化的情景智能体。",
-      "llm_tldr": "AscendOptimizer是通过进化搜索和代码挖掘自动化NPU算子优化的情景智能体。",
-      "llm_tags": [
-        "query:agent"
-      ],
-      "matched_query_tag": "query:agent",
-      "matched_query_text": "Code Agent",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23566v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24631v1",
-      "title": "TRAJEVAL: Decomposing Code Agent Trajectories for Fine-Grained Diagnosis",
-      "abstract": "Code agents can autonomously resolve GitHub issues, yet when they fail, current evaluation provides no visibility into where or why. Metrics such as Pass@1 collapse an entire execution into a single binary outcome, making it difficult to identify where and why the agent went wrong. To address this limitation, we introduce TRAJEVAL, a diagnostic framework that decomposes agent trajectories into three interpretable stages: search (file localization), read (function comprehension), and edit (modification targeting). For each stage, we compute precision and recall by comparing against reference patches. Analyzing 16,758 trajectories across three agent architectures and seven models, we find universal inefficiencies (all agents examine approximately 22x more functions than necessary) yet distinct failure modes: GPT-5 locates relevant code but targets edits incorrectly, while Qwen-32B fails at file discovery entirely. We validate that these diagnostics are predictive, achieving model-level Pass@1 prediction within 0.87-2.1% MAE, and actionable: real-time feedback based on trajectory signals improves two state-of-the-art models by 2.2-4.6 percentage points while reducing costs by 20-31%. These results demonstrate that our framework not only provides a more fine-grained analysis of agent behavior, but also translates diagnostic signals into tangible performance gains. More broadly, TRAJEVAL transforms agent evaluation beyond outcome-based benchmarking toward mechanism-driven diagnosis of agent success and failure.",
-      "authors": [
-        "Myeongsoo Kim",
-        "Dingmin Wang",
-        "Siwei Cui",
-        "Farima Farmahinifarahani",
-        "Shweta Garg",
-        "Baishakhi Ray",
-        "Terry Yue Zhuo",
-        "Rajdeep Mukherjee",
-        "Varun Kumar"
-      ],
-      "primary_category": "cs.SE",
-      "categories": [
-        "cs.SE",
-        "cs.AI"
-      ],
-      "published": "2026-03-25T05:27:03+00:00",
-      "link": "https://arxiv.org/pdf/2603.24631v1",
-      "tags": [
-        "keyword:Agent"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Diagnostic framework decomposing code agent trajectories into search, read, edit stages for fine-grained evaluation",
-      "llm_evidence_cn": "诊断框架将代码智能体轨迹分解为搜索、读取、编辑阶段进行细粒度评估",
-      "llm_evidence": "诊断框架将代码智能体轨迹分解为搜索、读取、编辑阶段进行细粒度评估",
-      "canonical_evidence": "诊断框架将代码智能体轨迹分解为搜索、读取、编辑阶段进行细粒度评估",
-      "llm_tldr_en": "Introduces TRAJEVAL framework for diagnosing code agent failures through trajectory decomposition.",
-      "llm_tldr_cn": "提出TRAJEVAL框架，通过轨迹分解诊断代码智能体失败原因。",
-      "llm_tldr": "提出TRAJEVAL框架，通过轨迹分解诊断代码智能体失败原因。",
-      "llm_tags": [
-        "query:agent"
-      ],
-      "matched_query_tag": "query:agent",
-      "matched_query_text": "Code Agent",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24631v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25685v1",
-      "title": "Persistent Robot World Models: Stabilizing Multi-Step Rollouts via Reinforcement Learning",
-      "abstract": "Action-conditioned robot world models generate future video frames of the manipulated scene given a robot action sequence, offering a promising alternative for simulating tasks that are difficult to model with traditional physics engines. However, these models are optimized for short-term prediction and break down when deployed autoregressively: each predicted clip feeds back as context for the next, causing errors to compound and visual quality to rapidly degrade. We address this through the following contributions. First, we introduce a reinforcement learning (RL) post-training scheme that trains the world model on its own autoregressive rollouts rather than on ground-truth histories. We achieve this by adapting a recent contrastive RL objective for diffusion models to our setting and show that its convergence guarantees carry over exactly. Second, we design a training protocol that generates and compares multiple candidate variable-length futures from the same rollout state, reinforcing higher-fidelity predictions over lower-fidelity ones. Third, we develop efficient, multi-view visual fidelity rewards that combine complementary perceptual metrics across camera views and are aggregated at the clip level for dense, low-variance training signal. Fourth, we show that our approach establishes a new state-of-the-art for rollout fidelity on the DROID dataset, outperforming the strongest baseline on all metrics (e.g., LPIPS reduced by 14% on external cameras, SSIM improved by 9.1% on the wrist camera), winning 98% of paired comparisons, and achieving an 80% preference rate in a blind human study.",
-      "authors": [
-        "Jai Bardhan",
-        "Patrik Drozdik",
-        "Josef Sivic",
-        "Vladimir Petrik"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.CV"
-      ],
-      "published": "2026-03-26T17:36:08+00:00",
-      "link": "https://arxiv.org/pdf/2603.25685v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Robot world models with RL-based stabilization",
-      "llm_evidence_cn": "基于RL稳定的机器人世界模型",
-      "llm_evidence": "基于RL稳定的机器人世界模型",
-      "canonical_evidence": "基于RL稳定的机器人世界模型",
-      "llm_tldr_en": "Introduces reinforcement learning post-training to stabilize multi-step rollouts in action-conditioned robot world models.",
-      "llm_tldr_cn": "引入强化学习后训练方法，稳定动作条件机器人世界模型的多步推演。",
-      "llm_tldr": "引入强化学习后训练方法，稳定动作条件机器人世界模型的多步推演。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25685v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25741v1",
-      "title": "Vega: Learning to Drive with Natural Language Instructions",
-      "abstract": "Vision-language-action models have reshaped autonomous driving to incorporate languages into the decision-making process. However, most existing pipelines only utilize the language modality for scene descriptions or reasoning and lack the flexibility to follow diverse user instructions for personalized driving. To address this, we first construct a large-scale driving dataset (InstructScene) containing around 100,000 scenes annotated with diverse driving instructions with the corresponding trajectories. We then propose a unified Vision-Language-World-Action model, Vega, for instruction-based generation and planning. We employ the autoregressive paradigm to process visual inputs (vision) and language instructions (language) and the diffusion paradigm to generate future predictions (world modeling) and trajectories (action). We perform joint attention to enable interactions between the modalities and use individual projection layers for different modalities for more capabilities. Extensive experiments demonstrate that our method not only achieves superior planning performance but also exhibits strong instruction-following abilities, paving the way for more intelligent and personalized driving systems.",
-      "authors": [
-        "Sicheng Zuo",
-        "Yuxuan Li",
-        "Wenzhao Zheng",
-        "Zheng Zhu",
-        "Jie Zhou",
-        "Jiwen Lu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI",
-        "cs.RO"
-      ],
-      "published": "2026-03-26T17:59:56+00:00",
-      "link": "https://arxiv.org/pdf/2603.25741v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Vision-Language-World-Action model with dataset construction",
-      "llm_evidence_cn": "视觉-语言-世界-动作模型与数据集构建",
-      "llm_evidence": "视觉-语言-世界-动作模型与数据集构建",
-      "canonical_evidence": "视觉-语言-世界-动作模型与数据集构建",
-      "llm_tldr_en": "Vega is a unified Vision-Language-World-Action model for instruction-based autonomous driving with a 100K-scene dataset.",
-      "llm_tldr_cn": "Vega是统一的视觉-语言-世界-动作模型，用于指令驱动的自动驾驶，含10万场景数据集。",
-      "llm_tldr": "Vega是统一的视觉-语言-世界-动作模型，用于指令驱动的自动驾驶，含10万场景数据集。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25741v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24835v1",
-      "title": "DCARL: A Divide-and-Conquer Framework for Autoregressive Long-Trajectory Video Generation",
-      "abstract": "Long-trajectory video generation is a crucial yet challenging task for world modeling primarily due to the limited scalability of existing video diffusion models (VDMs). Autoregressive models, while offering infinite rollout, suffer from visual drift and poor controllability. To address these issues, we propose DCARL, a novel divide-and-conquer, autoregressive framework that effectively combines the structural stability of the divide-and-conquer scheme with the high-fidelity generation of VDMs. Our approach first employs a dedicated Keyframe Generator trained without temporal compression to establish long-range, globally consistent structural anchors. Subsequently, an Interpolation Generator synthesizes the dense frames in an autoregressive manner with overlapping segments, utilizing the keyframes for global context and a single clean preceding frame for local coherence. Trained on a large-scale internet long trajectory video dataset, our method achieves superior performance in both visual quality (lower FID and FVD) and camera adherence (lower ATE and ARE) compared to state-of-the-art autoregressive and divide-and-conquer baselines, demonstrating stable and high-fidelity generation for long trajectory videos up to 32 seconds in length.",
-      "authors": [
-        "Junyi Ouyang",
-        "Wenbin Teng",
-        "Gonglin Chen",
-        "Yajie Zhao",
-        "Haiwei Chen"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-25T22:07:09+00:00",
-      "link": "https://arxiv.org/pdf/2603.24835v1",
-      "tags": [
-        "keyword:WMODEL"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Long-trajectory video generation framework for world modeling with autoregressive approach",
-      "llm_evidence_cn": "面向世界建模的长轨迹视频生成框架，采用自回归方法",
-      "llm_evidence": "面向世界建模的长轨迹视频生成框架，采用自回归方法",
-      "canonical_evidence": "面向世界建模的长轨迹视频生成框架，采用自回归方法",
-      "llm_tldr_en": "DCARL is a divide-and-conquer autoregressive framework for long-trajectory video generation in world modeling.",
-      "llm_tldr_cn": "DCARL是用于世界建模的长轨迹视频生成分治自回归框架。",
-      "llm_tldr": "DCARL是用于世界建模的长轨迹视频生成分治自回归框架。",
-      "llm_tags": [
-        "query:wmodel:composite"
-      ],
-      "matched_query_tag": "query:wmodel:composite",
-      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
-      "matched_requirement_id": "req-composite-wmodel",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24835v1",
-      "carry_days": 1
-    },
     {
       "id": "2603.24647v1",
       "title": "Can LLMs Beat Classical Hyperparameter Optimization Algorithms? A Study on autoresearch",
@@ -406,21 +25,72 @@
         "keyword:Agent"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "LLM agent that searches for hyperparameters by editing training code directly",
-      "llm_evidence_cn": "通过直接编辑训练代码搜索超参数的LLM智能体",
-      "llm_evidence": "通过直接编辑训练代码搜索超参数的LLM智能体",
-      "canonical_evidence": "通过直接编辑训练代码搜索超参数的LLM智能体",
-      "llm_tldr_en": "Compares LLM agents against classical HPO algorithms for hyperparameter search via code editing.",
-      "llm_tldr_cn": "比较LLM智能体与经典超参数优化算法在代码编辑搜索中的表现。",
-      "llm_tldr": "比较LLM智能体与经典超参数优化算法在代码编辑搜索中的表现。",
+      "llm_evidence_en": "LLM agent searches hyperparameter configurations by editing code",
+      "llm_evidence_cn": "LLM智能体通过编辑代码搜索超参数配置",
+      "llm_evidence": "LLM智能体通过编辑代码搜索超参数配置",
+      "canonical_evidence": "LLM智能体通过编辑代码搜索超参数配置",
+      "llm_tldr_en": "LLM agent edits training code to search hyperparameters, narrowing gap with classical HPO methods.",
+      "llm_tldr_cn": "LLM智能体编辑训练代码搜索超参数，缩小与经典HPO方法的差距。",
+      "llm_tldr": "LLM智能体编辑训练代码搜索超参数，缩小与经典HPO方法的差距。",
       "llm_tags": [
         "query:agent"
       ],
       "matched_query_tag": "query:agent",
-      "matched_query_text": "Code Agent",
-      "matched_requirement_id": "req-2",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24647v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.25226v1",
+      "title": "WebTestBench: Evaluating Computer-Use Agents towards End-to-End Automated Web Testing",
+      "abstract": "The emergence of Large Language Models (LLMs) has catalyzed a paradigm shift in programming, giving rise to \"vibe coding\", where users can build complete projects and even control computers using natural language instructions. This paradigm has driven automated webpage development, but it introduces a new requirement about how to automatically verify whether the web functionalities are reliably implemented. Existing works struggle to adapt, relying on static visual similarity or predefined checklists that constrain their utility in open-ended environments. Furthermore, they overlook a vital aspect of software quality, namely latent logical constraints. To address these gaps, we introduce WebTestBench, a benchmark for evaluating end-to-end automated web testing. WebTestBench encompasses comprehensive dimensions across diverse web application categories. We decompose the testing process into two cascaded sub-tasks, checklist generation and defect detection, and propose WebTester, a baseline framework for this task. Evaluating popular LLMs with WebTester reveals severe challenges, including insufficient test completeness, detection bottlenecks, and long-horizon interaction unreliability. These findings expose a substantial gap between current computer-use agent capabilities and industrial-grade deployment demands. We hope that WebTestBench provides valuable insights and guidance for advancing end-to-end automated web testing. Our dataset and code are available at https://github.com/friedrichor/WebTestBench.",
+      "authors": [
+        "Fanheng Kong",
+        "Jingyuan Zhang",
+        "Yang Yue",
+        "Chenxi Sun",
+        "Yang Tian",
+        "Shi Feng",
+        "Xiaocui Yang",
+        "Daling Wang",
+        "Yu Tian",
+        "Jun Du",
+        "Wenchong Zeng",
+        "Han Li",
+        "Kun Gai"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CL",
+        "cs.MA"
+      ],
+      "published": "2026-03-26T09:27:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.25226v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmark for evaluating computer-use agents in web testing",
+      "llm_evidence_cn": "评估计算机使用代理的网页测试基准",
+      "llm_evidence": "评估计算机使用代理的网页测试基准",
+      "canonical_evidence": "评估计算机使用代理的网页测试基准",
+      "llm_tldr_en": "WebTestBench evaluates computer-use agents for end-to-end automated web testing with logical constraints.",
+      "llm_tldr_cn": "WebTestBench评估计算机使用代理进行端到端自动化网页测试。",
+      "llm_tldr": "WebTestBench评估计算机使用代理进行端到端自动化网页测试。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.25226v1",
       "carry_days": 1
     }
   ]

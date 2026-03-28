@@ -1,0 +1,206 @@
+Title: Skilled AI Agents for Embedded and IoT Systems Development
+
+URL Source: https://arxiv.org/pdf/2603.19583v1
+
+Published Time: Mon, 23 Mar 2026 00:25:26 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Skilled AI Agents for Embedded and IoT Systems Development 
+
+# Yiming Li, Yuhan Cheng, Mingchen Ma, Yihang Zou, Ningyuan Yang, Wei Cheng, Hai “Helen” Li, Yiran Chen, and Tingjun Chen 
+
+Department of Electrical and Computer Engineering, Duke University 
+
+## Abstract 
+
+Large language models (LLMs) and agentic systems have shown promise for automated software development, but applying them to hardware-in-the-loop (HIL) embedded and Internet-of-Things (IoT) systems remains challenging due to the tight coupling between software logic and physical hardware behavior. Code that compiles successfully may still fail when deployed on real devices because of timing constraints, peripheral initialization requirements, or hardware-specific behaviors. To address this challenge, we intro-duce a skills-based agentic framework for HIL embedded devel-opment together with IoT-SkillsBench, a benchmark designed to systematically evaluate AI agents in real embedded programming environments. IoT-SkillsBench spans three representative embed-ded platforms, 23 peripherals, and 42 tasks across three difficulty levels, where each task is evaluated under three agent configura-tions (no-skills, LLM-generated skills, and human-expert skills) and validated through real hardware execution. Across 378 hardware-validated experiments, we show that concise human-expert skills with structured expert knowledge enable near-perfect success rates across platforms. 
+
+## 1 Introduction 
+
+Recent advances in large language models (LLMs) and agentic sys-tems have shown promise in assisting software development by enabling automated code generation [ 6, 14 , 20 ], debugging [ 7 ], and reasoning over complex documentation [ 18 ]. This capability has mo-tivated growing interest in applying LLM-based agents to hardware-in-the-loop (HIL) embedded systems and Internet-of-Things (IoT) application development [ 5 , 10 , 12 , 13 , 16 , 19 ]. However, unlike purely software-based agentic systems operating in cloud or local environments, designing agentic frameworks for embedded and IoT systems interacting with real physical hardware introduces fundamentally different and significantly more complex challenges. First, the embedded ecosystem is highly fragmented . Microcon-troller units (MCUs) rely on diverse vendor-specific toolchains and real-time operating system (RTOS) environments (e.g., ESP-IDF, Zephyr, AVR-Libc), while peripheral interactions span diverse com-munication protocols (e.g., I2C, SPI, UART, wireless stacks). Beyond heterogeneity, interfacing with physical hardware requires strict ad-herence to low-level constraints, including precise timing, initializa-tion ordering, interrupt handling, and pin multiplexing. Moreover, embedded platforms exhibit tight coupling between hardware and software, and agents must navigate across hardware-specific config-urations and software behaviors, where even minor configuration mismatches can result in silent system failures. Existing approaches mitigate this challenge by augmenting the agent’s memory [ 15 ]with library documentation [ 17 ] or by resolving conflicts between headers/APIs and their usage through state flow graph analysis [ 5]. 
+
+Figure 1: Overview of the skills-based agentic framework for embedded and IoT systems development and the IoT-SkillsBench benchmark. 
+
+However, they substantially expand the required context window, thereby incurring significant token usage [3]. Second, for embedded systems, successful compilation and flashing to a device do not guarantee correct runtime behavior. Code that builds without errors may still exhibit unexpected behavior due to timing violations, peripheral misconfigurations, or hardware-specific edge cases. This gap arises because hardware behavior cannot be fully or deterministically validated through software-only verification techniques. Although hardware emulation frameworks such as QEMU [ 11 ] and Wokwi [ 4 ] exist, they suffer from limited peripheral fidelity, incomplete timing models, and poor support for real-world sensor-actuator interactions. As a result, many hardware faults cannot be captured in purely digital emulation environments. Existing works that rely on compiler-in-the-loop [ 16 ] or flashing-in-the-loop [ 17 ] paradigms remain limited, as they fail to incorporate behavioral errors that emerge during physical execution. To address these challenges, we propose a skills-based agentic framework for embedded systems and IoT application development 
+
+(Fig. 1). Rather than injecting large volumes of SDK documenta-tion or datasheets into the prompt, each skill distills the essen-tial programming patterns, initialization constraints, and known failure modes for a specific peripheral, MCU, or framework com-bination into a compact, human-readable document. This allows the agent to reason over a constrained and validated set of knowl-edge rather than raw documentation or APIs, significantly reducing token overhead while improving reliability. Critically, the skills-based design [ 9 ] scales naturally as the embedded ecosystem grows: adding support for a new platform, peripheral, or framework re-quires only authoring the corresponding skills, while the agent pipeline and evaluation harness remain unmodified. 
+
+> arXiv:2603.19583v1 [cs.SE] 20 Mar 2026 Li et al.
+
+To evaluate the role of structured hardware knowledge in agentic embedded development, we introduce IoT-SkillsBench , a HIL bench-mark covering multiple MCU platforms, development frameworks, and task complexities. IoT-SkillsBench spans three representative platform-framework combinations (ATmega2560+Arduino, ESP32-S3+ESP-IDF, nRF52840+Zephyr) and contains 42 tasks across three difficulty levels: basic peripheral control, protocol-level communi-cation (e.g., I2C, SPI), and system-level integration involving inter-rupts and multi-device coordination. Each task is evaluated under three agent configurations: no-skills, LLM-generated skills, and human-expert skills, enabling controlled comparison between raw LLM knowledge, automatically synthesized knowledge, and care-fully curated domain expertise. In total, 378 evaluation instances across platforms, tasks, and skills conditions are validated through real hardware execution and behavioral tests. Experiments on IoT-SkillsBench reveal three key insights. First, modern LLMs already performed well on simple embedded tasks for well-documented platforms such as Arduino, but performance degrades rapidly as tasks require protocol-level reasoning or system integration. Second, LLM-generated skills provide inconsistent ben-efits and can even degrade performance, often reinforcing incorrect platform-specific assumptions while significantly increasing token usage. Third, concise human-expert skills dramatically improved reliability, achieving near-perfect success rates across platforms and task levels while maintaining moderate token overhead. These results highlight that the effectiveness of agentic embedded devel-opment depends not merely on providing skills, but on the quality and grounding of those skills in real hardware behavior, suggest-ing that structured, expert-curated hardware knowledge remains essential for reliable HIL software generation. IoT-SkillsBench is open-source and available at [2]. 
+
+## 2 IoT-SkillsBench: Platforms, Tasks, and Skills 
+
+Embedded system platforms and peripherals. We consider three platform-framework combinations, where each platform refers to a specific MCU development board paired with its corresponding embedded framework: 
+
+• ATmega2560 (Arduino Mega 2560 Rev3) with the Arduino frame-work (Arduino CLI v1.4.1, Arduino Core arduino:avr v1.8.7); 
+
+• ESP32-S3 (ESP32-S3-BOX-3) with ESP-IDF (v5.1.2); 
+
+• nRF52840 (Arduino Nano 33 BLE Rev2) with Zephyr via nRF Connect SDK (v2.7.0). These platforms were selected to cover different MCU architectures (AVR, Xtensa, ARM Cortex-M4), HAL paradigms (Arduino-style abstraction, bare-metal register access, RTOS-based drivers), and de-velopment toolchain ecosystems. Together, they represent a broad cross-section of the modern embedded systems development land-scape. In addition to Arduino that has been considered in recent works (e.g., [ 17 ]), our framework also supports ESP-IDF and Zephyr, which are two widely used industrial embedded development frame-works that power many commercial IoT and edge devices, thereby enabling evaluation in settings that more closely reflect real-world embedded engineering workflows. We consider 23 peripherals as shown in Appendix A, covering a wide range of hardware interfaces from simple actuators and indicators (e.g., LEDs, buzzers, relays, buttons) to sensors span-ning analog output, digital protocols, and complex communication buses including I2C and SPI. This peripheral diversity ensures that benchmark tasks exercise the full depth of the hardware-software interface rather than a narrow subset of peripheral types. 
+
+Embedded and IoT Development Tasks. We carefully construct a benchmark consisting of 42 tasks across three difficulty levels. 
+
+Level 1 tasks cover basic peripheral control, including GPIO tog-gling, ADC sampling, and UART communication. Level 2 tasks require protocol-level reasoning over I2C, SPI, and 1-Wire buses, including correct initialization sequences and timing constraints. 
+
+Level 3 tasks demand system-level integration, such as interrupt-driven workflows, multi-sensor/actuator integrations, and (com-plex) task scheduling. Specifically, each task is defined by: ( i) a natural language-based task description, optionally specifying the peripheral or sensor to be used and the logic to be implemented (e.g., “debouncing for a button input”); and ( ii ) a target hardware platform and framework (e.g., “nRF52840 + Zephyr”) with the re-quired pin assignments for all connected peripherals. Note that pin referencing conventions may differ across platforms (e.g., ESP-IDF uses numeric GPIO numbers while Zephyr uses device tree aliases), and these platform-specific pin descriptors are provided to ensure the agent can generate compilable code directly without needing to resolve hardware mappings independently. Each task was manually validated on physical hardware with human observations prior to inclusion, and reference implementations were verified to produce correct HIL test outcomes. All tasks are guaranteed to have a valid reference implementation on their corresponding target platforms. 
+
+Skills specifications. We construct two skills sets for the agent. The first set is generated by prompting a modern LLM (Claude Son-net 4.6) with each task and its corresponding platform-framework combinations. The LLM is asked to summarize the relevant embed-ded programming knowledge purely from its parametric knowledge, without access to datasheets, error logs, or external documenta-tion. The second set is carefully constructed by embedded systems experts with hands-on experience on the target platforms and pe-ripherals. The goal is to produce skills that span diverse hardware platforms and peripherals while remaining compact, targeted, and directly actionable for the agent . During the skill authoring process, human experts are provided with the LLM-generated embedded code for each task (produced without skills), along with the cor-responding compiler error logs and observed runtime behaviors. This provides a grounded view of the typical failure modes of LLM-generated embedded code. Moreover, experts are instructed to write skills concisely, favoring descriptive prose over code snippets, and to keep each skill focused on a single peripheral or framework-specific combination. Both skill sets follow a unified format inspired by the Agent Skills specification [ 1], where each skill file consists of a YAML header describing the skill’s metadata (e.g., name, target platform, or peripherals) followed by a Markdown body containing the skill content itself. This structured format allows the agent to efficiently scan skill headers during retrieval without loading the full skill body, therefore keeping token overhead low. 
+
+Summary. Overall, IoT-SkillsBench combines three platform-framework pairs and 42 tasks, and three skills configurations (no-skills, LLM-generated skills, and human-expert skills). This yields a Skilled AI Agents for Embedded and IoT Systems Development 
+
+Table 1: Detailed CF/BF/BC@1 outcomes across platforms, skills configurations, and task difficulty levels. Each cell re-ports the number of CF/BF/BC tasks.                                          
+
+> Skills Platform L1 (12) L2 (16) L3 (14) Total (42)
+> No-Skills Arduino 0/0/12 1/1/14 2/1/11 3/2/37 ESP-IDF 0/0/12 4/3/9 1/8/5 5/11/26 Zephyr 0/2/10 1/5/10 2/8/4 3/15/24 LLM Arduino 0/0/12 1/0/15 1/1/12 2/1/39 ESP-IDF 0/0/12 1/4/11 0/11/3 1/15/26 Zephyr 0/2/10 4/8/4 0/9/5 4/19/19 Human-Expert Arduino 0/0/12 0/0/16 0/1/13 0/1/41 ESP-IDF 0/0/12 0/1/15 0/1/13 0/2/40 Zephyr 0/0/12 0/2/14 0/1/13 0/3/39
+
+total number of 42 × 3 = 126 evaluation instances per platform, and 
+
+126 × 3 = 378 instances across the entire benchmark. This design allows direct comparison between no-knowledge, LLM-synthesized knowledge, and human-expert knowledge, therefore isolating the contribution of skills quality. This makes IoT-SkillsBench useful not only as a benchmark for embedded agent performance, but also as a testbed for studying how procedural knowledge affects agent behavior in hardware-constrained settings. 
+
+## 3 Agent Setup and Evaluation Protocol 
+
+We implement the agent using LangGraph [ 8] with a three-node architecture consisting of a manager node , a coder node , and an 
+
+assembler node . We intentionally adopt this minimal structure to isolate the effect of skills from other complexities of agentic system design. For example, many modern agentic frameworks incorpo-rate multi-step planning, tool use, iterative debugging, or reflective loops, which can confound the evaluation of whether improvements arise from skills themselves or from additional reasoning and or-chestration mechanisms. By constraining the agent to a single-pass pipeline with only one optional planning stage, our evaluation focuses specifically on the contribution of skills for HIL systems. When no skills are provided, the manager node is skipped, and the task prompt is directly passed to the coder node. When skills are enabled, the manager node receives a system prompt instructing it to act as a project planner, along with the list of all available skill headers and task requirements. Based on this, it selects the relevant skills and passes them to the coder node along with the task prompt. The coder node receives a system prompt instructing it to act as an expert embedded engineer, the selected skill content as applicable standards, and the task requirements as the user message. It then generates the main firmware code file depending on the target framework (e.g., *.c for ESP-IDF and Zephyr or *.ino for Arduino). Finally, the assembler node formats the raw LLM output into a ready-to-compile project, extracting clean code and generating all necessary platform-specific scaffolding. For ESP-IDF and Zephyr, this includes top-level and component-level CMakeLists.txt files to define build targets. For Zephyr, it additionally generates a prj.conf 
+
+file for configuration options (e.g., enabling I2C/SPI), and a device tree overlay ( *.overlay ) to map peripherals to device tree nodes. This separation ensures the coder focuses purely on firmware logic while the assembler handles all platform-specific project structure. 
+
+Table 2: Detailed CF/BF/BC@5 outcomes across platforms, skills configurations, and task difficulty levels. Each cell re-ports the number of CF/BF/BC tasks.                                          
+
+> Skills Platform L1 (12) L2 (16) L3 (14) Total (42)
+> No-Skills Arduino 0/0/12 0/0/16 0/0/14 0/0/42 ESP-IDF 0/0/12 2/2/12 1/6/7 3/8/31 Zephyr 0/1/11 0/5/11 0/8/6 0/14/28 LLM Arduino 0/0/12 0/0/16 1/0/13 1/0/41 ESP-IDF 0/0/12 1/4/11 0/10/4 1/14/27 Zephyr 0/2/10 1/6/9 0/6/8 1/14/27 Human-Expert Arduino 0/0/12 0/0/16 0/0/14 0/0/42 ESP-IDF 0/0/12 0/0/16 0/1/13 0/1/41 Zephyr 0/0/12 0/1/15 0/0/14 0/1/41
+
+Evaluation protocol. We use Claude Sonnet 4.5 as the back-bone model for all experiments across the benchmark, and the agent executes each task-skills-platform combination five times. To eliminate any variability introduced by toolchain differences, all generated project folders are compiled manually using the exact same toolchain commands and identical compiler configurations across all tasks for the targeted platforms (see §2 for the exact toolchain and framework versions used). The compiled firmware is then flashed and tested on the physical target hardware, and the results are recorded and validated by a human evaluator. This process ensures that the evaluation reflects the true behavior of the deployed firmware on real physical hardware rather than artifacts of the build system or simulation environment. Due to the HIL na-ture of the benchmark, the full evaluation required approximately 100 hours of human-in-the-loop validation across all tasks. 
+
+Performance metrics. Each task attempt will lead to one of three following outcomes: 
+
+• Compile Failure (CF) : The generated firmware fails to compile or cannot be flashed to the target device; 
+
+• Behavior Failure (BF) : The firmware compiles and flashes suc-cessfully but fails the hardware behavioral test, including cases where the device hangs or triggers a watchdog reset; 
+
+• Behavior Correct (BC) : The firmware compiles, flashes, and produces the correct observable hardware behavior as verified by the HIL test harness. In addition to the breakdown of {CF, BF, BC} for each task attempt, we consider two aggregate metrics: pass@1 measures the fraction of tasks that achieve BC on the very first attempt; and pass@5 
+
+(equivalently, BC@5) measures the fraction of tasks where at least one of the five attempts achieves BC. Together, they capture both the practical efficiency and the achievable ceiling performance of each task-skills-platform combination. We also record token usage 
+
+for each LLM call by extracting input and output token counts separately from the model’s response metadata. This allows us to report the total token cost per task broken down by node (manager and coder), and to directly compare the token overhead introduced by skill-augmented conditions against the no-skills baseline. 
+
+## 4 Experimental Results 
+
+Tables 1 and 2, Figs. 2 and 3 report the main performance and token usage, respectively. While the no-skills baseline resolves simple Li et al. 
+
+Figure 2: Pass rates comparison (Pass@1 and Pass@5) across platforms, skills configurations, and task difficulty levels. 
+
+Level 1 tasks via pretraining knowledge, adding LLM-generated skills provides inconsistent benefits, suggesting that automatically synthesized skills with minimal guidelines may introduce noise or reinforce incorrect platform-specific assumptions. In contrast, expert-authored skills consistently achieve near-perfect perfor-mance across all platforms and task difficulty levels, demonstrating that concise, expert-curated skills are both more effective and token-efficient than their LLM-generated counterparts. 
+
+No-skills baseline. Without any skills, the agent achieves perfect performance on Level 1 tasks for Arduino and ESP-IDF (12/12 each), but struggles on Zephyr (11/12). This difference is likely due to the relative scarcity of Zephyr-specific material in LLM pretraining data compared with Arduino and ESP-IDF, both of which have extensive online resources, tutorials, and open-source examples. Performance degrades substantially as task difficulty level increases across all platforms. For Level 3 tasks, the agent resolves only 7/14 tasks on ESP-IDF and 6/14 tasks on Zephyr. Overall, Zephyr emerges as the most challenging platform, with only 28/42 tasks resolved, compared with 42/42 for Arduino and 31/42 for ESP-IDF. Token consumption in this baseline is minimal, averaging approximately 300 input tokens and 1,200 output tokens per task. 
+
+LLM-generated skills. Using LLM-generated skills yields mixed results across platforms. For Arduino, performance shows only a minor degradation (41/42 vs. 42/42), suggesting that for a well-documented platform like Arduino, LLM-generated skills provide little additional value over the model’s existing knowledge. In con-trast, ESP-IDF experiences a more noticeable performance drop from 31/42 to 27/42 resolved tasks, with Level 3 performance falling from 8/14 to 4/14. This indicates that LLM-synthesized skills can sometimes reinforce incorrect assumptions about complex ESP-IDF-specific behavior. Zephyr also exhibits a slight overall performance degradation (27/42 vs. 28/42), though Level 3 task performance improves modestly from 6/14 to 8/14. This suggests that LLM-generated skills may provide some benefit for the most challenging Zephyr tasks. Overall, LLM-generated skills do not consistently out-perform the no-skills baseline and in several cases lead to degraded performance. The agent with these skills also incurs the highest token cost, averaging approximately 8,500–9,500 input tokens and 1,500–2,000 output tokens per task. Notably, despite instructing the 
+
+Figure 3: Average per-task token usage across platforms, skills configurations, and task difficulty levels. 
+
+coder node to output code only, output token counts remain ele-vated. This is a consequence of the model reiterating or reasoning aloud about the skill guidelines before producing the final code. 
+
+Human-expert skills. Expert-crafted skills achieve the best over-all performance across all platforms and task difficulty levels, with Arduino reaching a perfect 42/42 and both ESP-IDF and Zephyr achieving 41/42 resolved tasks. The only unresolved ESP-IDF task involves a 5V RTC module causing instability on the 3.3V ESP32-S3, a hardware-level voltage incompatibility that cannot be resolved through firmware alone. The only unresolved Zephyr task involves a rotary encoder where clockwise/counterclockwise direction be-havior is not standardized across encoder models, making it im-possible to specify a universally correct solution in the prompt. These two failures represent fundamental hardware ambiguities rather than agent limitations. Token consumption with human-expert skills remains moderate, averaging approximately 650–2,900 input tokens and 1,700–4,600 output tokens per task, striking a better balance between performance and efficiency compared to the LLM-generated skills setting. 
+
+## 5 Conclusions 
+
+In this work, we presented IoT-SkillsBench, a hardware-validated benchmark for evaluating agentic systems for embedded and IoT systems development, together with a skills-based agent frame-work that integrates structured procedural knowledge into the code generation pipeline. Extensive HIL evaluations across multi-ple MCU platforms and task difficulty levels show that raw LLM capabilities alone are insufficient for reliable embedded develop-ment, while compact human-expert skills significantly improved reliability, achieving near-perfect task success while maintaining moderate token cost. These results highlight that grounded do-main knowledge—not merely larger models—is essential for agen-tic programming in hardware-constrained environments. We hope IoT-SkillsBench will serve as a foundation for future research on AI-assisted embedded development, HIL agent evaluation, and scalable knowledge representations for physical-system programming. 
+
+## 6 Acknowledgments 
+
+The work was supported in part by NSF grant CNS-2112562. Skilled AI Agents for Embedded and IoT Systems Development 
+
+## References 
+
+[1] 2025. Agent Skills are a simple, open format for giving agents new capabilities and expertise. https://github.com/agentskills/agentskills. [2] 2026. Skilled AI Agents for Embedded and IoT Systems Development. https: //github.com/iot-agent. [3] Lingjiao Chen, Matei Zaharia, and James Zou. 2023. Frugalgpt: How to use large language models while reducing cost and improving performance. arXiv preprint arXiv:2305.05176 (2023). [4] CodeMagic LTD. 2026. Wokwi Simulator. https://wokwi.com/. [5] Kaijie Gong, Wei Dong, Hao Wang, Yingqi Peng, and Yi Gao. 2025. Programming Embedded IoT Applications in Natural Language with IoTPilot. In Proc. ACM MobiSys’25 .[6] Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fanjia Yan, Tianjun Zhang, Sida Wang, Armando Solar-Lezama, Koushik Sen, and Ion Stoica. 2024. Livecodebench: Holistic and contamination free evaluation of large language models for code. 
+
+arXiv preprint arXiv:2403.07974 (2024). [7] Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. 2023. SWE-Bench: Can Language Models Resolve Real-World GitHub Issues? arXiv preprint arXiv:2310.06770 (2023). [8] LangChain Inc. 2026. LangGraph: Low-Level Orchestration Framework for Building, Managing, and Deploying Long-Running, Stateful Agents. https:// github.com/langchain-ai/langgraph. [9] Xiangyi Li, Wenbo Chen, Yimin Liu, Shenghan Zheng, Xiaokun Chen, Yifeng He, Yubo Li, Bingran You, Haotian Shen, Jiankai Sun, et al . 2026. SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks. arXiv preprint arXiv:2602.12670 (2026). [10] Kaiwei Liu, Bufang Yang, Lilin Xu, Yunqi Guo, Guoliang Xing, Xian Shuai, Xi-aozhe Ren, Xin Jiang, and Zhenyu Yan. 2025. TaskSense: A Translation-like Approach for Tasking Heterogeneous Sensor Systems with LLMs. In Proc. ACM SenSys’25 .[11] QEMU Project. 2026. QEMU: A Generic and Open Source Machine Emulator and Virtualizer. https://www.qemu.org/. [12] Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, and Yuanqing Zheng. 2025. GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Devel-opment. In Proc. ACM SenSys’25 .[13] Leming Shen, Qiang Yang, Yuanqing Zheng, and Mo Li. 2025. AutoIoT: LLM-Driven Automated Natural Language Programming for AIoT Applications. In 
+
+Proc. ACM MobiCom’25 .[14] Yang Song, Anoushka Vyas, Zirui Wei, Sina Khoshfetrat Pakazad, Henrik Ohlsson, and Graham Neubig. 2026. NEMO: Execution-Aware Optimization Modeling via Autonomous Coding Agents. arXiv preprint arXiv:2601.21372 (2026). [15] Nandan Thakur, Jimmy Lin, Sam Havens, Michael Carbin, Omar Khattab, and Andrew Drozdov. 2025. Freshstack: Building realistic benchmarks for evaluating retrieval on technical documents. arXiv preprint arXiv:2504.13128 (2025). [16] Ruiyang Xu, Jialun Cao, Mingyuan Wu, Wenliang Zhong, Yaojie Lu, Ben He, Xianpei Han, Shing-Chi Cheung, and Le Sun. 2025. EmbedAgent: Benchmarking Large Language Models in Embedded System Development. arXiv preprint arXiv:2506.11003 (2025). [17] Huanqi Yang, Mingzhe Li, Mingda Han, Zhenjiang Li, and Weitao Xu. 2024. Em-bedGenius: Towards Automated Software Development for Generic Embedded IoT Systems. arXiv preprint arXiv:2412.09058 (2024). [18] John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. 2024. SWE-Agent: Agent-Computer Interfaces Enable Automated Software Engineering. Adv. Neural Inf. Process. Syst. 37 (2024), 50528–50652. [19] Ningyuan Yang, Guanliang Lyu, Mingchen Ma, Yiyi Lu, Yiming Li, Zhihui Gao, Hancheng Ye, Jianyi Zhang, Tingjun Chen, and Yiran Chen. 2025. IoT-MCP: Bridging LLMs and IoT Systems Through Model Context Protocol. In Proc. ACM WiNTECH’25 .[20] Terry Yue Zhuo, Minh Chien Vu, Jenny Chim, Han Hu, Wenhao Yu, Ratnadira Widyasari, Imam Nur Bani Yusuf, Haolan Zhan, Junda He, Indraneil Paul, et al .2024. BigCodeBench: Benchmarking Code Generation with Diverse Function Calls and Complex Instructions. arXiv preprint arXiv:2406.15877 (2024). 
+
+## A List of Peripherals 
+
+Table 3 lists the peripherals supported by IoT-SkillsBench, all vali-dated through HIL testing. 
+
+Table 3: List of peripherals supported by IoT-SkillsBench. 
+
+# Peripheral Interface Category 
+
+1 LED GPIO (Digital Out) Actuator 2 Push Button GPIO (Digital In) Input 3 Active Buzzer GPIO (Digital Out) Actuator 4 Passive Buzzer PWM Actuator 5 Relay Module GPIO (Digital Out) Actuator 6 Laser Emitter Module GPIO (Digital Out) Actuator 7 Rotary Encoder GPIO (Digital In) Input 8 16-Key Keypad (4 ×4) GPIO (Digital In) Input 9 Tilt Switch (KY-020) GPIO (Digital In) Input 10 Analog Joystick ADC Input 11 Photoresistor (KY-018) ADC Sensor 12 TMP36 Temperature Sensor ADC Sensor 13 Analog Water Level Sensor ADC Sensor 14 PIR Motion Sensor (HC-SR501) GPIO (Digital In) Sensor 15 Ultrasonic Sensor (HC-SR04) GPIO (Trigger/Echo) Sensor 16 Digital Sound Sensor GPIO (Digital In) Sensor 17 Digital Shock Sensor GPIO (Digital In) Sensor 18 DHT11 (Temp & Humidity) 1-Wire Sensor 19 DS18B20 (Temperature) 1-Wire Sensor 20 LCD1602 Display (HD44780) GPIO (Parallel) Output 21 DS1307 RTC Module I2C Sensor 22 MPU6050 / GY-521 I2C Sensor 23 BME280 (Temp, Humidity, Pres.) I2C / SPI Sensor 
+
+## B Prompt for LLM-based Skills Generation 
+
+The following prompt is used to generate the LLM-generated skills: 
+
+Prompt: LLM-based Skills Generation 
+
+Read tasks in tasks/level<X>.txt, please follow these steps: 1. Analyze the task requirements and identify what domain knowledge, hardware platforms, or connectivity protocols, etc, are needed. 2. Consider implementation based on three MCU + development framework combinations: 1) ESP32 + ESP-IDF, 2) ATMega2560 + Arduino, 3) nRF52840 + Zephyr. 3. Write modular skill documents that would help solve these tasks. Each skill should: focus on a specific MCU, board, IoT tool, protocol, framework, or embedded technique; provide code examples and usage patterns; be reusable for similar tasks. 4. Save each skill as a markdown file in the skills-llm-generated/ directory with a descriptive name. Li et al. 
+
+## C Example Tasks Across Difficulty Levels 
+
+Below, we provide example tasks in IoT-SkillsBench across three task difficulty levels. 
+
+## C.1 Level 1: Basic Peripheral Control 
+
+Task: Button Status with Debouncing 
+
+Read the state of a pull-down button and implement software debouncing to avoid multiple triggers. Print "Button Pressed!" to the serial console when the button is pressed. 
+
+Task: TMP36 
+
+Read the analog output of the TMP36 temperature sensor, where the output voltage is linearly proportional to the temperature in degrees Celsius, and print the temperature value to the serial console. 
+
+Task: SOS Morse Code 
+
+Blink the LED to spell out “SOS” in Morse code. 
+
+## C.2 Level 2: Protocol-Level Communication 
+
+Task: MPU6050 Data Reading (I2C) 
+
+Read raw accelerometer and gyroscope data from the MPU6050 via I2C and print to the serial console. 
+
+Task: BME280 Data Reading (SPI) 
+
+Read the humidity and temperature from a BME280 sensor using the SPI bus, and print the humidity and temperature values to the serial console. 
+
+Task: LCD1602 Display "Hello World" 
+
+Set up the LCD1602 display, and display "Hello World" at the center of the screen. 
+
+## C.3 Level 3: System-Level Integration 
+
+Task: Safe Box with Display 
+
+Write the program that will read the password input from the 16 key keypad, there are in total 8 lines connected to each 4 rows and 4 cols. In particular, the password will be set to "1234". The program will read the key input from the 16 key keypad, and if the input matches the password, the program will connect the relay to unlock the safebox. 
+
+Task: Automatic Brightness Control for LCD1602 Display 
+
+Use the ambient light intensity (the KY-018 photoresistor) to automatically adjust the brightness of the LCD1602 backlight. Read the analog value from the KY-018 photoresistor, map it to a suitable PWM duty cycle, and control the backlight brightness accordingly. 
+
+Task: Variable Frequency LED with Buzzer 
+
+Build the program that integrates the button press with both the buzzer and the timer-based LED control. After the system reset, when you press the button: - For the 1st time, a timer is triggered that toggles the external LED at 1 Hz; - For the 2nd time, a timer is triggered that toggles the external LED at 2 Hz; - For the 3rd time, a timer is triggered that toggles the external LED at 4 Hz; - For the 4th time, the timer is stopped and the external LED will not blink; The process repeats and the toggling frequency of the LED will undergo the sequence of 1 Hz, 2 Hz, 4 Hz, N/A, 1Hz, 2 Hz, 4 Hz, N/A, . . . as you press the button. In addition, every time the button is pressed, the buzzer will go off, indicating that the button has been pressed. The button and buzzer must be connected to separate GPIO pins, and the buzzer operation will be triggered by its own connected GPIO pin. 
+
+## D Human-Expert Skills Examples 
+
+Below, we provide example human-expert skills in IoT-SkillsBench for GPIO best practices. 
+
+Zephyr Skills: GPIO Best Practices 
+
+• Define pin polarity (GPIO_ACTIVE_HIGH/GPIO_ACTIVE_LOW) in the devicetree, not in code. 
+
+• Use gpio_pin_set(dev, pin, 1), logical ON to turn ON; gpio_pin_set(dev, pin, 0), logical OFF to turn OFF. Let Zephyr’s GPIO driver handle the physical HIGH/LOW translation based on DT flags. Never assume physical voltage level. 
+
+• Use GPIO_INT_EDGE_TO_ACTIVE/GPIO_INT_EDGE_TO_INACTIVE instead of RISING/FALLING — stays polarity-agnostic. ... 
+
+ESP-IDF Skills: GPIO Best Practices 
+
+• Prevent Floating States: Explicitly configure internal resistors (.pull_up_en, .pull_down_en). If a pin must default to LOW/HIGH, use gpio_set_level() immediately after gpio_config() to guarantee a deterministic state before peripheral power-on delays. 
+
+• Precise Timing & Delays: Use ets_delay_us() for microsecond-level precision; however, always include #include "rom/ets_sys.h" to prevent implicit declaration errors in modern IDF versions. 
+
+• Interrupts for Transients: For catching fast, transient state changes (e.g., <5ms pulses), avoid while(1) polling. Prefer Interrupt Service Routines via gpio_install_isr_service() and configure edge-triggered interrupts (e.g., GPIO_INTR_NEGEDGE). ...
