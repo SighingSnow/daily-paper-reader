@@ -1,0 +1,848 @@
+Title: Dynamic analysis enhances issue resolution
+
+URL Source: https://arxiv.org/pdf/2603.22048v1
+
+Published Time: Tue, 24 Mar 2026 02:50:32 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# Dynamic analysis enhances issue resolution 
+
+MINGWEI LIU, Sun Yat-sen University, China 
+
+ZIHAO WANG, Sun Yat-sen University, China 
+
+ZHENXI CHEN, Sun Yat-sen University, China 
+
+ZHENG PEI, Sun Yat-sen University, China 
+
+YANLIN WANG, Sun Yat-sen University, China 
+
+ZIBIN ZHENG, Sun Yat-sen University, China Translating natural language descriptions into viable code fixes remains a fundamental challenge in software engineering. While the proliferation of agentic large language models (LLMs) has vastly improved automated repository-level debugging, current frameworks hit a ceiling when dealing with sophisticated bugs like implicit type degradations and complex polymorphic control flows. Because these methods rely heavily on static analysis and superficial execution feedback, they lack visibility into intermediate runtime states. Consequently, agents are forced into costly, speculative trial-and-error loops, wasting computational tokens without successfully isolating the root cause. To bridge this gap, we propose DAIRA (Dynamic Analysis-enhanced Issue Resolution Agent), a pioneering automated repair framework that natively embeds dynamic analysis into the agent’s reasoning cycle. Driven by a Test Tracing-Driven methodology, DAIRA utilizes lightweight monitors to extract critical runtime data—such as variable mutations and call stacks—and synthesizes them into structured semantic reports. This mechanism fundamentally shifts the agent’s behavior from blind guesswork to evidence-based, deterministic deduction. When powered by Gemini 3 Flash Preview, DAIRA establishes a new state-of-the-art (SOTA) performance, achieving a 79.4% resolution rate on the SWE-bench Verified dataset. Compared to existing baselines, our framework not only conquers highly complex defects but also cuts overall inference expenses by roughly 10% and decreases input token consumption by approximately 25%. CCS Concepts: • Software and its engineering → Error handling and recovery ; Dynamic analysis ; •
+
+Computing methodologies → Natural language processing .Additional Key Words and Phrases: Issue Resolution, Dynamic Analysis, Execution Tracing 
+
+ACM Reference Format: 
+
+Mingwei Liu, Zihao Wang, Zhenxi Chen, Zheng Pei, Yanlin Wang, and Zibin Zheng. 2018. Dynamic analysis enhances issue resolution. In Proceedings of Make sure to enter the correct conference title from your rights confirmation email (Conference acronym ’XX). ACM, New York, NY, USA, 20 pages. https://doi.org/XXXXXXX. XXXXXXX 
+
+1 Introduction 
+
+Issue resolution is a central yet notoriously challenging task in real-world software engineering [ 18 ]. Modern software systems are maintained through continuous user–developer interaction, where 
+
+Authors’ Contact Information: Mingwei Liu, Sun Yat-sen University, Guangzhou, China; Zihao Wang, Sun Yat-sen University, Guangzhou, China, wangzh778@mail2.sysu.edu.cn; Zhenxi Chen, Sun Yat-sen University, Guangzhou, China; Zheng Pei, Sun Yat-sen University, Guangzhou, China; Yanlin Wang, Sun Yat-sen University, Guangzhou, China; Zibin Zheng, Sun Yat-sen University, Guangzhou, China. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. 
+
+Conference acronym ’XX, Woodstock, NY 
+
+© 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX , Vol. 1, No. 1, Article . Publication date: March 2018.  
+
+> arXiv:2603.22048v1 [cs.SE] 23 Mar 2026 2Liu, Wang, et al.
+
+bugs and unexpected behaviors are primarily reported via natural language issue descriptions (e.g., GitHub Issues) [ 3]. Resolving such issues requires developers to interpret informal problem descriptions, navigate large and tightly coupled codebases, identify fault locations, and construct correct patches under complex execution semantics [ 8 ]. Even for experienced developers, this process is time-consuming and cognitively demanding, often involving iterative debugging and validation [ 19 ]. Consequently, automating issue resolution has long been regarded as a high-impact yet highly challenging goal in automated software engineering [24]. Recent benchmarks such as SWE-bench have underscored the complexity of issue resolution, driving the proliferation of autonomous agent-based repair frameworks [ 2, 4 , 9, 10 , 15 , 20 , 22 , 24 ]. SWE-agent established the standard Agent-Computer Interface (ACI) paradigm [ 24 ]. By abstracting complex shell interactions into a streamlined set of commands—such as browsing, editing, and executing—ACI significantly optimizes the efficiency of LLM-environment interaction, serving as a robust baseline for automated issue resolution. Building upon this, recent works have explored diverse paradigms: planning-based approaches such as SWE-Search [ 2 ] and CodeTree [ 10 ] integrate MCTS to refine reasoning, while experience-driven and multi-agent methods like Live-SWE-agent [ 22 ], SWE-Exp [ 4 ], and SWE-Debate [ 9 ] utilize self-evolution or competitive dynamics to improve decision quality. However, these agents, predominantly relying on static analysis and superficial feedback, fail to achieve the fine-grained observability necessary for complex defects. This limitation is particularly evident in scenarios involving intricate control flows, implicit runtime state, and deeply nested dependencies. A growing body of evidence suggests that these limitations do not primarily stem from insufficient language or reasoning capability of LLMs, but from a fundamental lack of execution-level observability . Existing approaches predominantly rely on static analysis and code retrieval to construct the agent’s working context, selecting code snippets based on lexical or semantic similarity. Without constraints imposed by real execution trajectories, this static perspective often leads to speculative and non-deterministic exploration, where large amounts of irrelevant code crowd the limited context window while the true fault remains elusive. More critically, static code representations are inherently insufficient for modeling many behaviors that arise only at runtime . Real-world defects frequently depend on dynamic control flows, conditional execution paths, polymorphism, and implicit runtime state changes such as type mutation. Recent empirical studies corroborate this limitation. For example, Liu et al. [ 11 ]demonstrate that when evaluated on code reasoning tasks derived from mature real-world projects, LLMs experience substantial performance degradation—specifically, showing a 51.50% drop in input prediction accuracy and a 42.15% drop in output prediction when transitioning from easy to hard problems. These findings indicate that reasoning over static code alone is inadequate for capturing the intermediate execution states required in realistic software engineering scenarios. In contrast, human developers routinely rely on dynamic analysis to diagnose complex software defects. Dynamic analysis encompasses techniques that observe program behavior during execution, such as runtime tracing, variable state inspection, and call stack analysis [ 5]. By exposing concrete execution paths and intermediate states, dynamic analysis provides a causal and state-aware view of program behavior that complements static reasoning. Notably, dynamic analysis has already proven essential for faithfully characterizing real-world code complexity in evaluation settings [ 14 , 26 ], yet it remains largely absent from the decision-making loop of LLM-based issue resolution agents. Motivated by this gap, we argue that effective automated issue resolution fundamentally requires integrating dynamic execution information to transform speculative reasoning into deterministic inference . To this end, we propose DAIRA , a Dynamic Analysis–enhanced 
+
+Issue Resolution Agent , which is the first automated issue resolution framework to deeply integrate dynamic analysis into the agent workflow. DAIRA adopts a Test Tracing–Driven paradigm, treating  
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 3
+
+execution traces as first-class evidence for agent reasoning. By tracing targeted execution scripts, DAIRA generates structured trace reports that expose concrete function call sequences, runtime states, and variable mutations, providing a panoramic view of program execution. Specifically, DAIRA consists of a lightweight dynamic tracing tool and an agent-oriented work-flow module. The tracing tool captures fine-grained execution information within a sandboxed environment, while the workflow module transforms raw traces into compact, semantically mean-ingful representations that are directly consumable by LLMs. This design enables precise fault localization and significantly reduces redundant retrieval and blind exploration. To evaluate the effectiveness of DAIRA, we conducted extensive experiments on the benchmark SWE-bench Verified. Results demonstrate that DAIRA achieves state-of-the-art(SOTA) performance in resolving complex software defects. Equipped with the Gemini 3 Flash Preview model, DAIRA attains a fix rate of 79 .4% , surpassing all baselines. Notably, DAIRA excels in complex scenarios, establishing a significant lead in medium-difficulty tasks (15 min - 1 hour) with an 80.8% resolution rate. Crucially, it sustains this dominance on the most challenging issues ( > 1 hour), achieving a SOTA 44.4% . In addition, by providing precise fault localization through dynamic execution traces, DAIRA substantially reduces unnecessary code retrievals and speculative attempts, resulting in improved efficiency and an approximately 25% reduction in token consumption compared to baseline methods. The main contributions of this paper are summarized as follows: 
+
+• A new paradigm for LLM-based issue resolution: We identify the lack of execution-level observability as a fundamental bottleneck and propose the first framework that systematically integrates dynamic analysis into the agent decision loop. 
+
+• Agent-oriented dynamic analysis tooling: We design lightweight tracing and trace-semantic transformation mechanisms that expose causal runtime information while remain-ing compatible with LLM context constraints. 
+
+• Comprehensive empirical validation: Extensive experiments on SWE-bench Verified demonstrate that DAIRA achieves SOTA performance in both repair effectiveness and cost efficiency, highlighting the indispensable role of dynamic execution information in resolving deep logical defects. 
+
+2 Motivating Example 
+
+To display the limitations of static analysis and motivate the need for dynamic observability in automated issue resolution, we present two representative issues from Matplotlib [ 7 ] and SymPy [13]. 
+
+Trace-guided Context Retrieval for Precise Localization. Figure 1 shows a comparison of the resolution process to the Matplotlib-22719 problem. Matplotlib-22719 triggers a spurious 
+
+DeprecationWarning on empty inputs ( [] ) due to Python’s all() evaluating to True for empty iterables. This implicit behavior causes the system to incorrectly classify empty input ( [] ) as a numerical value, which in turn triggers an incorrect warning branch in the subsequent data transformation process. Due to the lack of visibility into the intermediate execution process, the Agent falls into Specu-lative Exploration . As shown in the upper part of figure 1, the Agent initiates a chain of blind hypothesis testing. Initially, it suspects an error in the upstream caller, questioning whether axis.py 
+
+passed bad input to the convert function. Subsequently, it attempts to verify the internal state of 
+
+convert , speculating whether the _validate_unit check passed or if the function itself is broken. To further interpret the conditional logic, it redundantly searches for the definition of is_numlike 
+
+and retrieves large unrelated files like unit.py . This speculative behavior compels the Agent to 
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018.
+
+4 Liu, Wang, et al. 
+
+Fig. 1. Impact of Dynamic Execution Traces on Debugging Trajectories. 
+
+load massive amounts of irrelevant code, leading to a “High Context” burden and significantly increasing the repair cost. Conversely, if the intermediate execution process is visible, the Agent can directly pinpoint the root cause via Observable Inference . As depicted in the bottom path of figure 1, the visualized execution process acts as a panoramic map. The Agent first observes that _validate_unit returns successfully (indicated by the checkmark), instantly ruling out the suspicion of internal check fail-ures. It then traces the execution flow into is_numlike , witnessing the specific logical branch where the input is identified as numeric, which subsequently activates the “Handle Conversion” fallback. Following this deterministic chain, the Agent sees the execution hit the _api.warn_deprecated 
+
+call at line 62. With this precise evidence, the Agent bypasses all redundant searches and directly navigates to category.py to fix the conversion logic. a Z a  
+
+> Start *
+> Z
+
+Z Z 
+
+> 2
+
+?
+
+a2 0] Result Er 
+
+Return a 
+
+> UU
+> 2
+
+? ?
+
+> ?
+
+Opaque Runtime State Transparent Runtime State    
+
+> Z
+> of a ZeroMatrix object.
+> ZZStart
+
+(0,1)=(a·z)+(z·z) 
+
+> =(ZeroMatrix +ZeroMatrix)
+
+= ZeroMatrix   
+
+> __mul__(blocks, blocks)
+> _eval_matrix_mul(blocks, blocks)
+> DynamicDispatch
+> MatAdd.doit(ZeroMatrix+ZeroMatrix)
+> MatMul.doit(a,z) MatMul.doit(z,z) _postprocessor(ZeroMatrix+ZeroMatrix)
+
+ynamiDispatch  
+
+> unpack()O
+> flatten() ○ rm_id(ZeroMatrix,ZeroMatrix)
+> Return numbers.Zero X
+
+X
+
+ar Integer instead ! Root Cause Identified: rm_id 
+
+> rule simplified ZeroMatrix
+> to Scalar 0.
+
+Calculate Element  
+
+> Z
+
+a2 Z
+
+Fig. 2. Comparison of Opaque and Transparent Runtime States. Illustration of data type degradation during the computation of the (0,1) element in matrix multiplication. 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 5
+
+Trace-Driven Deterministic Inference for Complex Control Flows. Taking issue sympy-17630 
+
+as an illustrative example, this issue exposes an insidious control flow defect within symbolic com-putation. Specifically, block matrix operations involving zero matrix summation can unexpectedly degenerate into scalar zeros under _postprocessor optimization paths, leading to the loss of dimensional attributes and subsequent system crashes. Under the opaque runtime state , the agent’s initial exploration relies entirely on the issue description, reporting a collapse in blockmatrix.py when accessing the properties of a specific matrix multiplication result. As shown in the left side of figure 2, matrix multiplication involves a lengthy and complex computational process. Due to unexpected type degenerations occurring during this process, the vast amount of code results in an extremely broad investigation scope, placing agent in the predicament of search space explosion . Moreover, the actual call paths are obscured by complex program control flows. This execution involves intricate polymorphic operations (e.g., traversing dynamic dispatch through _eval_matrix_mul and _postprocessor ). Since the actual call target is dynamically determined at runtime, reconstructing precise execution traces solely through static code inspection is extremely difficult. After failing to isolate the root cause due to complex control flow, the agent applies a defensive repair at the failure point in 
+
+blockmatrix.py .In contrast, as illustrated in the right side of figure 2, the Transparent Runtime State enables the agent to overcome these barriers by reconstructing the complete execution flow. Specifically, this visibility exposes a critical upstream anomaly during shallow evaluation: the return value degraded from a ZeroMatrix object to a scalar Zero . Following this trace to matadd.py , the Agent identifies the root cause in the rm_id canonicalization rule, which erroneously over-simplifies heterogeneous arguments. Based on this conclusive evidence, the agent implements systematic corrections within the doit method of matadd.py , ultimately resolving this challenging issue. 
+
+Design Inspiration: Integration of Dynamic Observability. These examples collectively highlight a fundamental limitation of static code analysis: defects arising from dynamic control flow or implicit state changes are difficult to detect without observing intermediate execution processes. Consequently, just as human engineers rely on tracing tools, such as IDE-integrated debuggers, to inspect runtime states, equipping agents with mechanisms to visualize intermediate execution states is a critical strategy for augmenting their problem-solving capabilities. 
+
+3 Approach 
+
+Inspired by these practices, we aim to equip agents with a similar capability for dynamic tracing. To this end, we introduce DAIRA, an automated issue resolution framework that encapsulates dynamic analysis as a callable tool. This design empowers the agent to autonomously invoke tracing to reconstruct execution process. In the following part of this section, we detail the overall Test-Trace Driven Workflow, the design of the Dynamic Analysis Tool, and the Trace Log Semantic Analysis. 
+
+3.1 Execution-Trace Driven Workflow 
+
+As illustrated in figure 3, DAIRA adopts a Test-Trace Driven Workflow, treating execution traces as first-class evidence for agent reasoning. This workflow is not merely a sequence of procedures but a fundamental driving logic that employs structured prompts to guide autonomous agents in capturing sufficient dynamic information. It coordinates the resolution process through three interconnected phases. And our complete code and prompts are publicly available [1] . 
+
+Phase 1: Execution Tracing Phase. This phase focuses on building a high-fidelity runtime panorama starting from the issue description. The agent first executes Test Scripts Generation ,not only synthesizing Error Reproduction Scripts for reproducing the problem but also proactively constructing Edge Case Scripts covering boundary conditions, thus establishing the physical 
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018.
+
+6 Liu, Wang, et al. THOUGHT Execution Tracing 
+
+! Issue Description I need to craft a reproduction  
+
+> I'm running missing_colon.py as
+
+script to trigger the reported 2 Test Scripts Tracing  
+
+> follows:
+> >>>division(23,0),
+
+SyntaxError and prepare to  
+
+> but I get the following error:
+
+capture the execution trace⋯..  
+
+> >>> "testsl./missing_colon.py",
+
+Trace Log  
+
+> >>> def division(a: float,b:float)
+> ->float
+
+Semantic Analysis Top-Level Call  
+
+> Initial Rep
+> >>> SyntaxError:invalid syntax,
+> So..
+
+Error Reproduction      
+
+> Project Codebase
+> main/ Workflow Proce: Key Function Analysis Introduction →
+> Hsrc/(target files) Workflow Process ●0
+> — tests/(handled)
+
+1tools/ Test Scripts Generation EDGE CASE Dynamic Analysis Tool Trace Log Introduction 
+
+Edge Cases Test Scripts Trace Reports 
+
+lterative Repair & Verification 三 6 lterative Repair & Verification Fault Diagnosis 
+
+# X 4Key Function Specification Summary 
+
+By cross-validating Trace Reports from diverse 
+
+Environment inputs, I synthesized the intended specification.I Trace Reports 
+
+> deduced that division(a,b) is designed as a
+
+floating-point utility...   
+
+> EDGE CASE
+> Bash Search Tool
+
+Test Scripts 5Root Cause Analysis  
+
+> P回
+
+Correlating the SyntaxError from the trace log  
+
+> Submitted Patch
+> Dynamic Analysis Tool
+
+with the code structure, the fault is pinpointed to 
+
+> -- a/src/file.py++ b/src/file.py
+
+@@-10,7+10.7@@ Line 4.The function signature def division(...)-> 
+
+7Regression Check -faulty_line();  
+
+> +fixed_line();
+
+float is structurally incomplete⋯⋯ 
+
+Fig. 3. Test Tracing-Driven Workflows of DAIRA 
+
+foundation for dynamic analysis. Then, Test Scripts Tracing is performed. The agent calls the encapsulated Dynamic Analysis Tool to execute the scripts in an isolated sandbox, acting as a "sensor" to non-intrusively capture information and generate Trace Logs. These raw logs, after spatiotemporal filtering and semantic reconstruction using Trace Log Semantic Analysis , are transformed into structured Execution Trace Reports, intuitively demonstrating the data flow and control flow logic of the code during actual execution. 
+
+Phase 2: Fault Diagnosis Phase. Next, the agent uses trace reports to precisely map runtime anomalies back to the static code structure, completing a logical loop from phenomenon to essence. In the Key Function Specification Summary step, the agent, based on trace reports, cross-validates multiple reports from different input scenarios to deduce the actual workflow role and functional boundaries of key functions, understanding the code’s design intent. Building on this, 
+
+Root Cause Analysis is performed. Leveraging the design intent derived from prior analysis and the intermediate state visibility provided by tracking reports, the agent can identify functional com-ponents deviating from their intended responsibilities. This enables direct root cause identification, facilitating a transition from superficial defensive fixes to deep systemic corrections. 
+
+Phase 3: Iterative Repair & Verification Phase. Finally, this phase aims to ensure repair quality and system robustness through rigorous closed-loop verification. Based on the identified root cause, the agent performs Iterative Repair & Verification and enters the Verification Loop, generating candidate patches and immediately performing dynamic verification using the scripts generated in the first phase. In this phase, the agent is empowered to autonomously invoke Dynamic Analysis Tool to validate the applied modifications or analyze functions with ambiguous logic. If verification fails, the system uses tools to continue iterative verification and correction in the environment. Before submitting the final solution, the agent also performs a Regression Check ,running comprehensive Regression Tests to ensure that the fix resolves the current issue without introducing any side-effects, thus guaranteeing the integrity and security of the delivered code. 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 7
+
+3.2 Dynamic Analysis Tool 
+
+The Dynamic Analysis Tool module is designed to capture ground-truth execution behaviors during automated debugging. To address compatibility challenges in complex execution environments (e.g., legacy Python versions), DAIRA adopts a lightweight “trigger-and-collect” tracing strategy. The Dynamic Analysis Tool is built upon a customized version of the open-source Hunter engine [ 16 ]—a tracer designed to serialize execution behaviors into formatted logs—and is integrated into the agent’s action space via a standardized CLI. This allows the agent to dynamically configure log granularity via four parameters: Target File, Trace Scope, Target Function, and Trace Depth. Upon invocation, the tool executes the script in an isolated sandbox, capturing heterogeneous data (call stacks, variable states, exceptions) into structured logs for Trace Log Semantic Analysis. Figure 4 illustrates the Test Script generated during the problem-solving process and the Trace Log captured during its execution. 
+
+Native Execution via Automatic Hooks . A critical challenge is format friction, stemming from the necessity to manually inject intrusive logging directives or proprietary hooks into the source code, which often impedes the agent’s ability to generate valid scripts. To mitigate this, we implemented a Native In-Process Execution strategy. Operating as a transparent wrapper, the tool executes agent-synthesized standard Python reproduction scripts directly within the sandbox via the runpy interface. This approach obviates the need for the agent to master specific debugging syntax or inject boilerplate code. Instead, the tool automatically injects low-level hooks leveraging 
+
+sys.settrace into the runtime environment, guided by the specified parameters. This seamless integration minimizes barriers to dynamic observation, ensuring consistency with the agent’s standard workflow. Furthermore, this environment-agnostic design guarantees high portability, enabling the tool to accommodate diverse runtime environments characterized by legacy Python versions or intricate dependencies. 
+
+Spatiotemporal Trace Filtering . To extract core insights and minimize noise, our tool employs strict spatiotemporal filtering. Temporally, we adopt an "on-demand" mechanism where the tracer activates only upon target function invocation, bypassing initialization noise. Spatially, a whitelist filters out standard libraries and irrelevant third-party dependencies. Regarding granularity, we capture only function calls, returns, and exceptions, relying on the LLM’s capacity to deduce intermediate logic directly from these call-return pairs. These designs achieve significant log compression without losing critical information. 
+
+Adaptive Granularity Iteration . Static configurations struggle to adapt to the dynamic com-plexity of defects. To prevent deep call stacks from triggering context explosion, we introduce a dynamic adjustment mechanism. When trace logs exceed the valid context window, an overflow signal triggers iterative correction, prompting the agent to reduce trace depth and rerun. By dy-namically adjusting analysis granularity based on complexity, this mechanism completely avoids situations where excessive logs prevent dynamic analysis, enabling the module to dynamically adapt to different model context windows. 
+
+3.3 Trace Log Semantic Analysis 
+
+To bridge the semantic gap between the raw trace logs and the high-level execution logic, DAIRA introduced the Trace Log Semantic Analysis module. After the dynamic analysis tool completes the trace analysis, this module automatically uses an LLM combined with the source code to perform deep parsing of the raw trace logs, synthesizing a structured execution workflow analysis report. Figure 6 shows an actual trace report generated during the repair process. The analysis report includes the following main components: 
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018.
+
+8 Liu, Wang, et al. Dynamic Tracing Parameters Target Tracing Script 
+
+Target File:/testbed/reproduce_issue.py import matplotlib.pyplot as plt 
+
+import warnings 
+
+Trace Scope:matplotlib/category from matplotlib import MatplotlibDeprecationWarning 
+
+Target Function: convert warnings.filterwarnings("error", category=MatplotlibDeprecationWarning) 
+
+Trace Depth :10 f, ax = plt.subplots() 
+
+> ax.xaxis.update_units(["a","b"])
+> ax.plot([],[])
+
+Script Trace Log      
+
+> /matplotlib/category.py:27 call => convert(value=<numpy.ndarray object>,unit=<matplotlib.category.UnitData object>,
+> axis=<matplotlib.axis.XAxis object>)
+> /matplotlib/category.py:121 call =>_validate_unit(unit=<matplotlib.category.UnitData object)
+> /matplotlib/category.py:123
+
+return <= _validate_unit:None    
+
+> /matplotlib/category.py:58 call =><genexpr>(.0=<iterator object)
+> /matplotlib/category.py:58
+
+return <=<genexpr>:None   
+
+> /matplotlib/category.py:62 exception ! convert:(<class 'matplotlib._api.deprecation.MatplotlibDeprecationwarning'>,
+> MatplotlibDeprecationWarning('Support for passing numbers through unit converters is deprecated since 3.5 and support will be removed two
+> minor releases later; use Axis.convert_units instead.'),<traceback object>)
+> /matplotlib/category.py:62
+
+return <= convert:None 
+
+Fig. 4. Trace log for reproducing Matplotlib issue #22719. 
+
+Hierarchical Logic Reconstruction: After the dynamic analysis tool completes the tracing task, this module inputs the tracing logs, target code, and tracing parameters into the LLM to reconstruct the execution flow and generate a tracing report. Unlike a simple stack dump, this module organizes runtime behavior into a visual ASCII execution tree. This representation explicitly maps nested calls, recursive logic, data states, and their flow, clearly depicting the data processing throughout the entire runtime process. As shown in figure 4 , the execution tree intuitively illustrates the entire process where the entry point convert , after receiving an empty numpy array, undergoes preliminary processing such as unit validation, but then erroneously enters the numeric handling branch, ultimately triggering the MatplotlibDeprecationWarning .
+
+Key Function Analysis: To assist agents in understanding function specifications, key function analysis explains the “workflow role” of each component in the target workflow. For example, the analysis clarifies that convert orchestrates the data validation, while _validate_unit acts as a guard clause to enforce valid UnitData instances. Given the highly coupled nature of modern software systems, failure to adhere to the system design specifications during remediation can easily trigger functional anomalies upstream and downstream. Therefore, this module explicitly defines the responsibilities and functional boundaries of each key component. This aims to assist agents in delineating the responsibilities of each functional segment based on the role of the function within different input scenarios. This empowers agents to delineate functional responsibilities by analyzing role variations across different input scenarios. 
+
+Workflow Process Introduction: This section provides a natural language overview of the execution events. As the report shows, it summarizes low-level code behavior into high-level intent descriptions, thus supplementing the agent’s understanding of the underlying trace data. Crucially, this external, objective description acts as a corrective mechanism against the confirmation bias of agent-authored tests, ensuring feedback aligns with actual runtime behaviors. By integrating hierarchical execution trees, key function analysis, and workflow descriptions, this module presents the agent with a “panoramic view” of the execution process. 
+
+4 Evaluation 
+
+To comprehensively evaluate the performance of DAIRA, we conducted a systematic empirical study. Our experiments are designed to assess the performance of our approach from multiple perspectives. Specifically, our evaluation is guided by the following research questions (RQs): 
+
+RQ1: How does the performance of DAIRA compare to existing SOTA baselines in issue resolution tasks? 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 9
+
+RQ2: What is the impact of different foundation models on performance and efficiency of DAIRA? RQ3: How does DAIRA perform across issues of varying difficulty levels? RQ4: What is the impact of different components on the performance of DAIRA? 
+
+4.1 Experiment Setup 
+
+4.1.1 Benchmark . To evaluate the practical software engineering capabilities of DAIRA, we utilize the SWE-bench Verified [ 8 ]. This dataset is a rigorously curated subset of the original SWE-bench, specifically designed to address the issues of solvability and environmental stability. It consists of 
+
+500 human-validated instances collected from 12 popular open-source Python repositories (e.g., scikit-learn, Flask, Django). It also stands as the most authoritative benchmark for evaluating automated issue resolution systems. 
+
+4.1.2 Baselines . To evaluate the effectiveness of our proposed method, we select several SOTA methods as baselines, representing the most advanced and widely recognized approaches in the field of automated software engineering: 
+
+SWE-agent [24 ]: As a pioneering framework in automated software engineering, SWE-agent introduced the ACI to optimize the interaction between LLMs and the software environment. It utilizes a specialized set of commands to browse repositories, edit files, and execute tests, serving as a standard representative approach for issue resolution. 
+
+Live-SWE-agent [22 ]: A self-evolving framework built upon Mini-SWE-agent. It allows the agent to synthesize custom tools at runtime to adapt to specific issues. Currently, it represents the SOTA performance among open-source agents on SWE-bench Verified Leaderboard. 
+
+Mini-SWE-agent [ 24 ]: A lightweight variant of SWE-agent that balances performance and cost through a concise context window and streamlined reasoning. 
+
+OpenHands [ 20 ]: An open-source platform for software development agents. OpenHands provides a flexible and comprehensive environment that supports various agentic workflows and interacts with the codebase through standard terminal commands and event streams. 
+
+SWE-search [2 ]: An advanced agentic framework that integrates Monte Carlo Tree Search (MCTS) into the issue resolution process. By replacing traditional linear reasoning chains with tree-structured exploration, it empowers the agent to simulate future trajectories, execute backtracking from dead ends, and iteratively refine its repair strategies to avoid local optima. 
+
+4.1.3 Implementation . We implemented our approach based on SWE-agent due to its stability and widespread adoption in the open-source community. In terms of tool usage, we only adopted the basic code search and editing tool ’edit_anthropic’ from its framework. Notably, our method is designed to be framework-agnostic and can be seamlessly adapted to any agent framework equipped with a configured runtime environment. Regarding resource constraints, we adhered to the standard configuration: a maximum limit of 250 steps and a budget cap of $1.00 per instance. 
+
+4.2 RQ1: Effectiveness 
+
+Design. For RQ1, the experimental objective is to evaluate DAIRA’s overall performance in solving real-world software engineering problems and verify whether it surpasses SOTA baseline methods in terms of fix rate. To achieve this, the experimental design utilizes the authoritative SWE-bench Verified benchmark set to ensure the rigor of the evaluation. For comparison, mainstream SOTA frameworks including SWE-agent, OpenHands, Live-SWE-agent, Mini-SWE-agent, and SWE-search were selected as baselines. Here, we select Gemini 3 Flash Preview as the base model to demonstrate DAIRA’ performance, as the official report for the Gemini 3 series indicates superior performance in this benchmark [ 6 ]. Furthermore, to ensure fairness, we maintained consistent resource constraints  
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018. 10 Liu, Wang, et al.
+> Table 1. Comparison of issue resolution rates (Resolved%) between DAIRA and other SOTA Methods across various base model.
+
+Method Base Model Resolved(%) 
+
+Mini-SWE-agent Claude 4.5 Opus 74.40 Mini-SWE-agent Gemini 3 Pro Preview 74.20 Live-SWE-agent Claude Sonnet 4.5 75.40 Live-SWE-agent Gemini 3 Pro Preview 77.40 OpenHands Claude 4 Sonnet 70.40 OpenHands Claude Opus 4.5 77.60 SWE-search Claude 4 Sonnet 70.80 SWE-agent Claude Sonnet 4.5 69.80 SWE-agent DeepSeek V3.2 65.40 SWE-agent Gemini 3 Flash Preview 73.60 
+
+DAIRA DeepSeek V3.2 74.20 
+
+DAIRA Gemini 3 Flash Preview 79.40 
+
+> Fig. 5. Overlap Analysis of Resolved Instances among the Top-5 Performing Configurations
+
+with other methods: a maximum of 250 steps per instance and a budget cap of $1.00. The solution rate was ultimately used as the primary evaluation metric for cross-sectional comparisons. Note that for baselines, we directly reference the official results reported in their respective publications or leaderboards. 
+
+Result. As presented in Table 1, DAIRA demonstrates superior performance across the board. Most notably, DAIRA powered by Gemini 3 Flash Preview achieves a SOTA resolution rate of 79.40%, surpassing the previous best baseline, OpenHands (Claude Opus 4.5, 77.60%). Furthermore, DAIRA consistently outperforms established frameworks, such as Live-SWE-agent (77.40% with Gemini 3 Pro Preview) and the standard SWE-agent (73.60% with Gemini 3 Flash Preview). Significantly, when using the DeepSeek V3.2 backbone, DAIRA attains 74.20%, marking an absolute improvement of 8.8% over the vanilla SWE-agent implementation (65.40%) with the same model. Figure 5 further illustrates the overlap of resolved instances among the top-five performing configurations. The significant central intersection reveals that 324 instances were resolved by all top agents, indicating a shared proficiency in handling simpler tasks. However, DAIRA distinguishes itself by not only 
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018.
+
+Dynamic analysis enhances issue resolution 11 
+
+covering this common ground but also uniquely resolving 9 complex instances that all other baselines failed to address. This exclusive coverage confirms DAIRA’s ability to tackle edge cases that lie beyond the reach of conventional methods. 
+
+Case Study. To substantiate the specific advantages of DAIRA, this section conducts a further analysis of the resolution trajectories for two representative issues of varying difficulty introduced in the Motivating Example: SymPy-17630 ( > 1h) and Matplotlib-22719 ( < 15 min). Approaching this from the perspective of agent behavioral patterns, we systematically elucidate how dynamic analysis optimizes the debugging workflow across two critical phases: Fault Localization and Patch Generation . This analysis demonstrates how the proposed approach facilitates critical breakthroughs in resolving tasks of distinct complexity. Reproduce.py Trace Report Edgecases.py Trace Report 
+
+1.Initial Representation 1.Initial Representation   
+
+> Input value:Empty NumPy array array([],dtype=float64). Input:A data structure(empty list[],empty numpy array np.array([]), or [None])
+> Input unit:UnitData(initialized with categories `["a","b"]`).
+
+being converted for use on a categorical axis.   
+
+> 2.Execution Tree ax.plot([],[])
+
+2.Execution Tree ax.plot([],[])      
+
+> (1)convert(value, unit, axis) (1)convert(value, unit, axis)
+> (2)_validate_unit(unit) (2)_validate_unit(unit)
+> — Returns:None(Unit validated successfully)▽ — Returns:None(Unit validated successfully)
+> (3)Check Input Content(Numeric Check) (3) Check Input Content(Numeric Check)
+> — Result:Input is ambiguous(Empty or contains non-numeric).?
+
+Result:Input is ambiguous(Empty or contains non-numeric).   
+
+> (4)Handle Conversion Logic (4)Handle Conversion Logic
+> Logic: Fallback to numeric handling(since input is empty). [IF VALUE IS EMPTY](The "Empty List" Trap)
+
+Action: Triggers warning for passing numbers to unit converter. —Logic: Fallback to numeric handling  
+
+> (5)_api.warn_deprecated(...)
+
+×EXCEPTION:MatplotlibDeprecationWarning 
+
+×EXCEPTION:MatplotlibDeprecationWarning [IF VALUE CONTAINS 'NONE'](The "None"Crash) 
+
+3.Key Function Analysis 一(5) unit.update(data)  
+
+> a.convert(category.py:27):Converts strings to float coordinates by ×EXCEPTION:TypeError("'value'must be str or bytes, not a None"")
+
+orchestrating data validation, unit updates, and value mapping. (6)RETURN:None(Unsuccessful) 
+
+> b._validate_unit(category.py:121)Guard Clause: Enforces that the unit
+
+object is a valid UnitData instance to prevent processing without 3.Key Function Analysis :same as reproduce trace report and is omitted....  
+
+> metadata.
+
+4.Workflow Introduction 
+
+4.Workflow Process Introduction Both scenarios fail to produce a valid numeric array, resulting in a ConversionError:  
+
+> Calling ax.plot([],[])on a categorical axis triggers convert, which Failure Path A(Empty Input):Inputs like [] trigger a fallback to numeric handling,
+
+misidentifies the empty float64 input as numeric. This activates a raising a fatal MatplotlibDeprecationWarning. 
+
+deprecated fallback, raising a DeprecationWarning that escalates into a Failure Path B(None Values):Inputs like [None] fail type validation in 
+
+fatal exception under strict configurations. unit.update(),which raises a TypeError as it strictly requires strings or bytes. 
+
+Fig. 6. Trace report during the resolution process of Issue Matplotlib-22719 
+
+Perspective 1: Behavioral Pattern—From Speculative Attempts to Deterministic Explo-ration. In the Matplotlib-22719 scenario, the baseline agent exhibited significant uncertainty due to the opacity of runtime behaviors within the is_numlike and convert functions. To compensate for this lack, the agent was compelled to generate numerous disposable exploratory scripts, such as 
+
+test_logic.py and test_vectorize.py , spanning steps 5 through 49. These scripts served solely to infer internal logical boundaries via input-output correlation, representing a trial-and-error cycle that consumed substantial interaction steps and reflected a state of blind navigation. In contrast, DAIRA completely eliminated the need for such an inefficient elimination process. As illustrated in figure 6, the agent utilized the Trace Report at step 11 to explicitly identify that an empty list input erroneously activated the numerical processing branch. Since passing numbers to categorical axes is deprecated in Matplotlib, this action naturally triggered _api.warn_deprecated . This dynamic evidence bridged the cognitive gap, enabling the agent to bypass speculative scripting and pinpoint the root cause immediately. This behavioral pattern shift is further exemplified in the SymPy-17630 case, where DAIRA demonstrated an evidence-chain driven progressive exploration that eliminated reasoning uncer-tainty. As shown in figure 7, the process began with an initial trace revealing that the BlockMatrix 
+
+data unexpectedly contained a scalar 0. A second, targeted trace subsequently confirmed that this scalar originated from the return value of the upstream MatAdd.doit() method, effectively ruling out local errors and facilitating a cross-module logical leap. Finally, a third trace provided a direct view of the internal construction logic within doit() , allowing the agent to formulate a verified 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. 12 Liu, Wang, et al. First Trace:__mul_ Second Trace: doit  
+
+> a = MatrixSymbol("a",2,2)
+
+(1)MatAdd.doit(deep=True) Deep Evaluation of MatAdd(z,z) 
+
+> z = ZeroMatrix(2,2)
+
+blocks = ImmutableDenseMatrix([[a, z],[z,z]]) (2)MatAdd._new__(cls,*args=[<ZeroMatrix>,<ZeroMatrix>])[Line 36] 
+
+res = blocks* blocks — Returns:<MatAdd object(ZeroMatrix+ ZeroMatrix)>[Line 51] 
+
+(1)Dispatch:ImmutableDenseMatrix.__mul_ (5)Canonicalization Rules 
+
+(6) Check for identity/zero simplification [Line 136/129] 
+
+(2)Element(0,0):(a*a)+(z*z)[?Normal Flow] <lambda>(MatAdd)-> True    
+
+> —(a*a)-> ImmutableDenseMatrix 一<lambda>(ZeroMatrix)-> True(is zero)
+> 一(z*z)-> ZeroMatrix <lambda>(ZeroMatrix)-> True(is zero)
+> (3)Process Addition:_postprocessor(a*a + z*z)
+
+Logic:All elements are zero, only retain the first one(ZeroMatrix)  
+
+> (4)MatAdd.doit(Matrix+ ZeroMatrix)
+> Returns:ImmutableDenseMatrix(0,0 result)
+
+(8)Returns:<ZeroMatrix object at 0x7cc720311810>[Type Preserved] 
+
+(Note: Type is preserved correctly) (1)MatAdd.doit(deep=False) Shallow Evaluation of MatAdd(0,z,z)   
+
+> (5)Element(0,1):(a*z)+(z*z)[×Type Degeneration]
+> (a*z)-> ZeroMatrix (2)MatAdd.__new__()
+> (z*z)-> ZeroMatrix
+
+— Returns:<MatAdd object(0 + ZeroMatrix + ZeroMatrix)>   
+
+> (6)Process Addition:_postprocessor(a*z+ z*z)
+> (7)MatAdd.doit(ZeroMatrix+ ZeroMatrix)<-- Fault Localization (12)Canonicalization Rules
+> Simplification -> Returns: Scalar Zero(Integer 0)
+
+(13)Rule check:Is the result zero?[Line 136/129] 
+
+(Note: Matrix "shape"info is lost here) <lambda>(MatAdd)-> True 
+
+<lambda>(Zero)-> True 
+
+(8)Elements(1,0)&(1,1):Same as(0,1)-> Returns: Scalar Zero <lambda>(ZeroMatrix)-> True 
+
+> <lambda>(ZeroMatrix)-> True
+
+(9)Final Result:Construct Matrix with mixed types Result:All elements are zero, only retain the first one(Zero) 
+
+— List:[Matrix,0,0,0](Inconsistent Data Structure) (8)Returns:<Scalar Zero> X[Type Degeneration] 
+
+Third Trace :__new__ 
+
+(1)MatAdd.doit(deep=True) Deep Evaluation of MatAdd(z,z) (1)MatAdd.doit(deep=False) Shallow Evaluation of MatAdd(0,z,z) 
+
+(2)MatAdd.__new__(cls,ZeroMatrix,ZeroMatrix)[at matadd.py:36] (2)MatAdd.__new__(cls,0,ZeroMatrix,ZeroMatrix)[at matadd.py:36]  
+
+> —(3)Type Validation:lambda checks for MatrixExpr/Scalar (3)Type Validation:lambda checks(0 is valid scalar)
+
+Returns:<MatAdd(0,0)>(Internal representation) Returns:<MatAdd(0,0,0)> 
+
+(4)Canonicalization Rules (4)Canonicalization Rules 4 [Failure Point] 
+
+Check:Are all elements numerically zero?-> Yes —Check:Are all elements numerically zero?-> Yes 
+
+— Result:"All zeros = ZeroMatrix" Result:"All zeros = Scalar Zero"(Over-Simplification) 
+
+(5)Returns:<ZeroMatrix> ?[Type Preserved] (5)Returns:<Scalar Zero> ×[Type Degeneration] 
+
+Fig. 7. Three key trace reports during the resolution of Issue sympy-17630 
+
+fix. This progression from tracing data flow to unearthing the root cause effectively transformed speculative attempts into deterministic exploration. DAIRA transforms speculative attempts into deterministic exploration via execution facts. This shift from hypothesizing to verification substantially reduces the cognitive burden of resolving complex defects. 
+
+Perspective 2: Remediation Strategies — From Defensive Repair to Systemic Correc-tion. In Matplotlib-22719, where the SWE-agent submitted a patch characterized by a strictly defensive strategy. It merely added a size check to suppress the deprecation warning without addressing the completed data conversion process, essentially masking the symptom reported by the user. In contrast, DAIRA demonstrated systemic logical reinforcement. Guided by the full-path execution facts revealed by the trace report, the agent refactored the code on three levels: institut-ing an early exit for empty sequences, adding None filtering within the type determination loop, and rewriting the underlying convert_value mapping to explicitly handle None as np.nan . This comprehensive repair not only eliminated the warning but also preempted potential system crashes, achieving robust coverage for edge cases. This shift is mirrored in the SymPy-17630. The divergence in repair levels highlights the funda-mental distinction between defensive repair and systemic correction. Constrained by its incorrect identification of the fault location, the baseline SWE-agent implemented a defensive repair within 
+
+blockmatrix.py . As shown in figure 8, by introducing lambda functions and loops to retroactively wrap generated scalar zeros into ZeroMatrix objects, the agent effectively repaired the specific crash scenario described in the issue while neglecting broader input variations. This paradigm shift from defensive repair to systemic correction highlights DAIRA’s capacity to comprehend the underlying system architecture. Unlike baseline methods that merely mask symptoms through superficial patches, DAIRA leverages execution facts to understand core logic 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 13 + + 十
+
+# 1+ + 
+
+十十 
+
+十
+
+Example1: sympy-17630 Example2: sympy-22719 
+
+sympy/matrices/expressions/blockmatrix.py Defensive Repair: 
+
+lterates all blocks to manually lib/matplotlib/category.py 
+
+@@-164,14+164,26 @@ def structurally_equal(self,c fix BlockMatrix only. Misses the @@-58,7 +58,7 @@ class StrCategoryConverter(units.ConversionInterface):  
+
+> def _blockmul(self, other):
+
+global root cause in MatAdd. is_numlike = all(units.ConversionInterface.is_numlike(v)    
+
+> if(isinstance(other, BlockMatrix)and and not isinstance(v,(str, bytes))
+> seIf.colblocksize5=3-other.rowbIocK5izes):--for v in values)
+> return BlockMatrix(self.blocks*other.blocks)
+
+Symptomatic Bypass: Merely 
+
+new_blocks = self.blocks*other.blocks if is_numlike: adds a condition(values.size) 
+
+rowblocksizes = self.rowblocksizes if values.size and is_numlike: after full data conversion to 
+
+colblocksizes = other.colblocksizes 
+
+> new_mat = Matrix(new_blocks.rows, new_blocks.cols,
+
+lambda i,j: _api.warn_deprecated( suppress the warning.  
+
+> new_blocks[i,j] if new_blocks[i,j] != 0 else
+
+"3.5",message="Support for passing numbers through unit" 
+
+ZeroMatrix(rowblocksizes[i], colblocksizes[j])) "converters is deprecated since ?ince)s and support will be" 
+
+> return BlockMatrix(new_mat)
+
+--return seif-other 
+
+sympy/matrices/expressions/matadd.py lib/matplotlib/category.py 
+
+> @@ -53,9+53,12 @@ class StrCategoryConverter(units.ConversionInterface)·
+
+@@ -52,6 +52,9 @@ def_new__(cls,*args,**kwargs): if values.size == 0: Early Exit: Intercepts empty  
+
+> def shape(self):
+> 十
+
+---for arg in self.args: return np.array([],dtype=float) list input at the entry before 
+
+if getattr(arg,'is_Matrix',False): data processing begins.  
+
+> with _api.suppress_matplotlib_deprecation_warning():
+> 十
+
+return arg.shape is_numlike = all(units.ConversionInterface.is_numlik Ensures zero side effects.   
+
+> return self.args[0].shape 十
+
+and v is not None 
+
+and not isinstance(v,(str, bytes)) 
+
+def _entry(self,i,j,**kwargs): for v in values)  
+
+> @@ -73,7 +76,10 @@ def doit(self,**kwargs):
+
+if is_numlike:  
+
+> args = [arg.doit(**kwargs)for arg in self.args]
+
+@@ -66,7 +69,11 @@ class StrCategoryConverter(units.ConversionInterface): 
+
+else: 
+
+args = self.args unit.update(values)   
+
+> return canonicalize(MatAdd(*args)) return np.vectorize(unit._mapping.__getitem_
+
+, otypes=[float])(values)    
+
+> result = canonicalize(MatAdd(*args)) def convert_value(val):
+> 十if not getattr(result,'is_Matrix',False):
+
+if val is None:  
+
+> return ZeroMatrix(*self.shape)
+
+return np.nan return result return unit._mapping[val] 
+
+def _eval_derivative_matrix_lines(self,x): return np.vectorize(convert_value, otypes=[float])(values)  
+
+> add_lines = [arg._eval_derivative_matrix
+
+Systemic Correction(resloved): @@ -224,6+231,8 @@ class UnitData: 
+
+Resolves the root cause in for val in OrderedDict.fromkeys(data): Extra Prevention: Safely 
+
+MatAdd.Eliminates the crash 十 if val is None: handles 'None'values to 
+
+risk for the entire system. continue avoid TypeError 1
+
+Fig. 8. Comparison of patches generated by DAIRA (top) and SWE-agent (bottom). 
+
+and address broad edge cases. This root-cause approach not only fortifies system robustness but also serves as a critical driver for the framework’s superior performance. 
+
+Finding 1: DAIRA achieves a 79.4% overall resolution rate (SOTA) by introducing a dynamic analysis mechanism, while also successfully resolving 9 highly complex instances that other methods could not handle. Representative cases are analyzed, detailing how dynamic analysis enables precise error localization and systematic code fixes. 
+
+4.3 RQ2: Model Impact 
+
+Design. For RQ2, the experiment aims to verify the versatility of the DAIRA framework, evaluate its performance on base models with different capabilities, and analyze its specific impact on cost. For the experimental design, we selected representative cost-effective open-source models, DeepSeek V3.2 and Qwen-3-Coder Flash, and the SOTA closed-source model, Gemini 3 Flash Preview. The experiment was conducted by setting up a control group (using the same SWE-agent model) and an experimental group (DAIRA + the same model). It not only compared the solution rate gain before and after introducing DAIRA but also recorded the average cost comparison in detail to analyze the improvement that DAIRA can bring to different base models compared to the baseline. 
+
+Result. Figure 9 demonstrates the performance and efficiency impact of DAIRA across different base models. First, DAIRA achieves improved resolution rates across all models, strongly validating our method’s robust generalization capabilities. Specifically, our approach significantly enhances the performance of high-performance models. DeepSeek V3.2 achieved the largest gain in resolution rate (+13 .5% ), followed by Gemini 3 Flash Preview ( +7.9% ), which reached a peak absolute resolution rate of 79.4%. Although Qwen-3-Coder Flash showed only a slight performance improvement (+0.8%), it achieved a significant 31.0% reduction in cost. Similarly, Gemini 3 Flash Preview exhibited an 11 .2% 
+
+decrease in cost. This highlights that Dynamic Analysis Tool substantially reduces unnecessary retrieval and verification steps by preventing aimless searches and accelerating the model’s guidance 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. 14 Liu, Wang, et al. Qwen-3-Coder  
+
+> Flash
+> DeepSeek
+> V3.2
+> Gemini 3
+> Flash Preview
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Resolved(%)
+> 50.6%
+> +0.8%
+> 74.2%
+> +13.5% 79.4%
+> +7.9%
+> 50.2%
+> 65.4%
+> 73.6%
+> SWE-agent
+> DAIRA Qwen-3-Coder
+> Flash
+> DeepSeek
+> V3.2
+> Gemini 3
+> Flash Preview
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> 0.30
+> 0.35
+> Avg. Cost ($)
+> 0.0505
+> -31.0%
+> 0.1143
+> +10.0%
+> 0.2392
+> -11.2%
+> 0.0732
+> 0.1039
+> 0.2695
+> SWE-agent
+> DAIRA
+
+Fig. 9. Performance analysis in different model. (a) Resolution Rates. (b) Average Cost. 
+
+toward pinpointing fault locations. While DeepSeek V3.2 incurred a cost increase ( +10 .0% ), this investment directly translated into the most significant performance boost ( +13 .5% ), representing a highly favorable trade-off. Ultimately, Gemini 3 Flash Preview emerged as the optimal solution, delivering the highest accuracy ( 79 .40% ) with superior economic efficiency. This validates that under high-performance models, Our approach achieves dual optimization of performance and cost. 
+
+Finding 2: Experimental results demonstrate the robust generalization ability of our method and its dual optimization of performance and cost. The largest resolution improvement (+13.5%) was achieved on DeepSeek V3.2, while the most significant cost reduction (-31.0%) was achieved on Qwen-3-Coder Flash., it significantly improves resolution rates while lowering inference costs, achieving dual optimization of performance and efficiency. 
+
+4.4 RQ3: Robustness 
+
+Design. For RQ3 , the experimental goal is to evaluate the stability of DAIRA in handling tasks of varying complexity, particularly verifying its advantages in solving high-difficulty, long-dependency-chain problems. The experimental design divides the test set into three difficulty levels based on estimated repair time: easy ( <15min,194), medium (15min-1 hour,261), and high ( >1 hour,45). It should be noted that due to the limited number of tasks >4 hours (Only 4) in the original dataset, tasks from 1-4 hours(41) and >4 hours were merged into a single >1 hour dataset for analysis. The experiment verifies DAIRA’s robustness across different task types by comparing its solution rate with the SOTA method within each difficulty level. Furthermore, by conducting a granular comparison of performance metrics between DAIRA and the SWE-agent across varying difficulty levels, we aim to dissect the underlying behavioral shifts and resource allocation strategies that drive DAIRA’s efficiency and effectiveness. 
+
+Result. Our performance improvement primarily stems from our advantage in tackling complex tasks. The results in figure 10 demonstrate that as task difficulty increases, DAIRA exhibits excep-tional robustness and architectural superiority. Specifically, for medium-difficulty tasks, DAIRA surpassed all comparison baselines with an 80.8% resolution rate, establishing a significant lead. This superiority persists for the most challenging high-difficulty tasks, achieving a SOTA level of 44.4%. This consistent high performance demonstrates DAIRA’s exceptional capability in handling long-range dependencies and deep logical flaws, delivering stable and high-quality code repair across medium-to-high difficulty scenarios. Subsequently, we analyzed the performance of DAIRA and SWE-agent across three dimensions: resolution rate, reasoning cost, and calls. 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 15 <15 min fix 15 min - 1 hour > 1 hour 
+
+> 0%
+> 20%
+> 40%
+> 60%
+> 80%
+> 100%
+> Resolved(%)
+> 88.1%
+> 44.4%
+> 85.6%
+> 80.8%
+> 44.4%
+> Live-SWE-agent + Gemini 3 Pro Preview
+> Mini-SWE-agent + Claude 4.5 Opus medium
+> Mini-SWE-agent + Claude 4.5 Sonnet
+> Mini-SWE-agent + Gemini 3 Pro Preview
+> OpenHands + Claude 4 Sonnet
+> OpenHands + Claude Opus 4.5
+> SWE-agent + DeepSeek V3.2
+> SWE-agent + Gemini 3 Flash Preview
+> DAIRA + DeepSeek V3.2
+> DAIRA + Gemini 3 Flash Preview
+
+Fig. 10. Comparison of Resolution Rates across Different Difficulty Levels 
+
+Regarding effectiveness , DAIRA displays clear performance advantages across almost all difficulty levels and shows strong adaptability to task complexity. As shown in Table 2, its perfor-mance improvement becomes increasingly pronounced with rising task complexity, demonstrating the tool’s distinct comparative improvement in handling highly complex, time-consuming tasks. Particularly in the high-difficulty ( > 1 hour) range, all models achieved the most substantial per-formance improvement. Among them, the lightweight model Qwen-3-Coder Flash achieved a doubling of the resolution rate ( +133 .33% ). This phenomenon powerfully demonstrates the core value of Dynamic Analysis Tool in tackling complex software engineering problems. Unlike simple tasks with intuitive solubility, difficult tasks are often constrained by logical intricacy and unpredictability. DAIRA overcomes the cognitive limitations of static reasoning and superficial execution feedback in challenging tasks by visualizing hidden control flows and runtime states explicit within unfamiliar code repositories. This enables the agent to capture deep logical faults and generate complete code patches. Furthermore, the performance regression of Qwen-3-Coder Flash on medium difficult tasks primarily stems from fluctuations in its inference robustness when handling high-density contexts. Compared to high-performance models, it tends to experience cognitive overload under complex feedback, struggling to consistently extract key clues and re-sulting in localized performance instability. Moreover, the model’s remarkable leap in extremely difficult tasks precisely demonstrates the core advantage of dynamic analysis in compensating for the limitations of static search. This also indicates that it remains effective for Qwen-3-Coder Flash, with performance constraints primarily attributable to the model’s uncertainty when processing feedback information. 
+
+Regarding efficiency , Table 3 illustrates that DAIRA significantly reduces input token consump-tion across all scenarios, effectively reallocating computational resources toward active reasoning. Specifically, distinct behavioral shifts are observed across models: For Qwen-3-Coder Flash, the approach yields substantial cost reductions ( −26 .19% to −36 .25% ) driven by a massive decrease in input token usage ( −29 .6% to −39 .1% ). This validates DAIRA’s precision in curbing the tendency of lightweight models to resort to blind, context-heavy trial-and-error, thereby eliminating redundant token consumption. Gemini 3 Flash Preview exhibits a structural shift in interaction: while invoca-tion frequency rose ( +15 .3% and +24 .4% ), total cost paradoxically decreased ( −13 .42% to −17 .78% ). This stems from a transition from "context stuffing" to targeted retrieval. Although the model initiated more queries (increasing output tokens by +21 .3% to +12 .4% ), the tool anchored error locations precisely, removing the need to load massive irrelevant files (reducing input tokens by 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. 16 Liu, Wang, et al. 
+
+Table 2. Performance Comparison by Model and Difficulty. Note that all reported metrics represent the average value per instance. 
+
+Model Difficulty Resolved(%) Avg Cost ($) DAIRA SWE-agent DAIRA SWE-agent Qwen-3-Coder Flash 
+
+<15 min fix 71.13 (+9.52%) 64.95 0.0416 (-26.19%) 0.0564 
+
+15 min - 1 hour 41.38 (-11.48%) 46.74 0.0554 (-32.32%) 0.0819 
+
+> 1 hour 15.56 (+133.33%) 6.67 0.0604 (-36.25%) 0.0947 
+
+DeepSeek V3.2 
+
+<15 min fix 86.60 (+8.39%) 79.90 0.0940 (+2.81%) 0.0915 
+
+15 min - 1 hour 72.03 (+16.77%) 61.69 0.1209 (+10.07%) 0.1098 
+
+> 1 hour 33.33 (+36.36%) 24.44 0.1631 (+32.74%) 0.1229 
+
+Gemini 3 Flash Preview 
+
+<15 min fix 85.57 (+3.11%) 82.99 0.1929 (-13.42%) 0.2228 
+
+15 min - 1 hour 80.84 (+10.47%) 73.18 0.2556 (-8.28%) 0.2787 
+
+> 1 hour 44.44 (+25.00%) 35.56 0.3432 (-17.78%) 0.4174 
+
+Table 3. Comprehensive Performance Comparison. Merged view of Calls and Token Usage across different difficulty levels. Percentages indicate the relative change from SWE-agent to DAIRA. Note that all numerical values represent the average per instance . Specifically, the “Calls” metric denotes the number of agent iteration steps. 
+
+Model Method < 15 min fix 15 min - 1 hour > 1 hour Calls Input Output Calls Input Output Calls Input Output Qwen-3-Coder Flash SWE-agent 42.7 824k 9.4k 51.6 1.21M 12.3k 56.2 1.41M 13.4k 
+
+DAIRA 41.8 580k 10.1k 49.1 784k 12.2k 53.6 856k 13.0k 
+
+Diff (-2.1%) (-29.6%) (+7.0%) (-4.8%) (-35.2%) (-0.8%) (-4.6%) (-39.1%) (-3.0%) 
+
+DeepSeek V3.2 SWE-agent 89.2 2.57M 21.1k 97.5 3.12M 24.2k 103.8 3.53M 27.5k 
+
+DAIRA 78.9 1.65M 23.1k 92.0 2.22M 28.1k 113.9 3.14M 35.1k 
+
+Diff (-11.5%) (-35.8%) (+9.7%) (-5.6%) (-28.9%) (+16.5%) (+9.7%) (-11.2%) (+27.5%) 
+
+Gemini 3 Flash Preview SWE-agent 43.0 931k 16.9k 48.3 1.16M 21.2k 57.4 1.80M 27.9k 
+
+DAIRA 49.6 710k 20.5k 57.8 980k 24.7k 71.4 1.35M 31.3k 
+
+Diff (+15.3%) (-23.6%) (+21.3%) (+19.7%) (-15.6%) (+16.6%) (+24.4%) (-25.3%) (+12.4%) 
+
+−15 .6% to −25 .3% ). This significantly lowered the token load per interaction while fostering active reasoning.In contrast, DeepSeek V3.2 demonstrates a shift toward deep exploration in complex tasks, evidenced by concurrent increases in cost and frequency. Notably, this cost hike is driven solely by a surge in output tokens ( +9.7% to +27 .5% ), as input tokens still dropped significantly (−11 .2% to −35 .8% ). This indicates that Dynamic Analysis Tool guides the model to prioritize gener-ative reasoning over passive context scanning, providing the necessary computational investment for breakthroughs in complex tasks. 
+
+Finding 3: DAIRA demonstrated exceptional robustness across varying task difficulties, achiev-ing an 80.8% resolution rate on moderately difficult tasks and 44.4% on high-difficulty tasks. In high-difficulty scenarios, our solution achieves the greatest performance gains across all base 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018. Dynamic analysis enhances issue resolution 17 
+
+models. Furthermore, in terms of efficiency, it exhibits distinct behavioral shift patterns across different models, thereby balancing performance with computational overhead. 
+
+4.5 RQ4: Ablation Study  
+
+> Table 4. Ablation Study of DAIRA. Note that “ 𝑤 /𝑜 Test Tracing-Driven Workflows” represents a variant adding the complete dynamic analysis module directly to the SWE-agent.
+
+Experiment Success Rate Avg. Cost($) Avg. Calls Baseline(SWE-agent) 65.40% 0.7336 94.82 
+
+DAIRA (ours) 74.20% 0.8114 88.89 
+
+w/o Trace Log Semantic Analysis 65.80% (-11.32%) 0.8727 (+7.56%) 82.30 (-7.41%) 
+
+w/o Dynamic Analysis Tool 68.20% (-8.09%) 0.7057 (-13.03%) 83.92 (-5.59%) 
+
+w/o Test Tracing-Driven Workflows 70.20% (-5.39%) 0.9776 (+20.48%) 109.64 (+23.34%) 
+
+Design. To quantify the contribution of each component, we conducted an ablation study comparing the Baseline (SWE-agent) against the full DAIRA framework and three distinct variants: (1) w/o Trace Log Semantic Analysis, which excludes the Trace Log Semantic Analysis module to test the impact of raw vs. processed trace logs; (2) w/o Dynamic Analysis Tool, which removes the tracing capability while retaining the agent’s workflow logic; and (3) w/o Test-Trace Driven Workflow, which integrates the dynamic analysis tool directly into the original SWE-agent without the specialized interaction logic. We analyzed the resolution rates, cost, and call frequency of each configuration to quantitatively isolate the specific contribution of each component. Result. Table 4 presents the ablation experiment results of the DAIRA components, fully demonstrating the impact of each component of our method on overall performance. The dynamic analysis module is the core driver for performance improvement. Comparing DAIRA ( 74 .20% ) with the variant without Dynamic Analysis Tool ( 68 .20% ) and the one without Trace Log Semantic Analysis ( 65 .80% ), as well as Baseline + dynamic analysis module( 70 .20% ) with Baseline ( 65 .40% ), it is evident that the introduction of this module brings substantial performance gains. This demonstrates that runtime execution feedback compensates for the information gaps present in relying solely on static analysis and simple execution feedback, and is crucial for tackling more tasks. Trace Log Semantic Analysis module acts as a crucial “bridge”. Experiments have shown that when the Trace Log Semantic Analysis module is removed, the success rate drops significantly to 
+
+65 .80% , although the trace data is retained. This shows the extreme instability of the raw execution log, and simply inserting its raw log directly into the Agent history context will not only have a huge impact on the context window, but also lead to distraction and reduce problem solving ability. It must be standardized into a summary of specific workflow processes to truly unlock the information gain potential of dynamic analysis. Merely embedding Dynamic Analysis Tool (Baseline + Dynamic Analysis Tool) improved per-formance but incurred maximum costs ( 0.9776 ) and calls (109.64) due to unguided exploration of irrelevant paths. Conversely, Test-Trace Driven Workflow, via optimized interaction logic, curbed such inefficiencies to achieve the highest success rate with a ∼ 17% cost reduction ( 0.8114 ), striking the optimal balance between performance and efficiency.  
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018. 18 Liu, Wang, et al.
+
+Finding 4: DAIRA achieves an optimal balance between performance and efficiency through the synergistic integration of the Dynamic Analysis Tool, Trace Log Semantic Analysis, and Test-Trace Driven Workflow. 
+
+5 Related work 5.1 Static Analysis-based Approaches For Issue Resolution 
+
+Static analysis-based approaches [ 12 , 17 , 21 , 23 , 25 ] emerge as a vital strategy to mitigate the constraints of LLM context windows in repository-scale issue resolution. Because ingesting an entire codebase is impractical, accurate patch generation requires a mechanism to precisely locate and retrieve the critical context—such as variable definitions and function dependencies—needed to understand the code logic. To achieve this, these methods leverage deterministic parsing for structured software representation. Agentless [ 21 ] proves that static retrieval can enable high-performance patching by decoupling fault localization from repair. To refine retrieval precision, AutoCodeRover [ 25 ] and SpecRover [ 17 ] employ ASTs and intent analysis, respectively, while KGCompass [ 23 ] utilizes knowledge graphs to enforce global dependency constraints. However, relying solely on static snapshots misses intermediate execution details—a gap our work bridges by integrating dynamic analysis for concrete execution evidence. 
+
+5.2 Agentic Approaches For Issue Resolution 
+
+Agentic approaches [ 2, 4 , 9 , 10 , 15 , 20 , 22 , 24 ] represent a paradigm shift towards closed-loop architectures capable of navigating the dynamic state space of software repositories. Unlike static workflows, these agents possess “agency”—the capacity to perceive environmental feedback, main-tain internal state, and dynamically adjust actions through standardized interfaces. Pioneering this domain, Yang et al. [ 24 ] introduce SWE-agent , utilizing a specialized ACI for autonomous issue resolution. To mitigate greedy reasoning errors, search-based approaches like SWE-search [ 2]and CodeTree [ 10 ] integrate tree-search algorithms (e.g., MCTS) to explore optimal repair tra-jectories. Addressing memory limitations, experience-driven methods such as SWE-Exp [4 ] and 
+
+EXPEREPAIR [15 ] leverage historical repair data to guide decision-making. Additionally, Live-SWE-agent [ 22 ] enables self-evolution by updating strategies based on real-time feedback. However, these agents primarily rely on superficial input-output feedback, lacking the intermediate runtime observability required to diagnose the internal mechanisms of complex defects. 
+
+6 Threats to validity 
+
+Internal Validity . To mitigate data leakage, we utilize the rigorously curated SWE-bench Verified. Furthermore, by benchmarking DAIRA against SWE-agent using identical backbones (e.g., DeepSeek V3.2), we isolate the source of improvement. The significant performance gap confirms that gains stem from our dynamic analysis framework rather than the model’s memorized priors. 
+
+External Validity . Our evaluation is currently confined to the Python ecosystem due to the reliance on specific hooks (e.g., sys.settrace ). However, the core Test Tracing-Driven Workflow is language-agnostic. By substituting the instrumentation engine, our work can be readily adapted to other runtimes (e.g., JVM or CLR) in future work. 
+
+7 Conclusion 
+
+In this paper, we introduced DAIRA, an agentic framework designed to overcome the “tunnel vision” of static analysis by integrating dynamic observability into the issue resolution process. DAIRA provides agents with high-fidelity execution reports, enabling them to pinpoint root causes 
+
+> , Vol. 1, No. 1, Article . Publication date: March 2018.
+
+Dynamic analysis enhances issue resolution 19 
+
+through deterministic reasoning rather than speculative search. Extensive evaluations on SWE-bench Verified show that DAIRA achieves a SOTA resolution rate and reduces repair costs across foundation models. Notably, DAIRA exhibits robustness in handling high-difficulty tasks, outper-forming baselines by a large margin in complex scenarios. These results confirm that equipping agents with dynamic observability is a critical step toward automated software maintenance. 
+
+8 DATA AVAILABILITY 
+
+To facilitate the replication study, we have released our data and code at:https://github.com/ orreroing/Dynamic-analysis-enhances-issue-resolution. 
+
+References 
+
+[1] Anonymous Author(s). 2025. DAIRA: Replication Package. https://anonymous.4open.science/r/DAIRA-3730 Accessed: 2025-01-30. [2] Antonis Antoniades, Albert Örwall, Kexun Zhang, Yuxi Xie, Anirudh Goyal, and William Wang. 2025. SWE-Search: Enhancing Software Agents with Monte Carlo Tree Search and Iterative Refinement. arXiv:2410.20285 [cs.AI] https://arxiv.org/abs/2410.20285 [3] Nicolas Bettenburg, Sascha Just, Adrian Schröter, Cathrin Weiss, Rahul Premraj, and Thomas Zimmermann. 2008. What makes a good bug report?. In Proceedings of the 16th ACM SIGSOFT International Symposium on Foundations of Software Engineering (Atlanta, Georgia) (SIGSOFT ’08/FSE-16) . Association for Computing Machinery, New York, NY, USA, 308–318. doi:10.1145/1453101.1453146 [4] Silin Chen, Shaoxin Lin, Xiaodong Gu, Yuling Shi, Heng Lian, Longfei Yun, Dong Chen, Weiguo Sun, Lin Cao, and Qianxiang Wang. 2025. SWE-Exp: Experience-Driven Software Issue Resolution. arXiv:2507.23361 [cs.SE] https://arxiv.org/abs/2507.23361 [5] SGM Cornelissen, AE Zaidman, A van Deursen, LMF Moonen, and R Koschke. 2009. A Systematic Survey of Program Comprehension through Dynamic Analysis. IEEE Transactions on Software Engineering 35, 5 (2009), 684–702. doi:10. 1109/TSE.2009.28 [6] Google DeepMind. 2026. Gemini 3 Flash: Best for frontier intelligence at speed. https://deepmind.google/models/ gemini/flash/. Accessed: 2026-01-27. [7] J. D. Hunter. 2007. Matplotlib: A 2D graphics environment. Computing in Science & Engineering 9, 3 (2007), 90–95. doi:10.1109/MCSE.2007.55 [8] Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. 2024. SWE-bench: Can Language Models Resolve Real-World GitHub Issues? arXiv:2310.06770 [cs.CL] https://arxiv.org/abs/ 2310.06770 [9] Han Li, Yuling Shi, Shaoxin Lin, Xiaodong Gu, Heng Lian, Xin Wang, Yantao Jia, Tao Huang, and Qianxiang Wang. 2025. SWE-Debate: Competitive Multi-Agent Debate for Software Issue Resolution. arXiv:2507.23348 [cs.SE] https: //arxiv.org/abs/2507.23348 [10] Jierui Li, Hung Le, Yingbo Zhou, Caiming Xiong, Silvio Savarese, and Doyen Sahoo. 2025. CodeTree: Agent-guided Tree Search for Code Generation with Large Language Models. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , Luis Chiruzzo, Alan Ritter, and Lu Wang (Eds.). Association for Computational Linguistics, Albuquerque, New Mexico, 3711–3726. doi:10.18653/v1/2025.naacl-long.189 [11] Changshu Liu, Alireza Ghazanfari, Yang Chen, and Reyhan Jabbarvand. 2025. Evaluating Code Reasoning Abilities of Large Language Models Under Real-World Settings. https://api.semanticscholar.org/CorpusID:283920955 [12] Xiangyan Liu, Bo Lan, Zhiyuan Hu, Yang Liu, Zhicheng Zhang, Fei Wang, Michael Shieh, and Wenmeng Zhou. 2024. CodexGraph: Bridging Large Language Models and Code Repositories via Code Graph Databases. arXiv:2408.03910 [cs.SE] https://arxiv.org/abs/2408.03910 [13] Aaron Meurer, Christopher P. Smith, Mateusz Paprocki, Ondřej Čertík, Sergey B. Kirpichev, Matthew Rocklin, Amit Kumar, Sergiu Ivanov, Jason K. Moore, Sartaj Singh, Thilina Rathnayake, Sean Vig, Brian E. Granger, Richard P. Muller, Francesco Bonazzi, Harsh Gupta, Shivam Vats, Fredrik Johansson, Fabian Pedregosa, Matthew J. Curry, Andy R. Terrel, Štěpán Roučka, Ashutosh Saboo, Isuru Fernando, Sumith Kulal, Robert Cimrman, and Anthony Scopatz. 2017. SymPy: symbolic computing in Python. PeerJ Computer Science 3 (Jan. 2017), e103. doi:10.7717/peerj-cs.103 [14] Manish Motwani, Sandhya Sankaranarayanan, René Just, and Yuriy Brun. 2018. Do automated program repair techniques repair hard and important bugs?. In Proceedings of the 40th International Conference on Software Engineering 
+
+(Gothenburg, Sweden) (ICSE ’18) . Association for Computing Machinery, New York, NY, USA, 25. doi:10.1145/3180155. 3182533 , Vol. 1, No. 1, Article . Publication date: March 2018. 20 Liu, Wang, et al. 
+
+[15] Fangwen Mu, Junjie Wang, Lin Shi, Song Wang, Shoubin Li, and Qing Wang. 2025. EXPEREPAIR: Dual-Memory Enhanced LLM-based Repository-Level Program Repair. arXiv:2506.10484 [cs.SE] https://arxiv.org/abs/2506.10484 [16] Ionel Cristian Mărie s, . 2025. Hunter: A flexible code tracing toolkit . https://github.com/ionelmc/python-hunter BSD 2-Clause License. [17] Haifeng Ruan, Yuntong Zhang, and Abhik Roychoudhury. 2024. SpecRover: Code Intent Extraction via LLMs. arXiv:2408.02232 [cs.SE] https://arxiv.org/abs/2408.02232 [18] Gregory Tassey. 2002. The economic impacts of inadequate infrastructure for software testing. https://api. semanticscholar.org/CorpusID:107332102 [19] G Tassey. 2002. Economic Impacts of Inadequate Infrastructure for Software Testing. (2002). [20] Xingyao Wang, Boxuan Li, Yufan Song, Frank F. Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, Hoang H. Tran, Fuqiang Li, Ren Ma, Mingzhang Zheng, Bill Qian, Yanjun Shao, Niklas Muennighoff, Yizhe Zhang, Binyuan Hui, Junyang Lin, Robert Brennan, Hao Peng, Heng Ji, and Graham Neubig. 2025. OpenHands: An Open Platform for AI Software Developers as Generalist Agents. arXiv:2407.16741 [cs.SE] https://arxiv.org/abs/2407.16741 [21] Chunqiu Steven Xia, Yinlin Deng, Soren Dunn, and Lingming Zhang. 2024. Agentless: Demystifying LLM-based Software Engineering Agents. arXiv:2407.01489 [cs.SE] https://arxiv.org/abs/2407.01489 [22] Chunqiu Steven Xia, Zhe Wang, Yan Yang, Yuxiang Wei, and Lingming Zhang. 2025. Live-SWE-agent: Can Software Engineering Agents Self-Evolve on the Fly? arXiv:2511.13646 [cs.SE] https://arxiv.org/abs/2511.13646 [23] Boyang Yang, Jiadong Ren, Shunfu Jin, Yang Liu, Feng Liu, Bach Le, and Haoye Tian. 2025. Enhancing repository-level software repair via repository-aware knowledge graphs. arXiv:2503.21710 [cs.SE] https://arxiv.org/abs/2503.21710 [24] John Yang, Carlos E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. In Advances in Neural Information Processing Systems , A. Globerson, L. Mackey, D. Belgrave, A. Fan, U. Paquet, J. Tomczak, and C. Zhang (Eds.), Vol. 37. Curran Associates, Inc., 50528–50652. doi:10.52202/079017-1601 [25] Yuntong Zhang, Haifeng Ruan, Zhiyu Fan, and Abhik Roychoudhury. 2024. AutoCodeRover: Autonomous Program Improvement. arXiv:2404.05427 [cs.SE] https://arxiv.org/abs/2404.05427 [26] Li Zhong, Zilong Wang, and Jingbo Shang. 2024. Debug like a Human: A Large Language Model Debugger via Verifying Runtime Execution Step-by-step. arXiv:2402.16906 [cs.SE] https://arxiv.org/abs/2402.16906 
+
+Received 20 February 2007; revised 12 March 2009; accepted 5 June 2009 
+
+, Vol. 1, No. 1, Article . Publication date: March 2018.

@@ -6,88 +6,79 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-28
-- 运行时间：2026-03-28 19:42:14 UTC
+- 最新运行日期：2026-03-29
+- 运行时间：2026-03-29 19:49:15 UTC
 - 运行状态：成功
-- 本次总论文数：22
-- 精读区：10
+- 本次总论文数：19
+- 精读区：7
 - 速读区：12
 
 ### 今日简报（AI）
-今日精读10篇重磅论文，深入剖析AI智能体在嵌入式开发与大模型服务中的突破。
-重点推荐嵌入式AI智能体开发与异构LLM多智能体服务架构，两项研究均获9.0高分。
-建议关注AI智能体如何赋能物联网设备，以及大模型服务如何实现更低延迟与更高性能。
-- 详情：[/202603/28/README](/202603/28/README)
+1) 今日精读7篇高分论文，聚焦FDA合规AI代理与动态分析技术突破。
+2) 重点推荐GMPilot在FDA合规领域的专家级应用，以及动态分析如何革新问题解决流程。
+3) 建议持续追踪AI Agent在垂直领域的落地进展，特别是合规监管与自动驾驶指令理解方向。
+- 详情：[/202603/29/README](/202603/29/README)
 
 ### 精读区论文标签
-1. [Skilled AI Agents for Embedded and IoT Systems Development](/202603/28/2603.19583v1-skilled-ai-agents-for-embedded-and-iot-systems-development)  
+1. [GMPilot: An Expert AI Agent For FDA cGMP Compliance](/202603/29/2603.20815v1-gmpilot-an-expert-ai-agent-for-fda-cgmp-compliance)  
    标签：评分：9.0/10、query:agent
-   evidence：用于嵌入式系统自动代码开发的AI智能体
-2. [Chimera: Latency- and Performance-Aware Multi-agent Serving for Heterogeneous LLMs](/202603/28/2603.22206v1-chimera-latency--and-performance-aware-multi-agent-serving-for-heterogeneous-llms)  
+   evidence：使用RAG和ReAct框架的领域专用AI智能体
+2. [Dynamic analysis enhances issue resolution](/202603/29/2603.22048v1-dynamic-analysis-enhances-issue-resolution)  
    标签：评分：9.0/10、query:agent
-   evidence：异构LLM的多智能体服务框架
-3. [From Static Templates to Dynamic Runtime Graphs: A Survey of Workflow Optimization for LLM Agents](/202603/28/2603.22386v1-from-static-templates-to-dynamic-runtime-graphs-a-survey-of-workflow-optimization-for-llm-agents)  
+   evidence：用于自动化仓库级调试和代码问题解决的DAIRA智能体
+3. [Dynamic analysis enhances issue resolution](/202603/29/2603.22048v2-dynamic-analysis-enhances-issue-resolution)  
    标签：评分：9.0/10、query:agent
-   evidence：LLM智能体工作流与框架综述
-4. [Latent-WAM: Latent World Action Modeling for End-to-End Autonomous Driving](/202603/28/2603.24581v1-latent-wam-latent-world-action-modeling-for-end-to-end-autonomous-driving)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：用于自动驾驶的潜在世界模型框架，包含可学习查询
-5. [DreamerAD: Efficient Reinforcement Learning via Latent World Model for Autonomous Driving](/202603/28/2603.24587v1-dreamerad-efficient-reinforcement-learning-via-latent-world-model-for-autonomous-driving)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：用于自动驾驶强化学习的潜在世界模型框架
-6. [TRAJEVAL: Decomposing Code Agent Trajectories for Fine-Grained Diagnosis](/202603/28/2603.24631v1-trajeval-decomposing-code-agent-trajectories-for-fine-grained-diagnosis)  
+   evidence：DAIRA是用于自动化仓库级调试和代码修复的智能体
+4. [From AI Assistant to AI Scientist: Autonomous Discovery of LLM-RL Algorithms with LLM Agents](/202603/29/2603.23951v1-from-ai-assistant-to-ai-scientist-autonomous-discovery-of-llm-rl-algorithms-with-llm-agents)  
    标签：评分：9.0/10、query:agent
-   evidence：代码智能体轨迹的直接评估框架
-7. [SEVerA: Verified Synthesis of Self-Evolving Agents](/202603/28/2603.25111v1-severa-verified-synthesis-of-self-evolving-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：自演化LLM智能体与验证合成框架
-8. [On-Demand Instructional Material Providing Agent Based on MLLM for Tutoring Support](/202603/28/2603.25195v1-on-demand-instructional-material-providing-agent-based-on-mllm-for-tutoring-support)  
-   标签：评分：9.0/10、query:agent
-   evidence：生成搜索查询并检索网络图像的智能体
-9. [A Wireless World Model for AI-Native 6G Networks](/202603/28/2603.25216v1-a-wireless-world-model-for-ai-native-6g-networks)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：无线世界模型框架及多模态数据集
-10. [Persistent Robot World Models: Stabilizing Multi-Step Rollouts via Reinforcement Learning](/202603/28/2603.25685v1-persistent-robot-world-models-stabilizing-multi-step-rollouts-via-reinforcement-learning)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：基于RL自回归稳定的机器人世界模型
+   evidence：LLM智能体自主发现并实现可执行算法代码
+5. [SoK: The Attack Surface of Agentic AI -- Tools, and Autonomy](/202603/29/2603.22928v1-sok-the-attack-surface-of-agentic-ai----tools-and-autonomy)  
+   标签：评分：8.0/10、query:agent
+   evidence：针对具有工具和自主性的智能体AI系统的攻击面全面分类
+6. [ClawKeeper: Comprehensive Safety Protection for OpenClaw Agents Through Skills, Plugins, and Watchers](/202603/29/2603.24414v1-clawkeeper-comprehensive-safety-protection-for-openclaw-agents-through-skills-plugins-and-watchers)  
+   标签：评分：8.0/10、query:agent
+   evidence：OpenClaw自主智能体运行时的安全框架
+7. [DCARL: A Divide-and-Conquer Framework for Autoregressive Long-Trajectory Video Generation](/202603/29/2603.24835v1-dcarl-a-divide-and-conquer-framework-for-autoregressive-long-trajectory-video-generation)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于世界建模长轨迹视频生成的自回归框架
 
 ### 速读区论文标签
-1. [Improving Coherence and Persistence in Agentic AI for System Optimization](/202603/28/2603.21321v1-improving-coherence-and-persistence-in-agentic-ai-for-system-optimization)  
+1. [CTS-PLL: A Robust and Anytime Framework for Collaborative Task Sequencing and Multi-Agent Path Finding](/202603/29/2603.25121v1-cts-pll-a-robust-and-anytime-framework-for-collaborative-task-sequencing-and-multi-agent-path-finding)  
    标签：评分：8.0/10、query:agent
-   evidence：用于系统优化的智能体研究架构
-2. [Enterprise Sales Copilot: Enabling Real-Time AI Support with Automatic Information Retrieval in Live Sales Calls](/202603/28/2603.21416v1-enterprise-sales-copilot-enabling-real-time-ai-support-with-automatic-information-retrieval-in-live-sales-calls)  
-   标签：评分：8.0/10、query:agent
-   evidence：具有自动数据库检索功能的实时AI助手
-3. [VQ-Jarvis: Retrieval-Augmented Video Restoration Agent with Sharp Vision and Fast Thought](/202603/28/2603.22998v1-vq-jarvis-retrieval-augmented-video-restoration-agent-with-sharp-vision-and-fast-thought)  
-   标签：评分：8.0/10、query:agent
-   evidence：检索增强的视频修复智能体
-4. [AscendOptimizer: Episodic Agent for Ascend NPU Operator Optimization](/202603/28/2603.23566v1-ascendoptimizer-episodic-agent-for-ascend-npu-operator-optimization)  
-   标签：评分：8.0/10、query:agent
-   evidence：用于NPU算子代码优化的情景智能体
-5. [PARHAF, a human-authored corpus of clinical reports for fictitious patients in French](/202603/28/2603.20494v1-parhaf-a-human-authored-corpus-of-clinical-reports-for-fictitious-patients-in-french)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：法语临床文档大型开源语料库
-6. [From Part to Whole: 3D Generative World Model with an Adaptive Structural Hierarchy](/202603/28/2603.21557v1-from-part-to-whole-3d-generative-world-model-with-an-adaptive-structural-hierarchy)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：具有自适应结构层次的3D生成世界模型
-7. [Graphs RAG at Scale: Beyond Retrieval-Augmented Generation With Labeled Property Graphs and Resource Description Framework for Complex and Unknown Search Spaces](/202603/28/2603.22340v1-graphs-rag-at-scale-beyond-retrieval-augmented-generation-with-labeled-property-graphs-and-resource-description-framework-for-complex-and-unknown-search-spaces)  
+   evidence：多智能体路径规划与任务排序框架
+2. [Vega: Learning to Drive with Natural Language Instructions](/202603/29/2603.25741v1-vega-learning-to-drive-with-natural-language-instructions)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于自动驾驶的视觉-语言-世界-动作模型及数据集
+3. [Guideline-grounded retrieval-augmented generation for ophthalmic clinical decision support](/202603/29/2603.21925v1-guideline-grounded-retrieval-augmented-generation-for-ophthalmic-clinical-decision-support)  
    标签：评分：7.0/10、query:agent
-   evidence：用于未知搜索空间动态文档检索的图RAG框架
-8. [AI Mental Models: Learned Intuition and Deliberation in a Bounded Neural Architecture](/202603/28/2603.22561v1-ai-mental-models-learned-intuition-and-deliberation-in-a-bounded-neural-architecture)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：与世界模型和多阶段推理辩论相关
-9. [LLM-based Automated Architecture View Generation: Where Are We Now?](/202603/28/2603.21178v1-llm-based-automated-architecture-view-generation-where-are-we-now)  
+   evidence：带查询分解和检索框架的RAG系统
+4. [GeoTikzBridge: Advancing Multimodal Code Generation for Geometric Perception and Reasoning](/202603/29/2603.22687v1-geotikzbridge-advancing-multimodal-code-generation-for-geometric-perception-and-reasoning)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于几何推理的多模态代码生成框架
+5. [PhotoAgent: A Robotic Photographer with Spatial and Aesthetic Understanding](/202603/29/2603.22796v1-photoagent-a-robotic-photographer-with-spatial-and-aesthetic-understanding)  
+   标签：评分：7.0/10、query:agent
+   evidence：具有内部世界模型的具身摄影智能体
+6. [Agent Audit: A Security Analysis System for LLM Agent Applications](/202603/29/2603.22853v1-agent-audit-a-security-analysis-system-for-llm-agent-applications)  
+   标签：评分：7.0/10、query:agent
+   evidence：LLM智能体应用的安全分析系统
+7. [Dialogue to Question Generation for Evidence-based Medical Guideline Agent Development](/202603/29/2603.23937v1-dialogue-to-question-generation-for-evidence-based-medical-guideline-agent-development)  
+   标签：评分：7.0/10、query:agent
+   evidence：医学指南智能体开发与问题生成
+8. [GameplayQA: A Benchmarking Framework for Decision-Dense POV-Synced Multi-Video Understanding of 3D Virtual Agents](/202603/29/2603.24329v1-gameplayqa-a-benchmarking-framework-for-decision-dense-pov-synced-multi-video-understanding-of-3d-virtual-agents)  
+   标签：评分：7.0/10、query:agent
+   evidence：3D虚拟智能体的基准评估框架
+9. [AI In Cybersecurity Education -- Scalable Agentic CTF Design Principles and Educational Outcomes](/202603/29/2603.21551v1-ai-in-cybersecurity-education----scalable-agentic-ctf-design-principles-and-educational-outcomes)  
    标签：评分：6.0/10、query:agent
-   evidence：基于LLM的智能体方法从代码生成架构视图
-10. [Relax Forcing: Relaxed KV-Memory for Consistent Long Video Generation](/202603/28/2603.21366v1-relax-forcing-relaxed-kv-memory-for-consistent-long-video-generation)  
+   evidence：网络安全CTF竞赛环境中自主智能体框架的研究
+10. [mSFT: Addressing Dataset Mixtures Overfitting Heterogeneously in Multi-task SFT](/202603/29/2603.21606v4-msft-addressing-dataset-mixtures-overfitting-heterogeneously-in-multi-task-sft)  
    标签：评分：6.0/10、query:wmodel
-   evidence：自回归视频世界模型的记忆机制
-11. [PAM: A Pose-Appearance-Motion Engine for Sim-to-Real HOI Video Generation](/202603/28/2603.22193v2-pam-a-pose-appearance-motion-engine-for-sim-to-real-hoi-video-generation)  
-   标签：评分：6.0/10、query:wmodel
-   evidence：具身智能HOI视频生成的统一框架
-12. [Rashid: A Cipher-Based Framework for Exploring In-Context Language Learning](/202603/28/2603.22497v1-rashid-a-cipher-based-framework-for-exploring-in-context-language-learning)  
+   evidence：用于监督微调的多任务数据集混合优化
+11. [flexvec: SQL Vector Retrieval with Programmatic Embedding Modulation](/202603/29/2603.22587v1-flexvec-sql-vector-retrieval-with-programmatic-embedding-modulation)  
    标签：评分：6.0/10、query:agent
-   evidence：上下文语言学习框架
+   evidence：面向AI智能体的检索内核
+12. [Quality Over Clicks: Intrinsic Quality-Driven Iterative Reinforcement Learning for Cold-Start E-Commerce Query Suggestion](/202603/29/2603.22922v1-quality-over-clicks-intrinsic-quality-driven-iterative-reinforcement-learning-for-cold-start-e-commerce-query-suggestion)  
+   标签：评分：6.0/10、query:agent
+   evidence：用于搜索系统查询建议的强化学习框架
 
 
 <div class="dpr-home-promo-card">
