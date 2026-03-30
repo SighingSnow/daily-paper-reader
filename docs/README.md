@@ -6,79 +6,79 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-29
-- 运行时间：2026-03-29 19:49:15 UTC
+- 最新运行日期：2026-03-30
+- 运行时间：2026-03-30 20:27:31 UTC
 - 运行状态：成功
 - 本次总论文数：19
 - 精读区：7
 - 速读区：12
 
 ### 今日简报（AI）
-1) 今日精读7篇高分论文，聚焦FDA合规AI代理与动态分析技术突破。
-2) 重点推荐GMPilot在FDA合规领域的专家级应用，以及动态分析如何革新问题解决流程。
-3) 建议持续追踪AI Agent在垂直领域的落地进展，特别是合规监管与自动驾驶指令理解方向。
-- 详情：[/202603/29/README](/202603/29/README)
+1) 今日精读 7 篇论文，重点聚焦机器人物理世界建模与医疗智能体推理新突破。
+2) 最值得看的是 ABot-PhysWorld 提出的物理对齐机器人操作模型，以及 World Reasoning Arena 构建的世界推理评测基准。
+3) 建议关注具身智能如何通过物理对齐实现精准操作，并留意医疗 AI 在多语言对话与推理校准方面的落地进展。
+- 详情：[/202603/30/README](/202603/30/README)
 
 ### 精读区论文标签
-1. [GMPilot: An Expert AI Agent For FDA cGMP Compliance](/202603/29/2603.20815v1-gmpilot-an-expert-ai-agent-for-fda-cgmp-compliance)  
+1. [ABot-PhysWorld: Interactive World Foundation Model for Robotic Manipulation with Physics Alignment](/202603/30/2603.23376v2-abot-physworld-interactive-world-foundation-model-for-robotic-manipulation-with-physics-alignment)  
+   标签：评分：9.0/10、query:wmodel
+   evidence：基于视频的世界模型，含精选数据集
+2. [World Reasoning Arena](/202603/30/2603.25887v1-world-reasoning-arena)  
+   标签：评分：9.0/10、query:wmodel
+   evidence：评估世界模型能力的综合基准
+3. [Self-Organizing Multi-Agent Systems for Continuous Software Development](/202603/30/2603.25928v1-self-organizing-multi-agent-systems-for-continuous-software-development)  
    标签：评分：9.0/10、query:agent
-   evidence：使用RAG和ReAct框架的领域专用AI智能体
-2. [Dynamic analysis enhances issue resolution](/202603/29/2603.22048v1-dynamic-analysis-enhances-issue-resolution)  
+   evidence：持续软件开发的多智能体框架
+4. [Clawed and Dangerous: Can We Trust Open Agentic Systems?](/202603/30/2603.26221v1-clawed-and-dangerous-can-we-trust-open-agentic-systems)  
    标签：评分：9.0/10、query:agent
-   evidence：用于自动化仓库级调试和代码问题解决的DAIRA智能体
-3. [Dynamic analysis enhances issue resolution](/202603/29/2603.22048v2-dynamic-analysis-enhances-issue-resolution)  
+   evidence：开放智能体系统用于编程助手和浏览器副驾驶
+5. [Ask or Assume? Uncertainty-Aware Clarification-Seeking in Coding Agents](/202603/30/2603.26233v1-ask-or-assume-uncertainty-aware-clarification-seeking-in-coding-agents)  
    标签：评分：9.0/10、query:agent
-   evidence：DAIRA是用于自动化仓库级调试和代码修复的智能体
-4. [From AI Assistant to AI Scientist: Autonomous Discovery of LLM-RL Algorithms with LLM Agents](/202603/29/2603.23951v1-from-ai-assistant-to-ai-scientist-autonomous-discovery-of-llm-rl-algorithms-with-llm-agents)  
+   evidence：代码智能体的多智能体澄清框架
+6. [A Benchmark for Evaluating Repository-Level Code Agents with Intermediate Reasoning on Feature Addition Task](/202603/30/2603.26337v1-a-benchmark-for-evaluating-repository-level-code-agents-with-intermediate-reasoning-on-feature-addition-task)  
    标签：评分：9.0/10、query:agent
-   evidence：LLM智能体自主发现并实现可执行算法代码
-5. [SoK: The Attack Surface of Agentic AI -- Tools, and Autonomy](/202603/29/2603.22928v1-sok-the-attack-surface-of-agentic-ai----tools-and-autonomy)  
-   标签：评分：8.0/10、query:agent
-   evidence：针对具有工具和自主性的智能体AI系统的攻击面全面分类
-6. [ClawKeeper: Comprehensive Safety Protection for OpenClaw Agents Through Skills, Plugins, and Watchers](/202603/29/2603.24414v1-clawkeeper-comprehensive-safety-protection-for-openclaw-agents-through-skills-plugins-and-watchers)  
-   标签：评分：8.0/10、query:agent
-   evidence：OpenClaw自主智能体运行时的安全框架
-7. [DCARL: A Divide-and-Conquer Framework for Autoregressive Long-Trajectory Video Generation](/202603/29/2603.24835v1-dcarl-a-divide-and-conquer-framework-for-autoregressive-long-trajectory-video-generation)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：用于世界建模长轨迹视频生成的自回归框架
+   evidence：专门针对仓库级代码智能体的基准
+7. [Learning to Commit: Generating Organic Pull Requests via Online Repository Memory](/202603/30/2603.26664v1-learning-to-commit-generating-organic-pull-requests-via-online-repository-memory)  
+   标签：评分：9.0/10、query:agent
+   evidence：基于LLM的代码智能体生成有机拉取请求
 
 ### 速读区论文标签
-1. [CTS-PLL: A Robust and Anytime Framework for Collaborative Task Sequencing and Multi-Agent Path Finding](/202603/29/2603.25121v1-cts-pll-a-robust-and-anytime-framework-for-collaborative-task-sequencing-and-multi-agent-path-finding)  
+1. [A Context Engineering Framework for Improving Enterprise AI Agents based on Digital-Twin MDP](/202603/30/2603.22083v1-a-context-engineering-framework-for-improving-enterprise-ai-agents-based-on-digital-twin-mdp)  
    标签：评分：8.0/10、query:agent
-   evidence：多智能体路径规划与任务排序框架
-2. [Vega: Learning to Drive with Natural Language Instructions](/202603/29/2603.25741v1-vega-learning-to-drive-with-natural-language-instructions)  
+   evidence：改进LLM企业智能体的框架
+2. [MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare](/202603/30/2603.24132v1-medaiddialog-a-multilingual-multi-turn-medical-dialogue-dataset-for-accessible-healthcare)  
    标签：评分：8.0/10、query:wmodel
-   evidence：用于自动驾驶的视觉-语言-世界-动作模型及数据集
-3. [Guideline-grounded retrieval-augmented generation for ophthalmic clinical decision support](/202603/29/2603.21925v1-guideline-grounded-retrieval-augmented-generation-for-ophthalmic-clinical-decision-support)  
+   evidence：多语言多轮医疗对话数据集
+3. [Multi-Agent Reasoning with Consistency Verification Improves Uncertainty Calibration in Medical MCQA](/202603/30/2603.24481v1-multi-agent-reasoning-with-consistency-verification-improves-uncertainty-calibration-in-medical-mcqa)  
+   标签：评分：8.0/10、query:agent
+   evidence：多智能体框架，包含专家智能体和验证机制
+4. [Doctorina MedBench: End-to-End Evaluation of Agent-Based Medical AI](/202603/30/2603.25821v1-doctorina-medbench-end-to-end-evaluation-of-agent-based-medical-ai)  
+   标签：评分：8.0/10、query:agent
+   evidence：基于智能体的医疗AI评估框架模拟医患交互
+5. [Closed-Loop Verbal Reinforcement Learning for Task-Level Robotic Planning](/202603/30/2603.22169v1-closed-loop-verbal-reinforcement-learning-for-task-level-robotic-planning)  
    标签：评分：7.0/10、query:agent
-   evidence：带查询分解和检索框架的RAG系统
-4. [GeoTikzBridge: Advancing Multimodal Code Generation for Geometric Perception and Reasoning](/202603/29/2603.22687v1-geotikzbridge-advancing-multimodal-code-generation-for-geometric-perception-and-reasoning)  
+   evidence：VRL框架使用LLM执行器和VLM评估器进行机器人任务规划
+6. [From Questions to Trust Reports: A LLM-IR Framework for the TREC 2025 DRAGUN Track](/202603/30/2603.23125v1-from-questions-to-trust-reports-a-llm-ir-framework-for-the-trec-2025-dragun-track)  
    标签：评分：7.0/10、query:agent
-   evidence：用于几何推理的多模态代码生成框架
-5. [PhotoAgent: A Robotic Photographer with Spatial and Aesthetic Understanding](/202603/29/2603.22796v1-photoagent-a-robotic-photographer-with-spatial-and-aesthetic-understanding)  
+   evidence：基于LLM的信息检索系统，含查询扩展
+7. [SEGAR: Selective Enhancement for Generative Augmented Reality](/202603/30/2603.24541v1-segar-selective-enhancement-for-generative-augmented-reality)  
+   标签：评分：7.0/10、query:wmodel
+   evidence：用于增强现实应用的基于扩散的世界模型框架
+8. [Can LLMs Beat Classical Hyperparameter Optimization Algorithms? A Study on autoresearch](/202603/30/2603.24647v1-can-llms-beat-classical-hyperparameter-optimization-algorithms-a-study-on-autoresearch)  
    标签：评分：7.0/10、query:agent
-   evidence：具有内部世界模型的具身摄影智能体
-6. [Agent Audit: A Security Analysis System for LLM Agent Applications](/202603/29/2603.22853v1-agent-audit-a-security-analysis-system-for-llm-agent-applications)  
-   标签：评分：7.0/10、query:agent
-   evidence：LLM智能体应用的安全分析系统
-7. [Dialogue to Question Generation for Evidence-based Medical Guideline Agent Development](/202603/29/2603.23937v1-dialogue-to-question-generation-for-evidence-based-medical-guideline-agent-development)  
-   标签：评分：7.0/10、query:agent
-   evidence：医学指南智能体开发与问题生成
-8. [GameplayQA: A Benchmarking Framework for Decision-Dense POV-Synced Multi-Video Understanding of 3D Virtual Agents](/202603/29/2603.24329v1-gameplayqa-a-benchmarking-framework-for-decision-dense-pov-synced-multi-video-understanding-of-3d-virtual-agents)  
-   标签：评分：7.0/10、query:agent
-   evidence：3D虚拟智能体的基准评估框架
-9. [AI In Cybersecurity Education -- Scalable Agentic CTF Design Principles and Educational Outcomes](/202603/29/2603.21551v1-ai-in-cybersecurity-education----scalable-agentic-ctf-design-principles-and-educational-outcomes)  
+   evidence：LLM智能体搜索最优超参数配置
+9. [Safety as Computation: Certified Answer Reuse via Capability Closure in Task-Oriented Dialogue](/202603/30/2603.21448v1-safety-as-computation-certified-answer-reuse-via-capability-closure-in-task-oriented-dialogue)  
    标签：评分：6.0/10、query:agent
-   evidence：网络安全CTF竞赛环境中自主智能体框架的研究
-10. [mSFT: Addressing Dataset Mixtures Overfitting Heterogeneously in Multi-task SFT](/202603/29/2603.21606v4-msft-addressing-dataset-mixtures-overfitting-heterogeneously-in-multi-task-sft)  
+   evidence：基于能力的任务导向对话框架
+10. [LLM-Based Test Case Generation in DBMS through Monte Carlo Tree Search](/202603/30/2603.21530v1-llm-based-test-case-generation-in-dbms-through-monte-carlo-tree-search)  
+   标签：评分：6.0/10、query:agent
+   evidence：基于LLM的自动化SQL测试用例生成
+11. [FGIM: a Fast Graph-based Indexes Merging Framework for Approximate Nearest Neighbor Search](/202603/30/2603.21710v1-fgim-a-fast-graph-based-indexes-merging-framework-for-approximate-nearest-neighbor-search)  
+   标签：评分：6.0/10、query:agent
+   evidence：支持RAG和搜索系统的近似最近邻搜索框架
+12. [TrajLoom: Dense Future Trajectory Generation from Video](/202603/30/2603.22606v1-trajloom-dense-future-trajectory-generation-from-video)  
    标签：评分：6.0/10、query:wmodel
-   evidence：用于监督微调的多任务数据集混合优化
-11. [flexvec: SQL Vector Retrieval with Programmatic Embedding Modulation](/202603/29/2603.22587v1-flexvec-sql-vector-retrieval-with-programmatic-embedding-modulation)  
-   标签：评分：6.0/10、query:agent
-   evidence：面向AI智能体的检索内核
-12. [Quality Over Clicks: Intrinsic Quality-Driven Iterative Reinforcement Learning for Cold-Start E-Commerce Query Suggestion](/202603/29/2603.22922v1-quality-over-clicks-intrinsic-quality-driven-iterative-reinforcement-learning-for-cold-start-e-commerce-query-suggestion)  
-   标签：评分：6.0/10、query:agent
-   evidence：用于搜索系统查询建议的强化学习框架
+   evidence：从视频预测未来轨迹的框架
 
 
 <div class="dpr-home-promo-card">

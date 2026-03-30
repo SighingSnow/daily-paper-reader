@@ -1,0 +1,497 @@
+Title: Doctorina MedBench: End-to-End Evaluation of Agent-Based Medical AI
+
+URL Source: https://arxiv.org/pdf/2603.25821v1
+
+Published Time: Mon, 30 Mar 2026 00:07:27 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# Doctorina MedBench: End-to-End Evaluation of Agent-Based Medical AI 
+
+# Anna Kozlova 1, Stanislau Salavei 1, Pavel Satalkin 1, Hanna Plotnitskaya 1, Sergey Parfenyuk 11A.I. Doctor Medical Assist LTD, Cyprus March 2026 
+
+# Abstract 
+
+We present Doctorina MedBench, a comprehensive evaluation framework for agent-based medical AI based on the simulation of realistic physician–patient interactions. Unlike traditional medical benchmarks that rely on solving standardized test questions, the proposed approach models a multi-step clinical dialogue in which either a physician or an AI system must collect medical history, analyze attached materials (including laboratory reports, images, and medical documents), formulate differential diagnoses, and provide personalized recommendations. System performance is evaluated using the D.O.T.S. metric, which consists of four components: Diagnosis, Observations/Investigations, Treatment, and Step Count, enabling assessment of both clinical correctness and dialogue efficiency. The system also incorporates a multi-level testing and quality monitoring architecture designed to detect model degradation during both development and deployment. The framework supports safety-oriented trap cases, category-based random sampling of clinical scenarios, and full regression testing. The dataset currently contains more than 1,000 clinical cases covering over 750 diagnoses. The universality of the evaluation metrics allows the framework to be used not only to assess medical AI systems, but also to evaluate physicians and support the development of clinical reasoning skills. Our results suggest that simulation of clinical dialogue may provide a more realistic assessment of clinical competence compared to traditional examination-style benchmarks. 1
+
+> arXiv:2603.25821v1 [cs.CL] 26 Mar 2026
+
+# 1 Introduction 
+
+The rapid advancement of AI and the mounting deficit of healthcare professionals have led to widespread adoption of AI as a personal health consultant. Despite early skepticism from the medical community, evidence indicates that physicians are increasingly utilizing Large Language Models (LLMs) in their clinical practice. Specifically, in 2024, 66% of doctors reported using AI, marking a 78% increase compared to 2023 [1]. This trajectory is reflected in the burgeoning number of publications evaluating the performance of AI in medical tasks. In recent years, numerous studies have investigated AI both as a tool for solving specific medical tasks and for its ability to substitute for specialist consultations. For example, this includes its application in patient information and education [2], the capacity to handle specific tasks such as personalized medication selection [3], the development of decision-support models [4], or fulfilling the role of a physician for the patient [5, 6]. As a result, the question of assessing the quality of such diagnostics and the stability of models is becoming increasingly relevant. Various performance evaluation systems have been tested; although LLM models have long been able to solve standard medical tests [7], this does not allow for confident extrapolation of such data to real clinical cases [8]. Therefore, early methods for comparing AI in medicine relied on benchmarking against expert opinions, which created certain difficulties. These challenges included the limited productivity of humans who, unlike LLMs, cannot process hundreds of cases in a short period of time, as well as the presence of the human factor, which can lead to incorrect interpretation of AI responses. Consequently, it was concluded that the consensus of multiple specialists is necessary; however, this approach significantly limits throughput. These constraints prompted the development of fundamentally new AI quality assessment systems designed to address the challenge of accurately evaluating AI performance across various medical scenarios. Furthermore, such systems could even facilitate the training of students in clinical reasoning by simulating realistic clinical cases and patient interactions [9, 10, 11]. However, despite the significant human and economic resources invested in the development of such systems, they do not fully address all the challenges encountered in creating an evaluation model for an AI physician. In particular, these approaches only allow for an assessment of the overall performance of an AI physician at a specific point in time. Furthermore, they remain highly resource-intensive, especially during the development of new models and the need for continuous testing of even minor modifications. Given that Doctorina aims to create a fully functional, freely accessible AI physician, there is a need to address three interrelated tasks within a single system. First, determining the overall quality level of the AI physician during its development and subsequent improvement. Second, verifying the stability and performance of the AI physician in real-time. Third, the timely identification and localization of emerging issues, including errors in file processing, user message translation, and the general logic of the system. 22 System Overview 
+
+# 2.1 General Principles of the AI Doctor 
+
+The developed AI physician, Doctorina, is a proactive system designed to perform diagnostic assessment and generate valid recommendations. The system fully replicates the behavior of a real physician during patient interactions and is neither a symptom checker nor an adapted system to answer specific medical questions. The mechanism is capable of not only receiving text messages from patients but also processing various types of attachments—ranging from photographs of body parts to lab results and medical reports—consolidating all information into a single block for subsequent analysis. Accordingly, Doctorina asks questions guided by clinical reasoning based on available information, gradually narrowing down the range of potential diseases with each new patient response. Doctorina’s objective is to collect all clinically relevant patient data, not only to establish a diagnosis but also to provide evidence-based recommendations. This ensures more than just the formulation of a probable diagnosis; it facilitates a multi-stage process of identifying the primary diagnosis and comorbidities through the sequential exclusion of options from the differential diagnosis. Additionally, the system accounts for factors that influence the final recommendations, such as family history. Based on this, the system generates final recommendations that consider all individual characteristics. The final recommendations include an explanation of the patient’s condition, as well as a personalized diagnostic plan to confirm or clarify the diagnosis and subsequent treatment. Furthermore, it provides for condition monitoring with protocols for what to do in case of deterioration, alongside personalized lifestyle advice covering nutrition, physical activity, habits and sleep hygiene. 
+
+# 2.2 Simulation of the AI-Patient 
+
+During the development of a multi-component application such as a generative AI physician, it was found that traditional evaluation methodologies do not provide a comprehensive and accurate analysis of its effectiveness. In contrast to standardized examinations, real-world patients rarely provide all pertinent information to medical professionals spontaneously. Instead, clinicians must actively elicit details, clarify misconceptions, and guide the patient through the history-taking process before formulating a diagnostic hypothesis or recommendations. To address this gap, we developed simulation scenarios that more accurately replicate the dynamics of real-world clinical interactions. Recent benchmark studies have similarly emphasized that realistic assessment of medical LLMs should extend beyond static question answering to interactive task environments and rare off-guideline clinical scenarios, where performance depends on sequential questioning, contextual interpretation, and appropriate use of available evidence [9], [12]. To evaluate the diagnostic and therapeutic efficacy of the system under realistic conditions, we model physician-patient interactions using a structured testing mechanism. The simulation operates as a step-by-step cycle with a defined iteration limit: it begins by adding introductory ”patient” information and optional attachments to the conversation state, after which the AI physician’s responses are repeatedly fed back into the cycle until the dialogue is explicitly marked as complete or the predefined step limit is exhausted. This mechanism allows for control over dialogue length and ensures that completion is determined either by the model itself, when it explicitly reports primary diagnosis, or as a result of a specified timeout. The patient behavior is intentionally designed to approximate real clinical consultations, in which clinically relevant information is often revealed only in response to targeted questioning. This makes the benchmark sensitive not only to final diagnostic accuracy, but also to the completeness and safety of the physician model’s history-taking strategy. The patient’s behavior is intentionally restricted to mimic real clinical consultations. In particular, the simulated patient does not disclose all clinically relevant details spontaneously; instead, the AI physician must obtain them through targeted history-taking. This allows the benchmark to measure not only the correctness of the final diagnosis and recommendations, but also the completeness and safety of the information-gathering process. The virtual patient is realized as a separate LLM agent governed by a dedicated system prompt. Each benchmark case is stored as a structured record. During simulation, the patient agent is conditioned on this case record and the current dialogue history. The agent is explicitly constrained to behave like a real patient. It answers only the question asked, keeps responses concise, does not reveal clinically relevant details unless they are specifically elicited, and does not introduce facts that are absent from the case record. It may paraphrase case facts in natural language, but it is not allowed to expand them with unsupported symptoms, exposures, diagnoses, or test results. If the physician 3asks about information not represented in the case, the patient produces an uncertain or negative reply instead of hallucinating. This architecture preserves the linguistic flexibility of an LLM-driven dialogue while maintaining case-level factual control. Consequently, performance depends on the physician model’s history-taking strategy rather than on accidental over-disclosure by the simulated patient. 
+
+Figure 1: AI Doctor evaluation workflow The orchestration of each turn is performed by a dialogue module (DoctorModel), which routes messages between the system’s functional agents. The system logs every step, preserving attachments, tracking completion flags, and recording model inputs and outputs for subsequent analysis. Upon completion of a simulated dialogue, the testing mechanism performs a multidimensional evaluation. Four asynchronous tasks evaluate the dialogue’s completeness, the quality of recommended treatment and history-taking, and the correctness of prescribed tests and examinations in parallel. The results are structured into an evaluation record in the DOTS format (Diagnosis, Observations / Investigations, Treatment, Step count), which can be used to determine ”pass/fail” status for ”trap” cases and for analyzing regression statistics. Test cases and evaluation logic are housed in a separate module, ensuring that experimental checks cannot influence real patient interactions. This separation also facilitates safe parallelization and rapid re-runs within continuous integration or real-time monitoring frameworks. Future improvements may include explicit modeling of, for example, emergency and routine consultations. Additionally, stricter step limits for high-complexity scenarios and expanded use of attachments with structured data are planned to stress-test the system’s ability to extract and correctly utilize information. Furthermore, the system is flexible, allowing for the simulation of not only the physician-patient dialogue but also the definition of the patient’s behavioral style. Thus, the simulated patient can not only provide answers to questions but also provide them with excessive information, insist on specific diagnoses or deny their possibility, and ask clarifying questions. This is frequently encountered in real-world medical practice when a patient attempts to convince a doctor of something. As a result, AI patient can mimic behavior not only within a predefined ”medical case” but also correspond to various behavioral archetypes of real people. After receiving final recommendations, a scenario is possible where the patient initiates communication to clarify information or report ”forgotten” facts, necessitating adjustments to previously issued prescriptions. 43 Evaluation Framework 
+
+# 3.1 Core Metrics (D.O.T.S.) 
+
+• Diagnosis (D) — accuracy and completeness of the diagnostic solution. 
+
+• Observations / Investigations (O) — validity of recommendations for conducting surveys. 
+
+• Treatment (T) — safety, adequacy and therapeutic logic. 
+
+• Step Count (S) — the number of steps in the dialogue required to make a diagnosis and prescribe treatment. 
+
+• Pass thresholds defined for each level (e.g. no critical errors, stage deviations ≤ 20%). 
+
+Figure 2: D.O.T.S. The primary metric for evaluating the performance of the AI physician model is the assessment of outcomes from a simulated dialogue between a virtual AI patient and an AI physician. The AI patient is provided with baseline data (an introductory prompt) that initiates the interaction, along with a repository of responses to potential inquiries within the simulated scenario covering secondary symptoms, medical history (anamnesis), family history, diagnostic test results, allergies, and current medications. The process culminates in the establishment of a diagnosis by the AI physician and the provision of primary clinical recommendations. The AI patient is trained to respond exclusively to the specific questions posed, without volunteering unsolicited information, which closely mirrors real-world clinical practice. This includes providing data from laboratory and other diagnostic methods, both at the onset of the interaction and during its course upon the physician’s request. Additionally, the AI patient can pose clarifying questions to the physician, such as requesting the explanation of complex medical terminology. Following the formulation of the diagnosis and recommendations, key performance indicators (KPIs) are evaluated—specifically: Diagnosis (D), Observations/Investigations (O), Treatment (T), and Step Count (S)—and compared against the gold standard benchmarks for the given clinical situation. The Diagnosis (D) indicator comprises two independent metrics: the primary diagnosis itself (the chief complaint or reason for the virtual patient’s visit) in its textual form, and the corresponding ICD-10 code. The use of ICD-10 provides a standardized international framework for representing diagnoses and facilitates comparison across cases. Accurate mapping between standardized medical codes and clinical concepts constitutes an important and separate dimension of medical LLM evaluation [13]. The application of two or more codes for a single clinical scenario is permissible. The inclusion of the second metric (ICD-10) accounts for the fact that professional medical literature often employs diverse terminology to describe the same pathology; for instance, ”pelvic prolapse,” ”pelvic organ prolapse,” and ”cystocele” may describe the identical clinical situation and correspond to the same ICD-10 code. The system is verified against both the textual description and the ICD-10 code; a result is deemed unsatisfactory only if both indicators fail to match simultaneously. Partial discrepancies may be attributed to either synonymy in diagnostic terminology or the availability of multiple valid ICD-10 codes for primary medical encounters 5(e.g., cases involving non-specific symptoms where diagnostic etiology is being clarified alongside the initiation of treatment). Furthermore, the differential diagnosis list for each clinical scenario is evaluated case-by-case, specifically measuring the diagnostic accuracy of the Top-3 and Top-5. Observations / Investigations (O) — This module evaluates the adherence of the model’s diagnostic recom-mendations to established clinical protocols. Beyond baseline scenarios, complex medical cases may include data that require adjustments to the diagnostic plan, such as partially completed tests or incidental abnormal findings unrelated to the primary complaint but requiring further investigation. An example of the latter would be an abnormal cervical cytology result in a patient with a gastrointestinal disorder. This indicator provides an integral assessment of diagnostic precision and is composed of three logically distinct components: mandatory tests (should be recommended), optional or permissible tests (can be recommended), and a penalty system for redundant or irrelevant orders (unexpected penalty). This structure reflects clinical reality, where investigations are categorized as essential for diagnosis and patient safety, elective yet justified, or, conversely, unjustified and excessive. The first group (mandatory investigations) forms the core of the evaluation. Each element is assigned a weight reflecting its diagnostic significance. The model receives points only for investigations explicitly mentioned in its recommendations. Omitting a mandatory test results in the automatic loss of its corresponding weight from the maximum possible score, thereby objectively documenting any incompleteness in the diagnostic search. The second group (optional investigations) includes tests that may be appropriate in certain clinical contexts but are not strictly required. These elements are assigned a weight of zero. Consequently, their presence does not improve the final score, nor does it diminish it, allowing the model to exhibit clinical variability without risk of penalty. The third component (unexpected penalty system) is triggered when the model recommends investigations that are neither mandatory nor optional. Each such entry reduces the final score by a fixed amount, reflecting the real-world clinical issue of over-testing, which leads to increased healthcare costs, patient burden, and potential procedural risks. The final output is a percentage score (0–100%) representing the accuracy of the diagnostic recommendations for a specific case. The Treatment (T) block is analyzed using similar principles, with the addition of a Critical Condition override. These are predefined criteria which, if triggered, result in the case automatically receiving a score of zero and a special flag. These conditions identify ”gross medical errors” and are used to monitor for severe violations, the occurrence of which is modeled artificially. For instance, recommending Amoxicillin to a patient with a documented penicillin allergy would trigger this override. The purpose of this indicator is to ensure rigorous control over high-stakes clinical errors, moving beyond simple monitoring of over- or under-prescription. Step Count (S) represents the number of inquiries initiated by the AI physician before reaching a final diagnosis and providing recommendations. This metric does not assess the completeness of the clinical interview (captured by the indicators described above), but rather serves as a behavioral audit of the model. Large variations in the number of steps may indicate redundant questioning, excessive detail, or improper grouping of clinical inquiries. A deviation exceeding 25% from the gold standard benchmark, either within a single case or across identical scenarios is considered a red flag suggesting potential inconsistencies in the model’s diagnostic reasoning process. Formally, the step count is defined as 
+
+𝑆 = min (𝐷, 𝑃 ), (1) where 𝐷 denotes the number of AI physician messages (assistant), and 𝑃 denotes the number of patient messages (user) excluding the initial case description. Thus, 𝑆 corresponds to the number of complete physician–patient question–answer exchanges in the dialogue. 
+
+# 3.2 Evaluator Implementation 
+
+Following the completion of each simulated dialogue, the benchmark utilizes an asynchronous evaluation pipeline comprising four parallel assessment modules: (1) dialogue-level clinical evaluation, (2) history-taking assessment, (3) treatment-condition verification, and (4) diagnostic-workup checking. These components collectively quantify performance across multiple dimensions, including Diagnosis, Differential, and ICD-10 Accuracy, as well as Treatment Proficiency, Question Coverage, and safety-critical pass conditions. The final aggregation of metrics is executed through a deterministic, case-based framework. The evaluation engine employs a structured ”LLM-as-a-Judge” architecture. To ensure objectivity, the system avoids free-form assessment in favor of a schema-validated extraction process. Clinical entities—including primary and differential diagnoses, recommended investigations, and therapeutic interventions—are identified through constrained LLM calls using Pydantic-based response formats. Furthermore, ICD-10 codes are normalized from structured medical data and evaluated using algorithmic code-level matching rules. These extracted outputs are subsequently processed by deterministic scoring functions that implement weighted diagnostic metrics, mandatory inquiry coverage, and safety-critical overrides. 6To mitigate evaluator hallucinations and ensure auditability, the pipeline mandates explicit evidence extraction, requiring the inclusion of direct dialogue quotations or a ”no evidence” label where information is absent. The extraction scope is strictly confined to final recommendations to avoid confounding with intermediate reasoning. By converting natural language inputs into schema-constrained structured data prior to scoring, this hybrid design balances the linguistic flexibility of LLMs with the reproducibility and rigor required for standardized medical benchmarking. 74 Multi-Level Testing Protocol and Continuous Monitoring 
+
+Continuous Quality Assurance is critical for maintaining the safety and diagnostic reliability of a generative AI doctor system. To this end, we have implemented a real-time monitoring layer that operates continuously and in parallel with the production environment. This layer is designed to rapidly identify performance degradations, often within minutes, while remaining completely isolated from patient interactions. This layer is intended for the early detection of performance degradation, which can arise in the Doctorina archi-tecture for several reasons. First, updates to base models or agent routing can alter dialogue behavior, affecting the thoroughness of history taking and the correctness of clinical reasoning. Second, changes in input data—including new laboratory report formats, image quality, or user language variability—can reduce the accuracy of extracting clinically significant information from attachments. Third, degradation may manifest as logic regression in differ-ential diagnosis or in the formulation of recommendations, as reflected in DOTS metrics (Diagnosis, Observations, Treatment, Steps). Finally, infrastructure factors (service latency, module routing errors, computational resource overloads) can disrupt the dialogue cycle sequence and impact the successful completion of clinical scenarios. These cases are executed at a fixed but adaptive frequency—typically daily—with dynamic rescheduling for high-priority ”trap cases” or recently failed tests. This strategy ensures system sensitivity to sudden degradations while minimizing computational costs. Probes are performed across all active model versions, regions, and languages, providing immediate and comparable performance snapshots. Each run generates a structured set of metrics, including diagnostic accuracy, the appropriateness of recom-mended examinations, the adequacy and safety of treatment, and the efficiency of dialogue steps. Additional metrics track hallucinations, source-grounding errors, attachment parsing quality, routing stability, and translation robust-ness. These results are automatically aggregated and stratified by clinical category, language, and demographic context, enabling the early detection of performance drift within specific categories [14]. A key element of the system is the hierarchical escalation mechanism (Fig. 3). If a trap case fails, particularly in high-risk safety scenarios, the monitoring layer initiates a full Level 3 regression run using the entire case bank. If these comprehensive tests confirm reproducible degradation, the system automatically notifies clinical and engineering teams and blocks the promotion of the affected model version until fixes and re-validation are complete. This cascading architecture ensures that transient fluctuations do not trigger unnecessary shutdowns, while confirmed failures receive immediate attention. 
+
+Figure 3: Real-time Monitoring System Architecture. Short clinical ”trap” test scenarios are executed in parallel with the production system and evaluated using DOTS metrics. Upon detection of anomalies, a comprehensive regression run is triggered. If performance degradation is confirmed, the system automatically dispatches notifica-tions, blocks model promotion, and initiates remediation processes before returning the model to the monitoring cycle. Anomaly detection operates on both short-term (sliding one-hour window) and longer twenty-four-hour inter-vals, comparing metrics against a seven-day median baseline. This approach enables the identification of statistically significant regressions rather than random outliers. Repeated probe executions are used to assess variance and confirm instability before escalation, thereby enhancing the reliability of the monitoring circuit. All monitoring activities are conducted in an isolated evaluation environment, strictly separated from production data streams to guarantee confidentiality and eliminate any impact on the user experience. System outputs are visualized in a live dashboard displaying pass rates, severity-weighted safety indices, step efficiency trends, and category-based heatmaps. Researchers can examine case transcripts, evaluator justifications, and model traces to accelerate root cause analysis. Weekly reports summarize these results, highlighting regressions, Mean Time to Detection (MTTD), and remaining coverage gaps. This real-time quality monitoring layer serves as both an early warning system and a gatekeeping mechanism. By continuously executing a subset of Level 1 trap cases, transmitting near-real-time signals to Level 2 trend monitoring, and automatically triggering Level 3 full regression tests upon confirmed anomalies, the system provides a closed-loop feedback mechanism that maintains diagnostic safety as the model evolves. A detailed overview of the three-tier evaluation system is provided in the next section. Originally developed to evaluate the performance of the AI doctor, the system was expanded to meet the need 8for assessing refinements, tracking improvements, and monitoring overall development. To this end, we proposed a comprehensive testing approach. This approach includes real-time performance evaluation with rapid failure response capabilities, as well as a multi-layered assessment of overall system effectiveness. Furthermore, the evaluation system can be adapted for the training and assessment of medical students and physicians, specifically to support the development of clinical reasoning and history-taking skills. 
+
+# 4.1 Real-Time Quality Monitoring 
+
+As the name implies, these real-time tests are conducted during active system operation to identify potential errors or anomalous behavior. Their methodology is based on pre-defined scenarios designed to elicit predictable system responses. This enables instantaneous assessment of model behavior and the immediate detection of failure points without requiring the completion of a full evaluation cycle. For instance, testing an image processing module might involve a scenario featuring a child with an infection lacking ”red flags,” contrasted with a photograph showing a rash characteristic of meningococcal disease. If the image is evaluated correctly, the system should immediately identify the life-threatening condition without further inquiry; consequently, any additional questioning by the system is classified as an error. A second example involves a highly detailed initial patient narrative that provides comprehensive data but omits two critical pieces of information essential to the clinical context. Evaluation focuses on the system’s next two sequential queries; if these align precisely with the missing data, the system is deemed to have correctly prioritized its clinical inquiry. In essence, this testing framework facilitates real-time operational monitoring while enabling the immediate localization of malfunctioning components. The second module of the system is designed to evaluate the model’s performance within the framework of clinical decision-making logic, requiring a comprehensive assessment of all variables. Given the two primary dilemmas inherent in the process, the evaluation must be efficient, accurate, and resource-conservative. Based on these criteria, a three-tiered evaluation system is proposed. 
+
+# 4.2 Level 1 – Trap-Based Testing 
+
+The first level comprises a limited set of benchmarks designed to elicit errors in both human clinicians and AI models. These scenarios include complex clinical cases as well as ”intentional misleading” situations, where a patient might directly deny a potential condition or provide conflicting information rooted in genuine misconceptions. For example, a patient may deny the possibility of pregnancy due to a history of infertility or prior surgical interventions, while simultaneously describing classic symptoms of the condition. Such cases should not distract the clinician from the diagnosis or lead to its premature dismissal without rigorous clinical reasoning. Essentially, level-one benchmarks are a curated selection of ”must-pass” tests required for system deployment. These tests span all modules of the AI physician, providing a comprehensive assessment of its operational accuracy. 
+
+# 4.3 Level 2 – Category-Based Random Sampling 
+
+Given that modern evaluation datasets comprise thousands of cases, their concurrent execution not only inflates development costs but also significantly bottlenecks the development workflow, as engineers must wait for the full evaluation cycle to conclude. Our proposed alternative involves selecting a fixed number of cases from each category at random, with the mandatory inclusion of cases that scored below 70% in prior testing at this level. This approach facilitates rapid feedback for the technical team while minimizing expenditures. The implementation of a specialized dashboard enables the tracking of metric dynamics (D.O.T.S.) across recurring cases, simplifying visual interpretation and optimizing developer time. Upon achieving satisfactory results at Level 2, the evaluation progresses to the complete dataset. 
+
+# 4.4 Level 3 – Full Regression Testing 
+
+Meta-evaluation of the Assessment Framework (Error Testing): Since the reliability of results depends heavily on the integrity of the scoring system, we incorporate tests containing intentional errors. For example, a scenario might list certain medications as ”necessary” when half of them are actually contraindicated in that specific clinical context. Consequently, a correctly performed evaluation of such a case should result in D.O.T.S. metrics decreasing by a predetermined value. Any deviation from these expected lower scores—including the attainment of high scores—indicates a malfunction within the evaluation system itself. 95 Case Design and Dataset Management 
+
+# 5.1 Source and Maintenance of Cases 
+
+The current dataset was developed by a group of physicians utilizing their expert knowledge and consultation logs from individuals who engaged with the Doctorina platform during its prototype testing phase, with their informed consent. Each case underwent validation by at least two physicians, who assessed the clinical realism of the scenarios, the accuracy of the primary and differential diagnoses, and the validity of the diagnostic and treatment recommen-dations. Particular emphasis was placed on assigning ”weights” to recommendations within each case. In this context, weighting refers to the contribution of a specific recommendation to the overall score on a scale of 0 to 100. For instance, the prescription of a specific medication (e.g., levofloxacin) might contribute up to 80% of the score in one clinical scenario, whereas it may account for only 20% in another. The dataset comprises over 1,000 clinical cases that cover more than 750 unique diagnoses. The gender distribution among cases with specified sex is nearly balanced, with 51.28% females and 48.72% males. Based on broad clinical categories, the distribution is as follows: internal medicine (50.53%), obstetrics and gynecology (16.70%), pediatrics (16.25%), and surgery (16.52%). Consequently, more than half of the database consists of internal medicine cases, alongside significant proportions of gynecological and pediatric cases. 
+
+Figure 4: Distribution of cases by clinical category The age distribution (among the cases with known age) shows a marked predominance of the adult population: the 40–59 age group represents 31.78% and the 26–39 group for 29.14%, together forming the core of the sample. Pediatric patients (under 18 years of age) collectively represent 24.67% of the total, with infants (0–1 year) representing the most significant sub-group at 10.05%. 10 Figure 5: Distribution of cases by age group. The construction of the dataset and the balancing of categories were modeled after the official structure of the USMLE Step 2 CK exam. Work on expanding the dataset continues on an ongoing basis, while maintaining the specified balance between clinical disciplines. 
+
+# 5.2 Treatment Evaluation Logic. Categorization of tests. 
+
+Each test has two levels of categorization. 
+
+5.2.1 Level 1 – ”Category” Conditions 
+
+Each base test is assigned a single category, which is inherited by all subsequent versions. This categorization determines the ’weight’ of each medical discipline during the testing process. Changes identified during tests are monitored to evaluate prompt versions, ensuring that there is no degradation in performance quality across specific disciplines. The total test count is determined exclusively by the category. 
+
+The number of categories is fixed: Internal medicine, Pediatrics, Surgery, Oncology, Obstetrics and Gyne-cology, Psychiatry, Emergency Medicine, Error Tests. 
+
+5.2.2 Level 2 – ”Scope” Conditions 
+
+A single clinical case can encompass multiple variations, including those assigned to different categories. These variations may differ between the baseline test and subsequent modifications, as new versions may be added and original ones removed. The only exception is the ’Technical’ category; only one such scope can exist within a single test. Tests are initiated at the Scope level, and execution by ’Category’ is also supported. However, tests in the ’Technical’ category are never executed under any circumstances. 
+
+Examples of categories: 
+
+• Category “Internal Medicine” Tags: Cardiology, Pulmonology, Gastroenterology, Endocrinology. 
+
+• Category “Surgery” Tags: Purulent Surgery, Thoracic Surgery, Gastrointestinal Surgery. 
+
+• Category “Error tests” Tags: ”Error diagnosis”, ”Error 50” et al. 
+
+Examples of attached files: 
+
+• Laboratory tests. 
+
+• Medical reports / discharge summaries. 11 • Patient diaries. 
+
+• Device photos. 
+
+• Body photos. 
+
+Age tags are selected according to the patient’s age. 
+
+Question difficulty level tags: A) Basic Level 
+
+Key focus: solitary, uncomplicated pathology without concomitant diseases. 
+
+Characteristics: 
+
+• One diagnosis (eg, uncomplicated cystitis, viral pharyngitis) 
+
+• Typical symptoms with a clear clinical picture 
+
+• Minimum amount of laboratory data 
+
+• A simple and straightforward logical chain: “complaint → diagnosis → treatment” 
+
+Skills: recognition of typical clinical patterns, basic differential diagnosis. 
+
+B) Intermediate Level 
+
+Key focus: ambiguous clinical picture or the presence of mild concomitant pathology. 
+
+Characteristics: 
+
+• One primary disease and one secondary condition (e.g., diabetes mellitus + urinary tract infection) 
+
+• Overlapping symptoms requiring interpretation of laboratory data 
+
+• Possible non-obvious causes (for example, anemia in a woman with menorrhagia) 
+
+Skills: integration of data from multiple sources, hypothesis formation, decision making under conditions of incomplete information. 
+
+C) Advanced Level 
+
+Key focus: multiple concomitant diseases or complicated course of the disease. Characteristics: 
+
+• Two or three chronic medical conditions that affect the current condition (e.g., chronic heart failure, chronic kidney disease, and pneumonia) 
+
+• Unobvious drug interactions and contraindications 
+
+• The need to consider pathophysiological relationships and limitations of therapy 
+
+• Possible laboratory abnormalities requiring interpretation 
+
+Skills: clinical thinking, problem prioritization, balancing therapeutic decisions. 
+
+D) Expert / Complex Reasoning Level 
+
+Key focus: diagnostic uncertainty, rare or atypical clinical manifestations. 
+
+Characteristics: 
+
+• Involvement of multiple body systems (e.g., systemic autoimmune diseases) 
+
+• Conflicting data or atypical course of the disease 
+
+• The need to exclude several differential diagnoses 
+
+• Possible presence of rare conditions, syndromes, or secondary complications (e.g., LADA, paraneo-plastic syndrome) 
+
+Skills: analytical thinking, constructing a diagnostic tree, forming an examination plan, probabilistic thinking. This level is intended to capture forms of reasoning that are especially relevant in benchmark settings focused on expert-level medical understanding, diagnostic uncertainty, and rare off-guideline cases [12, 15] . 12 A key principle in the construction of the dataset was the distribution of cases across both broad clinical categories (such as internal medicine, surgery, and obstetrics and gynecology) and specific medical disciplines. Particular emphasis was placed on maintaining a balanced representation of patient demographics (sex and age) and varying levels of clinical scenario complexity. We aim to maintain a distribution structure comparable to the United States Medical Licensing Examination (USMLE); the current dataset reflects the following proportions across clinical disciplines. Furthermore, emergency medicine was designated as a distinct category to facilitate the independent testing of scenarios requiring rapid clinical decision-making by the model. 
+
+• Medicine — 50–60% of all questions 
+
+• Surgery — 25–30% 
+
+• Pediatrics — 20–25% 
+
+• Obstetrics & Gynecology — 10–20% 
+
+• Psychiatry — 10–15% Furthermore, case distribution accounted for the balance across organ systems, as reflected in the official structure of the USMLE Step 2 CK examination. Within the exam, questions are distributed as follows: 
+
+• Cardiovascular system — 8–10% 
+
+• Gastrointestinal system — 7–9% 
+
+• Respiratory system — 7–9% 
+
+• Musculoskeletal system / Skin & subcutaneous tissue — 6–10% 
+
+• Behavioral health — 6–8% 
+
+• Nervous system & special senses — 6–8% 
+
+• Blood & lymphoreticular system — 4–6% 
+
+• Endocrine system — 4–6% 
+
+• Female reproductive system & breast — 4–6% 
+
+• Multisystem processes & disorders — 4–6% 
+
+• Pregnancy, childbirth & puerperium — 4–6% 
+
+• Renal & urinary system & male reproductive system — 4–6% 
+
+• Immune system — 3–5% 13 6 Evaluation Results, Visualization, and Trend Monitoring 
+
+# 6.1 Aggregated Scoring and Trend Analysis 
+
+The aggregated results are presented as the mean metric values across all processed cases. This approach enables the assessment of the impact of various medical specialties within a single comprehensive test, monitors model bias toward specific medical fields, and facilitates the development of a balanced ”universal doctor” model. The first step involves collecting metrics for each individual case. This is followed by a summary analysis of all indicators across all cases within a single testing iteration (the number of cases is specified at the start). Subsequently, a category-specific analysis is conducted to provide detailed insights. Average Accuracies — the mean value of each metric across all processed cases (without categorization). Category Accuracies — the mean value across cases within each category. Category Balanced Accuracies — the average across categories, where each category is weighted equally (treated as ”one vote”). 
+
+Average Accuracies: 
+
+• Diagnosis Accuracy: 83.64% 
+
+• Differential Accuracy: 72.42% 
+
+• Treatment Accuracy: 70.60% 
+
+• Diagnostic Accuracy: 82.84% 
+
+• Critical Conditions Passed: 100.00% 
+
+• Conversation Completion Rate: 100.00% 
+
+Interaction Statistics: 
+
+• Total steps (doctor/patient pairs): 341 
+
+• Average steps per case: 10.33 
+
+• Cases outside ±25% soft step limit: 22 
+
+Category-Balanced Accuracies: 
+
+• Diagnosis Accuracy: 84.06% 
+
+• Differential Accuracy: 75.26% 
+
+• Treatment Accuracy: 70.36% 
+
+• Diagnostic Accuracy: 80.84% 
+
+• Critical Conditions Passed: 100.00% 
+
+• Conversation Completion Rate: 100.00% 
+
+Category Accuracies: 
+
+Category “Internal Medicine”: 
+
+• Diagnosis Accuracy: 80.55% 
+
+• Differential Accuracy: 71.82% 
+
+• Treatment Accuracy: 75.60% 
+
+• Diagnostic Accuracy: 79.54% 
+
+• Critical Conditions Passed: 100.00% 
+
+• Conversation Completion Rate: 100.00% 
+
+Category “Obstetrics and Gynecology”: 
+
+• Diagnosis Accuracy: 86.82% 14 • Differential Accuracy: 73.73% 
+
+• Treatment Accuracy: 69.55% 
+
+• Diagnostic Accuracy: 82.05% 
+
+• Critical Conditions Passed: 100.00% 
+
+• Conversation Completion Rate: 100.00% 
+
+# 6.2 Visualization System 
+
+The primary analytical tools of the system are metrics that provide a projection of the model’s state. Medical test cases are employed for performance evaluation and analytics, with the ”Treatments” category used to demonstrate the system’s operation. The comparison can be conducted either between two prototypes representing the previous and the current versions, or between a prototype and the baseline version of the selected LLM. For visualization, we rely on distribution plots—specifically, histograms. Each histogram represents a system quality profile, where each metric is interpreted not in isolation but in the context of related indicators. For example, high diagnostic accuracy accompanied by an increase in the number of dialogue steps may indicate system degradation, despite formally maintaining the correctness of the results. Quality assessment is monitored through the analysis and comparison of individual groups of medical tests and aggregate analytics across existing categories. 
+
+Figure 6: Distribution of Medical Test Case Run Results The histogram presented in Figure 6 reflects the results of various execution runs of medical test cases. The system allows for evaluation over specific time ranges, enabling the generation of corresponding graphs to analyze testing efficiency dynamically—for instance, in the context of new feature development. Each test case includes a unique ID (a unique identifier) and a Category (e.g., internal medicine, surgery, pediatrics, etc.). Additionally, there is a Tags section specifying characteristics such as family medicine, gender (female, male), age groups (e.g., adults 26–39), and query types (test diagnosis, test treatment, etc.). Furthermore, cases contain Diagnosis information structured according to the international ICD-10 classification. A separate Differential block represents the differential diagnosis, providing a list of alternative clinical hypotheses. The test case also defines: 
+
+Conversational steps: The optimal number of steps required to reach final recommendations. 
+
+Intro: The introductory part of the case. 
+
+Additional answers: Potentially valid model responses. 
+
+Control questions: A list of questions to be asked of the patient. 
+
+Name: The title of the test case. 
+
+Diagnostic workup: A plan for examinations and laboratory tests. 
+
+Attachments: Presence of files, images, or documents. 
+
+Complex test cases: A set of advanced/complicated options. 
+
+Default treatments: The baseline prescriptions and treatment plan for the case. Leveraging an extensive suite of test cases, the system facilitates large-scale evaluation cycles and enables the derivation of robust conclusions from categorical subsets (e.g., ”Treatments”). This study presents a comparative 15 performance analysis between the GPT-5 baseline and the specialized AI Doctor system. Such benchmarking is a critical component of our evaluation framework, as it provides a rigorous assessment of whether domain-specific systems offer quantifiable advantages over general-purpose models. To establish a rigorous baseline, GPT-5 was deployed in a restricted configuration, utilizing a concise, single-sentence system prompt: ”Imagine that you are a doctor. Make a diagnosis or diagnoses”. This setup intentionally excluded clinical heuristics, structured history-taking protocols, and agentic orchestration. This design allows for the clear isolation of the foundation model’s inherent capabilities from the domain-specific enhancements introduced by the Doctorina framework. While a more sophisticated baseline prompt might yield higher absolute performance, it would introduce confounding variables by conflating the model’s raw reasoning with the effects of prompt engineering and workflow optimization. This methodology allows for the precise identification of both performance gains and potential regressions, while establishing an empirical basis for evaluating the consistency of specialized models across diverse domains. Furthermore, it supports granular analysis of diagnostic accuracy and ensures the statistical stability of the results. Moreover, this methodological framework is extensible to comparative studies within various agentic architectures. Below, we examine the metrics underlying the evaluation system across various parameters. In this comparative experiment, ICD-10 Accuracy was not used in the cross-model analysis. The GPT-5 baseline configuration did not produce the full structured medical-card output required by the evaluator for ICD-10 extraction. Therefore, ICD-10 was marked as not evaluated for GPT-5 and excluded from comparative interpretation in this experiment. 
+
+Table 1: Comparison of key quality metrics of GPT-5 (basic version) and AI Doctor The following section details the calculation of each individual metric QuestionAccuracy = |{ 𝑞 ∈ questions asked | 𝑞. asked = True }| |questions asked | × 100 Question Accuracy — the proportion of mandatory questions that the assistant actually asked. Question Accuracy = (number of questions asked during history taking where asked=True) / (total questions) × 100. DiagnosisAccuracy =
+
+(
+
+100 , ∃ 𝑑 ∈ diagnoses results : 𝑑. correct = True 0, otherwise Diagnosis Accuracy — a binary metric indicating whether the assistant provided at least one correct final diagnosis. Diagnosis Accuracy = 100 if at least one diagnoses results entry is correct=True, otherwise 0. ICD10Accuracy = min 
+
+
+
+100 , |{ 𝑖 ∈ icd10 results | 𝑖. correct = True }| |icd10 results | × 100 
+
+
+
+ICD-10 Accuracy — evaluates the correctness of ICD-10 code assignment (at least one correct code yields a score of 100%). ICD-10 Accuracy = (number of icd10 results with correct=True / total number of ICD-10 codes) 
+
+× 100; if the result is greater than 0, it is set to 100. In the present comparative experiment, this metric was not used for GPT-5 vs AI Doctor interpretation. 16 DifferentialAccuracy = |{ 𝑑 ∈ differential results | 𝑑. correct = True }| |differential results | × 100 Differential Accuracy — the proportion of correct differential diagnoses among the expected ones. Differential Accuracy = (number of differential results with correct=True / total count) × 100. TreatmentAccuracy = 𝑁 matching 
+
+𝑁 matching + 𝑁 extra + 𝑁 missing + 𝑁 different 
+
+× 100 Treatment Accuracy — the degree to which the proposed treatment aligns with the gold standard, accounting for matching, extra, missing, and incorrect prescriptions. Treatment Accuracy = (number of matching treatments / (matching + extra + missing + different)) × 100. Diagnostic Accuracy — a weighted score for diagnostic recommendations, ranging from 0 to 100. Per run: CriticalPassed run =
+
+(
+
+100 , ∀ 𝑐 ∈ critical conditions : 𝑐. result ∈ { OK , NOT APPLICABLE }
+
+0, otherwise Per case: CriticalPassed case = 1
+
+𝑅 
+
+> 𝑅
+
+∑︁ 
+
+> 𝑟 =1
+
+CriticalPassed (𝑟 )
+
+> run
+
+Per batch: CriticalPassed batch = 1
+
+𝐶 
+
+> 𝐶
+
+∑︁ 
+
+> 𝑘 =1
+
+CriticalPassed (𝑘 )
+
+> case
+
+Critical Conditions Passed — an indicator reflecting whether all critical conditions of the treatment block have been met (status OK or NOT APPLICABLE). Critical Conditions Passed (per run) = 100 if all critical treatment conditions have a status of OK or NOT APPLICABLE; otherwise, 0. The resulting value is first averaged across the case, and then across the batch. Per run: ConversationComplete run =
+
+(
+
+100 , is conversation complete = True 0, otherwise Aggregation: ConversationComplete batch = 1
+
+𝐶 
+
+> 𝐶
+
+∑︁ 
+
+> 𝑘 =1
+
+1
+
+𝑅 
+
+> 𝑅
+
+∑︁ 
+
+> 𝑟 =1
+
+ConversationComplete (𝑘,𝑟 )
+
+> run
+
+!
+
+Tests with conversation complete — the percentage of runs where the dialogue is marked as finished (is conversation complete). Tests with conversation complete = 100 if is conversation complete is True, otherwise 0. The value is averaged across the runs of a specific case, and then across all cases. The patient’s initial message is excluded from this calculation TotalSteps =
+
+> 𝐶
+
+∑︁ 
+
+> 𝑘 =1
+> 𝑅
+
+∑︁ 
+
+> 𝑟 =1
+
+min 
+
+
+
+𝑁 (𝑘,𝑟 )
+
+> assistant
+
+, 𝑁 (𝑘,𝑟 )
+
+> user
+
+
+
+Total steps — the total number of doctor-patient dialogue turn pairs (the initial patient message is excluded). Total steps (doctor-patient pairs) = the sum of steps total across all cases. Steps per run are calculated as min (number of assistant messages , number of user messages ), excluding the initial patient introduction. AverageSteps = TotalSteps max (1, 𝐶 · 𝑅 )
+
+Average steps — the average number of such turn pairs per run. Average steps (doctor-patient pairs) = total steps / max(1, number of cases × num runs). OutsideSteps = 𝑘 ¯𝑠 𝑘 ∉ 0.75 · 𝑠 limit  
+
+> 𝑘
+
+, 1.25 · 𝑠 limit 
+
+> 𝑘
+
+
+
+17 Where: ¯𝑠 𝑘 = 1
+
+𝑅 
+
+> 𝑅
+
+∑︁ 
+
+> 𝑟 =1
+
+𝑠 𝑘,𝑟 
+
+Cases outside ±25% of steps soft limit — the number of cases where the average number of steps falls outside the range of 0.75 to 1.25 times the expected num steps. Cases outside ±25% of steps soft limit (num steps) = the count of cases where the average steps per run fall outside the interval [0.75 × case.num steps, 1.25 × case.num steps]. 
+
+6.2.1 Diagnosis Accuracy. ICD-10. Differential Accuracy. Diagnostic Accuracy. 
+
+Figure 7: Comparison of key quality metrics of GPT-5 (basic version) and AI Doctor - Part 1 The comparative analysis of diagnostic metrics revealed that AI Doctor outperformed the GPT-5 baseline in several key areas. Specifically, AI Doctor attained a Diagnosis Accuracy of 89.3%, surpassing the 84.6% achieved by GPT-5. Furthermore, AI Doctor demonstrated superior Differential Accuracy (45.4% vs. 24.0%) and a substantially higher Question Accuracy (61.4% vs. 30.3%), indicating more comprehensive diagnostic inquiry and broader differential coverage. Regarding clinical interventions, AI Doctor exhibited higher Treatment Accuracy at 53.0%, compared to 38.0% for the baseline, reflecting closer alignment with established gold-standard protocols. Conversely, the weighted Diagnostic Accuracy score, which incorporates recommendation penalties, was higher for the GPT-5 baseline (33.5%) than for AI Doctor (22.2%), suggesting that GPT-5’s specific recommendations incurred fewer penalties within the weighted scoring system. Other metrics also remained high across both models. The Critical Conditions Passed rate demonstrated near-parity, with GPT-5 achieving 98.5% and AI Doctor reaching 97.3%. Similarly, the Conversation Complete metric indicated robust dialogue stability for both architectures, with GPT-5 successfully finishing 98.5% of interactions compared to 97.7% for the specialized model. 18 6.2.2 Total steps (doctor/patient pairs). Average steps (doctor/patient pairs). Cases outside +-25% of steps soft limit (num steps) 
+
+Figure 8: Comparison of key quality metrics of GPT-5 (basic version) and AI Doctor - Part 2 Analysis of dialogue metrics indicates that AI Doctor facilitates significantly more extensive clinical interactions compared to the GPT-5 baseline. The Total Steps recorded for AI Doctor reached 3,016 doctor-patient turn pairs, markedly exceeding the 171 pairs generated by GPT-5. This disparity is further reflected in the Average Steps per run, with AI Doctor averaging 11.56 turns, while the GPT-5 baseline averaged only 0.66. Notably, AI Doctor demonstrated superior consistency in dialogue volume, with only 146 cases falling outside the ±25% soft limit, compared to 248 instances for the GPT-5 baseline. These results indicate that despite conducting substantially more extensive diagnostic inquiries, the specialized model more reliably adheres to expected interaction lengths than the general-purpose system. 
+
+6.2.3 Statistical Evaluation of Model Version Updates 
+
+To assess the statistical significance of differences between the GPT-5 baseline and AI Doctor, a comparative analysis was conducted on a sample of 254 test cases. The evaluation was performed using the following metrics: diagnosis accuracy, treatment accuracy, differential accuracy, diagnostic accuracy, conversation completion, critical passed, and the number of dialogue steps (steps). We examined the distribution of within-case differences in treatment accuracy between model versions, where 
+
+𝑖 denotes an individual clinical case: 
+
+Δ𝑖 = TreatmentAccuracy new ,𝑖 − TreatmentAccuracy old ,𝑖 
+
+This analysis allows assessment of whether treatment recommendations improved for the majority of cases, whether performance changes are consistent across clinical scenarios, and whether extreme deteriorations or outlier cases are present. 19 Figure 9: Histogram of paired differences in treatment accuracy between GPT-5 (basic version) and AI Doctor Treatment recommendations improved in 40.9% of cases (104 test cases) when using AI Doctor compared to GPT-5 (basic version). The results remained unchanged in 33.5% of cases (85 test cases), while 25.6% of cases (65 test cases) showed a decline in treatment accuracy. Thus, improvements occurred approximately 1.6 times more frequently than declines. The distribution of paired differences demonstrates an overall positive shift, indicating that AI Doctor generally provides more accurate treatment recommendations than GPT-5 (basic version) across the evaluated cases. 
+
+𝐻 0 : median ( 𝐴𝐼 𝐷𝑜𝑐𝑡𝑜𝑟 𝑖 − 𝐺𝑃𝑇 -5 𝑖 ) = 0Statistical significance was assessed using the Wilcoxon signed-rank test, with a threshold of 𝑝 < 0.05 set to identify systematic differences between the model versions. The analysis revealed highly significant improvements (𝑝 < 0.001) in both Treatment Accuracy and Differential Diagnosis Accuracy for the specialized model. However, the decrease in Diagnostic Accuracy was also found to be statistically significant ( 𝑝 < 0.001). McNemar’s test was used to assess changes in binary outcomes by comparing the proportion of successful cases between the two model versions on the same clinical scenarios. The analysis focused specifically on diagnosis accuracy, critical conditions passed, and conversation complete. A statistically significant improvement was observed for diagnosis accuracy (p = 0.043), indicating that AI Doctor corrected more errors than it introduced relative to GPT-5 (basic version). In contrast, no statistically significant differences were found for critical conditions passed (p = 0.50) or conversation complete (p = 0.25). This binary evaluation is clinically meaningful, as the presence of at least one correct final diagnosis can be considered sufficient for clinically acceptable guidance in many diagnostic scenarios. 20 Figure 10: Paired diagnostic outcomes (McNemar’s test) Analysis of paired diagnostic outcomes showed that AI Doctor corrected 27 cases that were previously classified incorrectly by GPT-5 (basic version), whereas 7 cases changed from correct to incorrect. In 220 cases, the diagnostic outcome remained unchanged, including 205 cases in which both models produced a correct diagnosis and 15 cases in which both models remained incorrect. These paired shifts correspond to a statistically significant improvement in diagnosis accuracy (p = 0.043, McNemar’s test), indicating that AI Doctor corrected more errors than it introduced relative to GPT-5 (basic version). In contrast, no statistically significant differences were observed for critical condition detection (p = 0.50) or conversation completion (p = 0.25). The average number of conversational steps increased substantially from 0.66 for GPT-5 (basic version) to 11.85 for AI Doctor, reflecting a markedly more extensive dialogue process. This difference was highly statistically significant (p ¡ 0.001, Wilcoxon signed-rank test). Such a trend indicates a broader dialogue structure and greater clinical comprehensiveness during patient assessment. AI Doctor demonstrates a stronger tendency toward detailed history taking, symptom clarification, safety screening, and structured questioning, which may contribute to the observed improvements in several diagnostic and treatment-related metrics. Furthermore, individual metric dynamics were evaluated at the case level, and the average effect was calculated as the mean difference between the results of the GPT-5 baseline and the specialized AI Doctor system. effect = average ( 𝐴𝐼 𝐷𝑜𝑐𝑡𝑜𝑟 𝑖 − 𝐺𝑃𝑇 -5 𝑖 )
+
+Diagnostic accuracy increased by 6.56 percentage points (pp) 1, while treatment accuracy improved by 16.86 pp. Differential diagnosis accuracy showed an even larger increase of 23.07 pp. In contrast, diagnostic testing accuracy decreased by 10.35 pp, which may reflect greater diagnostic selectivity and a reduction in the over-recommendation of unnecessary tests. Meanwhile, conversation completion and critical condition detection remained relatively stable, with minor increases of 1.18 pp and 0.79 pp, respectively. At the same time, the average dialogue length increased by 11.19 steps, indicating a substantially more extensive conversational process in the AI Doctor system. 
+
+> 1percentage points (pp)
+
+21 Figure 11: CI comparing GPT-5 (basic version) and AI Doctor Figure 11 presents the mean differences between GPT-5 (basic version) and AI Doctor together with their corresponding 95% confidence intervals (CI 2). Significant improvements were observed in diagnosis accuracy (95% CI: 2.48–10.83) and treatment accuracy (95% CI: 10.07–23.49). Differential diagnosis accuracy also demonstrated a significant increase (95% CI: 15.52–30.48). In contrast, diagnostic testing accuracy showed a significant decline (95% CI: -14.55 to -6.25). No substantial changes were observed for conversation completion (95% CI: 0.00-2.76) or critical condition detection (95% CI: 0.00-1.97). The average dialogue length increased markedly, with a mean change of approximately 11.19 steps (95% CI: 10.39-11.95). In summary, compared with the GPT-5 baseline, the specialized AI Doctor system demonstrated higher diag-nostic and treatment accuracy, accompanied by more extensive clinical dialogue and a more selective approach to diagnostic testing. 
+
+> 2Confidence Interval (CI)
+
+22 7 Discussion 
+
+As Large Language Models (LLMs) continue to evolve, the use of standardized test items as the primary criterion for their medical performance has become increasingly problematic. This is due to the fact that achieving maximum scores on such tests does not correlate with the successful execution of simulation tasks approximating real-world clinical practice - a phenomenon repeatedly demonstrated across a series of publications [16, 8, 17, 18]. Historically, the introduction of test items was intended to minimize subjectivity in knowledge assessment and ensure the objectivity of the examination process. However, LLMs are inherently unaffected by human factors during evaluation; consequently, this specific objective is losing its relevance. This raises a critical question: when will standardized tests for medical students be replaced by formats more closely aligned with clinical practice, including simulation-based methods for assessing knowledge levels? To validate the robustness of our evaluation framework, we conducted a comparative experiment involving three general practitioners (GPs) across 100 clinical cases. These scenarios represented baseline medical instances, characterized by typical disease presentations and an absence of comorbidities. The results demonstrated that human performance metrics were closely aligned with those of AI Doctor, with clinicians achieving a Diagnosis Accuracy of 83% compared to 87% for the specialized model. This parity confirms the framework’s efficacy in accurately evaluating both human practitioners and domain-specific Large Language Models (LLMs). In contrast, the GPT-5 baseline, utilizing a restricted single-sentence prompt, demonstrated a diagnostic accuracy of 81.0% on the identical dataset. This configuration served as a deliberate control to isolate the foundation model’s inherent reasoning from the performance gains introduced by Doctorina’s specialized architecture, specifically its multi-agent design, structured anamnesis protocols, and safety-centric orchestration. These findings underscore that Doctorina’s integrated framework achieves superior diagnostic alignment with clinical expertise compared to standard, general-purpose LLM architectures. Given that modern LLM systems are frequently benchmarked against practicing physicians in comparative analyses of test-solving and clinical case management, including complex diagnostic scenarios, this research direction appears methodologically significant. To this end, the system we developed was integrated to facilitate user interaction through instant messaging. This approach replicates the format of written doctor-patient communication, where the content of the response is directly contingent upon the precision of the inquiry. Such a methodology reduces the probability of inadvertently obtaining critical information and, by extension, arriving at a coincidental diagnosis. For instance, a patient may initially report blood pressure readings from only one arm; however, through meticulous questioning and a request for a bilateral measurement, they provide the additional data necessary for an accurate assessment. 
+
+Figure 12: AI patient responses depending on the wording of the question, simulating a real conversation with a doctor. This factor exerts a significant influence on the final outcome even when utilizing baseline LLM models. This is because a response to a general query regarding elevated blood pressure and a response to a specific follow-up inquiry concerning inter-arm blood pressure differences result in distinct diagnostic conclusions. 23 Figure 13: Example of constructing a diagnostic reasoning chain under different initial conditions, using the ex-ample of known blood pressure readings taken on one arm or on both arms (Part 1). 
+
+Figure 14: Example of constructing a diagnostic reasoning chain under different initial conditions, using the ex-ample of known blood pressure readings taken on one arm or on both arms (Part 2). Consequently, the results of comparative testing within our developed system demonstrated a decline in the performance of baseline LLMs relative to physicians. This finding stands in contrast to data obtained from standardized assessments (e.g., the USMLE), where LLMs have been shown to outperform physicians [19] [20]. Presented below are the results of an experiment involving a comparative evaluation of performance metrics for obstetricians and gynecologists who underwent testing within our system using discipline-specific clinical cases: 24 Table 2: Comparison of participant performance metrics Group Percentage of correct answers % Obstetricians and gynecologists 56.5 ”Doctorina” 67.8 LLM model gpt-5 (basic version) 38.6 LLM model grok-4 (basic version) 41.23 LLM model gemini-3-pro (basic version) 16.96 Our developed system is applicable not only for the evaluation of LLMs but also for training medical students and junior physicians in history-taking skills, fostering clinical reasoning, and monitoring competency levels. The system’s flexible architecture allows for adaptation to diverse clinical scenarios across various medical disciplines, enabling the modeling of comorbidities and the integration of local clinical protocols and cultural nuances. Fur-thermore, the universality of the assessment metrics is maintained, facilitating the use of the system to evaluate both LLMs and clinicians. This, in turn, establishes a framework for analyzing the risks and benefits associated with the integration of LLMs into healthcare delivery. 25 8 Conclusion 
+
+The results of this study call into question the widespread use of standardized test benchmarks as the primary tool for evaluating medical artificial intelligence. Although modern large language models (LLMs) are capable of meeting or even exceeding human performance on medical board examination tasks, such as the USMLE, these results do not fully reflect their competence in real-world clinical settings. Our work confirms that when a physician-modeled diagnostic task is integrated into an interactive clinical simulation mimicking a real doctor-patient dialogue and requiring structured history taking, reasoning under conditions of incomplete information, and maintaining a dynamic conversation the performance of base LLMs drops sharply compared to practicing physicians. This performance gap becomes even more pronounced in simulations involving multiple conditions or patients with comorbidities. At the same time, the findings indicate that systemic approaches integrating LLM capabilities into structured clinical reasoning frameworks can significantly enhance diagnostic efficiency. The developed system, ”Doctorina,” demonstrates nearly identical accuracy to medical specialists in basic medical scenarios and superior accuracy in cases involving comorbidity, significantly outperforming base LLM models. In this paper, we have presented a framework for clinical simulation based on expert-developed scenarios, designed to evaluate medical reasoning in conditions close to real clinical practice. Unlike traditional benchmarks based on static test questions, the proposed approach evaluates the ability to obtain relevant clinical information through structured interviewing, reason under data incompleteness, and iteratively refine diagnostic hypotheses during the doctor-patient interaction. Such systems are essential both as more realistic benchmarks for evaluating medical AI and as educational environments for developing history-taking and clinical reasoning skills. Several limitations of the study should be noted. A rigorous comparison of LLM systems with medical specialists requires the use of independently generated clinical datasets developed by external expert groups to minimize potential researcher bias. Furthermore, practical constraints substantially limit the number of clinical cases that can be analyzed by human physicians, whereas LLMs are capable of processing significantly larger datasets. Finally, unlike general-purpose LLMs, physicians possess highly specialized expertise; this necessitates a careful alignment of clinical cases with the specific areas of specialization of the participating experts. 26 Acknowledgments 
+
+This work was supported by A.I. Doctor Medical Assist LTD, Cyprus. 27 References 
+
+[1] American Medical Association. 2 in 3 physicians are using health AI—up 78% from 2023 . Practice Manage-ment: Digital Health, 2025. Available at: https://www.ama-assn.org/practice-management/digita l-health/2-3-physicians-are-using-health-ai-78-2023 (accessed: 26.02.2025). [2] Zelin Yan, Jingwen Liu, Yihong Fan, Shiyuan Lu, Dingting Xu, Yun Yang, Honggang Wang, Jie Mao, Hou-Chiang Tseng, Tao-Hsing Chang, Yan Chen. Ability of ChatGPT to Replace Doctors in Patient Education: Cross-Sectional Comparative Analysis of Inflammatory Bowel Disease . Journal of Medical Internet Research. 2025;27:e62857. Available from: https://pmc.ncbi.nlm.nih.gov/articles/PMC11997527/ .[3] B. Krichevsky, S. Engeli, S. M. Bode-B¨ oger, et al. Human vs. artificial intelligence: Physicians outper-form ChatGPT in real-world pharmacotherapy counselling . British Journal of Clinical Pharmacology. 2025; (e70321). doi:10.1002/bcp.70321. Available at: https://bpspubs.onlinelibrary.wiley.com/doi/10 .1002/bcp.70321 (accessed: 26.02.2025). [4] Veernapu K. The Implementation of AI in Clinical Decision Support System: Effects on Pa-tient Outcomes and Operational Costs . International Journal for Multidisciplinary Research. 2023;5(5). doi:10.36948/ijfmr.2023.v05i05.37225. Available at: https://www.researchgate.net/publicati on/389098016_The_Implementation_of_AI_in_Clinical_Decision_Support_System_Effects_ on_Patient_Outcomes_and_Operational_Costs (accessed: 26.02.2025). [5] Arvidsson R, Gunnarsson R, Entezarjou A, Sundemo D, Wikberg C. ChatGPT (GPT-4) versus doctors on complex cases of primary care: a blinded observational comparative study . BMJ Open. 2024;14(12):e086148. doi:10.1136/bmjopen-2024-086148. Available at: https://pmc.ncbi.nlm.nih.gov/articles/PMC116 83950/ (accessed: 26.02.2025). [6] Hayat H, et al. Toward the Autonomous AI Doctor: Quantitative Benchmarking of an Autonomous Agentic AI Versus Board-Certified Clinicians in a Real World Setting . medRxiv. 2025. doi:10.1101/2025.07.14.25331406. Available at: https://www.medrxiv.org/content/10.1101/2025.07.14.25331406v1 (accessed: 26.02.2025). [7] T. H. Kung, M. Cheatham, A. Medenilla, et al. Performance of ChatGPT on USMLE: Potential for AI-assisted medical education using large language models . PLOS Digital Health. 2023; 2(2): e0000198. doi:10.1371/journal.pdig.0000198. Available at: https://journals.plos.org/digitalhealth/ar ticle?id=10.1371/journal.pdig.0000198 (accessed: 10.03.2026). [8] A. M. Bean, R. E. Payne, G. Parsons, et al. Reliability of LLMs as medical assistants for the general public: a randomized preregistered study . Nature Medicine. 2026; 32: 609–615. doi:10.1038/s41591-025-04074-y. Available at: https://www.nature.com/articles/s41591-025-04074-y (accessed: 10.03.2026). [9] Y. Jiang, K. C. Black, G. Geng, et al. MedAgentBench: A Virtual EHR Environment to Benchmark Medical LLM Agents . NEJM AI. 2025; 2(9). doi:10.1056/AIdbp2500144. Available at: https://ai.nejm.org/doi/ full/10.1056/AIdbp2500144 (accessed: 10.03.2026). [10] Zidoun Y, El Mardi A. Artificial Intelligence (AI)-Based simulators versus simulated patients in undergrad-uate programs: A protocol for a randomized controlled trial . BMC Medical Education. 2024;24(1):1260. doi:10.1186/s12909-024-06236-x. Available at: https://pubmed.ncbi.nlm.nih.gov/39501219/ (ac-cessed: 26.02.2025). [11] Arora RK, Wei J, Soskin Hicks R, Bowman P, Qui˜ nonero-Candela J, Tsimpourlas F, Sharman M, Shah M, Vallone A, Beutel A, Heidecke J, Singhal K. HealthBench: Evaluating Large Language Models Towards Improved Human Health . arXiv preprint arXiv:2505.08775. 2025. doi:10.48550/arXiv.2505.08775. Available at: https://arxiv.org/abs/2505.08775 (accessed: 26.02.2025). [12] When Case Gets Rare: A Retrieval Benchmark for Off-Guideline Medical Question Answering . Submitted to ICLR 2026. OpenReview. 2025. Available at: https://openreview.net/pdf?id=ExCYvLZJmE (accessed: 10.03.2026). 28 [13] O. Ben Shoham, N. Rappoport. MedConceptsQA: Open source medical concepts QA benchmark . Computers in Biology and Medicine. 2024; 182: 109089. doi:10.1016/j.compbiomed.2024.109089. Available at: https: //www.sciencedirect.com/science/article/pii/S0010482524011740 (accessed: 10.03.2026). [14] Y. Xiao, J. Huang, R. He, et al. FairMedQA: Benchmarking Bias in Large Language Models for Medical Ques-tion Answering . arXiv preprint. 2025; arXiv:2505.19562 [cs.AI]. doi:10.48550/arXiv.2505.19562. Available at: https://arxiv.org/abs/2505.19562 (accessed: 10.03.2026). [15] Y. Zuo, S. Qu, Y. Li, et al. MedXpertQA: Benchmarking Expert-Level Medical Reasoning and Understanding .arXiv preprint. 2025; arXiv:2501.18362 [cs.AI]. doi:10.48550/arXiv.2501.18362. Available at: https://ar xiv.org/abs/2501.18362 (accessed: 10.03.2026). [16] Bedi S, Jiang Y, Chung P, Koyejo S, Shah NH. Fidelity of Medical Reasoning in Large Language Models .JAMA Network Open. 2025;8(7):e2526021. doi:10.1001/jamanetworkopen.2025.26021. Available at: https: //jamanetwork.com/journals/jamanetworkopen/fullarticle/2837372 (accessed: 26.02.2025). [17] Hager P, Jungmann F, Holland R, et al. Evaluation and mitigation of the limitations of large language models in clinical decision-making . Nature Medicine. 2024;30(9):2613–2622. Available at: https://www.nature .com/articles/s41591-024-03097-1 (accessed: 26.02.2025). [18] Singhal K, Tu T, Gottweis J, et al. Towards Expert-Level Medical Question Answering with Large Lan-guage Models . arXiv:2305.09617, 2023. Available at: https://arxiv.org/abs/2305.09617 (accessed: 26.02.2025). [19] B. T. Bicknell, D. Butler, S. Whalen, et al. ChatGPT-4 Omni Performance in USMLE Disciplines and Clinical Skills: Comparative Analysis . JMIR Medical Education. 2024; 10: e63430. doi:10.2196/63430. Available at: 
+
+https://mededu.jmir.org/2024/1/e63430 (accessed: 10.03.2026). [20] M. K. Siam, A. Varela, M. J. H. Faruk, et al. Benchmarking large language models on the United States medical licensing examination for clinical reasoning and medical licensing scenarios . Scientific Reports. 2026; 16: 1387. doi:10.1038/s41598-025-31010-4. Available at: https://www.nature.com/articles/s41598-025 -31010-4 (accessed: 10.03.2026). 29 ANNA KOZLOVA 
+
+received the M.S. degree in applied mathe-matics and computer science from Saint Pe-tersburg State University in 2021. She is a Machine Learning Engineer with over six years of R&D experience in classical ma-chine learning, natural language processing, and large language models. She worked at an international R&D center, where she devel-oped NLP models for mobile applications and contributed to peer-reviewed publica-tions, including in IEEE Access. She also developed and teaches a machine learning course for master’s students in Legal Tech at HSE University. Her research interests in-clude explainable artificial intelligence, nat-ural language processing, and large language models. 
+
+STANISLAU SALAVEI 
+
+received the M.D. degree from Belarusian State Medical University, Minsk, Repub-lic of Belarus, in 2013. He specialized in obstetrics and gynecology and received additional training in ultrasound diagnos-tics and clinical oncology. He has over 10 years of clinical and research experience, in-cluding practice in Belarus, Ukraine, and Poland. For more than four years, he has been working in digital health, focusing on telemedicine solutions and AI in clinical practice. He currently serves as Medical Research Lead at Doctorina. He is the au-thor of 14 scientific publications, three ratio-nalization proposals, and two official guide-lines. His main research interests include AI in clinical practice, telemedicine, healthcare digital transformation, and surgical gynecol-ogy. 
+
+PAVEL SATALKIN 
+
+studied mechatronics and robotics at Peter the Great St. Petersburg Polytechnic Uni-versity. He is a CTO and Senior Machine Learning Engineer with over 10 years of ex-perience in the development of AI systems, specializing in computer vision and natural language processing. He has led the devel-opment of scalable machine learning sys-tems in generative AI, imaging, and con-versational AI. He previously contributed to AI products, including face generation technologies. His main research interests include multimodal AI systems, generative models, and applied machine learning. 
+
+HANNA PLOTNITSKAYA 
+
+received the M.D. degree from Belarusian State Medical University in 2021. She is a Co-Founder and Chief Medical Officer at Doctorina, an AI-driven digital health plat-form focused on clinical reasoning and pa-tient triage. Her work focuses on artificial intelligence in medicine, digital health sys-tems, and improving access to care in under-served populations. Dr. Plotnitskaya was a recipient of the Diana Award, U.K., in 2023, in recognition of humanitarian work. 
+
+SERGEY PARFENYUK 
+
+received the M.S. degree in artificial intel-ligence from Brest State Technical Univer-sity in 2009. He is a Lead Software Engi-neer working on scalable technology prod-ucts and AI-powered applications. His back-ground includes Python, Kubernetes, De-vOps, backend systems, cloud platforms, and production infrastructure. He has led engineering initiatives in high-scale soft-ware systems and has contributed to AI-related developer tools and infrastructure. His research interests include AI-driven products, distributed systems, platform en-gineering, and software architecture. 
+
+30

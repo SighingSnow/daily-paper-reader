@@ -1,0 +1,791 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-30T20:11:59.985283+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 15,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 24,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.23376v2",
+      "title": "ABot-PhysWorld: Interactive World Foundation Model for Robotic Manipulation with Physics Alignment",
+      "abstract": "Video-based world models offer a powerful paradigm for embodied simulation and planning, yet state-of-the-art models often generate physically implausible manipulations - such as object penetration and anti-gravity motion - due to training on generic visual data and likelihood-based objectives that ignore physical laws. We present ABot-PhysWorld, a 14B Diffusion Transformer model that generates visually realistic, physically plausible, and action-controllable videos. Built on a curated dataset of three million manipulation clips with physics-aware annotation, it uses a novel DPO-based post-training framework with decoupled discriminators to suppress unphysical behaviors while preserving visual quality. A parallel context block enables precise spatial action injection for cross-embodiment control. To better evaluate generalization, we introduce EZSbench, the first training-independent embodied zero-shot benchmark combining real and synthetic unseen robot-task-scene combinations. It employs a decoupled protocol to separately assess physical realism and action alignment. ABot-PhysWorld achieves new state-of-the-art performance on PBench and EZSbench, surpassing Veo 3.1 and Sora v2 Pro in physical plausibility and trajectory consistency. We will release EZSbench to promote standardized evaluation in embodied video generation.",
+      "authors": [
+        "Yuzhi Chen",
+        "Ronghan Chen",
+        "Dongjie Huo",
+        "Yandan Yang",
+        "Dekang Qi",
+        "Haoyun Liu",
+        "Tong Lin",
+        "Shuang Zeng",
+        "Junjin Xiao",
+        "Xinyuan Chang",
+        "Feng Xiong",
+        "Xing Wei",
+        "Zhiheng Ma",
+        "Mu Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-24T16:07:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.23376v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Video-based world model with curated dataset",
+      "llm_evidence_cn": "基于视频的世界模型，含精选数据集",
+      "llm_evidence": "基于视频的世界模型，含精选数据集",
+      "canonical_evidence": "基于视频的世界模型，含精选数据集",
+      "llm_tldr_en": "ABot-PhysWorld is a 14B world model generating physically plausible robotic manipulation videos.",
+      "llm_tldr_cn": "ABot-PhysWorld是生成物理合理机器人操作视频的世界模型。",
+      "llm_tldr": "ABot-PhysWorld是生成物理合理机器人操作视频的世界模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.25887v1",
+      "title": "World Reasoning Arena",
+      "abstract": "World models (WMs) are intended to serve as internal simulators of the real world that enable agents to understand, anticipate, and act upon complex environments. Existing WM benchmarks remain narrowly focused on next-state prediction and visual fidelity, overlooking the richer simulation capabilities required for intelligent behavior. To address this gap, we introduce WR-Arena, a comprehensive benchmark for evaluating WMs along three fundamental dimensions of next world simulation: (i) Action Simulation Fidelity, the ability to interpret and follow semantically meaningful, multi-step instructions and generate diverse counterfactual rollouts; (ii) Long-horizon Forecast, the ability to sustain accurate, coherent, and physically plausible simulations across extended interactions; and (iii) Simulative Reasoning and Planning, the ability to support goal-directed reasoning by simulating, comparing, and selecting among alternative futures in both structured and open-ended environments. We build a task taxonomy and curate diverse datasets designed to probe these capabilities, moving beyond single-turn and perceptual evaluations. Through extensive experiments with state-of-the-art WMs, our results expose a substantial gap between current models and human-level hypothetical reasoning, and establish WR-Arena as both a diagnostic tool and a guideline for advancing next-generation world models capable of robust understanding, forecasting, and purposeful action. The code is available at https://github.com/MBZUAI-IFM/WR-Arena.",
+      "authors": [
+        "PAN Team",
+        "Qiyue Gao",
+        "Kun Zhou",
+        "Jiannan Xiang",
+        "Zihan Liu",
+        "Dequan Yang",
+        "Junrong Chen",
+        "Arif Ahmad",
+        "Cong Zeng",
+        "Ganesh Bannur",
+        "Xinqi Huang",
+        "Zheqi Liu",
+        "Yi Gu",
+        "Yichi Yang",
+        "Guangyi Liu",
+        "Zhiting Hu",
+        "Zhengzhong Liu",
+        "Eric Xing"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-26T20:22:52+00:00",
+      "link": "https://arxiv.org/pdf/2603.25887v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Comprehensive benchmark for evaluating world model capabilities",
+      "llm_evidence_cn": "评估世界模型能力的综合基准",
+      "llm_evidence": "评估世界模型能力的综合基准",
+      "canonical_evidence": "评估世界模型能力的综合基准",
+      "llm_tldr_en": "WR-Arena benchmarks world models on action simulation fidelity, long-horizon forecast, and simulative reasoning.",
+      "llm_tldr_cn": "WR-Arena从动作仿真、长期预测和模拟推理三方面评估世界模型。",
+      "llm_tldr": "WR-Arena从动作仿真、长期预测和模拟推理三方面评估世界模型。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.25928v1",
+      "title": "Self-Organizing Multi-Agent Systems for Continuous Software Development",
+      "abstract": "Large Language Model-based multi-agent systems have shown promise in automating software development tasks. However, most vibe code systems focus on completing small tasks and incremental code changes, leaving persistent, continuous software development largely unexplored. We present TheBotCompany, an open-source orchestration framework for continuous multi-agent software development. TheBotCompany introduces three key innovations: (1) a three-phase state machine (Strategy to Execution to Verification) for milestone-driven development, (2) self-organizing agent teams where manager agents dynamically hire, assign, and fire worker agents based on project needs, and (3) asynchronous human oversight. We evaluate TheBotCompany on real-world software projects over multiple days of continuous development, measuring team adaptation patterns, milestone completion rates, cost efficiency, and code quality. Our results demonstrate that the self-organizing approach enables effective long-term software development with measurable progress, while the verification phase catches defects that would otherwise persist.",
+      "authors": [
+        "Wenhan Lyu",
+        "Yue Xiao",
+        "Yixuan Zhang",
+        "Yifan Sun"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-26T21:43:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.25928v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent framework for continuous software development",
+      "llm_evidence_cn": "持续软件开发的多智能体框架",
+      "llm_evidence": "持续软件开发的多智能体框架",
+      "canonical_evidence": "持续软件开发的多智能体框架",
+      "llm_tldr_en": "Presents TheBotCompany, a self-organizing multi-agent framework for continuous software development.",
+      "llm_tldr_cn": "提出TheBotCompany，一个用于持续软件开发的自组织多智能体框架。",
+      "llm_tldr": "提出TheBotCompany，一个用于持续软件开发的自组织多智能体框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.26221v1",
+      "title": "Clawed and Dangerous: Can We Trust Open Agentic Systems?",
+      "abstract": "Open agentic systems combine LLM-based planning with external capabilities, persistent memory, and privileged execution. They are used in coding assistants, browser copilots, and enterprise automation. OpenClaw is a visible instance of this broader class.   Without much attention yet, their security challenge is fundamentally different from that of traditional software that relies on predictable execution and well-defined control flow. In open agentic systems, everything is ''probabilistic'': plans are generated at runtime, key decisions may be shaped by untrusted natural-language inputs and tool outputs, execution unfolds in uncertain environments, and actions are taken under authority delegated by human users. The central challenge is therefore not merely robustness against individual attacks, but the governance of agentic behavior under persistent uncertainty.   This paper systematizes the area through a software engineering lens. We introduce a six-dimensional analytical taxonomy and synthesize 50 papers spanning attacks, benchmarks, defenses, audits, and adjacent engineering foundations. From this synthesis, we derive a reference doctrine for secure-by-construction agent platforms, together with an evaluation scorecard for assessing platform security posture. Our review shows that the literature is relatively mature in attack characterization and benchmark construction, but remains weak in deployment controls, operational governance, persistent-memory integrity, and capability revocation. These gaps define a concrete engineering agenda for building agent ecosystems that are governable, auditable, and resilient under compromise.",
+      "authors": [
+        "Shiping Chen",
+        "Qin Wang",
+        "Guangsheng Yu",
+        "Xu Wang",
+        "Liming Zhu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.ET",
+        "cs.SE"
+      ],
+      "published": "2026-03-27T09:45:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.26221v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Open agentic systems used in coding assistants and browser copilots",
+      "llm_evidence_cn": "开放智能体系统用于编程助手和浏览器副驾驶",
+      "llm_evidence": "开放智能体系统用于编程助手和浏览器副驾驶",
+      "canonical_evidence": "开放智能体系统用于编程助手和浏览器副驾驶",
+      "llm_tldr_en": "Analyzes security challenges of open agentic systems including coding assistants and browser copilots.",
+      "llm_tldr_cn": "分析开放智能体系统（含编程助手）的安全挑战。",
+      "llm_tldr": "分析开放智能体系统（含编程助手）的安全挑战。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.26233v1",
+      "title": "Ask or Assume? Uncertainty-Aware Clarification-Seeking in Coding Agents",
+      "abstract": "As Large Language Model (LLM) agents are increasingly deployed in open-ended domains like software engineering, they frequently encounter underspecified instructions that lack crucial context. While human developers naturally resolve underspecification by asking clarifying questions, current agents are largely optimized for autonomous execution. In this work, we systematically evaluate the clarification-seeking abilities of LLM agents on an underspecified variant of SWE-bench Verified. We propose an uncertainty-aware multi-agent scaffold that explicitly decouples underspecification detection from code execution. Our results demonstrate that this multi-agent system using OpenHands + Claude Sonnet 4.5 achieves a 69.40% task resolve rate, significantly outperforming a standard single-agent setup (61.20%) and closing the performance gap with agents operating on fully specified instructions. Furthermore, we find that the multi-agent system exhibits well-calibrated uncertainty, conserving queries on simple tasks while proactively seeking information on more complex issues. These findings indicate that current models can be turned into proactive collaborators, where agents independently recognize when to ask questions to elicit missing information in real-world, underspecified tasks.",
+      "authors": [
+        "Nicholas Edwards",
+        "Sebastian Schuster"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-27T09:56:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.26233v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent scaffold for coding agents with clarification-seeking",
+      "llm_evidence_cn": "代码智能体的多智能体澄清框架",
+      "llm_evidence": "代码智能体的多智能体澄清框架",
+      "canonical_evidence": "代码智能体的多智能体澄清框架",
+      "llm_tldr_en": "Proposes uncertainty-aware multi-agent scaffold for coding agents to ask clarifying questions on underspecified tasks.",
+      "llm_tldr_cn": "提出不确定性感知的多智能体框架，使代码智能体能主动提问澄清。",
+      "llm_tldr": "提出不确定性感知的多智能体框架，使代码智能体能主动提问澄清。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.26337v1",
+      "title": "A Benchmark for Evaluating Repository-Level Code Agents with Intermediate Reasoning on Feature Addition Task",
+      "abstract": "Repository-level code agents have shown strong promise in real-world feature addition tasks, making reliable evaluation of their capabilities increasingly important. However, existing benchmarks primarily evaluate these agents as black boxes based on final test correctness, providing limited insight into how they reason and where failures arise. To address this limitation, we introduce RACE-bench, a reasoning-augmented benchmark for evaluating code agents on repository-level feature addition tasks. RACE-bench contains 528 real-world feature addition instances from 12 open-source repositories. Each instance is paired with executable patch verification and structured intermediate reasoning ground truth covering issue understanding, file localization, implementation tasks, and step decomposition. Based on this design, we introduce a dual-track evaluation framework that jointly measures patch correctness and intermediate reasoning quality. We evaluate three representative repository-level code agents on RACE-bench. On the full benchmark, Resolved Rates range from 29% to 70% across different agents. Our reasoning-level analysis further shows that while current agents perform well at understanding high-level intent, their performance degrades substantially when translating intent into concrete implementation steps. We also find that apply-success but test-fail cases exhibit lower reasoning recall (35.7% decrease) and higher over-prediction (94.1% increase) compared to successful cases. These findings highlight the importance of evaluating repository-level code agents beyond final patch correctness by examining the quality of their reasoning processes.",
+      "authors": [
+        "Shuhan Liu",
+        "Zhiyi Zhao",
+        "Xing Hu",
+        "Kui Liu",
+        "Xiaohu Yang",
+        "Xin Xia"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-27T11:58:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.26337v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark specifically for repository-level code agents",
+      "llm_evidence_cn": "专门针对仓库级代码智能体的基准",
+      "llm_evidence": "专门针对仓库级代码智能体的基准",
+      "canonical_evidence": "专门针对仓库级代码智能体的基准",
+      "llm_tldr_en": "RACE-bench evaluates code agents on repository-level feature addition with intermediate reasoning.",
+      "llm_tldr_cn": "RACE-bench评估代码智能体在仓库级功能添加任务中的推理能力。",
+      "llm_tldr": "RACE-bench评估代码智能体在仓库级功能添加任务中的推理能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.26664v1",
+      "title": "Learning to Commit: Generating Organic Pull Requests via Online Repository Memory",
+      "abstract": "Large language model (LLM)-based coding agents achieve impressive results on controlled benchmarks yet routinely produce pull requests that real maintainers reject. The root cause is not functional incorrectness but a lack of organicity: generated code ignores project-specific conventions, duplicates functionality already provided by internal APIs, and violates implicit architectural constraints accumulated over years of development. Simply exposing an agent to the latest repository snapshot is not enough: the snapshot reveals the final state of the codebase, but not the repository-specific change patterns by which that state was reached. We introduce Learning to Commit, a framework that closes this gap through Online Repository Memory. Given a repository with a strict chronological split, the agent performs supervised contrastive reflection on earlier commits: it blindly attempts to resolve each historical issue, compares its prediction against the oracle diff, and distils the gap into a continuously growing set of skills-reusable patterns capturing coding style, internal API usage, and architectural invariants. When a new PR description arrives, the agent conditions its generation on these accumulated skills, producing changes grounded in the project's own evolution rather than generic pretraining priors. Evaluation is conducted on genuinely future, merged pull requests that could not have been seen during the skill-building phase, and spans multiple dimensions including functional correctness, code-style consistency, internal API reuse rate, and modified-region plausibility. Experiments on an expert-maintained repository with rich commit history show that Online Repository Memory effectively improves organicity scores on held-out future tasks.",
+      "authors": [
+        "Mo Li",
+        "L. H. Xu",
+        "Qitai Tan",
+        "Ting Cao",
+        "Yunxin Liu"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.CL"
+      ],
+      "published": "2026-03-27T17:58:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.26664v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based coding agents for generating organic pull requests",
+      "llm_evidence_cn": "基于LLM的代码智能体生成有机拉取请求",
+      "llm_evidence": "基于LLM的代码智能体生成有机拉取请求",
+      "canonical_evidence": "基于LLM的代码智能体生成有机拉取请求",
+      "llm_tldr_en": "Introduces a framework enabling coding agents to produce project-conforming pull requests via repository memory.",
+      "llm_tldr_cn": "提出框架使代码智能体通过仓库记忆生成符合项目规范的拉取请求。",
+      "llm_tldr": "提出框架使代码智能体通过仓库记忆生成符合项目规范的拉取请求。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.22083v1",
+      "title": "A Context Engineering Framework for Improving Enterprise AI Agents based on Digital-Twin MDP",
+      "abstract": "Despite rapid progress in AI agents for enterprise automation and decision-making, their real-world deployment and further performance gains remain constrained by limited data quality and quantity, complex real-world reasoning demands, difficulties with self-play, and the lack of reliable feedback signals. To address these challenges, we propose a lightweight, model-agnostic framework for improving LLM-based enterprise agents via offline reinforcement learning (RL). The proposed Context Engineering via DT-MDP (DT-MDP-CE) framework comprises three key components: (1) A Digital-Twin Markov Decision Process (DT-MDP), which abstracts the agent's reasoning behavior as a finite MDP; (2) A robust contrastive inverse RL, which, armed with the DT-MDP, to efficiently estimate a well-founded reward function and induces policies from mixed-quality offline trajectories; and (3) RL-guided context engineering, which uses the policy obtained from the integrated process of (1) and (2), to improve the agent's decision-making behavior. As a case study, we apply the framework to a representative task in the enterprise-oriented domain of IT automation. Extensive experimental results demonstrate consistent and significant improvements over baseline agents across a wide range of evaluation settings, suggesting that the framework can generalize to other agents sharing similar characteristics in enterprise environments.",
+      "authors": [
+        "Xi Yang",
+        "Aurelie Lozano",
+        "Naoki Abe",
+        "Bhavya",
+        "Saurabh Jha",
+        "Noah Zheutlin",
+        "Rohan R. Arora",
+        "Yu Deng",
+        "Daby M. Sow"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-23T15:15:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.22083v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "framework for improving LLM-based enterprise agents",
+      "llm_evidence_cn": "改进LLM企业智能体的框架",
+      "llm_evidence": "改进LLM企业智能体的框架",
+      "canonical_evidence": "改进LLM企业智能体的框架",
+      "llm_tldr_en": "DT-MDP-CE framework improves enterprise AI agents via offline reinforcement learning.",
+      "llm_tldr_cn": "DT-MDP-CE框架通过离线强化学习改进企业AI智能体。",
+      "llm_tldr": "DT-MDP-CE框架通过离线强化学习改进企业AI智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.22169v1",
+      "title": "Closed-Loop Verbal Reinforcement Learning for Task-Level Robotic Planning",
+      "abstract": "We propose a new Verbal Reinforcement Learning (VRL) framework for interpretable task-level planning in mobile robotic systems operating under execution uncertainty. The framework follows a closed-loop architecture that enables iterative policy improvement through interaction with the physical environment. In our framework, executable Behavior Trees are repeatedly refined by a Large Language Model actor using structured natural-language feedback produced by a Vision-Language Model critic that observes the physical robot and execution traces. Unlike conventional reinforcement learning, policy updates in VRL occur directly at the symbolic planning level, without gradient-based optimization. This enables transparent reasoning, explicit causal feedback, and human-interpretable policy evolution. We validate the proposed framework on a real mobile robot performing a multi-stage manipulation and navigation task under execution uncertainty. Experimental results show that the framework supports explainable policy improvements, closed-loop adaptation to execution failures, and reliable deployment on physical robotic systems.",
+      "authors": [
+        "Dmitrii Plotnikov",
+        "Iaroslav Kolomiets",
+        "Dmitrii Maliukov",
+        "Dmitrij Kosenkov",
+        "Daniia Zinniatullina",
+        "Artem Trandofilov",
+        "Georgii Gazaryan",
+        "Kirill Bogatikov",
+        "Timofei Kozlov",
+        "Igor Duchinskii",
+        "Mikhail Konenkov",
+        "Miguel Altamirano Cabrera",
+        "Dzmitry Tsetserukou"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-23T16:28:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.22169v1",
+      "tags": [
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VRL framework with LLM actor and VLM critic for robotic task planning",
+      "llm_evidence_cn": "VRL框架使用LLM执行器和VLM评估器进行机器人任务规划",
+      "llm_evidence": "VRL框架使用LLM执行器和VLM评估器进行机器人任务规划",
+      "canonical_evidence": "VRL框架使用LLM执行器和VLM评估器进行机器人任务规划",
+      "llm_tldr_en": "A verbal RL framework enables interpretable robotic planning via LLM actor and VLM critic in closed-loop.",
+      "llm_tldr_cn": "语言强化学习框架通过LLM和VLM实现可解释的机器人规划。",
+      "llm_tldr": "语言强化学习框架通过LLM和VLM实现可解释的机器人规划。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.21448v1",
+      "title": "Safety as Computation: Certified Answer Reuse via Capability Closure in Task-Oriented Dialogue",
+      "abstract": "We introduce a new paradigm for task-oriented dialogue systems: safety certification as a computational primitive for answer reuse. Current systems treat each turn independently, recomputing answers via retrieval or generation even when they are already derivable from prior state. We show that in capability-based systems, the safety certification step computes a fixed-point closure cl(At) that already contains every answer reachable from the current configuration. We operationalize this insight with a Certified Answer Store (CAS) augmented by Pre-Answer Blocks (PAB): at each certified turn, the system materializes all derivable follow-up answers together with minimal provenance witnesses. Subsequent queries are answered in sub-millisecond time via formal containment checks, eliminating redundant retrieval and generation.",
+      "authors": [
+        "Cosimo Spera"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-22T23:37:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.21448v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Task-oriented dialogue framework with capability-based approach",
+      "llm_evidence_cn": "基于能力的任务导向对话框架",
+      "llm_evidence": "基于能力的任务导向对话框架",
+      "canonical_evidence": "基于能力的任务导向对话框架",
+      "llm_tldr_en": "Introduces certified answer reuse paradigm for task-oriented dialogue via capability closure computation.",
+      "llm_tldr_cn": "提出任务导向对话中基于能力闭包的答案复用范式。",
+      "llm_tldr": "提出任务导向对话中基于能力闭包的答案复用范式。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.24132v1",
+      "title": "MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare",
+      "abstract": "Conversational artificial intelligence has the potential to assist users in preliminary medical consultations, particularly in settings where access to healthcare professionals is limited. However, many existing medical dialogue systems operate in a single-turn question--answering paradigm or rely on template-based datasets, limiting conversational realism and multilingual applicability. In this work, we introduce MedAidDialog, a multilingual multi-turn medical dialogue dataset designed to simulate realistic physician--patient consultations. The dataset extends the MDDial corpus by generating synthetic consultations using large language models and further expands them into a parallel multilingual corpus covering seven languages: English, Hindi, Telugu, Tamil, Bengali, Marathi, and Arabic.   Building on this dataset, we develop MedAidLM, a conversational medical model trained using parameter-efficient fine-tuning on quantized small language models, enabling deployment without high-end computational infrastructure. Our framework additionally incorporates optional patient pre-context information (e.g., age, gender, allergies) to personalize the consultation process. Experimental results demonstrate that the proposed system can effectively perform symptom elicitation through multi-turn dialogue and generate diagnostic recommendations. We further conduct medical expert evaluation to assess the plausibility and coherence of the generated consultations.",
+      "authors": [
+        "Shubham Kumar Nigam",
+        "Suparnojit Sarkar",
+        "Piyush Patel"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-25T09:51:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.24132v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multilingual multi-turn medical dialogue dataset",
+      "llm_evidence_cn": "多语言多轮医疗对话数据集",
+      "llm_evidence": "多语言多轮医疗对话数据集",
+      "canonical_evidence": "多语言多轮医疗对话数据集",
+      "llm_tldr_en": "Introduces MedAidDialog, a multilingual multi-turn medical dialogue dataset for accessible healthcare.",
+      "llm_tldr_cn": "提出MedAidDialog多语言多轮医疗对话数据集用于可及医疗。",
+      "llm_tldr": "提出MedAidDialog多语言多轮医疗对话数据集用于可及医疗。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.23125v1",
+      "title": "From Questions to Trust Reports: A LLM-IR Framework for the TREC 2025 DRAGUN Track",
+      "abstract": "The DRAGUN Track at TREC 2025 targets the growing need for effective support tools that help users evaluate the trustworthiness of online news. We describe the UR_Trecking system submitted for both Task 1 (critical question generation) and Task 2 (retrieval-augmented trustworthiness reporting). Our approach combines LLM-based question generation with semantic filtering, diversity enforcement using clustering, and several query expansion strategies (including reasoning-based Chain-of-Thought expansion) to retrieve relevant evidence from the MS MARCO V2.1 segmented corpus. Retrieved documents are re-ranked using a monoT5 model and filtered using an LLM relevance judge together with a domain-level trustworthiness dataset. For Task 2, selected evidence is synthesized by an LLM into concise trustworthiness reports with citations. Results from the official evaluation indicate that Chain-of-Thought query expansion and re-ranking substantially improve both relevance and domain trust compared to baseline retrieval, while question-generation performance shows moderate quality with room for improvement. We conclude by outlining key challenges encountered and suggesting directions for enhancing robustness and trustworthiness assessment in future iterations of the system.",
+      "authors": [
+        "Ignacy Alwasiak",
+        "Kene Nnolim",
+        "Jaclyn Thi",
+        "Samy Ateia",
+        "Markus Bink",
+        "Gregor Donabauer",
+        "David Elsweiler",
+        "Udo Kruschwitz"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-03-24T12:22:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.23125v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM-based IR system with query expansion and retrieval",
+      "llm_evidence_cn": "基于LLM的信息检索系统，含查询扩展",
+      "llm_evidence": "基于LLM的信息检索系统，含查询扩展",
+      "canonical_evidence": "基于LLM的信息检索系统，含查询扩展",
+      "llm_tldr_en": "LLM-IR framework for trustworthiness reporting with question generation and evidence retrieval.",
+      "llm_tldr_cn": "LLM-IR框架用于可信度报告，包含问题生成和证据检索。",
+      "llm_tldr": "LLM-IR框架用于可信度报告，包含问题生成和证据检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.21530v1",
+      "title": "LLM-Based Test Case Generation in DBMS through Monte Carlo Tree Search",
+      "abstract": "Database Management Systems (DBMSs) are fundamental infrastructure for modern data-driven applications, where thorough testing with high-quality SQL test cases is essential for ensuring system reliability. Traditional approaches such as fuzzing can be effective for specific DBMSs, but adapting them to different proprietary dialects requires substantial manual effort. Large Language Models (LLMs) present promising opportunities for automated SQL test generation, but face critical challenges in industrial environments. First, lightweight models are widely used in organizations due to security and privacy constraints, but they struggle to generate syntactically valid queries for proprietary SQL dialects. Second, LLM-generated queries are often semantically similar and exercise only shallow execution paths, thereby quickly reaching a coverage plateau. To address these challenges, we propose MIST, an LLM-based test case generatIon framework for DBMS through Monte Carlo Tree search. MIST consists of two stages: Feature-Guided Error-Driven Test Case Synthetization, which constructs a hierarchical feature tree and uses error feedback to guide LLM generation, aiming to produce syntactically valid and semantically diverse queries for different DBMS dialects, and Monte Carlo Tree Search-Based Test Case Mutation, which jointly optimizes seed query selection and mutation rule application guided by coverage feedback, aiming at boosting code coverage by exploring deeper execution paths. Experiments on three widely-used DBMSs with four lightweight LLMs show that MIST achieves average improvements of 43.3% in line coverage, 32.3% in function coverage, and 46.4% in branch coverage compared to the baseline approach with the highest line coverage of 69.3% in the Optimizer module.",
+      "authors": [
+        "Yujia Chen",
+        "Yingli Zhou",
+        "Fangyuan Zhang",
+        "Cuiyun Gao"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T03:42:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.21530v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-based automated SQL test case generation",
+      "llm_evidence_cn": "基于LLM的自动化SQL测试用例生成",
+      "llm_evidence": "基于LLM的自动化SQL测试用例生成",
+      "canonical_evidence": "基于LLM的自动化SQL测试用例生成",
+      "llm_tldr_en": "Uses LLM with Monte Carlo Tree Search to generate SQL test cases for DBMS testing.",
+      "llm_tldr_cn": "使用LLM和蒙特卡洛树搜索生成DBMS测试的SQL测试用例。",
+      "llm_tldr": "使用LLM和蒙特卡洛树搜索生成DBMS测试的SQL测试用例。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.24481v1",
+      "title": "Multi-Agent Reasoning with Consistency Verification Improves Uncertainty Calibration in Medical MCQA",
+      "abstract": "Miscalibrated confidence scores are a practical obstacle to deploying AI in clinical settings. A model that is always overconfident offers no useful signal for deferral. We present a multi-agent framework that combines domain-specific specialist agents with Two-Phase Verification and S-Score Weighted Fusion to improve both calibration and discrimination in medical multiple-choice question answering. Four specialist agents (respiratory, cardiology, neurology, gastroenterology) generate independent diagnoses using Qwen2.5-7B-Instruct. Each diagnosis is then subjected to a two-phase self-verification process that measures internal consistency and produces a Specialist Confidence Score (S-score). The S-scores drive a weighted fusion strategy that selects the final answer and calibrates the reported confidence. We evaluate across four experimental settings, covering 100-question and 250-question high-disagreement subsets of both MedQA-USMLE and MedMCQA. Calibration improvement is the central finding, with ECE reduced by 49-74% across all four settings, including the harder MedMCQA benchmark where these gains persist even when absolute accuracy is constrained by knowledge-intensive recall demands. On MedQA-250, the full system achieves ECE = 0.091 (74.4% reduction over the single-specialist baseline) and AUROC = 0.630 (+0.056) at 59.2% accuracy. Ablation analysis identifies Two-Phase Verification as the primary calibration driver and multi-agent reasoning as the primary accuracy driver. These results establish that consistency-based verification produces more reliable uncertainty estimates across diverse medical question types, providing a practical confidence signal for deferral in safety-critical clinical AI applications.",
+      "authors": [
+        "John Ray B. Martinez"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-25T16:22:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.24481v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent framework with specialist agents and verification",
+      "llm_evidence_cn": "多智能体框架，包含专家智能体和验证机制",
+      "llm_evidence": "多智能体框架，包含专家智能体和验证机制",
+      "canonical_evidence": "多智能体框架，包含专家智能体和验证机制",
+      "llm_tldr_en": "A multi-agent framework improves uncertainty calibration in medical MCQA via consistency verification.",
+      "llm_tldr_cn": "多智能体框架通过一致性验证改进医学问答的不确定性校准。",
+      "llm_tldr": "多智能体框架通过一致性验证改进医学问答的不确定性校准。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.24541v1",
+      "title": "SEGAR: Selective Enhancement for Generative Augmented Reality",
+      "abstract": "Generative world models offer a compelling foundation for augmented-reality (AR) applications: by predicting future image sequences that incorporate deliberate visual edits, they enable temporally coherent, augmented future frames that can be computed ahead of time and cached, avoiding per-frame rendering from scratch in real time. In this work, we present SEGAR, a preliminary framework that combines a diffusion-based world model with a selective correction stage to support this vision. The world model generates augmented future frames with region-specific edits while preserving others, and the correction stage subsequently aligns safety-critical regions with real-world observations while preserving intended augmentations elsewhere. We demonstrate this pipeline in driving scenarios as a representative setting where semantic region structure is well defined and real-world feedback is readily available. We view this as an early step toward generative world models as practical AR infrastructure, where future frames can be generated, cached, and selectively corrected on demand.",
+      "authors": [
+        "Fanjun Bu",
+        "Chenyang Yuan",
+        "Hiroshi Yasuda"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-25T17:15:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.24541v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Diffusion-based world model framework for augmented reality applications",
+      "llm_evidence_cn": "用于增强现实应用的基于扩散的世界模型框架",
+      "llm_evidence": "用于增强现实应用的基于扩散的世界模型框架",
+      "canonical_evidence": "用于增强现实应用的基于扩散的世界模型框架",
+      "llm_tldr_en": "Combines diffusion world model with selective correction for temporally coherent AR frames.",
+      "llm_tldr_cn": "结合扩散世界模型与选择性校正，生成时间连贯的增强现实帧。",
+      "llm_tldr": "结合扩散世界模型与选择性校正，生成时间连贯的增强现实帧。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.21710v1",
+      "title": "FGIM: a Fast Graph-based Indexes Merging Framework for Approximate Nearest Neighbor Search",
+      "abstract": "As the state-of-the-art methods for high-dimensional data retrieval, Approximate Nearest Neighbor Search (ANNS) approaches with graph-based indexes have attracted increasing attention and play a crucial role in many real-world applications, e.g., retrieval-augmented generation (RAG) and recommendation systems. Unlike the extensive works focused on designing efficient graph-based ANNS methods, this paper delves into merging multiple existing graph-based indexes into a single one, which is also crucial in many real-world scenarios (e.g., cluster consolidation in distributed systems and read-write contention in real-time vector databases). We propose a Fast Graph-based Indexes Merging (FGIM) framework with three core techniques: (1) Proximity Graphs (PGs) to $k$ Nearest Neighbor Graph ($k$-NNG) transformation used to extract potential candidate neighbors from input graph-based indexes through cross-querying, (2) $k$-NNG refinement designed to identify overlooked high-quality neighbors and maintain graph connectivity, and (3) $k$-NNG to PG transformation aimed at improving graph navigability and enhancing search performance. Then, we integrate our FGIM framework with the state-of-the-art ANNS method, HNSW, and other existing mainstream graph-based methods to demonstrate its generality and merging efficiency. Extensive experiments on six real-world datasets show that our FGIM framework is applicable to various mainstream graph-based ANNS methods, achieves up to 3.5$\\times$ speedup over HNSW's incremental construction and an average of 7.9$\\times$ speedup for methods without incremental support, while maintaining comparable or superior search performance.",
+      "authors": [
+        "Zekai Wu",
+        "Jiabao Jin",
+        "Peng Cheng",
+        "Xiaoyao Zhong",
+        "Lei Chen",
+        "Yongxin Tong",
+        "Zhitao Shen",
+        "Jingkuan Song",
+        "Heng Tao Shen",
+        "Xuemin Lin"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-03-23T08:53:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.21710v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "ANNS framework supporting RAG and search systems",
+      "llm_evidence_cn": "支持RAG和搜索系统的近似最近邻搜索框架",
+      "llm_evidence": "支持RAG和搜索系统的近似最近邻搜索框架",
+      "canonical_evidence": "支持RAG和搜索系统的近似最近邻搜索框架",
+      "llm_tldr_en": "Proposes FGIM framework for efficiently merging graph-based indexes in approximate nearest neighbor search.",
+      "llm_tldr_cn": "提出高效合并图索引的近似最近邻搜索框架。",
+      "llm_tldr": "提出高效合并图索引的近似最近邻搜索框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.25821v1",
+      "title": "Doctorina MedBench: End-to-End Evaluation of Agent-Based Medical AI",
+      "abstract": "We present Doctorina MedBench, a comprehensive evaluation framework for agent-based medical AI based on the simulation of realistic physician-patient interactions. Unlike traditional medical benchmarks that rely on solving standardized test questions, the proposed approach models a multi-step clinical dialogue in which either a physician or an AI system must collect medical history, analyze attached materials (including laboratory reports, images, and medical documents), formulate differential diagnoses, and provide personalized recommendations. System performance is evaluated using the D.O.T.S. metric, which consists of four components: Diagnosis, Observations/Investigations, Treatment, and Step Count, enabling assessment of both clinical correctness and dialogue efficiency.   The system also incorporates a multi-level testing and quality monitoring architecture designed to detect model degradation during both development and deployment. The framework supports safety-oriented trap cases, category-based random sampling of clinical scenarios, and full regression testing. The dataset currently contains more than 1,000 clinical cases covering over 750 diagnoses. The universality of the evaluation metrics allows the framework to be used not only to assess medical AI systems, but also to evaluate physicians and support the development of clinical reasoning skills. Our results suggest that simulation of clinical dialogue may provide a more realistic assessment of clinical competence compared to traditional examination-style benchmarks.",
+      "authors": [
+        "Anna Kozlova",
+        "Stanislau Salavei",
+        "Pavel Satalkin",
+        "Hanna Plotnitskaya",
+        "Sergey Parfenyuk"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "published": "2026-03-26T18:38:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.25821v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluation framework for agent-based medical AI simulating physician-patient interactions",
+      "llm_evidence_cn": "基于智能体的医疗AI评估框架模拟医患交互",
+      "llm_evidence": "基于智能体的医疗AI评估框架模拟医患交互",
+      "canonical_evidence": "基于智能体的医疗AI评估框架模拟医患交互",
+      "llm_tldr_en": "Doctorina MedBench provides end-to-end evaluation of agent-based medical AI through simulated clinical dialogues.",
+      "llm_tldr_cn": "Doctorina MedBench通过模拟临床对话提供医疗智能体端到端评估。",
+      "llm_tldr": "Doctorina MedBench通过模拟临床对话提供医疗智能体端到端评估。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.24647v1",
+      "title": "Can LLMs Beat Classical Hyperparameter Optimization Algorithms? A Study on autoresearch",
+      "abstract": "The autoresearch repository enables an LLM agent to search for optimal hyperparameter configurations on an unconstrained search space by editing the training code directly. Given a fixed compute budget and constraints, we use \\emph{autoresearch} as a testbed to compare classical hyperparameter optimization (HPO) algorithms against LLM-based methods on tuning the hyperparameters of a small language model. Within a fixed hyperparameter search space, classical HPO methods such as CMA-ES and TPE consistently outperform LLM-based agents. However, an LLM agent that directly edits training source code in an unconstrained search space narrows the gap to classical methods substantially despite using only a self-hosted open-weight 27B model. Methods that avoid out-of-memory failures outperform those with higher search diversity, suggesting that reliability matters more than exploration breadth. While small and mid-sized LLMs struggle to track optimization state across trials, classical methods lack domain knowledge. To bridge this gap, we introduce Centaur, a hybrid that shares CMA-ES's internal state, including mean vector, step-size, and covariance matrix, with an LLM. Centaur achieves the best result in our experiments, with its 0.8B variant outperforming the 27B variant, suggesting that a cheap LLM suffices when paired with a strong classical optimizer. The 0.8B model is insufficient for unconstrained code editing but sufficient for hybrid optimization, while scaling to 27B provides no advantage for fixed search space methods with the open-weight models tested. Code is available at https://github.com/ferreirafabio/autoresearch-automl.",
+      "authors": [
+        "Fabio Ferreira",
+        "Lucca Wobbe",
+        "Arjun Krishnakumar",
+        "Frank Hutter",
+        "Arber Zela"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-25T17:29:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.24647v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM agent searches for optimal hyperparameter configurations",
+      "llm_evidence_cn": "LLM智能体搜索最优超参数配置",
+      "llm_evidence": "LLM智能体搜索最优超参数配置",
+      "canonical_evidence": "LLM智能体搜索最优超参数配置",
+      "llm_tldr_en": "Study comparing LLM agents against classical HPO algorithms for hyperparameter search.",
+      "llm_tldr_cn": "比较LLM智能体与经典HPO算法进行超参数搜索的研究。",
+      "llm_tldr": "比较LLM智能体与经典HPO算法进行超参数搜索的研究。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.22606v1",
+      "title": "TrajLoom: Dense Future Trajectory Generation from Video",
+      "abstract": "Predicting future motion is crucial in video understanding and controllable video generation. Dense point trajectories are a compact, expressive motion representation, but modeling their future evolution from observed video remains challenging. We propose a framework that predicts future trajectories and visibility from past trajectories and video context. Our method has three components: (1) Grid-Anchor Offset Encoding, which reduces location-dependent bias by representing each point as an offset from its pixel-center anchor; (2) TrajLoom-VAE, which learns a compact spatiotemporal latent space for dense trajectories with masked reconstruction and a spatiotemporal consistency regularizer; and (3) TrajLoom-Flow, which generates future trajectories in latent space via flow matching, with boundary cues and on-policy K-step fine-tuning for stable sampling. We also introduce TrajLoomBench, a unified benchmark spanning real and synthetic videos with a standardized setup aligned with video-generation benchmarks. Compared with state-of-the-art methods, our approach extends the prediction horizon from 24 to 81 frames while improving motion realism and stability across datasets. The predicted trajectories directly support downstream video generation and editing. Code, model checkpoints, and datasets are available at https://trajloom.github.io/.",
+      "authors": [
+        "Zewei Zhang",
+        "Jia Jun Cheng Xian",
+        "Kaiwen Liu",
+        "Ming Liang",
+        "Hang Chu",
+        "Jun Chen",
+        "Renjie Liao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-23T22:10:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.22606v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Predictive framework for future trajectory generation from video",
+      "llm_evidence_cn": "从视频预测未来轨迹的框架",
+      "llm_evidence": "从视频预测未来轨迹的框架",
+      "canonical_evidence": "从视频预测未来轨迹的框架",
+      "llm_tldr_en": "TrajLoom predicts dense future trajectories from video using VAE and flow-based generation in latent space.",
+      "llm_tldr_cn": "TrajLoom使用VAE和潜空间流生成从视频预测密集未来轨迹。",
+      "llm_tldr": "TrajLoom使用VAE和潜空间流生成从视频预测密集未来轨迹。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
