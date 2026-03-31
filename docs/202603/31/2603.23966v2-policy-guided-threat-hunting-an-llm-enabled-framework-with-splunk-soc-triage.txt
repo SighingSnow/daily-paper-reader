@@ -1,0 +1,1124 @@
+Title: Policy-Guided Threat Hunting: An LLM enabled Framework with Splunk SOC Triage
+
+URL Source: https://arxiv.org/pdf/2603.23966v2
+
+Published Time: Tue, 31 Mar 2026 02:35:28 GMT
+
+Number of Pages: 45
+
+Markdown Content:
+# Policy-Guided Threat Hunting: An LLM enabled Framework with Splunk SOC Triage 
+
+Rishikesh Sahay a, Bell Eapen a, Weizhi Meng b, Md Rasel Al Mamun a, Nikhil Kumar Dora c, Manjusha Sumasadan a, Sumit Kumar Tetarave c, Rod Soto d, Elyson De La Cruz e
+
+> aDepartment of Management Information Systems, University of Illinois, Springfield, USA
+> bSchool of Computing and Communications, Lancaster University, United Kingdom
+> cSchool of Computer Applications, Kalinga Institute of Industrial Technology, India
+> dSplunk Research Team, USA
+> eSchool of Information Technology and Artificial Intelligence, University of Cumberlands, USA
+
+Abstract 
+
+With frequently evolving Advanced Persistent Threats (APTs) in cyberspace, traditional security solu-tions approaches have become inadequate for threat hunting for organizations. Moreover, SOC (Security Operation Centers) analysts are often overwhelmed and struggle to analyze the huge volume of logs received from diverse devices in organizations. To address these challenges, we propose an automated and dynamic threat hunting framework for monitoring evolving threats, adapting to changing network conditions, and performing risk-based prioritization for the mitigation of suspicious and malicious traffic. By integrating Agentic AI with Splunk, an established SIEM platform, we developed a unique threat hunting framework. The framework systematically and seamlessly integrates different threat hunting modules together, ranging from traffic ingestion to anomaly assessment using a reconstruction-based autoencoder, deep reinforcement learning (DRL) with two layers for initial triage, and a large language model (LLM) for contextual analysis. We evaluated the framework against a publicly available benchmark dataset, as well as against a simu-lated dataset. The experimental results show that the framework can effectively adapt to different SOC objectives autonomously and identify suspicious and malicious traffic. The framework enhances operational effectiveness by supporting SOC analysts in their decision-making to block, allow, or monitor network traffic. This study thus enhances cybersecurity and threat hunting literature by presenting the novel threat hunting framework for security decision- making, as well as promoting cumulative research efforts to develop more effective frameworks to battle continuously evolving cyber threats. 
+
+Keywords: 
+
+Threat hunting, Splunk, Security Operation Center, LLM, Agentic AI, Deep Reinforcement Learning, Autoencoder                  
+
+> Email addresses: rsaha@uis.edu (Rishikesh Sahay), bpunn@uis.edu (Bell Eapen), w.meng3@lancaster.ac.uk (Weizhi Meng), mmamu@uis.edu (Md Rasel Al Mamun), 2481140@kiit.ac.in (Nikhil Kumar Dora), msuma5@uis.edu (Manjusha Sumasadan), sumitkumar.fca@kiit.ac.in (Sumit Kumar Tetarave), rodsoto@cisco.com (Rod Soto),
+> elyson.delacruz@ucumberlands.edu (Elyson De La Cruz)
+> arXiv:2603.23966v2 [cs.CR] 30 Mar 2026
+
+1. Introduction 
+
+The frequently evolving threat landscape in cyberspace emphasizes the need for proactive and intelligent cyber threat hunting [1]. According to Kaspersky (2024), there is an increase of 74% in advanced persistent threats (APTs) in 2024 compared to 2023 [2]. Advanced Persistent Threats are cyber threats that use sophisticated tools and resources to exploit vulnerabilities in organizations. According to the Fortinet threat report 2025, the attempts to exploit newly found vulnerabilities have increased, and cybercriminals are using artificial intelligence (AI) for phishing, impersonation, and evasion tactics, resulting in the increase of reconnaissance activity by 16.7% each year [3]. Traditional security approaches have become inadequate with the rise of these advanced persistent threats because traditional endpoint detection and response tools rely on a known attack signature or a clear anomalous pattern [4, 5]. Contemporary anomaly-based detection solutions are reactive, fail to address continuously evolving threat landscapes, and thereby require proactive threat hunting approaches [6–8]. Thus, this study offers a novel, proactive threat hunting framework with improved effectiveness to assist security analysts in their decision-making to block, allow, or monitor network traffic. Mitigation of advanced persistent threats requires continuous monitoring of security logs. Thus, the security analysts in the security operation center (SOC) continuously analyze a large volume of traffic logs to effectively pinpoint potential threats [9]. However, current threat hunting literature identifies that it is challenging for security analysts to analyze huge volume and complex data types of logs [10]. Although the Security Information and Event Management (SIEM) tools such as Splunk offer centralized log aggregation, correlation, and real-time monitoring features, they rely on predefined rules and existing signatures, which limit their effectiveness against new or context-driven threats [5, 11]. In addition, it is imperative for the SOC analysts to perform risk-based prioritization for mitigation. Another critical issue for the current threat hunting process is the shortage of security analysts and the lack of automation in repetitive security workflows that causes a burden on SOC analysts [10]. Thus, there is a need for proactive cybersecurity solutions with automatic security workflows in threat hunting that can monitor evolving threats and adapt to changing network conditions, perform risk-based prioritization for mitigation of suspicious and malicious traffic. Thus, integrating Agentic AI with Splunk, an established SIEM platform, this research proposes an automated threat hunting framework capable of identifying and mitigating evolving threats with high accuracy and validate the framework. The recent advancements in the Agentic AI system built on LLM (Large Language Model) present a significant opportunity to improve threat hunting operations [12]. The Agentic AI system leverages ad-vancements in reinforcement learning, goal-oriented architectures, and adaptive control mechanisms [13]. The agentic system comprises collaborative agents with specialized roles such as planning, analysis, and execution facilitated by LLM along with tool use. In the Agentic AI architecture, LLM is the main decision making controller, also referred to as the brain of the system [13]. LLMs have shown considerable capabili-ties to identify complex patterns, analyze unstructured data, and provide contextual insights that are highly 2relevant to security operations [1, 14]. Agentic AI is goal oriented, with adaptable features that enable it to complete multi-layered tasks without instructions each time [13]. By integrating the Agentic AI system with established SIEM platforms such as Splunk within the threat hunting workflow, we can automate log analysis, detect subtle indicators of compromise (IoCs), and reduce the burden on SOC analysts [15, 16]. Recent works [17–19] highlight AI agents as assisting the SOC ana-lyst by correlating logs across diverse data sources, preserving investigative context through memory, and continuously updating hypotheses over time. It has the capability to automate contextual analysis, generate detection rules, assist in formulating sophisticated queries for security information and event management systems, and even support in the development of incident response playbook [20]. This integration of Agentic AI with the SIEM platform can facilitate real-time monitoring and alerting, allowing faster response times and decision making to security incidents [21]. Automating the threat hunting workflow allows SOC analysts to focus on strategic and innovative aspects of threat hunting [22]. This proactive approach not only strengthens an organization’s security posture, but also optimizes the utilization of limited security expertise. However, in the SOC environment, human over-sight is very important for safe autonomy and crucial decision-making. Under a fast changing environment and incomplete information, agents may struggle to generalize, so human-in-the-loop is necessary to validate inferred threats and ambiguous findings. Therefore, the challenge is to design an Agentic threat hunting framework with coordinated workflow that keeps SOC analyst driven flexibility along with explainable de-cision making and providing broader automation without exceeding acceptable risk. After a comprehensive analysis of the available threat hunting processes, we have identified several requirements to enhance them, and even a new design: (1) minimize false alarms; (2) automation in key security workflows; (3) priori-tization of traffic flows for further investigation by SOC analysts and LLM; (4) LLM assisted contextual analysis of traffic flows and generation of queries to filter logs on SIEM tools such as Splunk; (5) Automated development of incident response playbook; (6) SOC analyst involved in final decision making. To meet all the above-mentioned requirements, we propose a framework for automated and dynamic threat hunting leveraging the capabilities of Agentic AI to address the changing threat landscape. The framework is intended to systematically and seamlessly integrate different threat hunting modules together, ranging from log ingestion to anomaly assessment using reconstruction-based autoencoder, Deep Reinforce-ment Learning with two layers, and LLM triage. In particular after log collection, autoencoder based anomaly detection is trained on a part of initial benign traffic and assigns confidence score to all the traffic instances based on the learned normal network features. In the framework, the Deep Reinforcement Learning (DRL) module is trained on the traffic of fixed length time window for decision making. After DRL decision, traf-fic flows are prioritized considering DRL decision and autoencoder anomaly score for LLM analysis using ChatGPT. Only flows with a high priority score are forwarded to LLM for contextual analysis to avoid unnecessary computational overload and hallucination. Based on contextual insights from LLM, further validation is also performed on Splunk to identify malicious and suspicious activities related to flows with a 3high priority score. This workflow significantly improves alert triage and reduces the burden on SOC analysts and helps them in informed decision-making. Moreover, it is important to differentiate Agentic AI with the deep reinforcement-learning (DRL) agent in our framework. Agentic AI refers to a broader architectural paradigm in which an LLM orchestrates a collection of specialized, tool using agents that collaborate to achieve high-level goals. Within this architecture, the DRL agents provide outputs that the LLM-based agents incorporate into planning and decision-making. The rest of the paper is organized as follows. The related literature on agentic AI and LLM application in cybersecurity and the SIEM tool for threat hunting is described in Section 2. A set of key observations and motivation are presented in Section 3 Section 4 presents the Agentic AI driven threat-hunting framework, its different components. Section 5 describes the components and its functionality in detail. The use case and threat model are described in Section 6. Section 7 described the experimental results. Section 8 presents a discussion of the framework and its limitations, and finally Section 9 concludes the article with future work. 
+
+2. Related Work 
+
+Agentic AI is reshaping threat hunting with adaptive and dynamic approach beyond the traditional alert driven detection system in the network. Specifically, in the network, these agents monitor traffic, iden-tify malicious activities, trigger containment, or mitigate that to reduce the burden on security analysts. Recently, a few works have explored the application of argentic AI in different cybersecurity domains, in-cluding autonomous incident response, cyber threat intelligence, autonomous monitoring, and adversarial cyber defense [17, 23]. We review three groups of literature: (1) Agentic AI for threat hunting and adaptive defense, (2) Agentic AI based network monitoring and anomaly detection, and (3) LLM and Generative AI for Security Operation Centers (SOC) tasks. 
+
+• Agentic AI for threat hunting and adaptive defense: In [19], the authors present an autonomous threat hunting using machine learning and Deep Reinforcement Learning methods for proactive threat detection. The framework performs traffic analysis using ML models such as RNN and CNN, then leverages Deep Reinforcement Learning for optimal threat hunting. The paper highlights that automa-tion can reduce the burden on the SOC analyst, although the main aim of this work is to detect and respond based on DRL learning. In [24], the authors use agentic AI for self-healing cyber systems with autonomous detection, mitigation and adaptation to evolving cyber threats. However, the main focus of this work is to improve threat detection using agentic AI and does not provide SIEM integration to support SOC analysts in decision making. In [25], the authors proposed a conceptual framework for the integration of AI with human analysts for SOC environments. The framework focuses on organi-zational and workflow aspects rather than anomaly assessment, threat prioritization, and automated investigation. In [18, 26], the role of agentic AI in cybersecurity is presented along with the challenges of using these AI agents for cybersecurity, as threat environments evolve. As a result, they emphasize that human analysts must be in the loop for validating threats and analyzing complex findings. Unlike 4these works, our framework provides autoencoder based anomaly assessment, DRL-based traffic triage and prioritization, and LLM-assisted analysis while also integrating with SIEM tools such as Splunk for the deep investigation of malicious flows. 
+
+• Agentic AI based Network Monitoring and Anomaly Detection: NetMonAI [27] proposed a scalable distributed networking monitoring framework combining packet-level and flow-level analysis. Each node in the architecture has an agent which captures the traffic, find anomalies and reason using LLMs. These agents work in an automated way and coordinate with a centralized controller which collects reports and provides human readable summaries. In [28], a time series based anomaly detection system is proposed for cloud infrastructure. In the framework, multiple agents collaborate to autonomously generate detection rules using LLM and improve detection accuracy. NetMonAI and ARGOS leverage agentic AI for scalable network monitoring and anomaly detection, but do not address the complete SOC workflow. These works focus on anomaly detection, but our framework provides the full cycle of anomaly assessment, initial triage, LLM assisted contextual analysis, and SIEM platform based investigation of malicious flows. 
+
+• LLMs and Generative AI for SOC Operations: Recently, the integration of LLMs into cy-bersecurity has gained significant attention due to their ability to automate manual tasks, improved contextual analysis, and decision making [29]. In [30] the authors proposed a framework for threat hunting using LLM and Splunk. The framework leverages LLM for the initial triage of security logs and then performs further investigation on Splunk. In [31] the authors present the potential of LLMs to automate the analysis and triage of security alerts, highlighting how LLMs can provide contextual insight, reduce false positives, and assist SOC analysts in improving security operations. In [32], the use of different LLMs is explored for threat hunting. The main focus of the work is to determine whether LLM can generate effective queries for security tools such as Splunk and Elasticsearch to analyze logs. In [33] the authors provide a framework called LLM4Sec to improve anomaly detection by fine-tuning LLMs. The authors demonstrate extensive evaluation of five LLMs such as BERT, RoBERTa, Distil-RoBERTa, GPT-2 and GPT-Neo, investigating their effectiveness in log analysis. In [34] an AI system is presented, leveraging LLMs such as GPT-4 to automate the extraction of Indicators of Compromise (IoCs) and to construct relationship graphs from Cyber Threat Intelligence (CTI) reports, which mini-mizes the manual tasks of SOC analysts. Vinayak [35] studied the application of LLMs in cyber threat hunting. These works mainly investigated the potential application of LLMs in analyzing security logs and finding IoCs for threat detection. Industry grade solutions such as Microsoft Security Copilot have enabled natural language interaction and contextual summarization of alerts, that has improved SOC analyst productivity. However, these solutions are assistive tools and do not learn decision policies. In contrast, the proposed framework offers a DRL–based policy layer that operates upstream of alert generation, learning cost-aware containment decisions over aggregated network traffic and identifying 5suspicious traffic window, and helps the SOC analyst in decision making to block or allow traffic in the network. As compared to monolithic copilot architectures, our framework uses a hierarchical agentic design in which DRL governs when and how LLM is invoked. Moreover, by invoking LLM only for high-priority events, our framework reduces computational overhead and analyst burden, positioning it as a complementary and orthogonal solution to existing copilot-based platforms. Agentic AI presents both opportunities and challenges: On the one hand, it can automate threat identi-fication and analysis, but their adoption also risks getting manipulated and requires careful human oversight to verify the information. Previous works do not address the implementation agentic system without limiting auditability and analyst control. Moreover, prior works lack a complete cycle from data ingestion into SIEM tool to anomalous flows findings, prioritization of flows, LLM based multi-agent alert triage, query genera-tion to validation of IoCs on SIEM platform. Our work addresses this gap by integrating Agentic AI based analysis with SIEM platform such as Splunk [36] to provide automated, context-aware threat hunting, along with operational validation of threats on SIEM tool. Our multi-layered framework integrates the strengths of AI-driven analysis, LLM based contextual insights, robust SIEM capabilities, and providing a more effective and automated threat hunting framework. 
+
+3. Key observation and design objectives 
+
+We analyzed and compared the agentic AI and LLM based threat detection mechanisms in Section 2, and summarized in Table 1. Our primary observations are highlighted below: 
+
+• Most of the agentic AI based mechanisms in our survey are designed only for threat detection and do not integrate the SIEM platform into the framework. 
+
+• One of the desirable features is that Agentic AI based threat hunting framework should perform anomaly assessment and prioritize alerts and traffic flows before forwarding to LLM for contextual analysis to avoid processing overhead. In [25], the authors address both issues to some extent at the high-level. 
+
+• Initial triage is important for threat hunting before delving into more details. While some of the existing ones have this feature, but they provide this functionality at the level of LLM which causes processing overhead on the LLM due to the huge volume of information. 
+
+• Most of the mechanisms provide a decision support system for the SOC environment partially without any SOAR suggestion. 
+
+• While analyzing the traffic logs, it is also important to understand the attack technique used by the attackers. Therefore, the MITRE mapping is important to comprehend this. As we can see in Table 1, few methods address this issue. 6• As shown in Table 1, most of the mechanisms that we reviewed do not offer the feature to adapt according to the learned policy. Although few methods use autonomous adaptation to detect zero day attacks [19, 24]. With these key observations in mind, we are motivated to design such an agentic AI based threat hunting framework that can overcome the identified limitations and achieve a number of desired properties, as follows: 
+
+• Anomaly assessment and initial triage: Anomaly assessment, traffic prioritization, and initial triage are performed before forwarding the alert to LLM for analysis. This closes the gap between detection and response with investigation support. 
+
+• SIEM Integration: The SIEM platform is integrated with the framework for further deep investigation of traffic flows. 
+
+• SOAR and SOC decision support: The framework provides SOAR suggestion and supports SOC analysts in decision making by assisting them in filtering traffic flows on the SIEM platform with queries. 
+
+• MITRE Mapping: The mapping to MITRE ATT&CK framework is done to understand the attack technique used. 
+
+• Adaptive learned policy: The framework offers the learned policy layer to adapt according to the requirements of the SOC objectives. Thanks to the aforementioned properties, the features ranging from anomaly assessment, initial triage, traffic prioritization, MITRE mapping and SIEM tool can be systematically integrated together, to assist the SOC analysts for informed decision making. The next Section 4.1, describes the major components of the proposed framework in detail. 
+
+4. Agentic AI SOC Framework 
+
+This section describes the major components of the proposed threat hunting framework. As shown in Fig. 1, the framework comprises of major components: SIEM Indexing, Data Cleaning & Processing, Autoencoder Anomaly Detection, Deep Reinforcement Learning (DRL) Network, Prioritization, LLM Multi-agent triage, and Splunk validation. The components are described in Section 4.1. 
+
+# 4.1. Major Framework Components 
+
+Data Collection and SIEM Indexing: This component is responsible for indexing logs collected from different devices in the organization and store them in a central database for analysis. Collecting and indexing logs from different devices in the SIEM tool is an important step in threat hunting. The log collection agents are deployed on the devices that collect and forward the logs to the SIEM server. It is also important to 7Table 1: Comparison between existing LLM and Agentic AI based threat hunting techniques 
+
+Threat Hunting Technique Anomaly Assessment Traffic Flows Prioritization Initial Triage Agentic AI/LLM Integration MITRE Mapping SIEM Integration and Validation SOAR Suggestion SOC Decision Support Learned Policy adaptation Agentic AI for Autonomous Threat Hunting [19] Yes No No Yes No No No Yes Partial Agentic AI for Adaptive Threat Response [24] Yes No No Yes No No No Yes at high-level (Partial) Partial Unified Framework for Human-AI Collaboration [18, 25] Conceptual Partial No Yes No Yes at high-level No Yes No NetMon AI Framework [27] Yes No Yes Yes No No No No No ARGOS Agentic Detection [28] Yes No No Yes No No No No No LLM for Threat Intelligence and Automation [34] No No No LLM integration No No No Partial No LLM for Non-Security Experts [32] No No Yes LLM Analysis No Yes No Partial No LLM Benchmarking for Log Analysis [33] No No Yes LLM Integration No No No No No LLM for Security alarm analysis [31] No No Yes LLM Integration No No No Partial No Microsoft Security Copilot No Partial Yes Yes Partial Yes Yes Yes No LLM and Splunk for SOC [30] No No Yes LLM integration Yes Yes Yes Yes No Proposed Framework Yes Yes Yes Yes Yes Yes Yes Yes Yes 
+
+8Figure 1: Agentic AI-based Threat Hunting Framework 
+
+create a strategy to collect the volume of logs from different devices, as it can cause processing overhead on the SIEM tool as well as alert fatigue for the SOC analyst. 
+
+Data Cleaning and Processing: This module is responsible for cleaning and pre-processing the indexed data for further investigation. All duplicate instances are removed because the data on the SIEM server often have many duplicates. It extracts the features (such as IP addresses, ports, protocols, in bytes, out bytes, etc.) from the indexed data and exports them in csv format for processing. 
+
+Autoencoder-based Anomaly Detection: In the framework, the reconstruction based deep autoen-coder is trained on a part of legitimate traffic and learns the benign network pattern. The autoencoder is a neural network that tries to reconstruct the normal network pattern and assigns the reconstruction error to data samples. Data instances that are normal are reconstructed with minimal error. However, anomalies are reconstructed with high error. In the framework, the reconstruction error is assigned to the data instances as the anomaly score (AAD). The AAD score along with the DRL decision is used to prioritize the malicious traffic window to be forwarded to LLM for contextual analysis. The details are described in Section 4. 9Deep Reinforcement Learning Network: The DRL module in the framework comprises of three major components: a) DRL agent, b) simulation Environment, and c) Reward function. The DRL agent interacts with the simulated environment that contains aggregated traffic features over a fixed time window, and takes action based on its current state. The environment responds with a new state and a reward as feedback based on its action of the DRL agent. The objective of the DRL agent is to take action in such a way as to maximize cumulative reward. In the framework, action space also termed as the DRL decision comprises: a) Containment (1), b) Allow (0). 
+
+Initial Triage and Prioritization: Based on the DRL decision and the anomaly score (AAD Score) of the autoencoder, the Initial Triage and Prioritization module prioritizes malicious traffic windows for LLM analysis. The DRL action (1 or 0) is multiplied by the AAD score to prioritize the flow. This initial triage and prioritization of the malicious traffic window reduces the processing overhead on LLM. 
+
+LLM Multi-Agent based Contextual Analysis: This module analyzes the received malicious traffic window and provides the contextual insights. It is based on a multi-agent system, where one LLM agent acts as an orchestrator and two other LLM agents perform the analysis. In the framework, the agent titled Senior SOC Triage Analyst analyzes the traffic, provides its assessment, and generates SPL (Splunk Query Language) queries to filter the traffic on the Splunk dashboard. Another LLM agent called Threat Intelligence Analyst performs the mapping of traffic behavior to MITRE ATT&CK framework. Finally, the orchestrator summarizes the contextual analysis in a human-readable format. The listings 1 and 2 show the sample prompts for the SOC triage agent and the threat intelligence agent. The implementation of this component is done using a CrewAI framework [37]. Currently, in our proposed framework, public LLM’ API such as ChatGPT is used for LLM triage, but local LLM is suggested for the analysis of sensitive logs. Data anonymization can also be used to anonymize sensitive information before forwarding it to public LLM. 
+
+Validation in Splunk: The insights provided by the LLM is further validated by the human SOC analyst on the Splunk dashboard by pulling the logs. The SPL queries provided by the Senior SOC Triage Analyst is used by the human SOC analyst to validate the insights in Splunk. Based on the findings in Splunk, the SOC analyst can decide to Block or Allow traffic. For instance, if SOC analyst finds the presence of Indicators of Compromise (IoCs) such as a high number of packets in a very short time window in the logs, then they can block the traffic by configuring the detection rules. It reduces the workload of the SOC analyst by directly identifying the relevant flows for investigation in Splunk and supplying the corresponding SPL queries. It ensures that the LLM analysis is appropriately filtered. 
+
+# 4.2. Design Rationale 
+
+The key design principle in the proposed framework is strict functional separation to avoid feature leakage and model bias, as shown in Table 2. Specifically, the AAD score is explicitly excluded from DRL training to avoid leakage of features and inflated performance. It is only included after DRL training for SOC triage and prioritization. 10 Table 2: Design rationale of the main components 
+
+Component Purpose Input Feature AAD Continuous anomaly scoring Raw network features DRL Decision, initial triage and prioritization Raw features except AAD score LLM Agent Contextual insights and human like triage and reasoning Prioritized traffic flow along with DRL decision and AAD score  
+
+> Listing 1: A sample prompt for the SOC triage agent 1
+
+Role: Senior SOC Triage Analyst  
+
+> 2
+
+Goal: Assess the threat level associated with a prioritized network flow.  
+
+> 3
+
+Backstory: Expert at distinguishing benign network noise from suspicious or malicious traffic.  
+
+> 45
+
+Input:  
+
+> 6
+
+- Flow ID: {flow_id}  
+
+> 7
+
+- Source IP: {src_ip}  
+
+> 8
+
+- Destination IP: {dest_ip}  
+
+> 9
+
+- Destination Port: {dest_port}  
+
+> 10
+
+- Priority Score: {priority}  
+
+> 11
+
+- Anomaly Score: {aad_score}  
+
+> 12 13
+
+Task:  
+
+> 14
+
+Analyze the flow and determine whether the observed communication appears benign,  
+
+> 15
+
+suspicious, or high risk. Briefly explain the reasoning using the provided network context.  
+
+> 16 17
+
+Expected Output:  
+
+> 18
+
+A concise SOC-style summary of the alert risk level. 
+
+11 Listing 2: A sample prompt for the threat intelligence agent 1 Role: Threat Intelligence Analyst  
+
+> 2
+
+Goal: Map suspicious activity to MITRE ATT&CK and provide remediation guidance.  
+
+> 3
+
+Backstory: Expert in associating network behaviors with adversarial techniques and response actions  
+
+> 45
+
+Input:  
+
+> 6
+
+- Flow ID: {flow_id}  
+
+> 7
+
+- Source IP: {src_ip}  
+
+> 8
+
+- Destination IP: {dest_ip}  
+
+> 9
+
+- Destination Port: {dest_port}  
+
+> 10
+
+- Priority Score: {priority}  
+
+> 11
+
+- Anomaly Score: {aad_score}  
+
+> 12 13
+
+Task:  
+
+> 14
+
+Identify the most relevant MITRE ATT&CK technique associated with the observed flow.  
+
+> 15
+
+Provide the MITRE technique ID, technique name, and a brief remediation recommendation.  
+
+> 16 17
+
+Expected Output:  
+
+> 18
+
+MITRE ATT&CK technique ID, technique name, and remediation guidance. 
+
+5. Methodology 
+
+In this section, we model the Security Operations Center (SOC) as a sequential decision-making problem, where a DRL agent is trained on aggregated network traffic features and decides whether to allow or contain 
+
+the traffic. The system operates over a fixed-length, non-overlapping time windows and is formulated as a Markov Decision Process (MDP). The DRL agent works exclusively on aggregated raw traffic features, while anomaly scores and LLM reasoning are introduced only after the containment decision is made. The framework enforces strict separation of responsibilities to avoid feature leakage commonly seen in hybrid machine learning security systems. 
+
+# 5.1. Autoencoder-Based Anomaly Detection (AAD) 
+
+In our framework, the anomaly score (AAD score) is computed using a fully connected reconstruction based autoencoder anomaly detection (AAD) with a low dimensional bottleneck architecture (8-2-8), which is trained on early benign traffic flows to model normal network behavior [38]. The Algorithm 1 implements an unsupervised Autoencoder trained on legitimate traffic observed during an initial period (we use the first fraction of the timeline, e.g., 25%). Feature normalization is performed using statistics derived only from early benign traffic flows to simulate a clean baseline of normal network behavior to avoid mixing the anomaly 12 Algorithm 1 Autoencoder-Based Anomaly Detection (AAD) with Benign-Only Standardization and Flow Mapping 
+
+Require: Flow dataset D with timestamps and identifiers (e.g., flow_id ), sorted by time; feature subset 
+
+F = {src_port , dest_port , bytes_in , bytes_out }; benign label indicator y ∈ { 0, 1} (used only for selecting benign training samples); training fraction α (e.g., 0.25 ); autoencoder bottleneck dimension d
+
+(e.g., d = 2 ). 
+
+Ensure: Anomaly score AAD( wt) for each time window wt and a mapping M from each wt to its repre-sentative flow metadata.  
+
+> 1:
+
+Sort D chronologically by timestamp.  
+
+> 2:
+
+Split D into an early training period Dtrain (first α fraction) and the full period Dall . 
+
+> 3:
+
+Filter benign-only samples from the training period: Dbenign = {x ∈ D train | y(x) = 0 }. 
+
+> 4:
+
+Extract benign training matrix Xbenign ← D benign [F] and full matrix Xall ← D all [F]. 
+
+> 5:
+
+Benign-only standardization:  
+
+> 6:
+
+Compute μ ← mean( Xbenign ) and σ ← std( Xbenign ). 
+
+> 7:
+
+Standardize Xbenign s ← (Xbenign − μ)/(σ + ϵ) and Xall s ← (Xall − μ)/(σ + ϵ). 
+
+> 8:
+
+Initialize reconstruction autoencoder fϕ with architecture (|F| → 8 → d → 8 → |F| ). 
+
+> 9:
+
+Train fϕ on benign data by minimizing reconstruction loss: 
+
+L(ϕ) = 1
+
+|Xbenign s |
+
+X
+
+> x∈Xbenign s
+
+∥x − fϕ(x)∥22. 
+
+> 10:
+
+Windowing and mapping: Partition Dall into fixed windows {wt} (e.g., 5 minutes).  
+
+> 11:
+
+for each window wt do  
+
+> 12:
+
+Construct window feature vector xt ← Agg( Xall s within wt). 
+
+> 13:
+
+Reconstruct ˆxt ← fϕ(xt). 
+
+> 14:
+
+Compute anomaly score: 
+
+AAD( wt) = 1
+
+|F| 
+
+X
+
+> i∈F
+
+(xt,i − ˆxt,i )2. 
+
+> 15:
+
+Store mapping M(wt) to contextual metadata (e.g., src_ip , dest_ip , dest_port , flow_id ) using representative values such as first or mode within wt. 
+
+> 16:
+
+end for  
+
+> 17:
+
+return {AAD( wt)} and mapping M.model with attack information. Given a standardized feature vector xt ∈ R|F| , the autoencoder reconstructs 
+
+ˆxt, and computes the anomaly score as the mean squared reconstruction error shown in Equation 1. The anomaly score is computed per flow and then aggregated. 13 AAD( t) = 1
+
+|F| 
+
+X
+
+> i
+
+(xt,i − ˆxt,i )2. (1) As shown in Algorithm 1, the model first learns a compressed latent representation of normal network features and assigns a higher reconstruction error to malicious flows. In our framework, the AAD Score is not used as part of the DRL state representation during policy learning; instead, it is utilized after DRL decisions to prioritize DRL flagged traffic flows for LLM triage. Although the autoencoder is trained only on numeric features (ports and byte counts), the anomaly score is not detached from flow context. Each score is computed per fixed time window wt and is stored together with a metadata mapping M(wt) containing representative identifiers (e.g., flow_id , src_ip , dest_ip , and service port). In practice, the autoencoder produces AAD( wt) from F, while attribution fields are preserved outside the model and re-attached to the scored window for downstream DRL prioritization and LLM triage. This design prevents leakage from high-cardinality categorical fields while maintaining interpretability for SOC analysts. 
+
+> Table 3: Reconstruction Autoencoder vs Classification Model
+
+Aspect State Reconstruction Autoencoder General Classification Model Labels required No Yes Learns Normal behavior Decision boundary Output Anomaly score Discrete class Used for Prioritization, Triage Detection In the framework, the reconstruction based autoencoder is different from general classification models. The reconstruction based autoencoder used in the framework learns normal benign traffic feature and provides anomaly score (AAD). To learn the traffic behavior it does not need any labels. This anomaly score is used for traffic prioritization for triage. However, general classification models, as shown in Table 3 require labels and provide a discrete class as a decision. It is generally used for threat detection. 
+
+# 5.2. Time-Window State Construction 
+
+Raw network traffic is represented as a sequence of flow records, each comprising of source & destination addresses, ports, protocol, in bytes and out bytes. Traffic is aggregated into fixed-length windows of duration 
+
+∆t = 5 minutes. For each time window t, aggregated state vector is represented by st by merging numerical statistics (such as mean and maximum port numbers and byte counts) along with encoded categorical attributes such as protocol identifiers and low-cardinality representations of IP addresses. The use of fixed temporal window is widely considered best practices in modern Security Operations Centers [39]. For example, let Ft = {f1, f 2, . . . , f Nt } denote the set of raw network events observed during time window 
+
+t, where Nt may be on the order of millions in high-throughput SOC environments. Modeling the state of the system as st = Ft is computationally infeasible. Instead, we build a state representation using an aggregation 14 function represented by ϕ(·); where ϕ(·) represents a large set of raw traffic in a fixed-dimensional feature vector that captures traffic statistics, protocol behavior, and temporal characteristics. 
+
+st = ϕ(Ft) (2) This aggregation represents both regular and burst-oriented patterns while simultaneously reducing noise and dimensionality. Detailed feature engineering, aggregation equations and examples are provided in Ap-pendix A. 
+
+# 5.3. Deep Reinforcement Learning for SOC 
+
+We employ Deep Reinforcement Learning (DRL) to build our containment agent, often referred to as a DRL agent in the paper, which directly learns from traffic features to identify anomalies. Specifically, we model the containment decision problem as a sequential decision-making process using deep reinforcement learning (DRL) by defining the state and action spaces for the agent. Formally, the containment decision is modeled as a Markov Decision Process (MDP) M = ( S, A, P, R, γ ), where S denotes the state, A represents the action space, P represents state transitions across time windows, R is a reward function reflecting SOC priorities, and γ ∈ (0 , 1] is the discount factor. The state of the DRL agent at the time step t, is represented by st, that signifies the aggregated network traffic over a fixed time window. Equation 2 represents the state of the system over aggregated traffic features. The action space of the DRL agent is defined as A = {0, 1}. At each time step t, given the state 
+
+st, the DRL agent selects an action at = 1 , if traffic Ft is considered malicious and at = 0 if Ft is assessed as legitimate. The aim of the agent is to learn an optimal containment policy that maximizes long-term operational utility while balancing detection accuracy and alert fatigue. The DRL policy network represented as πθ (at | st), is implemented using Multilayer Perceptron (MLP) i.e., a feedforward neural network with two hidden layers of 64 neurons each, as mentioned in Algorithm 2. The network takes the aggregated traffic state st ∈ Rd as input and outputs a probability distribution over two actions: Contain and Allow . The st ∈ Rd means that the state at time t is a real-valued vector of dimension d. In our framework, we use Rectified Linear Unit (ReLU) activations in hidden layers, and a softmax function is applied at the output layer to produce action probabilities [40]. Given the state st, the forward pass of the policy network is defined as follows. 
+
+Hidden Layer 1 
+
+h1 = ReLU( W1st + b1), (3) 
+
+Hidden Layer 2 
+
+h2 = ReLU( W2h1 + b2), (4) 15 Output Layer (Logits) 
+
+z = W3h2 + b3, (5) where z ∈ R2 contains unnormalized action scores (logits) for allow and containment . The unnormalized action scores are raw outputs of the policy neural network that signifies how the agent favors each action before softmax normalization. The action probabilities are calculated using softmax and the confidence of the action contain is given by max a π(a | st).
+
+π(a | st) = exp( za)
+
+P 
+
+> a′∈{ 0,1}
+
+exp( za′ ) . (6) The anomaly score provided by the Autoencoder-based Anomaly Detection (AAD) to the traffic flow is not included in the DRL state representation. It prevents feature leakage and make sure that the DRL agent learns containment behavior exclusively from raw and aggregated network traffic, rather than precomputed anomaly scores. The anomaly score is used after DRL decision while prioritizing the traffic flow for LLM triage. For each time window, a triage priority score is computed as shown in Equation 7. Triage Priority = DRL_Action × AAD_Score (7) This formulation ensures that only windows flagged by the DRL agent are prioritized, while the anomaly score validates their urgency. Highly anomalous flows receive higher priority, while low-risk anomalies are de-prioritized even if flagged for containment. This mirrors real SOC analyst workflows, where decisions are discrete but prioritization is continuous. The policy optimization is performed using Proximal Policy Optimization (PPO), which stabilizes learn-ing by constraining policy updates within a clipped trust region [41]. Temporal consistency is preserved through time-series cross-validation, ensuring that training data strictly precede test data in the timeline. The agent iteratively observes the current network state, selects an action according to its policy, and re-ceives a scalar reward based on the correctness of the decision relative to ground truth labels available during training. The multiple reward policies are described in Section 5.3.1. In summary, PPO decides how the policy is updated in the framework. The MLP based on 2 × 64 i.e. 2 layer and 64 neurons shows what the policy looks like. Together, they build DRL agent that: 
+
+• Observes aggregated network traffic. 
+
+• Predicts an action (contain or allow). 
+
+• Receives a reward based on correctness and cost. 
+
+• Updates the policy in a stable and constrained manner. 16 Algorithm 2 Deep Reinforcement Learning for SOC Containment 
+
+Require: Aggregated network windows W = {w1, w 2, . . . , w T } with feature vectors st Ground-truth labels 
+
+yt (used only for reward computation during training) 
+
+Ensure: Containment policy πθ (a | s) 
+
+> 1:
+
+Initialize PPO policy network πθ with 2 hidden layers (64 neurons each)  
+
+> 2:
+
+Define action space A = {0 : No Action , 1 : Containment } 
+
+> 3:
+
+Define reward function R(at, y t) emphasizing low false positives  
+
+> 4:
+
+for each training episode do  
+
+> 5:
+
+for each time step t do  
+
+> 6:
+
+Observe environment state st 
+
+> 7:
+
+Sample action at ∼ πθ (at | st) 
+
+> 8:
+
+Execute action at 
+
+> 9:
+
+Receive reward: rt = R(at, y t) 
+
+> 10:
+
+Store (st, a t, r t) 
+
+> 11:
+
+end for  
+
+> 12:
+
+Update policy parameters θ using PPO objective  
+
+> 13:
+
+end for  
+
+> 14:
+
+return trained containment policy πθ
+
+5.3.1. Reward Shaping 
+
+The reward function is designed to reflect SOC operational priorities, with a particular emphasis on mini-mizing false positives, which are costly and disruptive in real-world environments. Correct containment of malicious activity (true positives) is positively rewarded, while false positives incur significant penalties. True negatives are rewarded to reinforce restraint (no containment) when traffic is benign, while false negatives are penalized to discourage missed detections. Multiple reward profiles are evaluated to study the trade-off between detection sensitivity and false-positive reduction. 
+
+rt = R(at, y t) (8) In the proposed DRL formulation, the agent operates in a binary decision space at each time step t. Let 
+
+at ∈ { 0, 1} represent the action selected by the agent, where ( at = 1 ) corresponds to containment decision (e.g., blocking or isolating a network flow) and at = 0 represents allow action i.e., traffic is benign. The ground-truth label at time step t is shown by yt ∈ { 0, 1}, where yt = 1 denotes that the observed network flow is malicious, and ( yt = 0 ) shows benign traffic. The agent’s action at and the true label yt result in one of four security outcomes: true positive (TP), false positive (FP), false negative (FN) and true negative (TN). These outcomes are the basis for the reward 17 shaping strategy used to train the deep reinforcement learning agent. By modeling this interaction, the agent learns policies that balance detection effectiveness with operational costs such as alert fatigue and unnecessary containment actions. To study the impact of reward shaping on decision-making behavior, we define four distinct reward profiles (Modes A–D). Each profile represents a different operational focus that is typically found in Security Operations Center (SOC) environments. 
+
+Mode A is a recall-oriented detection strategy. In this mode, both true positives and true negatives are rewarded equally, while false negatives are penalized more than false positives. It motivates the agent to prioritize detection coverage and early identification of malicious activity, making Mode A appropriate for initial threat discovery and baseline sensitivity analysis rather than strict false-positive control. 
+
+Mode B focuses on false positive reduction. In this mode, false positives are penalized more heavily than false negatives, while true negatives are assigned a significant positive reward. This reflects a SOC en-vironment in which excessive containment measures and alert fatigue can incur significant costs. Specifically, it is effective in prioritizing high-confidence alerts and reducing workload on SOC analysts. 
+
+Mode C provides a moderate trade-off between detection and operational cost. False positives and false negatives are penalized at intermediate levels, while correct decisions receive moderate rewards. This policy indicates SOC environments where both false positives and false negatives are considered bad, but neither dominates the operational policy. 
+
+Mode D incorporates controlled randomness into the reward function. It preserves a balanced reward scheme related to Mode C, but adds Gaussian noise onto the reward signal. This form of stochastic regular-ization improves policy robustness by reducing overfitting to fixed reward structures and by mimicking the uncertainty found in the SOC environment and analyst responses. It is represented by Equation 9. 
+
+r(D) 
+
+> t
+
+= R(at, y t) + ϵt, ϵt ∼ N (0 , σ 2). (9) 
+
+5.3.2. DRL Objective 
+
+The agent learns a containment policy πθ (at | st) that maps the aggregated flow state st to an action space over (0 , 1) . The learning objective is to maximize the expected discounted return shown in Equation 10. 
+
+J(θ) = Eπθ
+
+" TX
+
+> t=0
+
+γtrt
+
+#
+
+, (10) Where γ ∈ (0 , 1] is the discount factor and T is the episode horizon. Since the reward R(at, y t) is designed to reflect the operational priorities of SOC, maximizing J(θ) is equivalent to minimizing the long-term operational burden under the chosen reward profile. 18 5.3.3. Decision Cost and Regret Analysis 
+
+To complement the standard detection metrics, we evaluate the learned containment policy using decision cost and regret, that provide insight into the operational quality of the agent’s actions under SOC constraints. The decision cost at time step t is defined as the negative of the obtained reward shown in Equation 11: 
+
+cost t = −rt. (11) This formulation reflects the operational burden associated with an action. High costs relates to undesir-able outcomes, such as unnecessary containment of benign traffic or missed detection of malicious activity, while low or negative costs show decisions aligned with SOC priorities. While decision cost evaluates the absolute penalty of an action, regret measures how far the agent’s decision deviates from the best possible decision at that time step. Equation 12 defines the regret . 
+
+regret t = r⋆t − rt, (12) where 
+
+r⋆t = max  
+
+> a∈{ 0,1}
+
+R(a, y t) (13) shows the maximum achievable reward assuming perfect knowledge of the ground-truth label yt.By reporting both decision cost and regret, we measure not only whether the agent makes correct deci-sions, but also how costly its mistakes are in practice. This dual perspective is important in SOC environ-ments, where different errors have different operational consequences. 
+
+5.3.4. Putting it Together 
+
+Unlike traditional supervised intrusion detection systems, the DRL agent in the framework does not aim to maximize classification alone. Instead, it learns a policy optimized for long-term operational efficiency under SOC constraints. The DRL agent acts as a decision making filter that determines whether an alert needs escalation reducing the analyst workload. Specifically, the DRL agent is trained without using anomaly detection scores (e.g., AAD Score) as input features to avoid feature leakage; the anomaly scores are computed separately and only applied after DRL to prioritize traffic flows for LLM-based triage. This separation ensures that the DRL policy generalizes beyond specific anomaly models and remains robust to changes in downstream scoring mechanisms. 
+
+# 5.4. LLM-Based Multi-Agent SOC Triage 
+
+The Algorithm 3 highlights triage using Large Language Models. Traffic flows with a priority score greater than 5 assigned after DRL decisions are forwarded to LLM for analysis. Once a traffic window is prioritized by the DRL agent, individual flows within that window are extracted and forwarded for the LLM-based analysis. The LLM operates at flow-level granularity, generating per-flow contextual insights, MITRE ATT&CK 19 Algorithm 3 LLM-Based Multi-Agent SOC Triage 
+
+Require: Flagged traffic flows F from DRL agent, Anomaly scores AAD (wt), (Traffic flows with triage score > 5) Contextual metadata (IPs, ports, timestamps) 
+
+Ensure: SOC triage reports with MITRE mapping and remediation guidance  
+
+> 1:
+
+for each traffic flow ft ∈ H do  
+
+> 2:
+
+Construct contextual prompt: 
+
+⟨st, a t, AAD (wt), network metadata ⟩ 
+
+> 3:
+
+Invoke SOC Analyst Agent : 
+
+> 4:
+
+Generate tactical summary and risk assessment  
+
+> 5:
+
+Generate SPL query to investigate in Splunk  
+
+> 6:
+
+Invoke Threat Intelligence Agent : 
+
+> 7:
+
+Map activity to MITRE ATT&CK techniques  
+
+> 8:
+
+Suggest SOAR or mitigation actions  
+
+> 9:
+
+Store structured triage report  
+
+> 10:
+
+end for  
+
+> 11:
+
+return SOC investigation reports and master triage table mappings, and recommendations for the SOC analysts. This design enables scalable decision-making by first filtering high-risk windows and performing detailed analysis only on selected flows. Traffic flows forwarded to the LLM with contextual metadata, including source and destination addresses, ports, time windows, and the corresponding AAD scores. The source and destination IP addresses are anonymized before being forwarded to the LLM for analysis [42]. Large Language Model based triage is implemented using a CrewAI multi-agent framework [37]. During the analysis process, two specialized agents are instantiated: 
+
+• a Senior SOC Triage Analyst in the framework validates containment actions, assesses immediate risk, provides SPL (Splunk Processing Language) queries to pull the traffic flows on Splunk 
+
+• a Threat Intelligence Analyst maps the observed behavior to MITRE ATT&CK techniques and rec-ommends mitigation strategies. LLM agents with specialized SOC analyst roles provide human-readable summaries with contextual in-sights. This stage transforms low-level traffic flow information into actionable intelligence, reducing the workload of the SOC analyst, and accelerating decision making. Moreover, SPL (Splunk Processing Lan-guage) queries generated by the Senior SOC Triage Analysts agent can be used by analysts to filter the logs on the Splunk dashboard, helping SOC analysts to filter the anomalous flows from the huge volume of logs. In the framework, the DRL agent operates at the traffic window level to identify high-risk traffic windows, 20 Figure 2: Use case illustrating the application of framework 
+
+therefore acting as a policy-level filter that reduces the volume of data processed by the DRL agent for investigation. Once traffic windows are prioritized, individual flows within that window are extracted and analyzed by the LLM agents at the per-flow granularity. Finally, the outputs are automatically compiled into per-flow investigation reports and a master SOC triage summary, enabling direct integration with Security Orchestration, Automation, and Response (SOAR) platforms. In the framework, public LLM such as ChatGPT is used for the initial prototype. However, local large language models can also be used. So, to preserve data confidentiality, sensitive information such as IP addresses is anonymized prior to LLM-based analysis using deterministic pseudonymization [43]. It replaces real identifiers with stable tokens, ensuring consistency across time windows while preventing the exposure of sensitive information to public LLM. The anonymization is non-destructive and reversible only within the SOC-controlled environment. LLM agents generate SPL queries using anonymized identifiers which function as placeholders rather than executable values. Prior to execution on Splunk, these placeholders are resolved through mapping the anonymized tokens back to their original identifiers that are maintained in a table. As a result, the generated SPL queries remain applicable to the SIEM platform while ensuring that original information are never exposed to the LLM. 
+
+6. Use Case 
+
+For better understanding of the workflow, we provide a use case, as shown in Fig. 2, in which the log collection agent is deployed on Windows 11 running inside the virtual machine. As shown in Fig. 2, Kali Linux is used 21 as an attacker machine to launch the attack on Windows 11 that is the target. The Splunk Universal Forwarder deployed on Windows 11 collects and forwards logs to the Splunk Enterprise running on the 
+
+Windows 2019 server. For the experimental evaluation, logs of Suricata IDS is forwarded by the Splunk Universal Forwarder to Splunk Enterprise . The received logs are indexed on the Splunk Enterprise 
+
+for investigation. However, we plan to extend the use case with multiple log sources. As shown in Fig. 2, the Suricata IDS is deployed on Windows 11 .Once the logs are indexed, data cleaning and aggregation is applied before further processing using autoencoder and DRL. For the autoencoder, a benign sample is filtered from an early temporal window, ensuring that the learned representation shows normal network behavior without mixing with attack traffic. Moreover, alert labels and non behavioral features such as hashes are removed. Furthermore, for the DRL training, a window based aggregation and cardinality reduction is performed to make sure that the DRL agent operates on the non leaking raw events. After DRL training, the traffic window is prioritized for LLM triage, using the DRL decision and anomaly score (AAD score). Then, CrewAI based LLM agents analyze the received traffic window and provide contextual insights along with the SPL queries for further validation on Splunk for decision making, as described in Section 4. Based on the insight provided by the Agentic AI framework, entities such as IP addresses and ports are extracted and analyzed in the Splunk Enterprise by the SOC analyst for effective decision making. The analysis performed using Splunk is shown in Section 7. During the evaluation with the public dataset (Boss of the SOC), we directly ingested the dataset into Splunk Enterprise and then exported it into CSV format for evaluation using autoencoder and the DRL. The detailed results are discussed in Section 7. 
+
+# 6.1. Threat Model for Simulation 
+
+• Network Scanning Attack: It aims to identify active hosts on a network along with the ports and services running on the hosts[44]. It helps attackers assess the weaknesses of assets and plan the attack to exploit those vulnerabilities [30]. 
+
+• Volumetric Denial of Service Attack (DoS): A volumetric DoS attack such as a UDP flood targets the victim system and the network to deplete resources such as network bandwidth, CPU, and memory by sending a large number of bogus packets[45]. 
+
+7. Experimentation Results 
+
+This section analyzes the experimentation results on the Boss of the SOC [46] and the simulated dataset. We only used a part of the BOSS of the SOC dataset for this evaluation. After cleaning and removing duplicates we used around 12000 instances. The dataset contains source IP, destination IP, source port, destination port, in bytes, out bytes, protocols, and time. We also simulated the use case described in Section 6 and collected the dataset for the evaluation. The simulated dataset also contains the same features as in the 22 Table 4: Automated LLM Triage based on Adaptive Scoring and Reinforcement Learning Agent 
+
+Flow ID Source IP Destination IP Priority Score MITRE ID Agent Answer 26 172.31.38.181 172.31.0.2 7.12e+12 T1071 Critical: C2 Communication identified 35 172.16.0.178 172.16.3.197 9.49e-01 T1071 Malicious behavior: Suspected exfiltration via standard protocols 34 192.168.8.103 192.168.9.30 7.33e-01 T1071 Risk level medium. Continuous monitoring is advised. 30 172.16.0.178 169.254.169.254 5.22e-01 T1552.005 Possible attempt to exploit cloud infrastructure 23 192.168.8.112 192.168.9.30 5.06e-01 T1071 A moderate level of concern. Continuous monitoring advised public dataset for evaluation and a total of 300000 instances. 
+
+# 7.1. Evaluation of Boss of the SOC dataset 
+
+Table 4 shows the summary of the prioritized traffic flows forwarded to LLM for analysis. Each traffic flow is characterized by its flow identifier, source and destination IP addresses, assigned priority score by the DRL agent after training. The corresponding MITRE ATT&CK mapping and the final conclusion is provided by the Threat Intelligence Analyst and the Senior SOC Triage agents. As we can see in Table 4, the flow (Flow ID:26) with the priority score of ( 7.12 × 10 12 ) is mapped to technique T1071 (Application Layer Protocol), which is commonly associated with command-and-control (C2) communication channels. The LLM agent classified this flow as critical , highlighting a high-confidence detection of malicious command and control activity that requires immediate containment. This indicates that our framework segregates high-impact threats from background traffic to facilitate quick response from the SOC analyst. 
+
+# 7.2. SOC Analyst Validation using Splunk Analysis on Public Dataset 
+
+After prioritizing suspicious traffic using the proposed DRL and AAD framework, an LLM-based triage module performed contextual analysis and generated Splunk queries for the SOC analyst to validate the alert context within a real SOC environment. Fig. 3 shows the SPL query applied to filter traffic originating from the specific host (src_ip = 172.31.38.181) for the analysis. Specifically this SPL query is very useful in network security analysis. As shown in Fig. 3, the transaction operator groups individual network events into logical communication sessions based on a temporal threshold (maxpause = 5 seconds), recon-structing burst-oriented pattern. The analysis suppresses benign, sporadic activity and isolates automated 23 Figure 3: Analysis of DNS traffic identified by the proposed RL and AAD triage mechanism 
+
+communication patterns by filtering events with event count> 10 .As we can see in Fig. 3, a continuous high-frequency DNS communication (dest_port = 53) originating from the IP address 172.31.38.181, with 1000 events occurring within a single transaction window lasting between 217 and 236 seconds. This continuous DNS activity is inconsistent with normal user behavior and is commonly found with command-and-control beaconing or DNS-based tunneling techniques. Furthermore, the presence of multiple destination IP addresses within the same window highlights repeated attempts rather than a legitimate service communication. The destination port 9997 shown in Fig. 3 is used by the Splunk universal forwarder to send data to Splunk Enterprise. Additionally, it is found that all DNS responses are syntactically valid (e.g., reply_code = NoError ), highlighting that detection is driven by behavioral aggregation rather than protocol violations or signature matching. The Splunk analysis confirms the correctness of the DRL and AAD framework and demonstrates that the LLM-assisted triage provides quick validation of anomalous network pattern and helps the SOC analyst in informed decision making. 
+
+# 7.3. Policy Adaptation Across Reward Modes with Boss of the SOC Dataset 
+
+Fig. 4 presents the performance of the proposed two layer DRL-based agent across the four reward modes on the BOSS of the SOC dataset [46]. As we can see in Fig. 4, reward shaping directly impacts the trade-off between precision, recall, and overall detection effectiveness. Mode A, which focuses on recall by penalizing false negatives more than false positives, achieves balanced performance with precision, recall, and F1-scores close to 0.85. This highlights that the agent maintains a 24 Figure 4: Performance Evaluation of Across Modes (A-D) 
+
+stable detection capability while allowing a limited number of false positives, making it suitable for early-stage threat detection. As shown in Fig. 4, Mode B provides the best overall results, achieving the highest recall (0.873) and F1-score (0.861). It is because of the reward function that rewards true negatives and penalizes false positives severely, enabling the agent to identify malicious activity with high confidence while limiting containment actions that are not required. As we can see in Fig. 4, Mode C shows a notable drop in recall (0.744) and the F1-score (0.783), highlighting the impact of balanced but strict penalties on both false positives and false negatives. Although precision remains comparatively high (0.830), the reduced recall indicates a more conservative policy that reduces alerts at the cost of missing some malicious events. Finally, Mode D shows stable and consistent performance in all three metrics, with precision, recall, and F1-scores close to 0.82, as we can see in Fig. 4. The introduction of controlled stochasticity into the reward function improves the robustness of the policy and prevents overfitting to deterministic reward patterns, producing a reliable containment strategy under uncertain traffic conditions. Overall, these results confirm that the proposed 2-layer DRL agent can be adapted to different SOC operational objectives through reward shaping alone, without modifying the underlying model architecture to assist SOC analysts in decision making to either Contain or Allow traffic. 25 7.4. Decision Cost and Regret Analysis on Boss of SOC Dataset 
+
+Setup Let each aggregated time window (state) be indexed by t ∈ { 1, . . . , T }. The DRL policy πθ outputs a containment decision at ∈ { 0, 1}, where at = 1 indicates containment (raise an alert/take action) and 
+
+at = 0 denotes allow (do nothing). The ground-truth label is yt ∈ { 0, 1}, where yt = 1 indicates malicious activity and yt = 0 indicates legitimate activity. Each decision produces one of four outcomes: True Positive (TP): (at, y t) = (1 , 1) , False Positive (FP): (at, y t) = (1 , 0) , False Negative (FN): (at, y t) = (0 , 1) , True Negative (TN): (at, y t) = (0 , 0) .
+
+Decision cost model: In the SOC environment, it is important to know the cost associated with each decision. We assign an operational cost to each outcome to reflect the use and risk of SOC resources. Let 
+
+CTP , C FP , C FN , C TN ∈ R denote the cost (negative values may represent benefit or cost savings ). We define the per-window decision cost as: 
+
+ct =
+
+
+
+CTP , at = 1 , y t = 1 (TP) ,CFP , at = 1 , y t = 0 (FP) ,CFN , at = 0 , y t = 1 (FN) ,CTN , at = 0 , y t = 0 (TN) .
+
+(14) The total decision cost and average decision cost over a fold are represented by: 
+
+Ctotal =
+
+> T
+
+X
+
+> t=1
+
+ct, C = 1
+
+T
+
+> T
+
+X
+
+> t=1
+
+ct. (15) 
+
+Regret analysis Regret analysis evaluates how much less optimal the policy’s decision is compared to an oracle that always selects the action with the minimal cost for that particular activity. For each time window t, the oracle decision cost is represented by: 
+
+c⋆t = min  
+
+> a∈{ 0,1}
+
+c(yt, a ), (16) where c(y, a ) follows Eq. (14). The instantaneous regret is represented by: 
+
+rt = ct − c⋆t ≥ 0, (17) and the total and average regret are calculated by: 
+
+Rtotal =
+
+> T
+
+X
+
+> t=1
+
+rt, R = 1
+
+T
+
+> T
+
+X
+
+> t=1
+
+rt. (18) The lower regret shows that the policy is close to the oracle in terms of operational cost, i.e., it makes fewer mistakes (specifically false positives and false negatives under the chosen cost profile). 26 Table 5: Average Decision Cost and Regret Across Time-Series Folds 
+
+Mode Mean Decision Cost Std. Dev. Mean Regret Std. Dev. A -0.526 1.049 1.474 1.049 B -0.254 1.126 2.588 3.059 C -0.789 1.233 1.684 1.921 D -0.794 1.027 1.358 1.250 
+
+Decision cost and regret evaluation Table 5 shows the averaged operational decision cost and regret calculated across different reward modes. As we can see in Table 5 Mode C and D achieve the lowest average decision cost close to −0.79 , indicating improved operational efficiency compared to Mode A and B. Moreover, Mode D achieves the lowest average regret of 1.358 , highlighting that stochastic reward improves the robustness of the policy during shifts in temporal distributions. In contrast, Mode B shows the highest regret 2.588 and variability across folds with a standard deviation of 3.059 , highlighting the sensitivity to false positive penalties. Overall, these results show that the balanced reward policy of Modes C and D offers stable containment policies across evolving traffic compared to strictly recall-oriented (Mode A) or false-positive intolerant (Mode B) configurations. 
+
+# 7.5. Percentage Reduction in Traffic Flows Forwarded to LLM 
+
+The percentage reduction in traffic flows indicates how each DRL reward mode filters traffic before forwarding it to LLM for analysis. A higher percentage of reduction signifies that the mode suppresses more traffic and reduces LLM processing overhead. A lower percentage of reduction indicates that the mode forwards more traffic, preserving broader coverage for LLM analysis. As we can see in Fig. 5, Mode A offers more reduction in traffic flows forwarded to LLm for analysis. This is because it provides a higher penalty to false negatives than to false positives, which makes the agent sensitive to malicious activity, while still allowing some filtering of traffic. Mode B penalizes false positives and rewards true negatives both strongly. This encourages the DRL agent to suppress benign traffic, which supports traffic reduction and avoids unnecessary downstream analysis. Mode C is a more balanced reward structure between malicious detection and benign traffic suppression. As it is less filtering than the more selective modes, it tends to keep more traffic for downstream LLM analysis, leading to a lower percentage reduction. Mode D is less conservative and has some exploratory reward design. So, it is less rigid in its traffic suppression, producing a moderate level of alert reduction while still allowing broader investigation of suspicious traffic flows. 27 Figure 5: Average Reduction in Traffic Flows Forwarded to LLM Across Modes (A-D) 
+
+# 7.6. Policy Adaptation Across Reward Modes with Simulated Dataset 
+
+We also simulated the threat model mentioned in Section 6.1. Fig. 6 shows the performance of the DRL agent with a two-layer architecture (2 ×64) in the simulated Suricata traffic in the four reward modes. As we can see in Fig. 6, it clearly demonstrates that the reward function impacts the agent’s containment behavior under controlled traffic conditions. As shown in Fig. 6, mode A achieves a recall of 0.998 , resulting in almost perfect detection of malicious activity. However, the precision is 0.636 in mode A. It indicates that the agent strongly flags suspicious traffic, which is desirable in early detection scenarios, but causes alert fatigue to SOC analysts due to an increased number of false positives. Mode B achieves high precision 0.976 while significantly reducing recall to 0.495 .It validates that the heavy penalization of false positives in Mode B causes a conservative containment policy that prioritizes high-confidence alerts and allows a substantial part of malicious flows to pass. It reduces the alert fatigue on SOC analysts due to the high number of false positives. Mode C achieves a more balanced performance, with a recall of 0.998 and a precision of 0.645 , resulting in an F1-score of 0.784. It indicates that Mode C captures malicious activity while maintaining some control over false positives, making it appropriate for environments that require high detection and operational stability. Finally, Mode D shows consistent and well-balanced behavior, with precision, recall, and F1-scores of 0.926 , 0.696 , and 0.795 respectively. It reflects that the stochasticity in the reward function enhances robustness by preventing the agent from overfitting to deterministic traffic patterns commonly present in 28 Figure 6: Performance Evaluation of Across Modes (A-D) on Simulated Dataset 
+
+simulated datasets. Overall, these results point that the proposed DRL agent adapts its containment strategy in response to different reward modes, validating the effectiveness of reward shaping to model different SOC objectives. 
+
+# 7.7. Percentage Reduction in Simulated Traffic Forwarded to LLM 
+
+In the framework, alert capture rate is equivalent to recall, as both evaluate the proportion of true alert instances that are successfully forwarded to the LLM for processing. As we can see in Fig. 7, across all reward modes, the DRL triage mechanism reduces traffic forwarded to the LLM by approximately 63%-65%. However, this reduction is associated with different recall outcomes, as shown in Fig 6. As shown in Fig. 7 and Fig. 6, Modes A and C forward almost all true traffic alerts while still achieving strong traffic reduction, indicating an effective balance between efficiency and detection performance. Mode B also obtains a similar reduction in traffic forwarded to LLM processing but with lower recall, highlighting that its policy is filtering too much. Mode D performs moderately, but remains less effective than Modes A and C in maintaining traffic flow coverage. This design ensures that the LLM is not overloaded with a huge traffic volume for analysis. 
+
+# 7.8. SOC Analyst Validation via Splunk Analysis on Simulated Dataset 
+
+In the framework, after suspicious traffic is prioritized using the DRL network and AAD score, an LLM-based multi-agent system provides contextual insights and generates SPL queries to validate the traffic on Splunk. As mentioned in Section 5, the Senior SOC Triage Analyst agent provides contextual insights and 29 Figure 7: Average Reduction in Traffic Forwarded to LLM for Analysis 
+
+generate SPL queries for the analysis. Fig. 8 shows the SPL query applied to filter malicious traffic on Splunk. The SPL query filters the traffic originating from the flagged host machine with the IP address of 10 .0.2.4, allowing the SOC analyst to analyze the communication pattern. For clear representation, we have shown the IP addresses in the paper, but LLM triage is performed on anonymized data. This design ensures that the LLM reasons over traffic behavior and context rather than sensitive identifiers, enabling privacy-preserving SOC triage without degrading analytical capability. As we can see in Fig. 8, repetitive communication from the same source IP address (10.0.2.4) towards the destination IP address (10.0.2.15) on different destination ports in a very short time window highlights network scanning activity. It is mapped to the MITRE ATT&CK technique of T1046. The filtered traffic on Splunk does not show protocol violation or malformed packets, rather the anomaly is identified through temporal aggregation and behavioral pattern, signifying the advantage of DRL based containment decision over signature driven detection. It is important to note that during LLM assisted triage the majority of prioritized flows originate from the same host, therefore, a detailed table highlighting LLM agent determination along with MITRE ID is omitted from the paper for brevity. This is because in the simulation we used Kali Linux with the same IP address. From a threat hunting perspective, validating the DRL-prioritized traffic through independent SIEM-level behavioral pattern demonstrates that the proposed framework not only achieves high detection performance, but also produces explainable insights and assists SOC analyst in decision making to either 30 Figure 8: Analysis of flows from malicious host 
+
+allow the traffic in the network, block, or monitor it for a while. The whole process aligns with the real world SOC workflows and ensures that SOC analyst verifies DRL decision and LLM insights on the SIEM tool such as Splunk rather than only relying on the LLM. 
+
+8. Discussion 
+
+Our framework provides a multi-layer threat detection architecture that combines Deep Reinforcement Learn-ing (DRL), Autoencoder based anomaly detection (AAD), and LLM based agents for triage and automated SOC decision along with verification of the results using SIEM tool such as Splunk . In the framework, once the DRL agent is trained on aggregated traffic features and learn containment decision, then AAD score is used along with the DRL decision in prioritizing flows for LLM triage. It reduces the processing overhead on LLM by only forwarding the prioritized flows for analysis that also prevents hallucination. The LLM agents also generate SPL queries that are used for filtering malicious flows on the Splunk dashboard. It is helpful for junior SOC analysts who are not well versed in writing SPL queries. Moreover, in the agentic AI framework, another LLM agent generates an incidence response playbook and provides mapping with the MITRE ATT&CK ID. In contrast to manual investigation on the SIEM tool, such as Splunk, our agentic AI framework automates detection, prioritization, contextual analysis, and report generation for detailed investigation. The proposed framework is aligned with real-world SOC workflows. The DRL agent learns sequential decision policies that directly model containment actions under uncertainty rather than handling detection as a static classification problem. This formulation shows operational SOC decision-making, where actions 31 carry costs and delayed consequences. The use of multiple reward profiles further demonstrates the flexibility of the framework in adapting to different organizational risk tolerances, such as prioritizing low false-positive rates in high-volume environments. The current experimental evaluation focuses on binary containment decisions that containment and no action (allow) . However, SOC environment often contains actions in multiple stages such as: monitor, throttle, escalate, and isolate. Extending the action would cover more practical scenarios and will also increase the complexity in the reward function. One may argue that in the framework, the use of public LLM for triage requires providing sensitive security data to an external provider. However, local LLM can be used to avoid forwarding sensitive logs to public LLM for triage. Another solution is to use data anonymization technique to anonymize sensitive information such as IP addresses before sending it to the public LLM for analysis. Another important concern of the current framework is scalability, as it is common for tens of thousands of traffic logs to arrive per second in security operation centers. Our framework addresses this challenge through triage priority after the DRL decision, ensuring that the agentic analysis is only applied to the high priority subset of traffic flows. Raw network telemetry is aggregated into a fixed temporal time window, and flows are summarized using statistical descriptors such as the mean & maximum value of ports, in bytes, out bytes, and protocol. Aggregation of flows reduces the dimensionality of the data, transforming raw traffic into manageable volumes. The DRL agent operates as a policy level filter evaluating each aggregated window rather than individual flows. The autoencoder anomaly detection (AAD) score is combined with the DRL decision to calculate the triage priority, which ranks only traffic windows flagged by the DRL agent for containment. Finally, the LLM based agents are invoked only for small number of high priority traffic flows, this selective strategy makes the framework computationally feasible for SOC environment with high traffic volumes. However, the aggregated time window feature may limit the detection of short lived attacks. The experimental evaluation demonstrate that combining Deep Reinforcement Learning and autoencoder anomaly detection along with contextual analysis improves the overall efficiency and decision making of SOC analysts. Moreover, currently the proposed framework lacks complete automation from detection to mitigation. The main purpose is to assist the SOC analyst in identifying the suspicious traffic for investigation and help them in decision making. The mitigation of malicious traffic is performed by SOC analysts after investigating on the SIEM tool. Moreover, the aim is also to study how agentic AI coupled with the SIEM tool can assist SOC analysts in threat hunting. Rather than complete automation from monitoring to mitigation at this stage, it is nice to have automation across key security workflows, for improved performance. 
+
+9. Conclusion and Future Work 
+
+This paper presented a threat hunting framework based on Agentic AI that integrates Deep Reinforcement Learning (DRL), Autoencoder-based Anomaly Detection (AAD), and LLM driven multi-agent contextual analysis. The framework represents the SOC environment as a sequential decision-making problem, where 32 actions are decided based on learned policies instead of being treated as static classification outputs. To demonstrate the feasibility and effectiveness of our proposed framework, we developed a proof-of-concept prototype and evaluated both on the public dataset as well as simulated dataset. The results show that reward shaping allows the DRL agent to adapt its containment decision to different SOC objectives, such as maximizing recall, minimizing false positives, and balancing detection. The operational cost and regret analysis are also incorporated into the learning process that provides a more realistic evaluation of the SOC environment. Our experiment and analysis of the prototype have identified some key benefits of the framework, (1) The modular architecture of the framework separates the responsibilities across different components; (2) The DRL agent works on aggregated raw traffic features and is trained without AAD score, preventing feature leakage; (3) The AAD score is applied only after the DRL decision to prioritize flagged windows for LLM triage to avoid processing overhead on LLM; (4) The integration of DRL–based decision with anomaly-aware prioritization and LLM-driven reasoning offers explainable, analyst-aligned threat hunting outcomes; (5) The reduced traffic volume forwarded to the LLM improves causes less processing overhead on the LLM. This multi-layer architecture enables scalability by ensuring that computationally expensive LLM reasoning is applied only where it is most needed. As the SOC environment operates with multi-stage actions such as monitoring, escalating, isolating traffic, etc. In our future work, we will extend the actions space to support multi-level containment decisions. Currently, the framework relies on fixed time-window aggregation due to which it can be difficult to detect short-lived malicious traffic. In our future work, we will explore adaptive window strategies and hierarchical policies that work at multiple temporal level. Moreover, we will also investigate the use of domain specific LLM or locally deployed LLM to improve reliability, reduce hallucination risk and address data privacy concerns. Furthermore, we will investigate ethical considerations, including transparency, bias, and accountability in agentic SOC systems, to support responsible deployment of autonomous decision-making systems for cybersecurity operations. Finally, we will perform detailed experimentation with multiple heterogeneous log sources and evaluate the performance. 
+
+References 
+
+[1] M. A. Ferrag, M. Ndhlovu, N. Tihanyi, L. C. Cordeiro, M. Debbah, T. Lestable, N. S. Thandi, Revolu-tionizing cyber threat detection with large language models: A privacy-preserving bert-based lightweight model for iot/iiot devices (2024). arXiv:2306.14263 .URL https://arxiv.org/abs/2306.14263 
+
+[2] Kaspersky, Advanced persistent threats target one in four companies in 2024 (2024). URL https://www.kaspersky.com/about/press-releases/advanced-persistent-threats-target-one-in-four-c 
+
+[3] Fortinet, 2025 fortinet global threat landscape report (2025). URL https://www.fortinet.com/resources/cyberglossary/recent-cyber-attacks 
+
+33 [4] T. Nguyen, H. Nguyen, A. Ijaz, S. Sheikhi, A. V. Vasilakos, P. Kostakos, Large language models in 6g security: challenges and opportunities (2024). arXiv:2403.12239 .URL https://arxiv.org/abs/2403.12239 
+
+[5] A. Naseer, H. Naseer, A. Ahmad, S. B. Maynard, A. Masood Siddiqui, Real-time analytics, incident response process agility and enterprise cybersecurity performance: A contingent resource-based analysis, International Journal of Information Management 59 (2021) 102334. doi:https://doi.org/10.1016/ j.ijinfomgt.2021.102334 .URL https://www.sciencedirect.com/science/article/pii/S026840122100027X 
+
+[6] F. Wang, C. Liu, L. Shi, H. Pang, Minimaxad: A lightweight autoencoder for feature-rich anomaly detection, Computers in Industry 171 (2025) 104315. doi:https://doi.org/10.1016/j.compind. 2025.104315 .URL https://www.sciencedirect.com/science/article/pii/S0166361525000806 
+
+[7] A. Zeiser, B. ozcan, B. van Stein, T. Bäck, Evaluation of deep unsupervised anomaly detection methods with a data-centric approach for on-line inspection, Computers in Industry 146 (2023) 103852. doi: https://doi.org/10.1016/j.compind.2023.103852 .URL https://www.sciencedirect.com/science/article/pii/S0166361523000027 
+
+[8] C. Catalano, L. Paiano, F. Calabrese, M. Cataldo, L. Mancarella, F. Tommasi, Anomaly detection in smart agriculture systems, Computers in Industry 143 (2022) 103750. doi:https://doi.org/10.1016/ j.compind.2022.103750 .URL https://www.sciencedirect.com/science/article/pii/S0166361522001476 
+
+[9] A. Tall, J. Wang, D. Han, Survey of data intensive computing technologies application to to security log data management, in: Proceedings of the 3rd IEEE/ACM International Conference on Big Data Computing, Applications and Technologies, BDCAT ’16, Association for Computing Machinery, New York, NY, USA, 2016, p. 268–273. doi:10.1145/3006299.3006336 .URL https://doi.org/10.1145/3006299.3006336 
+
+[10] P. Badva, K. M. Ramokapane, E. Pantano, A. Rashid, Unveiling the Hunter-Gatherers: Exploring threat hunting practices and challenges in cyber defense, in: 33rd USENIX Security Symposium (USENIX Security 24), USENIX Association, Philadelphia, PA, 2024, pp. 3313–3330. URL https://www.usenix.org/conference/usenixsecurity24/presentation/badva 
+
+[11] R. K. Gupta, S. Shukla, A. T. Rajan, S. Aravind, Utilizing Splunk for Proactive Issue Resolution in Full Stack Development Projects (2021). [12] S. Raza, R. Sapkota, M. Karkee, C. Emmanouilidis, Trism for agentic ai: A review of trust, risk, and 34 security management in llm-based agentic multi-agent systems (2025). arXiv:2506.04133 .URL https://arxiv.org/abs/2506.04133 
+
+[13] D. B. Acharya, K. Kuppan, B. Divya, Agentic ai: Autonomous intelligence for complex goals—a com-prehensive survey, IEEE Access 13 (2025) 18912–18936. doi:10.1109/ACCESS.2025.3532853 .[14] H. Xu, S. Wang, N. Li, K. Wang, Y. Zhao, K. Chen, T. Yu, Y. Liu, H. Wang, Large language models for cyber security: A systematic literature review (2024). arXiv:2405.04760 .URL https://arxiv.org/abs/2405.04760 
+
+[15] M. A. Ferrag, F. Alwahedi, A. Battah, B. Cherif, A. Mechri, N. Tihanyi, T. Bisztray, M. Debbah, Generative ai in cybersecurity: A comprehensive review of llm applications and vulnerabilities, Internet of Things and Cyber-Physical Systems (2025). doi:https://doi.org/10.1016/j.iotcps.2025.01. 001 .URL https://www.sciencedirect.com/science/article/pii/S2667345225000082 
+
+[16] A. Handler, K. R. Larsen, R. Hackathorn, Large language models present new questions for decision support, International Journal of Information Management 79 (2024) 102811. doi:https://doi.org/ 10.1016/j.ijinfomgt.2024.102811 .URL https://www.sciencedirect.com/science/article/pii/S0268401224000598 
+
+[17] N. Kshetri, Transforming cybersecurity with agentic ai to combat emerging cyber threats, Telecommu-nications Policy 49 (6) (2025) 102976. doi:https://doi.org/10.1016/j.telpol.2025.102976 .URL https://www.sciencedirect.com/science/article/pii/S0308596125000734 
+
+[18] Simbian, Ai agents in cybersecurity:ai agents in cybersecurity (2025). URL https://resources.simbian.ai/hubfs/Whitepaper/AI%20Agents%20in%20Cybersecurity% 20White%20Paper%20(1).pdf 
+
+[19] A. Sheth, A. Patel, C. Upadhyay, H. Ragothaman, B. Patil, S. K. Udayakumar, Agentic ai for au-tonomous cyber threat hunting and adaptive defense in dynamic security environments, in: 2025 IEEE International Conference on Electro Information Technology (eIT), 2025, pp. 316–321. doi: 10.1109/eIT64391.2025.11103697 .[20] Dylan, Utilizing Generative AI and LLMs to Automate Detection Writing (2024). URL https://medium.com/@dylanhwilliams/utilizing-generative-ai-and-llms-to-automate-detection-writi 
+
+[21] S. Balogh, M. Mlyncek, O. Vranak, P. Zajac, Using generative ai models to support cybersecurity analysts, Electronics 13 (23) (2024). doi:10.3390/electronics13234718 .URL https://www.mdpi.com/2079-9292/13/23/4718 
+
+35 [22] C. Hillier, T. Karroubi, Turning the hunted into the hunter via threat hunting: Life cycle, ecosystem, challenges and the great promise of ai (2022). arXiv:2204.11076 .URL https://arxiv.org/abs/2204.11076 
+
+[23] S. J. Lazer, K. Aryal, M. Gupta, E. Bertino, A survey of agentic ai and cybersecurity: Challenges, opportunities and use-case prototypes (2026). arXiv:2601.05293 .URL https://arxiv.org/abs/2601.05293 
+
+[24] A. Sheth, A. Achanta, P. Matam, A. Patel, P. Sharma, N. V. P. Janapareddy, B. Patil, V. Gudur, Ai driven self-healing cybersecurity systems with agentic ai for adaptive threat response and resilience, in: 2025 IEEE Cloud Summit, 2025, pp. 147–153. doi:10.1109/Cloud-Summit64795.2025.00030 .[25] A. Mohsin, H. Janicke, A. Ibrahim, I. H. Sarker, S. Camtepe, A unified framework for human ai collaboration in security operations centers with trusted autonomy (2025). arXiv:2505.23397 .URL https://arxiv.org/abs/2505.23397 
+
+[26] N. Kshetri, J. Voas, Agentic Artificial Intelligence for Cyber Threat Management , Computer 58 (05) (2025) 86–90. doi:10.1109/MC.2025.3544797 .URL https://doi.ieeecomputersociety.org/10.1109/MC.2025.3544797 
+
+[27] P. Zambare, V. N. Thanikella, N. P. Kottur, S. A. Akula, Y. Liu, Netmoniai: An agentic ai framework for network security & monitoring (2025). arXiv:2508.10052 .URL https://arxiv.org/abs/2508.10052 
+
+[28] Y. Gu, Y. Xiong, J. Mace, Y. Jiang, Y. Hu, B. Kasikci, P. Cheng, Argos: Agentic time-series anomaly detection with autonomous rule generation via large language models (2025). arXiv:2501.14170 .URL https://arxiv.org/abs/2501.14170 
+
+[29] Y. Zhou, Y. Yuan, K. Huang, X. Hu, Can chatgpt perform a grounded theory approach to do risk analysis? an empirical study, Journal of Management Information Systems 41 (4) (2024) 982–1015. 
+
+arXiv:https://doi.org/10.1080/07421222.2024.2415772 , doi:10.1080/07421222.2024.2415772 .URL https://doi.org/10.1080/07421222.2024.2415772 
+
+[30] R. Sahay, M. Sumasadan, B. Eapen, W. Meng, M. R. A. Mamu, Enhancing threat hunting with splunk and generative ai forautomated security operations (2025). doi:10.21203/rs.3.rs-7515771/v1 .[31] B. Jonkhout, Evaluating large language models for automated cyber security analysis processes (July 2024). URL http://essay.utwente.nl/100846/ 
+
+36 [32] A. Konstantinou, D. Kasimatis, W. J. Buchanan, S. U. Jan, J. Ahmad, I. Politis, N. Pitropakis, Lever-aging llms for non-security experts in threat hunting: Detecting living off the land techniques, Machine Learning and Knowledge Extraction 7 (2) (2025). doi:10.3390/make7020031 .URL https://www.mdpi.com/2504-4990/7/2/31 
+
+[33] E. Karlsen, X. Luo, N. Zincir-Heywood, M. Heywood, Benchmarking large language models for log analysis, security, and interpretation (2023). arXiv:2311.14519 .URL https://arxiv.org/abs/2311.14519 
+
+[34] P. Tseng, Z. Yeh, X. Dai, P. Liu, Using llms to automate threat intelligence analysis workflows in security operation centers (2024). arXiv:2407.13093 .URL https://arxiv.org/abs/2407.13093 
+
+[35] V. Tanksale, Cyber threat hunting using large language models, in: X.-S. Yang, S. Sherratt, N. Dey, A. Joshi (Eds.), Proceedings of Ninth International Congress on Information and Communication Tech-nology, Springer Nature Singapore, Singapore, 2024, pp. 629–641. [36] C. Kidd, What is splunk & what does it do? a splunk intro (2024). URL https://www.splunk.com/en_us/blog/learn/what-splunk-does.html 
+
+[37] Z. Duan, J. Wang, Exploration of llm multi-agent application implementation based on lang-graph+crewai (2024). arXiv:2411.18241 .URL https://arxiv.org/abs/2411.18241 
+
+[38] R. Chalapathy, S. Chawla, Deep learning for anomaly detection: A survey (2019). arXiv:1901.03407 .URL https://arxiv.org/abs/1901.03407 
+
+[39] Splunk Inc., Correlation searches, https://docs.splunk.com/Documentation/ES/latest/Admin/ Correlationsearches .[40] M. Farhan, H. Waheed ud din, S. Ullah, M. S. Hussain, M. A. Khan, T. Mazhar, U. F. Khattak, I. H. Jaghdam, Network-based intrusion detection using deep learning technique, Scientific Reports 15 (1) (2025) 25550. doi:10.1038/s41598-025-08770-0 .URL https://doi.org/10.1038/s41598-025-08770-0 
+
+[41] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, O. Klimov, Proximal policy optimization algorithms (2017). arXiv:1707.06347 .URL https://arxiv.org/abs/1707.06347 
+
+[42] S. Srinivas, B. Kirk, J. Zendejas, M. Espino, M. Boskovich, A. Bari, K. Dajani, N. Alzahrani, Ai-augmented soc: A survey of llms and agents for security automation, Journal of Cybersecurity and 37 Privacy 5 (4) (2025). doi:10.3390/jcp5040095 .URL https://www.mdpi.com/2624-800X/5/4/95 
+
+[43] C.-Y. Sun, S.-S. Chen, Y.-H. Ho, De-identification of open-source intelligence using finetuned llama-3, High-Confidence Computing (2025) 100357 doi:https://doi.org/10.1016/j.hcc.2025.100357 .URL https://www.sciencedirect.com/science/article/pii/S2667295225000613 
+
+[44] N. Hoque, M. H. Bhuyan, R. Baishya, D. Bhattacharyya, J. Kalita, Network attacks: Taxonomy, tools and systems, Journal of Network and Computer Applications 40 (2014) 307–324. doi:https: //doi.org/10.1016/j.jnca.2013.08.001 .URL https://www.sciencedirect.com/science/article/pii/S1084804513001756 
+
+[45] R. Sahay, G. Blanc, Z. Zhang, H. Debar, Towards autonomic ddos mitigation using software defined networking, 2015. URL https://api.semanticscholar.org/CorpusID:18725272 
+
+[46] Splunk, Boss of the soc v3 dataset released (2020). URL https://www.splunk.com/en_us/blog/security/botsv3-dataset-released.html 
+
+Appendix A. Mathematical Details and Numerical Illustration 
+
+This appendix provides the detailed mathematical formulation and a worked numerical example supporting the reinforcement learning–based containment framework described in Section 5. These details are included for completeness and reproducibility and are not required for understanding the main results. 
+
+# Appendix A.1. Time-Windowed State Construction 
+
+Let raw network traffic be represented as a sequence of flow records: 
+
+F = {f1, f 2, . . . , f N }. (A.1) Traffic is aggregated into non-overlapping windows of duration ∆t (5 minutes). For each window wt, a state vector st is constructed using statistical aggregation. For numerical attributes x ∈ { src_port , dest_port , bytes_in , bytes_out }, we compute: 
+
+μ(x)t = 1
+
+|wt|
+
+X
+
+> fi∈wt
+
+xi, (A.2) 
+
+max( x)t = max 
+
+> fi∈wt
+
+xi. (A.3) The mean captures typical behavior within the window, while the maximum captures bursty or extreme activity commonly associated with scanning, flooding, or data exfiltration. Categorical features (source IP, destination IP, protocol) are encoded using reduced-cardinality one-hot representations and aggregated as occurrence counts per window. 38 The resulting state vector is: 
+
+st = μ(src_port ), max( src_port ), μ (dest_port ), max( dest_port ), μ (bytes_in ), max( bytes_out ), IP src , IP dst , Proto 
+
+> t
+
+.
+
+(A.4) 
+
+# Appendix A.2. Worked Numerical Example 
+
+Consider a single 5-minute window with the following aggregated numerical features: 
+
+μ(src_port ) = 443 ,
+
+max( src_port ) = 443 ,μ(dest_port ) = 51 ,024 ,
+
+max( dest_port ) = 51 ,083 ,μ(bytes_in ) = 1 ,420 ,
+
+max( bytes_out ) = 98 ,230 .
+
+After concatenation with encoded categorical features, the state vector is st ∈ Rd.Assume the policy network produces logits: 
+
+z = [ −1.31 , 1.11] , (A.5) corresponding to no containment and containment , respectively. Applying softmax: 
+
+π(0 | st) = e−1.31 
+
+e−1.31 + e1.11 ≈ 0.08 ,π(1 | st) = e1.11 
+
+e−1.31 + e1.11 ≈ 0.92 .
+
+The agent selects at = 1 (containment) with confidence 0.92 .If the ground-truth label is malicious ( yt = 1 ), the outcome is a true positive and the corresponding reward is assigned according to the active reward profile. 
+
+# Appendix A.3. Decision Cost and Regret 
+
+To complement standard detection metrics, we quantify operational impact using decision cost and regret. The decision cost at time t is defined as the negative of the obtained reward: 
+
+cost t = −rt. (A.6) This formulation directly reflects operational burden: high cost corresponds to undesirable actions such as false positives or missed detections. 39 Regret measures how far the agent’s decision deviates from the best possible action under the defined reward function. We define regret as: 
+
+regret t = r⋆t − rt, (A.7) where 
+
+r⋆t = max  
+
+> a∈{ 0,1}
+
+R(a, y t) (A.8) is the oracle reward assuming perfect knowledge of the ground-truth label. A regret value of zero indicates an optimal decision, while larger values indicate increasingly costly deviations from the ideal SOC response. 
+
+# Appendix A.4. Worked Numeric Example (End-to-End): Aggregation → AAD Score → DRL Action Probability 
+
+Goal. This example shows (i) how raw flow logs inside a 5-minute window are converted into fixed-length features (mean/max), (ii) how an Autoencoder-based Anomaly Detection (AAD) score is computed from reconstruction error, and (iii) how a 2-layer DRL policy converts the feature vector into a containment probability (e.g., 0.92 ). 
+
+Appendix A.4.1. Step 1: Raw flows in a 5-minute window 
+
+Assume within a 5-minute time window w, we observe N = 4 flow records with numeric attributes: src_port , dest_port , bytes_in , bytes_out .
+
+Let the four flows be: Flow i src_port i dest_port i bytes_in i bytes_out i
+
+1 443 52344 1200 300 2 443 52345 1300 350 3 22 52346 8000 9000 4 22 52347 9000 11000 
+
+Appendix A.4.2. Step 2: Window aggregation (mean and max) 
+
+We compute a fixed-length feature vector xw ∈ R6 using mean and max statistics: 
+
+xw = src_port_mean , src_port_max , dest_port_mean , dest_port_max , bytes_in_mean , bytes_out_max .
+
+The aggregation operators are: mean (v) = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+vi, max (v) = max   
+
+> i∈{ 1,...,N }
+
+vi.
+
+Compute each component: 40 src_port_mean = 443+443+22+22 4 = 232.5 src_port_max = max(443 , 443 , 22 , 22) = 443 dest_port_mean = 52344+52345+52346+52347 4 = 52345.5, dest_port_max = max(52344 , 52345 , 52346 , 52347) = 52347 bytes_in_mean = 1200+1300+8000+9000 4 = 4875 bytes_out_max = max(300 , 350 , 9000 , 11000) = 11000 Thus, 
+
+xw = [232 .5, 443 , 52345 .5, 52347 , 4875 , 11000] .
+
+Appendix A.4.3. Step 3: Standardization (as used in training) 
+
+Before AAD/DRL, numeric features are standardized: 
+
+˜xw = xw − μσ ,
+
+where μ and σ are computed from the training data only. For illustration, assume: 
+
+μ = [200 , 400 , 52000 , 52000 , 2000 , 5000] , σ = [100 , 100 , 200 , 200 , 2000 , 3000] .
+
+Then: 
+
+˜xw =
+
+ 232 .5 − 200 100 , 443 − 400 100 , 52345 .5 − 52000 200 , 52347 − 52000 200 , 4875 − 2000 2000 , 11000 − 5000 3000 
+
+
+
+.
+
+Numerically: 
+
+˜xw = [0 .325 , 0.43 , 1.7275 , 1.735 , 1.4375 , 2.0] .
+
+Appendix A.4.4. Step 4: AAD score via Autoencoder reconstruction error AAD model. Let the AAD be a autoencoder trained on early benign data: 
+
+fθ : R6 → R6.
+
+We use a hidden layer encoder, bottleneck dimension d = 2 , and a decoder: 
+
+h = ϕ(W1 ˜xw + b1), z = ϕ(W2h + b2),
+
+ˆh = ϕ(W3z + b3), ˆxw = W4 ˆh + b4,
+
+where ϕ(·) = max(0 , ·) is ReLU, and ˆxw is the reconstruction. 41 Concrete numeric forward pass (Example) For the example, we illustrate with a small hidden size (the real implementation can use larger widths). Assume: 
+
+W1 =
+
+
+
+0.30 0.10 0.05 0.05 0.10 0.20 0.10 0.20 0.10 0.10 0.20 0.10 0.05 0.05 0.30 0.30 0.10 0.10 0.10 0.10 0.20 0.20 0.10 0.05 
+
+
+
+, b1 = 0.
+
+Compute h = ϕ(W1 ˜xw):
+
+W1 ˜xw =
+
+
+
+0.30(0 .325) + 0 .10(0 .43) + 0 .05(1 .7275) + 0 .05(1 .735) + 0 .10(1 .4375) + 0 .20(2 .0) 0.10(0 .325) + 0 .20(0 .43) + 0 .10(1 .7275) + 0 .10(1 .735) + 0 .20(1 .4375) + 0 .10(2 .0) 0.05(0 .325) + 0 .05(0 .43) + 0 .30(1 .7275) + 0 .30(1 .735) + 0 .10(1 .4375) + 0 .10(2 .0) 0.10(0 .325) + 0 .10(0 .43) + 0 .20(1 .7275) + 0 .20(1 .735) + 0 .10(1 .4375) + 0 .05(2 .0) 
+
+
+
+.
+
+Numerically: 
+
+W1 ˜xw ≈
+
+
+
+0.0975 + 0 .043 + 0 .0864 + 0 .0868 + 0 .1438 + 0 .4000 0.0325 + 0 .0860 + 0 .1728 + 0 .1735 + 0 .2875 + 0 .2000 0.0163 + 0 .0215 + 0 .5183 + 0 .5205 + 0 .1438 + 0 .2000 0.0325 + 0 .0430 + 0 .3455 + 0 .3470 + 0 .1438 + 0 .1000 
+
+
+
+=
+
+
+
+0.8575 0.9523 1.4204 1.0118 
+
+
+
+.
+
+After ReLU: 
+
+h = [0 .8575 , 0.9523 , 1.4204 , 1.0118] ⊤.
+
+Now, we define bottleneck weights as: 
+
+W2 =
+
+0.6 0.2 0.1 0.10.1 0.2 0.6 0.1
+
+ , b2 = 0.
+
+Compute the bottleneck: 
+
+z = ϕ(W2h) = ϕ
+
+0.6(0 .8575) + 0 .2(0 .9523) + 0 .1(1 .4204) + 0 .1(1 .0118) 0.1(0 .8575) + 0 .2(0 .9523) + 0 .6(1 .4204) + 0 .1(1 .0118) 
+
+ .
+
+Numerically: 
+
+z ≈ ϕ
+
+0.5145 + 0 .1905 + 0 .1420 + 0 .1012 0.0858 + 0 .1905 + 0 .8522 + 0 .1012 
+
+ =
+
+0.9482 1.2297 
+
+ .
+
+For reconstruction, we assume a simple linear decoder (Example): 
+
+ˆxw = Az , A =
+
+
+
+0.20 0.00 0.10 0.05 0.30 0.10 0.30 0.10 0.10 0.20 0.05 0.40 
+
+
+
+.
+
+42 Then: 
+
+ˆxw =
+
+
+
+0.20(0 .9482) + 0 .00(1 .2297) 0.10(0 .9482) + 0 .05(1 .2297) 0.30(0 .9482) + 0 .10(1 .2297) 0.30(0 .9482) + 0 .10(1 .2297) 0.10(0 .9482) + 0 .20(1 .2297) 0.05(0 .9482) + 0 .40(1 .2297) 
+
+
+
+≈
+
+
+
+0.1896 0.1563 0.4074 0.4074 0.3408 0.5393 
+
+
+
+.
+
+AAD score as mean squared reconstruction error Define AAD as: AAD (˜ xw) = 16
+
+> 6
+
+X
+
+> j=1
+
+(˜ xw,j − ˆxw,j )2 .
+
+Compute the per-dimension errors as: 
+
+˜xw − ˆxw = [0 .325 − 0.1896 , 0.43 − 0.1563 , 1.7275 − 0.4074 , 1.735 − 0.4074 , 1.4375 − 0.3408 , 2.0 − 0.5393] .
+
+Numerically: 
+
+˜xw − ˆxw ≈ [0 .1354 , 0.2737 , 1.3201 , 1.3276 , 1.0967 , 1.4607] .
+
+Squared errors: 
+
+[0 .0183 , 0.0749 , 1.7427 , 1.7625 , 1.2028 , 2.1336] .
+
+Finally: AAD (˜ xw) ≈ 0.0183 + 0 .0749 + 1 .7427 + 1 .7625 + 1 .2028 + 2 .1336 6 = 6.9348 6 ≈ 1.1558 .
+
+Interpretation: Higher AAD shows a larger deviation from benign reconstruction, i.e., a more anomalous traffic window. 
+
+Appendix A.4.5. Step 5: DRL policy converts features into a containment probability 
+
+Let the DRL policy network (2 hidden layers; in the implementation 64 neurons per layer) output two logits for actions: 
+
+a ∈ { 0, 1} where a = 1 means containment .
+
+We denote: 
+
+h(1) = ϕ(W(1) ˜xw + b(1) ), h(2) = ϕ(W(2) h(1) + b(2) ),
+
+ℓ = W(3) h(2) + b(3) =
+
+ℓ0
+
+ℓ1
+
+ ,
+
+where ℓ0 is the logit for no containment and ℓ1 is the logit for containment .43 Concrete numeric logits (Example) Let’s assume the network produces logits as: 
+
+ℓ0 = −1.2, ℓ1 = 1 .6.
+
+These are not probabilities; they are raw preference scores. 
+
+Softmax to obtain action probabilities. The policy probability is give by: 
+
+π(a = i | ˜xw) = exp( ℓi)exp( ℓ0) + exp( ℓ1) , i ∈ { 0, 1}.
+
+Compute: 
+
+exp( ℓ0) = e−1.2 ≈ 0.301 , exp( ℓ1) = e1.6 ≈ 4.953 .
+
+Sum: 
+
+Z = exp( ℓ0) + exp( ℓ1) ≈ 0.301 + 4 .953 = 5 .254 .
+
+Thus: 
+
+π(a = 1 | ˜xw) = 4.953 5.254 ≈ 0.943 , π(a = 0 | ˜xw) = 0.301 5.254 ≈ 0.057 .
+
+Interpretation: The DRL policy assigns ≈ 94 .3% confidence to containment for this window. 
+
+Appendix A.4.6. Step 6: Combining DRL decision with AAD for SOC triage (post-training) 
+
+Because AAD is excluded from DRL training (to prevent feature leakage), it is used after DRL for prioriti-zation before forwarding to LLM: Priority w = I[aw = 1] · AAD (˜ xw),
+
+where I[·] is an indicator (1 if containment is selected, else 0). If the agent selects aw = 1 , then: Priority w = 1 · 1.1558 = 1 .1558 .
+
+If aw = 0 , then: Priority w = 0 .
+
+Interpretation: Only traffic windows flagged by DRL are escalated, and AAD provides a score for priori-tization before LLM-based contextual analysis. 
+
+Appendix A.4.7. Variable Dictionary 
+
+• w: a 5-minute time window. 
+
+• N : number of flow records inside window w.
+
+• xw ∈ R6: aggregated window feature vector (mean/max). 
+
+• ˜xw: standardized features, using training-set mean μ and std σ.44 • fθ (·): AAD autoencoder reconstruction function. 
+
+• ˆxw: reconstruction of ˜xw produced by the autoencoder. 
+
+• AAD (˜ xw): anomaly score computed as mean squared reconstruction error. 
+
+• a ∈ { 0, 1}: DRL action (0 = no containment, 1 = containment). 
+
+• ℓ = [ ℓ0, ℓ 1]⊤: logits (raw scores) output by the policy network. 
+
+• π(a | ˜xw): softmax policy giving the probability of each action. 
+
+• Priority w: post-training SOC triage priority (used to rank events for LLM investigation). 45

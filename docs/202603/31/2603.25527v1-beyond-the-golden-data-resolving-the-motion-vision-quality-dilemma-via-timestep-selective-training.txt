@@ -1,0 +1,453 @@
+Title: Beyond the Golden Data: Resolving the Motion-Vision Quality Dilemma via Timestep Selective Training
+
+URL Source: https://arxiv.org/pdf/2603.25527v1
+
+Published Time: Fri, 27 Mar 2026 01:25:40 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Beyond the Golden Data: Resolving the Motion-Vision Quality Dilemma via Timestep Selective Training 
+
+## Xiangyang Luo 1,2∗ Qingyu Li 2† Yuming Li 2 Guanbo Huang 1 Yongjie Zhu 2
+
+## Wenyu Qin 2 Meng Wang 2 Pengfei Wan 2 Shao-Lun Huang 1†
+
+> 1
+
+## Tsinghua University 2Kling Team, Kuaishou Technology 
+
+## Abstract 
+
+Recent advances in video generation models have achieved impressive results. However, these models heavily rely on the use of high-quality data that combines both high visual quality and high motion quality. In this paper, we identify a key challenge in video data curation: the Motion-Vision Quality Dilemma. We discovered that visual quality and motion intensity inherently exhibit a negative correlation, making it hard to obtain golden data that excels in both aspects. To address this challenge, we first examine the hi-erarchical learning dynamics of video diffusion models and conduct gradient-based analysis on quality-degraded sam-ples. We discover that quality-imbalanced data can produce gradients similar to golden data at appropriate timesteps. Based on this, we introduce the novel concept of Timestep selection in Training Process. We propose Timestep-aware Quality Decoupling (TQD), which modifies the data sam-pling distribution to better match the model’s learning pro-cess. For certain types of data, the sampling distribution is skewed toward higher timesteps for motion-rich data, while high visual quality data is more likely to be sampled dur-ing lower timesteps. Through extensive experiments, we demonstrate that TQD enables training exclusively on sep-arated imbalanced data to achieve performance surpassing conventional training with better data, challenging the ne-cessity of perfect data in video generation. Moreover, our method also boosts model performance when trained on high-quality data, showcasing its effectiveness across dif-ferent data scenarios. 
+
+## 1. Introduction 
+
+Recent advancements in video generation models [3, 13, 14, 22, 39] have made impressive strides in the field of Artifi-cial Intelligence Generated Content. Video generation mod-  
+
+> ∗This work was conducted during the author’s internship at Kling Team, Kuaishou Technology.
+> †Corresponding authors.
+
+MQ: 4.23 VQ: 2.18 MQ: 1.92 VQ: 4.91 (a) 
+
+(b) 
+
+Figure 1. The motion-vision dilemma in video data. (a) Illustrates two cases: a high-MQ, low-VQ action scene (left) and a low-MQ, high-VQ static scene (right), with their corresponding optical flow maps below visualizing the difference in motion intensity. (b) The 2D density plot over Koala36M dataset confirms this trade-off. MQ and VQ exhibit a negative correlation, with the majority of samples ( 56 .3% total) falling into the high-VQ/low-MQ or low-VQ/high-MQ quadrants, as defined by the median lines. Data with both high qualities is less common ( 21 .9% ). 
+
+els are capable of producing high-quality, coherent videos, with applications spanning entertainment [12, 27, 29, 30, 42], advertising [7, 44], and education [16, 28]. These models, however, heavily depend on high-quality training data—specifically, golden data that combines both high vi-sion quality (VQ) and high motion quality (MQ). Unfortu-nately, such datasets are rare and expensive to obtain, which 
+
+> arXiv:2603.25527v1 [cs.CV] 26 Mar 2026
+
+presents a major limitation in scaling these models. Most existing works address this issue from the data se-lection perspective [4, 19, 39]. Large video datasets are first collected and then filtered using strict criteria to retain only samples that satisfy both high VQ and high MQ. For in-stance, videos with minor blur or irregular motion are typ-ically filtered out, even though they may still contain valu-able learning signals for either visual or motion represen-tation. While this filtering improves training data quality, it also removes a substantial portion of potentially useful videos, leading to significant data waste and a dataset bi-ased toward perfect samples. To better understand the scarcity of such dual-quality data, we analyzed the Koala36M dataset [41] and visualized the relationship between VQ and MQ, as shown in Figure 1. Figure 1(a) presents two representative imperfect cases: a high-MQ but low-VQ action scene (left) and a high-VQ but low-MQ static scene (right), with corresponding optical-flow visualizations highlighting their motion intensity dif-ferences. Figure 1(b) further depicts the distribution of all samples, revealing a clear negative correlation between mo-tion and visual quality ( r = −0.2419 ). Only 21 .9% of videos fall into the quadrant with both high VQ and MQ (defined by median lines; practical filtering would use much higher thresholds), confirming that the golden data empha-sized by prior data-selection pipelines is statistically rare. We refer to this inherent conflict between motion and visual fidelity as the Motion-Vision Quality Dilemma. In this work, we take a different perspective—shifting the question from which videos should be kept to how can we use imperfect videos more effectively? We be-gin by analyzing the learning behavior of video diffusion models and make two key observations. First, the denois-ing process exhibits hierarchical learning: motion emerges at high-noise timesteps while details refine at low-noise timesteps. Second, and more critically, through gradient-based analysis we discover that quality-imbalanced samples can match golden data’s gradients at appropriate timesteps. This reveals that imbalanced data need not be discarded but should be strategically allocated to matching denois-ing phases where they provide equivalent learning signals. Building upon this observation, we propose timestep se-lection in the training process and instantiate it through Timestep-aware Quality Decoupling. Instead of sampling timesteps equally across all data, we adjust the sampling distribution based on each video’s quality profile. High-MQ videos are biased toward higher-noise timesteps, whereas high-VQ videos are biased toward lower-noise timesteps. This design allows the model to leverage imperfect data ef-fectively, aligning each sample with the phase of diffusion training where it provides the most benefit. Extensive experiments demonstrate that TQD en-ables training exclusively on separated imbalanced data—containing only high-VQ/low-MQ or high-MQ/low-VQ samples—to achieve performance surpassing conven-tional timestep sampling trained on datasets with golden data, challenging the necessity of dual-quality samples in video generation. Moreover, TQD further boosts model performance when applied to high-quality data, showcasing its effectiveness and robustness across diverse data scenar-ios. These results open a more data-efficient and scalable path for video generation. The key contributions of this paper are as follows: • We identify and define the Motion-Vision Quality Dilemma in video generation. • We conduct gradient analysis revealing that quality-imbalanced data can produce learning signals equivalent to golden data at appropriate timesteps, providing theo-retical foundation for timestep-selective training. • We introduce and implement Timestep-Selective Train-ing and propose the Timestep-aware Quality Decoupling (TQD) framework for video diffusion models. • We empirically demonstrate that TQD allows training with imbalanced data to achieve performance surpassing conventional training method, validating the effectiveness of this new paradigm. 
+
+## 2. Related Work 
+
+2.1. Video Diffusion Models 
+
+Recent progress in video generation is largely driven by video diffusion models [3, 13, 14, 22, 36, 38, 39, 46], which synthesize videos by progressively denoising Gaus-sian noise into coherent temporal sequences. Early ap-proaches [3, 13] factorized spatial and temporal modeling through separated attention mechanisms—applying spatial self-attention within frames followed by temporal attention across frames. This decomposition enables efficient train-ing by leveraging pretrained image models [1, 6, 34], but the separated treatment of space and time can cause tem-poral artifacts and inconsistent motion. Recent architec-tures [22, 33, 46] have shifted toward unified 3D atten-tion that jointly models spatiotemporal correlations, natu-rally capturing space-time dependencies and achieving bet-ter motion coherence, though at higher computational cost. The training formulation has also evolved beyond the classical diffusion objective [17], which learns to predict noise ϵθ (xt, t ) by minimizing Ldiff = E[∥ϵ − ϵθ (xt, t )∥2],where xt = √¯αtx0 + √1 − ¯αtϵ. While this stochastic denoising excels at spatial fidelity, recent frameworks [22, 24, 39] adopt flow matching [25], which deterministically transports samples from noise to data by learning a veloc-ity field: dx t 
+
+> dt
+
+= vθ (xt, t ). This ODE-based formulation directly models probability flow, favoring temporally stable trajectories and smoother motion. Despite these advances, existing methods all assume high-quality data with both ex-cellent visual and motion quality. Our work addresses the practical challenge of quality imbalance, demonstrating that principled timestep-aware training effectively leverages im-perfect data and achieves consistent improvements across both diffusion and flow matching paradigms. 
+
+2.2. Data Selection and Curation 
+
+Data curation plays an important role in large-scale gen-erative modeling. In vision-language modeling, both cu-rated datasets [35] and recent model-driven selection ap-proaches [11, 23, 32, 43] show that selecting informative examples under limited compute can significantly improve generalization. In diffusion models, explicit data-centric work is more limited. D2C [19] condenses training sets via difficulty scoring; FiFA [45] filters preference data based on informativeness; and Alchemist [37] upgrades noisy public text-to-image data through iterative filtering. Mild corrup-tion applied to pre-training data has also been shown to im-prove robustness [5]. Works like Ambient Diffusion [10] further demonstrate training on uncurated, bad data yields robust models but limited in image generation. For video generation, recent systems [22, 39] adopt multi-stage fil-tering pipelines evaluating visual quality, motion consis-tency, and caption alignment. Yet these pipelines discard videos whenever either VQ or MQ is low, meaning that samples strong in only one dimension are never exploited. In contrast, our approach explicitly leverages such imbal-anced data by routing high-MQ/low-VQ and high-VQ/low-MQ videos to different regions of the denoising process, re-ducing reliance on rare jointly high-quality video samples. 
+
+2.3. Timestep and Loss Reweighting 
+
+Diffusion models learn across a sequence of noise levels, and many works redesign timestep sampling or loss weight-ing to improve training. Foundational improvements such as cosine schedules [31] and SNR-based loss reweight-ing [15] highlight that different timesteps contribute un-equally to optimization. Perception Prioritized training [8] further adjusts weights to favor perceptually important de-noising stages, while curriculum-based strategies [21] grad-ually expand the range of timesteps used during training to improve stability. However, these approaches apply a uniform timetable to all training samples: each image or video receives the same per-timestep weighting regardless of its content. Existing methods therefore optimize when the model should learn, but not what type of data should be emphasized at each timestep. Our TQD method dif-fers by conditioning timestep allocation on sample-specific quality indicators, exploiting the natural hierarchy that early timesteps primarily shape motion while later timesteps re-fine appearance. This enables effective learning from im-perfect data—something existing timestep curricula cannot address. 
+
+## 3. Method 
+
+3.1. The Vision-Motion Quality Dilemma 
+
+We employ the VideoAlign [26] framework to score a ran-dom sampled subset of the Koala-36M dataset [41]. Since the original VideoAlign is trained on generated videos, we retrain the model on real-world videos to better suit our analysis of natural video distributions. We then plot the dis-tribution of MQ and VQ scores. As illustrated in Fig. 1(b), we divide the data into four quadrants based on the me-dian values of the collected data for analysis purposes (note that practical filtering pipelines would use much higher thresholds). Notably, data satisfying both high VQ and high MQ (above median) accounts for only 21.9 %, while high-VQ/low-MQ and high-MQ/low-VQ data each com-prise around 28 %. This reveals a clear pattern: data ex-celling in both metrics is less common than data showing strength in one metric while being weak in the other. In addition, we compute the Pearson correlation coef-ficient between VQ and MQ as −0.2187 , with a p-value 
+
+< 0.001 , indicating a trade-off between VQ and MQ. We term this phenomenon the Motion-Vision Quality Dilemma, which contributes to the scarcity of golden data with high quality in both metrics. Through this analysis, we highlight that while golden data is sparse, there exist large amounts of data that excel in only one metric (either VQ or MQ, but not both). Conventional filtering pipelines [22, 39] discard these, yet our timestep selection framework demonstrates their utility in training effective video diffusion models. 
+
+3.2. Quality Dynamics Analysis in Video Diffusion Process 
+
+Prior work has shown that image diffusion models deter-mine layout in early timesteps and refine details in later ones [40]. Building upon this insight, we investigate its extension to video diffusion models and empirically verify that they prioritize motion information in early timesteps and visual details in later ones. As depicted in Fig. 2(a), visualizing the video generation process demonstrates that layout and motion are established early, with content refined subsequently. Furthermore, to demonstrate that imbalanced data can provide gains comparable to golden data at specific timesteps, we conduct a gradient-based analysis across 120 samples with three types of VQ degradation (blur, compres-sion, noise; 40 each) and MQ degradation (frame shuffling). For each degraded sample, we compute gradients of a video diffusion model [39] at various timesteps and measure the L2 distance to gradients from the original sample, averag-ing across all samples. As shown in Fig. 2(b), VQ degrada-tion maintains gradient similarity with the original at high timesteps (high noise levels), suggesting that high-MQ/low-VQ data effectively supports motion learning in early de-t = 0.9       
+
+> t = 0.6
+> t = 0.3
+> t = 0.0
+> High Dist. High Dist.
+> Low Dist. Low Dist.
+> Blur Shuffle
+> High MQ, High VQ High MQ, Low VQ Low MQ , High VQ
+
+(a) (b) Figure 2. (a) Video diffusion models exhibit hierarchical denoising: high-noise stages ( t = 0 .9, 0.6) establish motion and composition, while low-noise stages ( t = 0 .3, 0.0) refine details and textures. (b) Gradient analysis under quality degradations, averaged over 120 samples with three VQ degradation types (blur, compression, noise) and MQ degradation (shuffle). VQ degradation aligns with the original at high timesteps, while MQ degradation aligns at low timesteps, revealing that quality-imbalanced samples can match golden data’s gradients at appropriate timesteps and should be strategically allocated across the denoising process. 
+
+noising stages. Conversely, MQ degradation preserves gra-dient similarity at low timesteps (low noise levels), indi-cating that high-VQ/low-MQ data contributes meaningfully to detail refinement in later stages. These complemen-tary patterns motivate our timestep-aware training strategy: samples with high VQ can be effectively utilized at lower timesteps, while samples with high MQ contribute mean-ingfully at higher timesteps, enabling efficient exploitation of data with varying quality characteristics. 
+
+3.3. Timestep-Selective Training with TQD 
+
+Based on the analysis in Sec. 3.2, we propose Timestep-aware Quality Decoupling (TQD), a data-aware timestep selection training method that adaptively adjusts sampling strategies for each individual sample. Unlike conventional video generation models that apply uniform or logit-normal timestep sampling equally across all samples, TQD adapts the timestep sampling to each sample’s quality characteris-tics through a two-level adaptive mechanism: (1) sample-level weighting based on absolute quality to down-weight samples lacking distinctive strengths in either dimension, and (2) timestep-level distribution adjustment based on rel-ative quality to match specialized data to appropriate de-noising stages. The overall method is shown in Fig. 3. We precompute VQ and MQ scores for each sample in the training dataset, and normalize them to vq norm , mq norm ∈
+
+[0 , 1] via min-max normalization. These normalized scores serve as the foundation for both sample-level and timestep-level adaptation. 
+
+Sample-Level Weighting via Absolute Quality. To filter low-quality samples where both motion and visual quality are poor, we introduce a quality-based dropout mechanism. We use max( vq norm , mq norm ) as an absolute quality indica-tor, representing the sample’s best attribute. During batch preparation, each sample is retained with probability: 
+
+psample = max( vq norm , mq norm ). (1) This weighting scheme ensures that samples with at least one distinctive quality (high MQ or high VQ) receive suffi-cient training emphasis, while suppressing samples lacking notable strengths in either dimension. Samples with both low MQ and low VQ are naturally down-weighted, prevent-ing them from dominating the training despite having small relative quality differences. 
+
+Timestep-Level Distribution Adjustment via Relative Quality. For retained samples, we adaptively adjust their timestep sampling distribution based on the relative quality difference between motion and visual attributes. We param-eterize the timestep distribution as a quality-dependent Beta distribution over the normalized interval [0 , 1] :
+
+p(t|x0) ∝ Beta (t; μ(x0) × κ(x0), (1 − μ(x0)) × κ(x0)) ,
+
+(2) where t ∈ [0 , 1] denotes the normalized timestep and x0
+
+represents the data sample. The Beta distribution is char-acterized by two sample-dependent parameters: the center 
+
+μ(x0) and the concentration κ(x0), which are dynamically computed from the sample’s quality metrics. The sampling center μ captures the relative strength be-tween motion and visual quality: 
+
+μ = 0 .5 + 0 .5 × (mq norm − vq norm ), (3) Training Set 
+
+precompute 
+
+> P = 0.33
+
+Drop 
+
+> P = 0.83
+
+Keep 
+
+> P = 0.67
+
+Keep 
+
+Sampled t = 0.392 
+
+Sampled t = 0.851 
+
+Sample -Level Weighting via 
+
+Absolute Quality 
+
+Timestep -Level Distribution 
+
+Adjustment via Relative Quality    
+
+> Mq norm = 0.83 vq norm = 0.44
+> Mq norm = 0.16 vq norm = 0.33
+> Mq norm = 0.51 vq norm = 0.67
+
+𝑝 = max (𝑣𝑞 !"#$ , 𝑚𝑞 !"#$ ) 𝑡 ~ 𝐵𝑒𝑡𝑎 (𝜇 · 𝜅 , (1 − 𝜇 ) · 𝜅 )Figure 3. Overview of our timestep selective training process. Given bimodal quality distributions in training data (left), TQD employs quality-based sample dropout (middle) and adaptive timestep sampling via Beta distributions (right). Samples with high motion intensity are directed toward large timesteps, those with high visual quality toward small timesteps, achieving specialized learning across denoising process. 
+
+where (mq norm − vq norm ) ∈ [−1, 1] reflects the comparative advantage. Samples with high MQ relative to VQ ( μ > 0.5)shift the distribution toward higher timesteps, focusing on motion learning during early denoising stages. Conversely, samples with high VQ relative to MQ ( μ < 0.5) bias toward lower timesteps, emphasizing appearance details in later re-finement stages. The concentration parameter κ controls the distribution’s peakedness based on the quality disparity: 
+
+κ = κbase + ( κmax − κbase ) × | mq norm − vq norm |, (4) where |mq norm − vq norm | ∈ [0 , 1] quantifies the quality im-balance. A larger disparity produces a higher κ, yielding a more peaked distribution around μ, thus providing stronger timestep specialization for imbalanced samples. For bal-anced samples (golden data with high MQ and VQ, or low-quality data already filtered by sample-level weighting), the distribution becomes flatter and approaches the baseline sampling. The base concentration κbase is set to match the original training scheme: κbase = 2 for uniform timestep sampling (equivalent to Beta (1 , 1) ), or κbase = 4 to approx-imate logit-normal distributions. This design ensures that when mq norm = vq norm , our method degenerates to the stan-dard sampling strategy. 
+
+Combined Quality-Weighted Distribution. Combining both sample-level and timestep-level mechanisms, the com-plete quality-weighted timestep distribution becomes: 
+
+p(t) ∝ max( vq norm , mq norm ) · Beta (t; μ × κ, (1 − μ) × κ).
+
+(5) This formulation ensures that: (1) low-quality samples (LMLV) are down-weighted through the absolute quality term, (2) motion-specialized samples (HMLV) concentrate on large timesteps, (3) visual-specialized samples (LMHV) concentrate on small timesteps, and (4) golden samples (HMHV) maintain balanced timestep coverage. We provide visualization examples of sample-specific timestep distribu-tions in the Appendix for intuitive understanding. 
+
+Training Algorithm. Our complete training procedure is outlined in Alg. 1. The method operates in two stages: (1) batch preparation where samples are retained with proba-bility max( vq norm , mq norm ) (Lines 4-10), implementing ab-solute quality weighting, and (2) timestep sampling where retained samples draw timesteps from Beta distributions pa-rameterized by their relative quality difference (Lines 12-16). This design effectively utilizes imbalanced data while filtering low-quality samples, achieving superior perfor-mance to models trained on curated data while expanding the usable training corpus. Algorithm 1 Timestep-Selective Training with TQD 
+
+Require: Dataset D with precomputed {vq , mq }, concen-trations κbase , κ max  
+
+> 1:
+
+Normalize {mq , vq } to [0 , 1] for all x0 ∈ D  
+
+> 2:
+
+// Sample-level weighting via absolute quality  
+
+> 3:
+
+function PREPARE BATCH (D, batch size)  
+
+> 4:
+
+B ← ∅  
+
+> 5:
+
+while |B| < batch size do  
+
+> 6:
+
+Sample data x0 from D with probability 
+
+max( vq norm , mq norm ) ▷ Eq. (1)  
+
+> 7:
+
+Add x0 to B 
+
+> 8:
+
+end while  
+
+> 9:
+
+return B 
+
+> 10:
+
+end function  
+
+> 11:
+
+// Timestep-level sampling via relative quality  
+
+> 12:
+
+while not converged do  
+
+> 13:
+
+B ← PREPARE BATCH (D, batch size)  
+
+> 14:
+
+for each x0 ∈ B do  
+
+> 15:
+
+Compute μ and κ ▷ Eq. (3) (4)  
+
+> 16:
+
+Sample t ∼ Beta (μκ, (1 − μ)κ) ▷ Eq. (5)  
+
+> 17:
+
+Sample x1 ∼ N (0 , I ) 
+
+> 18:
+
+Compute xt ← tx 1 + (1 − t)x0 
+
+> 19:
+
+end for  
+
+> 20:
+
+Update model: L = Ex0,x 1,t [∥vθ (xt, t, c ) − (x1 −
+
+x0)∥2] 
+
+> 21:
+
+end while 
+
+## 4. Experiments 
+
+4.1. Implementation Details 
+
+4.1.1. Model Setup 
+
+We conduct experiments on two high performance video diffusion models: CogVideoX-5B [46] and Wan-T2V-1.3B [39]. CogVideoX employs a standard diffusion pro-cess with uniform timestep sampling, while Wan-T2V uti-lizes flow matching with logit-normal timestep sampling. This diverse setup demonstrates the robustness of our method across different generative frameworks and sam-pling strategies. 
+
+4.1.2. Dataset Setup 
+
+We curate a training set of 280K video-text pairs online for supervised fine-tuning. All samples are scored using VideoAlign [26] to obtain MQ and VQ metrics. The quality distribution is relatively balanced across the dataset. To an-alyze the effectiveness of our method under different quality regimes, we partition the data into four categories based on quality thresholds (MQ=2.5, VQ=2.7): High-MQ-High-VQ (HMHV, 100K samples), High-MQ-Low-VQ (HMLV, 80K samples), Low-MQ-High-VQ (LMHV, 80K samples), and Low-MQ-Low-VQ (LMLV, 30K samples). Detailed qual-ity distributions are provided in the Appendix. Dense cap-tions for all videos are generated using a vision-language model [9]. 
+
+4.1.3. Training Setup 
+
+We finetune Wan-T2V-1.3B with full parameter training us-ing a batch size of 128, and fine-tune CogVideoX-5B with LoRA (rank=256) [18] using a batch size of 96. All mod-els are trained for 2,000 steps from their respective base checkpoints. To comprehensively evaluate our method, we construct three training configurations: Set-A uses all four quality categories to simulate realistic data distributions commonly encountered in practice; Set-B uses only HMLV and LMHV samples to assess our method’s effectiveness under extreme quality imbalance where dual-quality data is completely absent; Set-C uses only HMHV samples to verify whether TQD provides additional gains even on rare golden data. 
+
+4.2. Quantitative Evaluation 
+
+We evaluate video generation quality using VBench [20] and VideoAlign [26]. Following standard practice, we use an LLM [9] to expand evaluation prompts into detailed de-scriptions matching our training data format. The base-line methods employ the default fine-tuning strategies for each model: uniform timestep sampling for CogVideoX and logit-normal sampling for Wan. As shown in Table 1, TQD yields consistent gains across all data scenarios. Notably, under extreme quality imbal-ance (Set-B containing only HMLV and LMHV samples), TQD reaches or even surpasses results from naive fine-tuning on naturally distributed data—for example, Wan-T2V with TQD on Set-B (MQ: 2.1477, VQ: 3.2679) ex-ceeds the baseline on Set-A (MQ: 2.1388, VQ: 3.2537). This shows that timestep-aware training can effectively ex-ploit separated imperfect data and close, or even reverse, the gap with mixed-quality training. TQD also improves per-formance when trained solely on high-quality data (Set-C), demonstrating its robustness across different data regimes. We also observe smaller gains on CogVideoX, likely due to its LoRA-based fine-tuning setup, which constrains the model’s ability to fully adapt. Interestingly, we also observe that fine-tuning with our curated dataset enhances downstream physical reasoning capabilities. We evaluate Wan 1.3B Set-A checkpoints on VideoPhy2 [2], specifically testing on hard cases that re-quire understanding of physical dynamics. As shown in Ta-ble 2, TQD surpasses the baseline in both physical com-monsense adherence and semantic alignment. To isolate TQD’s contribution from data filtering effects, we include a Data Filter Only variant that applies quality-based dropout without adaptive timestep allocation. TQD outperforms both, confirming that gains stem from timestep-aware rout-ing rather than mere data selection. Table 1. Quantitative comparison on VBench and VideoAlign metrics across different data settings. Best results in each setting are shown in bold .
+
+Model Setting Method VBench VideoAlign 
+
+IQ Aesthetic Dynamic MotionSmooth MQ VQ 
+
+Wan 1.3B 
+
+- Basemodel 0.6935 0.5874 0.5938 0.9889 2.1993 3.3236 Set-A Baseline 0.6916 0.5722 0.5312 0.9935 2.1388 3.2537 TQD 0.7010 0.5757 0.6384 0.9923 2.2557 3.3450 
+
+Set-B Baseline 0.6769 0.5702 0.5224 0.9923 2.0905 3.2338 TQD 0.6921 0.5668 0.5447 0.9935 2.1477 3.2679 
+
+Set-C Baseline 0.6939 0.5798 0.5268 0.9920 2.1917 3.3378 TQD 0.7556 0.5847 0.6473 0.9931 2.2200 3.3743 CogVideoX 5B 
+
+- Basemodel 0.6796 0.5361 0.7455 0.9780 2.2134 3.2379 Set-A Baseline 0.6811 0.5388 0.7500 0.9781 2.1855 3.2593 
+
+TQD 0.6816 0.5386 0.7723 0.9780 2.2345 3.2570 Set-B Baseline 0.6798 0.5379 0.7679 0.9781 2.1821 3.2407 TQD 0.6848 0.5381 0.7768 0.9793 2.2010 3.2499 
+
+Set-C Baseline 0.6814 0.5386 0.7723 0.9779 2.2028 3.2373 TQD 0.6857 0.5397 0.7679 0.9783 2.2448 3.2392 
+
+> Table 2. Quantitative comparison on Subject Alignment (SA) and Prompt Consistency (PC) metrics with VideoPhy2.
+
+Model SA ↑ PC ↑
+
+Wan 1.3B 3.738 3.690 Baseline 3.786 3.709 Data Filter Only 3.795 3.756 TQD (Ours) 3.820 3.843 
+
+4.3. Qualitative Evaluation 
+
+Fig. 4 compares models trained on quality-imbalanced data from Set-B. Baseline training on such imbalanced data revealsquality degradation: visual artifacts such as hand distortions (top-left), motion incoherence failing to match prompt dynamics (top-right), and struggles with physical realism including unnatural foam dissipation and improper liquid spreading (bottom rows, red boxes). TQD effec-tively addresses these limitations by directing each sample to timesteps that match its quality strengths—motion-rich samples to high-noise stages, visually clean samples to low-noise stages. This yields videos with both visual fidelity and motion coherence, while notably improving physical plau-sibility in dynamics like foam dissipation and liquid flow, achieving quality on par with curated-data training. 
+
+4.4. Ablation Study 
+
+We conduct comprehensive ablation studies to validate our design choices. All experiments are performed on Wan 1.3B with Set-A. 
+
+Component Analysis. Table 3 dissects TQD’s two core components on Wan Set-A. Adaptive timestep allocation via Beta distributions brings substantial improvements by directing samples to their optimal denoising stages based on quality characteristics. Quality-based dropout further en-hances performance by filtering low-quality samples and re-balancing the training distribution. Combining both mecha-nisms yields synergistic gains (+0.1169 MQ, +0.0913 VQ), demonstrating that sample-level filtering and timestep-level adaptation mutually reinforce each other to achieve supe-rior video quality. MotionSmooth scores shows minimal and comparable variation across methods. 
+
+Concentration Parameter. The concentration param-eter κmax controls the peakedness of timestep distribu-tions—higher values create more concentrated distribu-tions, with samples exhibiting larger MQ-VQ disparities re-ceiving proportionally higher κ for stronger specialization. We set κbase = 2 for CogVideoX to match its baseline uni-form sampling (Beta(1,1)), and κbase = 4 for Wan to ap-proximate its logit-normal sampling. Table 4 systematically examines κmax across both architectures. We observe that CogVideoX achieves optimal performance at lower values, while Wan performs best at higher values. This difference A girl is playing the violin. Officer with pistol cautiously advances through dimly lit interior.    
+
+> Liquid poured onto plate spreads and ripples.
+> Wan  Baseline  TQD  Wan  Baseline  TQD
+> Foam in a glass of wine continuously dissipates. Figure 4. Qualitative comparison. TQD demonstrates superior performance across multiple quality dimensions. Top rows: improved visual quality with reduced hand distortion (left) and better motion coherence matching prompt dynamics (right). Bottom rows: enhanced physical plausibility in foam dissipation (left) and liquid dynamics (right), as highlighted in red boxes. Table 3. Component ablation of TQD on Wan Set-A. We VBench metrics alongside VideoAlign scores to dissect motion-visual synergies.
+
+Method VBench VideoAlign 
+
+IQ Aesthetic Dynamic MotionSmooth MQ VQ Baseline 0.6916 0.5722 0.5312 0.9935 2.1388 3.2537 + Adaptive timestep 0.6972 0.5735 0.6340 0.9937 2.2193 3.3044 + Quality dropout 0.6956 0.5701 0.5357 0.9916 2.1909 3.2921 + Both (TQD) 0.7010 0.5757 0.6384 0.9923 2.2557 3.3450 
+
+suggests that models trained with uniform sampling may require more conservative distribution adjustments. Impor-tantly, while κmax influences performance, all configura-tions of Wan substantially outperform their respective base-lines (Wan baseline: MQ 2.1388, VQ 3.2537), demonstrat-ing TQD’s robustness to this hyperparameter. Based on these findings, we adopt κmax = 20 for CogVideoX and 
+
+κmax = 30 for Wan in all our experiments. 
+
+## 5. Conclusion 
+
+This paper identifies the Motion-Vision Quality Dilemma—a negative correlation between motion and visual quality that makes golden data statistically rare. Through gradient analysis, we reveal that quality-imbalanced samples can match golden data’s learning effectiveness at appropriate timesteps, motivating a shift from data filtering to timestep-aware training. We intro-  
+
+> Table 4. Ablation study on concentration parameter κmax across CogVideoX and Wan architectures.
+
+κmax 
+
+CogVideoX Wan MQ ↑ VQ ↑ MQ ↑ VQ ↑
+
+10 2.2018 3.2596 2.2282 3.2808 20 2.2345 3.2570 2.2338 3.3020 30 2.2249 3.2543 2.2557 3.3450 
+
+40 2.2192 3.2535 2.2503 3.3152 50 2.2199 3.2504 2.2378 3.3089 duce Timestep-aware Quality Decoupling (TQD), which dynamically aligns each sample’s timestep distribution with its quality profile, achieving performance comparable to golden-data-only training with substantial gains on imbalanced datasets. Beyond the Golden Data: Resolving the Motion-Vision Quality Dilemma via Timestep Selective Training 
+
+# Supplementary Material 
+
+## 6. Timestep Distribution Analysis 
+
+Fig. 5 visualizes the timestep distributions across samples with different MQ and VQ scores under two κbase configu-rations. We set κbase = 2 and 4 such that when MQ = VQ, the distributions degenerate to uniform and logit-normal, re-spectively. Notably, samples with higher MQ scores shift the distribution toward larger timesteps, while those with higher VQ scores concentrate sampling at lower timesteps. This adaptive reweighting allows our approach to dynam-ically allocate timesteps based on sample-specific quality metrics. However, samples with uniformly low or high MQ and VQ scores exhibit similar relative quality metrics, ren-dering timestep reweighting alone insufficient for differen-tiation. To complement this, we incorporate a probabilistic retention strategy during data loading, where each sample is kept with probability max( vq norm , mq norm ) (see Sec. 3.3). MQ = 0.85 VQ = 0.2 MQ = 0.72 VQ = 0.72 MQ = 0.56 VQ = 0.82 
+
+> 𝜅 !"#$  = 2 𝜅 !"#$  = 4
+
+Figure 5. Timestep sampling distributions under varying quality scores. We visualize the Beta distributions with κbase = 4 (top) and 
+
+κbase = 2 (bottom) for samples with different MQ and VQ scores. Left: High MQ, low VQ shifts toward large timesteps. Middle: Equal MQ and VQ yields centered distributions. Right: Low MQ, high VQ concentrates on small timesteps. Note that κbase = 2 
+
+degenerates to uniform when MQ = VQ (middle-bottom). 
+
+## 7. Computational Analysis 
+
+Our proposed training strategy requires VQ and MQ scores for each sample, which can be pre-computed offline be-fore training begins. During training, we only perform two lightweight operations: sample dropout and timestep dis-tribution computation based on VQ and MQ scores. The former seamlessly integrates with the dataloader’s prefetch mechanism, while the latter incurs negligible computational overhead. Consequently, our method achieves nearly iden-tical GPU training time compared to the baseline, making it practically cost-free in terms of computational resources. 
+
+## 8. Dataset Settings 
+
+8.1. Data Distribution Visualization 
+
+Fig. 6 illustrates the distribution of MQ and VQ scores across our 280K training samples, scored using VideoAlign [26]. The MQ distribution (left) exhibits clear bimodality with peaks at ≈2.3 and ≈2.8, reflecting the nat-ural divide between static and dynamic video content. In contrast, VQ distribution (right) follows a unimodal, right-skewed pattern centered at ≈2.7, with most samples con-centrated between 2.0–3.5. We partition this data into four subsets based on median-aligned thresholds (MQ=2.5, VQ=2.7): HMHV (100K), HMLV (80K), LMHV (80K), and LMLV (20K). Note that these distributions reflect our curated dataset where we deliberately selected different amounts from each quality category and mixed them to-gether to ensure balanced training data. 0 1 2 3 4 5     
+
+> MQ
+> 0
+> 2000
+> 4000
+> 6000
+> 8000
+> 10000
+> 12000
+> Distribution of MQ
+> 012345
+> VQ
+> 0
+> 1000
+> 2000
+> 3000
+> 4000
+> 5000
+> 6000
+> Distribution of VQ
+
+Figure 6. Data distribution of our collected training set. 
+
+8.2. Video Caption Generation 
+
+To obtain precise and detailed video descriptions, we em-ploy Gemini 2.5 Pro with carefully designed prompts that emphasize comprehensive scene analysis. Our prompting strategy instructs the model to provide structured captions covering eight key dimensions: (1) brief summary, (2) sub-ject details including appearance and attire, (3) environ-ment and context, (4) chronological actions and interac-tions, (5) aesthetic style, (6) technical visual attributes, (7) cinematography, and (8) camera movement. This struc-tured approach ensures consistent, high-fidelity annotations that capture both visual content and stylistic nuances essen-tial for training high-quality video generation models. Fig-ure 7 illustrates our complete prompting template alongside a representative caption example generated for a wedding celebration scene. You are an expert video analysis expert specializing in generating dense, high -fidelity captions for video datasets. Your goal i s to describe the input video with extreme precision, focusing on 
+
+visual details, action, and cinematographic attributes. Analyze the provided video and generate a caption that strictly follows the structure and style defined below. Your response must be a 
+
+continuous text (or comprised of detailed segments) covering these specific aspects in order: 
+
+1. Brief Summary: A single sentence overview of the main subject and action. 
+
+2. Subject Details: Detailed description of the main character(s). Include age, ethnicity, hair, specific clothing details (colors, patterns, pat ch es, layers), and initial pose/expression. 
+
+3. Environment & Context: Describe the background (wall colors, objects, furniture), lighting conditions (bright, dim, natural, artificial), and any in fe rence about time of day or weather (or 
+
+state if it's indeterminable). 
+
+5. Chronological Action: Describe the sequence of events. What is the subject doing? Who enters the frame? Describe movements from left to right or ba ck ground to foreground. Focus on 
+
+interactions and micro -expressions. 
+
+6. Aesthetic Style: Describe the visual style (e.g., realistic, cinematic, home video, TV series look). Mention the color palette (muted, vibrant , pastel). 
+
+7. Technical Visuals: Analyze the image quality terms: saturation (low/medium/high), contrast, lightness, and color tone (neutral, warm, cool). 
+
+8. Cinematography: Describe the movement of the camera. 
+
+# Style Guidelines 
+
+Tone: Objective, descriptive, and professional. 
+
+Detail Level Extremely high. Do not just say "a jacket," say "a black and white jacket with red accents and a patch on the left side." 
+
+Format: Do not use bullet points. Write in full, descriptive sentences. 
+
+A blonde woman in a white dress and a man in a patterned shirt embrace and congratulate a central male figure in a white t -shirt , culminating in the woman kissing him on the cheek during a 
+
+celebratory event. The central subject is a young adult Caucasian male with short, light brown hair, wearing a plain white cr ew -neck t -shirt; his expression shifts from hearty laughter to a 
+
+warm, appreciative smile. To his right stands a young adult Caucasian woman with blonde hair styled in a loose updo with stra nds framing her face, wearing long, dangling crystal earrings 
+
+and a white dress with spaghetti straps and subtle beaded embellishments. To the left, another male subject appears, wearing a w hite short -sleeved button -down shirt featuring a dense blue 
+
+floral or paisley pattern; he has short dark hair and is viewed primarily from the back and side. The scene takes place indoo rs against a textured, rustic wall that appears to be concrete or 
+
+plaster with warm, earth -tone hues. In the blurred background, a figure sits behind a table with a laptop featuring a glowing lo go, suggesting a DJ booth or reception setup. The lighting is 
+
+artificial and atmospheric, with a strong backlight creating a halo effect on the woman's hair and a warm, ambient glow throu gho ut the space. 
+
+The sequence begins with the central man laughing with his eyes nearly closed as he is embraced. The man in the patterned shi rt enters fully from the left, wrapping his arms around the 
+
+central man in a tight hug, turning his back to the camera. The woman stands close on the right, smiling broadly and looking aff ectionately at the central man, her hand resting near him. As 
+
+the hug between the two men continues, the central man turns his head slightly toward the woman, locking eyes with her. The i nte raction concludes as the woman leans in and presses a kiss 
+
+onto the central man's left cheek, causing him to smile widely while looking forward. The aesthetic style is that of high -end we dding videography, characterized by a candid, documentary feel 
+
+that captures genuine emotion. The color palette is warm and inviting, dominated by creamy whites, skin tones, and the amber hue s of the background lighting. 
+
+Visually, the footage exhibits high saturation, emphasizing the warmth of the scene, with a medium contrast that preserves de tai ls in the bright whites of the clothing and the darker shadows 
+
+of the embrace. The lighting creates a soft, diffused look with a distinct warm color tone, enhancing the romantic and celebr ato ry mood. The cinematography utilizes a static, medium close -up 
+
+shot with a shallow depth of field, keeping the three subjects in sharp focus while blurring the background to isolate the in tim ate interaction. The camera remains steady, acting as an observer 
+
+to the spontaneous affection without distracting movement. Figure 7. Dense video captioning example. We leverage Gemini 2.5 Pro with structured prompts (top) to generate comprehensive video descriptions. The bottom panel shows an example caption (300+ words) for a wedding scene, demonstrating fine-grained descriptions of subjects’ clothing, spatial dynamics, lighting, and camera techniques. This structured approach ensures annotation quality and consistency across our 280K training dataset. 
+
+## 9. More Qualitative Comparisons 
+
+Additional qualitative video comparisons are included in the supplementary materials, which further demonstrate the effectiveness of our approach. 
+
+## 10. Robustness to Scorer Noise 
+
+TQD employs probabilistic Beta-distribution sampling rather than hard-threshold filtering, providing inherent re-silience to scorer noise—minor scoring errors only cause slight shifts in the sampling center ( μ) without excluding any data. To quantify this, we inject 10% and 20% Gaus-sian noise into MQ and VQ scores on Wan Set-A. As shown in Table 5, TQD with 20% noise still signif-icantly outperforms the baseline across all metrics. This robustness is further validated by consistent improvements on the independent VBench metrics. 
+
+Table 5. Robustness to scorer noise on Wan Set-A. TQD maintains substantial gains over the baseline even with 20% noise. 
+
+Method IQ Aesthetic Dynamic Smooth MQ VQ 
+
+Uniform (no TQD) 0.6916 0.5722 0.5312 0.9935 2.1388 3.2537 TQD (0% noise) 0.7010 0.5757 0.6384 0.9923 2.2557 3.3450 
+
+TQD (10% noise) 0.6985 0.5743 0.6251 0.9931 2.2431 3.3285 TQD (20% noise) 0.6953 0.5731 0.6012 0.9928 2.2114 3.3085 
+
+## References 
+
+[1] Stability AI. Stable diffusion, 2022. 2 [2] Hritik Bansal, Clark Peng, Yonatan Bitton, Roman Golden-berg, Aditya Grover, and Kai-Wei Chang. Videophy-2: A challenging action-centric physical commonsense evaluation in video generation. arXiv preprint arXiv:2503.06800 , 2025. 6[3] Andreas Blattmann, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch, Maciej Kilian, Dominik Lorenz, Yam Levi, Zion English, Vikram Voleti, Adam Letts, et al. Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 , 2023. 1, 2 [4] Rania Briq, Jiangtao Wang, and Stefan Kesselheim. Data pruning in generative diffusion models. arXiv preprint arXiv:2411.12523 , 2024. 2 [5] Hao Chen, Yujin Han, Diganta Misra, Xiang Li, Kai Hu, Difan Zou, Masashi Sugiyama, Jindong Wang, and Bhiksha Raj. Slight corruption in pre-training data makes better dif-fusion models. Advances in neural information processing systems , 37:126149–126206, 2024. 3 [6] Junsong Chen, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu, Zhongdao Wang, James Kwok, Ping Luo, Huchuan Lu, et al. Pixart-alpha : Fast training of diffusion transformer for photorealistic text-to-image synthesis. arXiv preprint arXiv:2310.00426 , 2023. 2 [7] Junhao Cheng, Yuying Ge, Yixiao Ge, Jing Liao, and Ying Shan. Animegamer: Infinite anime life simulation with next game state prediction. In Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision , pages 10875– 10885, 2025. 1 [8] Jooyoung Choi, Jungbeom Lee, Chaehun Shin, Sungwon Kim, Hyunwoo Kim, and Sungroh Yoon. Perception prior-itized training of diffusion models. CoRR , abs/2204.00227, 2022. 3 [9] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blis-tein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 , 2025. 6 [10] Giannis Daras, Adrian Rodriguez-Munoz, Adam Klivans, Antonio Torralba, and Constantinos Daskalakis. Ambient diffusion omni: Training good models with bad data. arXiv preprint arXiv:2506.10038 , 2025. 3 [11] Benjamin Feuer, Jiawei Xu, Niv Cohen, Patrick Yubeaton, Govind Mittal, and Chinmay Hegde. SELECT: A large-scale benchmark of data curation strategies for image classifica-tion, 2024. 3 [12] Xu Guo, Fulong Ye, Xinghui Li, Pengqi Tu, Pengze Zhang, Qichao Sun, Songtao Zhao, Xiangwang Hou, and Qian He. Dreamid-v: Bridging the image-to-video gap for high-fidelity face swapping via diffusion transformer. arXiv preprint arXiv:2601.01425 , 2026. 1 [13] Yuwei Guo, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. Animatediff: Animate your personalized text-to-image diffusion models without specific tuning. arXiv preprint arXiv:2307.04725 , 2023. 1, 2 [14] Yoav HaCohen, Nisan Chiprut, Benny Brazowski, Daniel Shalem, Dudu Moshe, Eitan Richardson, Eran Levin, Guy Shiran, Nir Zabari, Ori Gordon, et al. Ltx-video: Realtime video latent diffusion. arXiv preprint arXiv:2501.00103 ,2024. 1, 2 [15] Tiankai Hang, Shuyang Gu, Chen Li, Jianmin Bao, Dong Chen, Han Hu, Xin Geng, and Baining Guo. Efficient diffu-sion training via min-snr weighting strategy. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) , pages 7441–7451, 2023. 3 [16] Salma Hannouni, Sanaa El Filali, et al. Generative ai for ed-ucation: A study of text-to-video generation for personalized learning. In 2025 International Conference on Circuit, Sys-tems and Communication (ICCSC) , pages 1–6. IEEE, 2025. 1[17] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-fusion probabilistic models. Advances in neural information processing systems , 33:6840–6851, 2020. 2 [18] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al. Lora: Low-rank adaptation of large language models. ICLR ,1(2):3, 2022. 6 [19] Rui Huang, Shitong Shao, Zikai Zhou, Pukun Zhao, Hangyu Guo, Tian Ye, Lichen Bai, Shuo Yang, and Zeke Xie. Dif-fusion dataset condensation: Training your diffusion model faster with less data, 2025. 2, 3 [20] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang, Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu, Qingyang Jin, Nattapol Chanpaisit, et al. Vbench: Comprehensive bench-mark suite for video generative models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 21807–21818, 2024. 6 [21] Jin-Young Kim, Hyojun Go, Soonwoo Kwon, and Hyun-Gyoon Kim. Denoising task difficulty-based curriculum for training diffusion models. arXiv preprint arXiv:2403.10348 ,2024. 3 [22] Weijie Kong, Qi Tian, Zijian Zhang, Rox Min, Zuozhuo Dai, Jin Zhou, Jiangfeng Xiong, Xin Li, Bo Wu, Jianwei Zhang, et al. Hunyuanvideo: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 , 2024. 1, 2, 3 [23] Xize Liang, Lin Yang, Jie Wang, Yiyang Lu, Runyu Wu, Hanzhu Chen, and Jianye Hao. Boosting multi-domain fine-tuning of large language models through evolving interac-tions between samples. In Forty-second International Con-ference on Machine Learning . 3 [24] Bin Lin, Yunyang Ge, Xinhua Cheng, Zongjian Li, Bin Zhu, Shaodong Wang, Xianyi He, Yang Ye, Shenghai Yuan, Li-uhan Chen, et al. Open-sora plan: Open-source large video generation model. arXiv preprint arXiv:2412.00131 , 2024. 2[25] Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximil-ian Nickel, and Matt Le. Flow matching for generative mod-eling. arXiv preprint arXiv:2210.02747 , 2022. 2 [26] Jie Liu, Gongye Liu, Jiajun Liang, Ziyang Yuan, Xiaokun Liu, Mingwu Zheng, Xiele Wu, Qiulin Wang, Menghan Xia, Xintao Wang, et al. Improving video generation with human feedback. arXiv preprint arXiv:2501.13918 , 2025. 3, 6, 1 [27] Xiangyang Luo, Xin Zhang, Yifan Xie, Xinyi Tong, Wei-jiang Yu, Heng Chang, Fei Ma, and Fei Richard Yu. Codeswap: Symmetrically face swapping based on prior codebook. In Proceedings of the 32nd ACM International Conference on Multimedia , pages 6910–6919, 2024. 1 [28] Xiangyang Luo, Junhao Cheng, Yifan Xie, Xin Zhang, Tao Feng, Zhou Liu, Fei Ma, and Fei Yu. Object isolated at-tention for consistent story visualization. arXiv preprint arXiv:2503.23353 , 2025. 1 [29] Xiangyang Luo, Qingyu Li, Xiaokun Liu, Wenyu Qin, Miao Yang, Meng Wang, Pengfei Wan, Di Zhang, Kun Gai, and Shao-Lun Huang. Filmweaver: Weaving consistent multi-shot videos with cache-guided autoregressive diffu-sion. arXiv preprint arXiv:2512.11274 , 2025. 1 [30] Xiangyang Luo, Ye Zhu, Yunfei Liu, Lijian Lin, Cong Wan, Zijian Cai, Yu Li, and Shao-Lun Huang. Canonswap: High-fidelity and consistent video face swapping via canonical space modulation. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 10064–10074, 2025. 1 [31] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In International conference on machine learning , pages 8162–8171. PMLR, 2021. 3 [32] Mahdi Nikdan, Vincent Cohen-Addad, Dan Alistarh, and Va-hab Mirrokni. Efficient data selection at scale via influence distillation. arXiv preprint arXiv:2505.19051 , 2025. 3 [33] OpenAI. Sora: Creating video from text. Technical report, OpenAI, 2024. 2 [34] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨ orn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. 2 [35] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Worts-man, Patrick Schramowski, Srivatsa Kundurthy, Katherine Crowson, Ludwig Schmidt, Robert Kaczmarczyk, and Jenia Jitsev. Laion-5b: An open large-scale dataset for training next generation image-text models, 2022. 3 [36] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792 ,2022. 2 [37] Valerii Startsev, Alexander Ustyuzhanin, Alexey Kirillov, Dmitry Baranchuk, and Sergey Kastryulin. Alchemist: Turn-ing public text-to-image data into generative gold. arXiv preprint arXiv:2505.19297 , 2025. 3 [38] Cong Wan, Xiangyang Luo, Hao Luo, Zijian Cai, Yiren Song, Yunlong Zhao, Yifan Bai, Fan Wang, Yuhang He, and Yihong Gong. Grid: Omni visual generation. arXiv preprint arXiv:2412.10718 , 2024. 2 [39] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video gen-erative models. arXiv preprint arXiv:2503.20314 , 2025. 1, 2, 3, 6 [40] Binxu Wang and John J Vastola. Diffusion models gener-ate images like painters: an analytical theory of outline first, details later. arXiv preprint arXiv:2303.02490 , 2023. 3 [41] Qiuheng Wang, Yukai Shi, Jiarong Ou, Rui Chen, Ke Lin, Jiahao Wang, Boyuan Jiang, Haotian Yang, Mingwu Zheng, Xin Tao, et al. Koala-36m: A large-scale video dataset improving consistency between fine-grained conditions and video content. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 8428–8437, 2025. 2, 3[42] Weijia Wu, Zeyu Zhu, and Mike Zheng Shou. Auto-mated movie generation via multi-agent cot planning. arXiv preprint arXiv:2503.07314 , 2025. 1 [43] Mengzhou Xia, Sadhika Malladi, Suchin Gururangan, San-jeev Arora, and Danqi Chen. Less: Selecting influen-tial data for targeted instruction tuning. arXiv preprint arXiv:2402.04333 , 2024. 3 [44] Haiwei Xue, Xiangyang Luo, Zhanghao Hu, Xin Zhang, Xunzhi Xiang, Yuqin Dai, Jianzhuang Liu, Zhensong Zhang, Minglei Li, Jian Yang, et al. Human motion video genera-tion: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence , 2025. 1 [45] Yongjin Yang, Sihyeon Kim, Hojung Jung, Sangmin Bae, SangMook Kim, Se-Young Yun, and Kimin Lee. Automated filtering of human feedback data for aligning text-to-image diffusion models, 2024. 3 [46] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiao-han Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072 , 2024. 2, 6
