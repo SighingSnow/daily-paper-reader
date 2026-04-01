@@ -1,0 +1,830 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-01T20:33:46.250847+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 21,
+    "deep_cap": 7,
+    "deep_selected": 8,
+    "quick_candidates": 33,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.27449v1",
+      "title": "LOME: Learning Human-Object Manipulation with Action-Conditioned Egocentric World Model",
+      "abstract": "Learning human-object manipulation presents significant challenges due to its fine-grained and contact-rich nature of the motions involved. Traditional physics-based animation requires extensive modeling and manual setup, and more importantly, it neither generalizes well across diverse object morphologies nor scales effectively to real-world environment. To address these limitations, we introduce LOME, an egocentric world model that can generate realistic human-object interactions as videos conditioned on an input image, a text prompt, and per-frame human actions, including both body poses and hand gestures. LOME injects strong and precise action guidance into object manipulation by jointly estimating spatial human actions and the environment contexts during training. After finetuning a pretrained video generative model on videos of diverse egocentric human-object interactions, LOME demonstrates not only high action-following accuracy and strong generalization to unseen scenarios, but also realistic physical consequences of hand-object interactions, e.g., liquid flowing from a bottle into a mug after executing a ``pouring'' action. Extensive experiments demonstrate that our video-based framework significantly outperforms state-of-the-art image based and video-based action-conditioned methods and Image/Text-to-Video (I/T2V) generative model in terms of both temporal consistency and motion control. LOME paves the way for photorealistic AR/VR experiences and scalable robotic training, without being limited to simulated environments or relying on explicit 3D/4D modeling.",
+      "authors": [
+        "Quankai Gao",
+        "Jiawei Yang",
+        "Qiangeng Xu",
+        "Le Chen",
+        "Yue Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-28T23:58:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.27449v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Egocentric world model for human-object manipulation",
+      "llm_evidence_cn": "用于人-物操作的自我中心世界模型",
+      "llm_evidence": "用于人-物操作的自我中心世界模型",
+      "canonical_evidence": "用于人-物操作的自我中心世界模型",
+      "llm_tldr_en": "An action-conditioned egocentric world model generating realistic human-object interaction videos.",
+      "llm_tldr_cn": "动作条件的自我中心世界模型，生成真实的人-物交互视频。",
+      "llm_tldr": "动作条件的自我中心世界模型，生成真实的人-物交互视频。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.27813v1",
+      "title": "MuSEAgent: A Multimodal Reasoning Agent with Stateful Experiences",
+      "abstract": "Research agents have recently achieved significant progress in information seeking and synthesis across heterogeneous textual and visual sources. In this paper, we introduce MuSEAgent, a multimodal reasoning agent that enhances decision-making by extending the capabilities of research agents to discover and leverage stateful experiences. Rather than relying on trajectory-level retrieval, we propose a stateful experience learning paradigm that abstracts interaction data into atomic decision experiences through hindsight reasoning. These experiences are organized into a quality-filtered experience bank that supports policy-driven experience retrieval at inference time. Specifically, MuSEAgent enables adaptive experience exploitation through complementary wide- and deep-search strategies, allowing the agent to dynamically retrieve multimodal guidance across diverse compositional semantic viewpoints. Extensive experiments demonstrate that MuSEAgent consistently outperforms strong trajectory-level experience retrieval baselines on both fine-grained visual perception and complex multimodal reasoning tasks. These results validate the effectiveness of stateful experience modeling in improving multimodal agent reasoning.",
+      "authors": [
+        "Shijian Wang",
+        "Jiarui Jin",
+        "Runhao Fu",
+        "Zexuan Yan",
+        "Xingjian Wang",
+        "Mengkang Hu",
+        "Eric Wang",
+        "Xiaoxi Li",
+        "Kangning Zhang",
+        "Li Yao",
+        "Wenxiang Jiao",
+        "Xuelian Cheng",
+        "Yuan Lu",
+        "Zongyuan Ge"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-29T18:54:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.27813v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal reasoning agent for information seeking",
+      "llm_evidence_cn": "用于信息检索的多模态推理智能体",
+      "llm_evidence": "用于信息检索的多模态推理智能体",
+      "canonical_evidence": "用于信息检索的多模态推理智能体",
+      "llm_tldr_en": "Introduces MuSEAgent, a multimodal reasoning agent leveraging stateful experiences for research tasks.",
+      "llm_tldr_cn": "提出MuSEAgent利用状态化经验增强多模态推理智能体",
+      "llm_tldr": "提出MuSEAgent利用状态化经验增强多模态推理智能体",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.28963v1",
+      "title": "AutoWorld: Scaling Multi-Agent Traffic Simulation with Self-Supervised World Models",
+      "abstract": "Multi-agent traffic simulation is central to developing and testing autonomous driving systems. Recent data-driven simulators have achieved promising results, but rely heavily on supervised learning from labeled trajectories or semantic annotations, making it costly to scale their performance. Meanwhile, large amounts of unlabeled sensor data can be collected at scale but remain largely unused by existing traffic simulation frameworks. This raises a key question: How can a method harness unlabeled data to improve traffic simulation performance? In this work, we propose AutoWorld, a traffic simulation framework that employs a world model learned from unlabeled occupancy representations of LiDAR data. Given world model samples, AutoWorld constructs a coarse-to-fine predictive scene context as input to a multi-agent motion generation model. To promote sample diversity, AutoWorld uses a cascaded Determinantal Point Process framework to guide the sampling processes of both the world model and the motion model. Furthermore, we designed a motion-aware latent supervision objective that enhances AutoWorld's representation of scene dynamics. Experiments on the WOSAC benchmark show that AutoWorld ranks first on the leaderboard according to the primary Realism Meta Metric (RMM). We further show that simulation performance consistently improves with the inclusion of unlabeled LiDAR data, and study the efficacy of each component with ablations. Our method paves the way for scaling traffic simulation realism without additional labeling. Our project page contains additional visualizations and released code.",
+      "authors": [
+        "Mozhgan Pourkeshavatz",
+        "Tianran Liu",
+        "Nicholas Rhinehart"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-30T20:10:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.28963v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent traffic simulation with self-supervised world model",
+      "llm_evidence_cn": "基于自监督世界模型的多智能体交通仿真",
+      "llm_evidence": "基于自监督世界模型的多智能体交通仿真",
+      "canonical_evidence": "基于自监督世界模型的多智能体交通仿真",
+      "llm_tldr_en": "AutoWorld scales multi-agent traffic simulation using self-supervised world models from unlabeled LiDAR data.",
+      "llm_tldr_cn": "AutoWorld利用无标注LiDAR数据的自监督世界模型扩展多智能体交通仿真。",
+      "llm_tldr": "AutoWorld利用无标注LiDAR数据的自监督世界模型扩展多智能体交通仿真。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29088v1",
+      "title": "WybeCoder: Verified Imperative Code Generation",
+      "abstract": "Recent progress in large language models (LLMs) has advanced automatic code generation and formal theorem proving, yet software verification has not seen the same improvement. To address this gap, we propose WybeCoder, an agentic code verification framework that enables prove-as-you-generate development where code, invariants, and proofs co-evolve. It builds on a recent framework that combines automatic verification condition generation and SMT solvers with interactive proofs in Lean. To enable systematic evaluation, we translate two benchmarks for functional verification in Lean, Verina and Clever, to equivalent imperative code specifications. On complex algorithms such as Heapsort, we observe consistent performance improvements by scaling our approach, synthesizing dozens of valid invariants and dispatching of dozens of subgoals, resulting in hundreds of lines of verified code, overcoming plateaus reported in previous works. Our best system solves 74% of Verina tasks and 62% of Clever tasks at moderate compute budgets, significantly surpassing previous evaluations and paving a path to automated construction of large-scale datasets of verified imperative code.",
+      "authors": [
+        "Fabian Gloeckle",
+        "Mantas Baksys",
+        "Darius Feher",
+        "Kunhao Zheng",
+        "Amaury Hayat",
+        "Sean B. Holden",
+        "Gabriel Synnaeve",
+        "Peter O'Hearn"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-31T00:06:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.29088v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic code verification framework for verified code generation",
+      "llm_evidence_cn": "用于验证代码生成的智能体代码验证框架",
+      "llm_evidence": "用于验证代码生成的智能体代码验证框架",
+      "canonical_evidence": "用于验证代码生成的智能体代码验证框架",
+      "llm_tldr_en": "WybeCoder is an agentic framework for verified imperative code generation with co-evolving proofs.",
+      "llm_tldr_cn": "WybeCoder是一个用于验证命令式代码生成的智能体框架，支持证明与代码协同演化。",
+      "llm_tldr": "WybeCoder是一个用于验证命令式代码生成的智能体框架，支持证明与代码协同演化。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29090v1",
+      "title": "HCLSM: Hierarchical Causal Latent State Machines for Object-Centric World Modeling",
+      "abstract": "World models that predict future states from video remain limited by flat latent representations that entangle objects, ignore causal structure, and collapse temporal dynamics into a single scale. We present HCLSM, a world model architecture that operates on three interconnected principles: object-centric decomposition via slot attention with spatial broadcast decoding, hierarchical temporal dynamics through a three-level engine combining selective state space models for continuous physics, sparse transformers for discrete events, and compressed transformers for abstract goals, and causal structure learning through graph neural network interaction patterns. HCLSM introduces a two-stage training protocol where spatial reconstruction forces slot specialization before dynamics prediction begins. We train a 68M-parameter model on the PushT robotic manipulation benchmark from the Open X-Embodiment dataset, achieving 0.008 MSE next-state prediction loss with emerging spatial decomposition (SBD loss: 0.0075) and learned event boundaries. A custom Triton kernel for the SSM scan delivers 38x speedup over sequential PyTorch. The full system spans 8,478 lines of Python across 51 modules with 171 unit tests. Code: https://github.com/rightnow-ai/hclsm",
+      "authors": [
+        "Jaber Jaber",
+        "Osama Jaber"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-31T00:11:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.29090v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "world model architecture for object-centric video prediction",
+      "llm_evidence_cn": "用于以物体为中心的视频预测的世界模型架构",
+      "llm_evidence": "用于以物体为中心的视频预测的世界模型架构",
+      "canonical_evidence": "用于以物体为中心的视频预测的世界模型架构",
+      "llm_tldr_en": "HCLSM is a hierarchical world model with object-centric decomposition and causal structure learning.",
+      "llm_tldr_cn": "HCLSM是具有物体中心分解和因果结构学习的层次化世界模型。",
+      "llm_tldr": "HCLSM是具有物体中心分解和因果结构学习的层次化世界模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29161v1",
+      "title": "Webscraper: Leverage Multimodal Large Language Models for Index-Content Web Scraping",
+      "abstract": "Modern web scraping struggles with dynamic, interactive websites that require more than static HTML parsing. Current methods are often brittle and require manual customization for each site. To address this, we introduce Webscraper, a framework designed to handle the challenges of modern, dynamic web applications. It leverages a Multimodal Large Language Model (MLLM) to autonomously navigate interactive interfaces, invoke specialized tools, and perform structured data extraction in environments where traditional scrapers are ineffective. Webscraper utilizes a structured five-stage prompting procedure and a set of custom-built tools to navigate and extract data from websites following the common ``index-and-content'' architecture. Our experiments, conducted on six news websites, demonstrate that the full Webscraper framework, equipped with both our guiding prompt and specialized tools, achieves a significant improvement in extraction accuracy over the baseline agent Anthropic's Computer Use. We also applied the framework to e-commerce platforms to validate its generalizability.",
+      "authors": [
+        "Guan-Lun Huang",
+        "Yuh-Jzer Joung"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-31T02:20:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.29161v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "MLLM-based autonomous web navigation and data extraction agent",
+      "llm_evidence_cn": "基于MLLM的自主网页导航与数据提取智能体",
+      "llm_evidence": "基于MLLM的自主网页导航与数据提取智能体",
+      "canonical_evidence": "基于MLLM的自主网页导航与数据提取智能体",
+      "llm_tldr_en": "Webscraper is an MLLM-powered agent framework for autonomous web scraping from dynamic interactive websites.",
+      "llm_tldr_cn": "Webscraper是基于MLLM的智能体框架，用于动态交互式网站的自主网页抓取。",
+      "llm_tldr": "Webscraper是基于MLLM的智能体框架，用于动态交互式网站的自主网页抓取。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29632v1",
+      "title": "An Empirical Study of Multi-Agent Collaboration for Automated Research",
+      "abstract": "As AI agents evolve, the community is rapidly shifting from single Large Language Models (LLMs) to Multi-Agent Systems (MAS) to overcome cognitive bottlenecks in automated research. However, the optimal multi-agent coordination framework for these autonomous agents remains largely unexplored. In this paper, we present a systematic empirical study investigating the comparative efficacy of distinct multi-agent structures for automated machine learning optimization. Utilizing a rigorously controlled, execution-based testbed equipped with Git worktree isolation and explicit global memory, we benchmark a single-agent baseline against two multi-agent paradigms: a subagent architecture (parallel exploration with post-hoc consolidation) and an agent team architecture (experts with pre-execution handoffs). By evaluating these systems under strictly fixed computational time budgets, our findings reveal a fundamental trade-off between operational stability and theoretical deliberation. The subagent mode functions as a highly resilient, high-throughput search engine optimal for broad, shallow optimizations under strict time constraints. Conversely, the agent team topology exhibits higher operational fragility due to multi-author code generation but achieves the deep theoretical alignment necessary for complex architectural refactoring given extended compute budgets. These empirical insights provide actionable guidelines for designing future autoresearch systems, advocating for dynamically routed architectures that adapt their collaborative structures to real-time task complexity.",
+      "authors": [
+        "Yang Shen",
+        "Zhenyi Yi",
+        "Ziyi Zhao",
+        "Lijun Sun",
+        "Dongyang Li",
+        "Chin-Teng Lin",
+        "Yuhui Shi"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI"
+      ],
+      "published": "2026-03-31T11:57:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.29632v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent collaboration framework for automated research",
+      "llm_evidence_cn": "用于自动化研究的多智能体协作框架",
+      "llm_evidence": "用于自动化研究的多智能体协作框架",
+      "canonical_evidence": "用于自动化研究的多智能体协作框架",
+      "llm_tldr_en": "Empirical study comparing multi-agent coordination frameworks for automated ML research tasks.",
+      "llm_tldr_cn": "比较自动化机器学习研究中多智能体协调框架的实证研究。",
+      "llm_tldr": "比较自动化机器学习研究中多智能体协调框架的实证研究。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29919v1",
+      "title": "SkillReducer: Optimizing LLM Agent Skills for Token Efficiency",
+      "abstract": "LLM-based coding agents rely on \\emph{skills}, pre-packaged instruction sets that extend agent capabilities, yet every token of skill content injected into the context window incurs both monetary cost and attention dilution. To understand the severity of this problem, we conduct a large-scale empirical study of 55,315 publicly available skills and find systemic inefficiencies: 26.4\\% lack routing descriptions entirely, over 60\\% of body content is non-actionable, and reference files can inject tens of thousands of tokens per invocation. Motivated by these findings, we present \\textsc{SkillReducer}, a two-stage optimization framework. Stage~1 optimizes the routing layer by compressing verbose descriptions and generating missing ones via adversarial delta debugging. Stage~2 restructures skill bodies through taxonomy-driven classification and progressive disclosure, separating actionable core rules from supplementary content loaded on demand, validated by faithfulness checks and a self-correcting feedback loop. Evaluated on 600 skills and the SkillsBench benchmark, \\textsc{SkillReducer} achieves 48\\% description compression and 39\\% body compression while improving functional quality by 2.8\\%, revealing a \\emph{less-is-more} effect where removing non-essential content reduces distraction in the context window. These benefits transfer across five models from four families with a mean retention of 0.965, and generalize to an independent agent framework.",
+      "authors": [
+        "Yudong Gao",
+        "Zongjie Li",
+        "Yuanyuanyuan",
+        "Zimo Ji",
+        "Pingchuan Ma",
+        "Shuai Wang"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-31T15:57:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.29919v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based coding agents with skill optimization framework",
+      "llm_evidence_cn": "基于LLM的代码智能体技能优化框架",
+      "llm_evidence": "基于LLM的代码智能体技能优化框架",
+      "canonical_evidence": "基于LLM的代码智能体技能优化框架",
+      "llm_tldr_en": "Presents SkillReducer, a two-stage framework optimizing LLM coding agent skills for token efficiency and reduced costs.",
+      "llm_tldr_cn": "提出SkillReducer框架，优化LLM代码智能体技能以提升token效率。",
+      "llm_tldr": "提出SkillReducer框架，优化LLM代码智能体技能以提升token效率。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.25406v2",
+      "title": "MMaDA-VLA: Large Diffusion Vision-Language-Action Model with Unified Multi-Modal Instruction and Generation",
+      "abstract": "Vision-Language-Action (VLA) models aim to control robots for manipulation from visual observations and natural-language instructions. However, existing hierarchical and autoregressive paradigms often introduce architectural overhead, suffer from temporal inconsistency and long-horizon error accumulation, and lack a mechanism to capture environment dynamics without extra modules. To this end, we present MMaDA-VLA, a fully native pre-trained large diffusion VLA model that unifies multi-modal understanding and generation in a single framework. Our key idea is a native discrete diffusion formulation that embeds language, images, and continuous robot controls into one discrete token space and trains a single backbone with masked token denoising to jointly generate a future goal observation and an action chunk in parallel. Iterative denoising enables global, order-free refinement, improving long-horizon consistency while grounding actions in predicted future visual outcomes without auxiliary world models. Experiments across simulation benchmarks and real-world tasks show state-of-the-art performance, achieving 98.0% average success on LIBERO and 4.78 average length on CALVIN.",
+      "authors": [
+        "Yang Liu",
+        "Pengxiang Ding",
+        "Tengyue Jiang",
+        "Xudong Wang",
+        "Wenxuan Song",
+        "Minghui Lin",
+        "Han Zhao",
+        "Hongyin Zhang",
+        "Zifeng Zhuang",
+        "Wei Zhao",
+        "Siteng Huang",
+        "Jinkui Shi",
+        "Donglin Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-26T12:55:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.25406v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "VLA model framework unifying multi-modal understanding and robot control",
+      "llm_evidence_cn": "统一多模态理解与机器人控制的VLA模型框架",
+      "llm_evidence": "统一多模态理解与机器人控制的VLA模型框架",
+      "canonical_evidence": "统一多模态理解与机器人控制的VLA模型框架",
+      "llm_tldr_en": "MMaDA-VLA is a diffusion-based VLA framework unifying multi-modal understanding and robot action generation.",
+      "llm_tldr_cn": "MMaDA-VLA是基于扩散的VLA框架，统一多模态理解与机器人动作生成。",
+      "llm_tldr": "MMaDA-VLA是基于扩散的VLA框架，统一多模态理解与机器人动作生成。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.24946v1",
+      "title": "MobileDev-Bench: A Comprehensive Benchmark for Evaluating Language Models on Mobile Application Development",
+      "abstract": "Large language models (LLMs) have shown strong performance on automated software engineering tasks, yet existing benchmarks focus primarily on general-purpose libraries or web applications, leaving mobile application development largely unexplored despite its strict platform constraints, framework-driven lifecycles, and complex platform API interactions. We introduce MobileDev-Bench, a benchmark comprising 384 real-world issue-resolution tasks collected from 18 production mobile applications spanning Android Native (Java/Kotlin), React Native (TypeScript), and Flutter (Dart). Each task pairs an authentic developer-reported issue with executable test patches, enabling fully automated validation of model-generated fixes within mobile build environments. The benchmark exhibits substantial patch complexity: fixes modify 12.5 files and 324.9 lines on average, and 35.7% of instances require coordinated changes across multiple artifact types, such as source and manifest files. Evaluation of four state-of-the-art code-capable LLMs, GPT- 5.2, Claude Sonnet 4.5, Gemini Flash 2.5, and Qwen3-Coder, yields low end-to-end resolution rates of 3.39%-5.21%, revealing significant performance gaps compared to prior benchmarks. Further analysis reveals systematic failure modes, with fault localization across multi-file and multi-artifact changes emerging as the primary bottleneck.",
+      "authors": [
+        "Moshood A. Fakorede",
+        "Krishna Upadhyay",
+        "A. B. Siddique",
+        "Umar Farooq"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.LG"
+      ],
+      "published": "2026-03-26T02:31:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.24946v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "benchmark dataset with 384 real-world mobile app development tasks",
+      "llm_evidence_cn": "包含384个真实移动应用开发任务的基准数据集",
+      "llm_evidence": "包含384个真实移动应用开发任务的基准数据集",
+      "canonical_evidence": "包含384个真实移动应用开发任务的基准数据集",
+      "llm_tldr_en": "Introduces MobileDev-Bench, a comprehensive benchmark for evaluating LLMs on mobile application development.",
+      "llm_tldr_cn": "引入MobileDev-Bench，评估LLM移动应用开发能力的综合基准。",
+      "llm_tldr": "引入MobileDev-Bench，评估LLM移动应用开发能力的综合基准。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.23353v1",
+      "title": "Design Space and Implementation of RAG-Based Avatars for Virtual Archaeology",
+      "abstract": "Immersive technologies, such as virtual and augmented reality, are transforming digital heritage by enabling users to explore and interact with culturally significant sites. It is now possible to view and augment digital twins, or digitally reconstructed versions of them, and to enable access to previously unreachable locations for a broader audience. Here, we investigate retrieval-augmented generation (RAG)-based avatars as an interface for accessing further information about digital cultural heritage objects while immersed in dedicated virtual environments. We present a requirement design space that spans the application realm, avatar personality, and I/O modalities. We instantiate it with a RAG system coupled to a conversational avatar in a virtual reality (VR) environment, using the Maxentius mausoleum from the 4th century AD as a case study, through which users gain access to curated on-demand information of the digitised heritage object. Our workflow utilises scholarly texts and enriches them with metadata. We evaluate various RAG configurations in terms of answer quality on a small expert-crafted question-answer set, as well as the perceived workload of users of a VR setup using such a RAG avatar. We demonstrate evidence that users perceive the overall workload for interacting with such an avatar as below average and that such avatars help to gain topical engagement. Overall, our work demonstrates how to utilise RAG-driven VR avatars for archaeological purposes and provides evidence that they can offer a pathway for immersive, AI-enhanced digital heritage applications.",
+      "authors": [
+        "Wilhelm Kerle-Malcharek",
+        "Giulio Biondi",
+        "Karsten Klein",
+        "Ulf Hailer",
+        "Steffen Diefenbach",
+        "Fabrizio Grosso",
+        "Marco Legittimo",
+        "Paola Venuti",
+        "Carla Binucci",
+        "Giuseppe Liotta",
+        "Falk Schreiber"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-24T15:54:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.23353v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "design space framework for RAG-based conversational avatars",
+      "llm_evidence_cn": "RAG对话化身的框架设计空间",
+      "llm_evidence": "RAG对话化身的框架设计空间",
+      "canonical_evidence": "RAG对话化身的框架设计空间",
+      "llm_tldr_en": "Presents a framework design space for RAG-based avatars as interfaces in virtual archaeology environments.",
+      "llm_tldr_cn": "提出RAG化身作为虚拟考古环境交互界面的框架设计空间。",
+      "llm_tldr": "提出RAG化身作为虚拟考古环境交互界面的框架设计空间。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.25741v2",
+      "title": "Vega: Learning to Drive with Natural Language Instructions",
+      "abstract": "Vision-language-action models have reshaped autonomous driving to incorporate languages into the decision-making process. However, most existing pipelines only utilize the language modality for scene descriptions or reasoning and lack the flexibility to follow diverse user instructions for personalized driving. To address this, we first construct a large-scale driving dataset (InstructScene) containing around 100,000 scenes annotated with diverse driving instructions with the corresponding trajectories. We then propose a unified Vision-Language-World-Action model, Vega, for instruction-based generation and planning. We employ the autoregressive paradigm to process visual inputs (vision) and language instructions (language) and the diffusion paradigm to generate future predictions (world modeling) and trajectories (action). We perform joint attention to enable interactions between the modalities and use individual projection layers for different modalities for more capabilities. Extensive experiments demonstrate that our method not only achieves superior planning performance but also exhibits strong instruction-following abilities, paving the way for more intelligent and personalized driving systems.",
+      "authors": [
+        "Sicheng Zuo",
+        "Yuxuan Li",
+        "Wenzhao Zheng",
+        "Zheng Zhu",
+        "Jie Zhou",
+        "Jiwen Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-03-26T17:59:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.25741v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Vision-Language-World-Action model with large-scale driving dataset",
+      "llm_evidence_cn": "视觉-语言-世界-动作模型及大规模驾驶数据集",
+      "llm_evidence": "视觉-语言-世界-动作模型及大规模驾驶数据集",
+      "canonical_evidence": "视觉-语言-世界-动作模型及大规模驾驶数据集",
+      "llm_tldr_en": "Vega unifies vision-language-world-action for instruction-based driving with 100K scene dataset InstructScene.",
+      "llm_tldr_cn": "Vega统一视觉-语言-世界-动作模型，配合10万场景数据集实现指令驾驶。",
+      "llm_tldr": "Vega统一视觉-语言-世界-动作模型，配合10万场景数据集实现指令驾驶。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.25155v1",
+      "title": "Photon: Speedup Volume Understanding with Efficient Multimodal Large Language Models",
+      "abstract": "Multimodal large language models are promising for clinical visual question answering tasks, but scaling to 3D imaging is hindered by high computational costs. Prior methods often rely on 2D slices or fixed-length token compression, disrupting volumetric continuity and obscuring subtle findings. We present Photon, a framework that represents 3D medical volumes with token sequences of variable length. Photon introduces instruction-conditioned token scheduling and surrogate gradient propagation to adaptively reduce tokens during both training and inference, which lowers computational cost while mitigating the attention dilution caused by redundant tokens. It incorporates a custom backpropagation rule with gradient restoration to enable differentiable optimization despite discrete token drop. To stabilize token compression and ensure reliable use of visual evidence, Photon further applies regularization objectives that mitigate language-only bias and improve reliability. Experiments on diverse medical visual question answering tasks show that Photon achieves state-of-the-art accuracy while reducing resource usage and accelerating both training and inference.",
+      "authors": [
+        "Chengyu Fang",
+        "Heng Guo",
+        "Zheng Jiang",
+        "Chunming He",
+        "Xiu Li",
+        "Minfeng Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T08:18:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.25155v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "framework for efficient 3D medical volume understanding",
+      "llm_evidence_cn": "用于高效3D医学体数据理解的框架",
+      "llm_evidence": "用于高效3D医学体数据理解的框架",
+      "canonical_evidence": "用于高效3D医学体数据理解的框架",
+      "llm_tldr_en": "Photon is a framework using variable-length token scheduling to accelerate 3D medical volume understanding.",
+      "llm_tldr_cn": "Photon框架通过变长token调度加速3D医学体数据理解。",
+      "llm_tldr": "Photon框架通过变长token调度加速3D医学体数据理解。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.23750v1",
+      "title": "IslamicMMLU: A Benchmark for Evaluating LLMs on Islamic Knowledge",
+      "abstract": "Large language models are increasingly consulted for Islamic knowledge, yet no comprehensive benchmark evaluates their performance across core Islamic disciplines. We introduce IslamicMMLU, a benchmark of 10,013 multiple-choice questions spanning three tracks: Quran (2,013 questions), Hadith (4,000 questions), and Fiqh (jurisprudence, 4,000 questions). Each track is formed of multiple types of questions to examine LLMs capabilities handling different aspects of Islamic knowledge. The benchmark is used to create the IslamicMMLU public leaderboard for evaluating LLMs, and we initially evaluate 26 LLMs, where their averaged accuracy across the three tracks varied between 39.8\\% to 93.8\\% (by Gemini 3 Flash). The Quran track shows the widest span (99.3\\% to 32.4\\%), while the Fiqh track includes a novel madhab (Islamic school of jurisprudence) bias detection task revealing variable school-of-thought preferences across models. Arabic-specific models show mixed results, but they all underperform compared to frontier models. The evaluation code and leaderboard are made publicly available.",
+      "authors": [
+        "Ali Abdelaal",
+        "Mohammed Nader Al Haffar",
+        "Mahmoud Fawzi",
+        "Walid Magdy"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-24T22:18:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.23750v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Comprehensive benchmark dataset for evaluating LLMs on Islamic knowledge",
+      "llm_evidence_cn": "用于评估LLM伊斯兰知识的综合基准数据集",
+      "llm_evidence": "用于评估LLM伊斯兰知识的综合基准数据集",
+      "canonical_evidence": "用于评估LLM伊斯兰知识的综合基准数据集",
+      "llm_tldr_en": "Introduces IslamicMMLU benchmark with 10,013 questions across Quran, Hadith, and Fiqh tracks.",
+      "llm_tldr_cn": "引入IslamicMMLU基准，包含古兰经、圣训和教法三个赛道共10013道题。",
+      "llm_tldr": "引入IslamicMMLU基准，包含古兰经、圣训和教法三个赛道共10013道题。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.26741v1",
+      "title": "Language-Conditioned World Modeling for Visual Navigation",
+      "abstract": "We study language-conditioned visual navigation (LCVN), in which an embodied agent is asked to follow a natural language instruction based only on an initial egocentric observation. Without access to goal images, the agent must rely on language to shape its perception and continuous control, making the grounding problem particularly challenging. We formulate this problem as open-loop trajectory prediction conditioned on linguistic instructions and introduce the LCVN Dataset, a benchmark of 39,016 trajectories and 117,048 human-verified instructions that supports reproducible research across a range of environments and instruction styles. Using this dataset, we develop LCVN frameworks that link language grounding, future-state prediction, and action generation through two complementary model families. The first family combines LCVN-WM, a diffusion-based world model, with LCVN-AC, an actor-critic agent trained in the latent space of the world model. The second family, LCVN-Uni, adopts an autoregressive multimodal architecture that predicts both actions and future observations. Experiments show that these families offer different advantages: the former provides more temporally coherent rollouts, whereas the latter generalizes better to unseen environments. Taken together, these observations point to the value of jointly studying language grounding, imagination, and policy learning in a unified task setting, and LCVN provides a concrete basis for further investigation of language-conditioned world models. The code is available at https://github.com/F1y1113/LCVN.",
+      "authors": [
+        "Yifei Dong",
+        "Fengyi Wu",
+        "Yilong Dai",
+        "Lingdong Kong",
+        "Guangyu Chen",
+        "Xu Zhu",
+        "Qiyu Hu",
+        "Tianyu Wang",
+        "Johnalbert Garnica",
+        "Feng Liu",
+        "Siyu Huang",
+        "Qi Dai",
+        "Zhi-Qi Cheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-03-23T04:10:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.26741v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "World modeling for embodied agents with dataset and framework contribution",
+      "llm_evidence_cn": "具身智能体的世界建模，贡献数据集和框架",
+      "llm_evidence": "具身智能体的世界建模，贡献数据集和框架",
+      "canonical_evidence": "具身智能体的世界建模，贡献数据集和框架",
+      "llm_tldr_en": "Introduces LCVN Dataset and frameworks for language-conditioned world modeling in visual navigation.",
+      "llm_tldr_cn": "提出LCVN数据集和框架用于语言条件的世界建模。",
+      "llm_tldr": "提出LCVN数据集和框架用于语言条件的世界建模。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.26741v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.25737v1",
+      "title": "Training the Knowledge Base through Evidence Distillation and Write-Back Enrichment",
+      "abstract": "The knowledge base in a retrieval-augmented generation (RAG) system is typically assembled once and never revised, even though the facts a query requires are often fragmented across documents and buried in irrelevant content. We argue that the knowledge base should be treated as a trainable component and propose WriteBack-RAG, a framework that uses labeled examples to identify where retrieval succeeds, isolate the relevant documents, and distill them into compact knowledge units that are indexed alongside the original corpus. Because the method modifies only the corpus, it can be applied once as an offline preprocessing step and combined with any RAG pipeline. Across four RAG methods, six benchmarks, and two LLM backbones, WriteBack-RAG improves every evaluated setting, with gains averaging +2.14%. Cross-method transfer experiments further show that the distilled knowledge benefits RAG pipelines other than the one used to produce it, confirming that the improvement resides in the corpus itself.",
+      "authors": [
+        "Yuxing Lu",
+        "Xukai Zhao",
+        "Wei Wu",
+        "Jinzhuo Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-03-26T17:59:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.25737v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "WriteBack-RAG framework for knowledge base training",
+      "llm_evidence_cn": "用于知识库训练的WriteBack-RAG框架",
+      "llm_evidence": "用于知识库训练的WriteBack-RAG框架",
+      "canonical_evidence": "用于知识库训练的WriteBack-RAG框架",
+      "llm_tldr_en": "A framework that treats RAG knowledge bases as trainable components via evidence distillation and enrichment.",
+      "llm_tldr_cn": "将RAG知识库视为可训练组件的框架，通过证据蒸馏和增强实现。",
+      "llm_tldr": "将RAG知识库视为可训练组件的框架，通过证据蒸馏和增强实现。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.26074v1",
+      "title": "Not All Entities are Created Equal: A Dynamic Anonymization Framework for Privacy-Preserving Retrieval-Augmented Generation",
+      "abstract": "Retrieval-Augmented Generation (RAG) enhances the utility of Large Language Models (LLMs) by retrieving external documents. Since the knowledge databases in RAG are predominantly utilized via cloud services, private data in sensitive domains such as finance and healthcare faces the risk of personal information leakage. Thus, effectively anonymizing knowledge bases is crucial for privacy preservation. Existing studies equate the privacy risk of text to the linear superposition of the privacy risks of individual, isolated sensitive entities. The \"one-size-fits-all\" full processing of all sensitive entities severely degrades utility of LLM. To address this issue, we introduce a dynamic anonymization framework named TRIP-RAG. Based on context-aware entity quantification, this framework evaluates entities from the perspectives of marginal privacy risk, knowledge divergence, and topical relevance. It identifies highly sensitive entities while trading off utility, providing a feasible approach for variable-intensity privacy protection scenarios. Our theoretical analysis and experiments indicate that TRIP-RAG can effectively reduce context inference risks. Extensive experimental results demonstrate that, while maintaining privacy protection comparable to full anonymization, TRIP-RAG's Recall@k decreases by less than 35% compared to the original data, and the generation quality improves by up to 56% over existing baselines.",
+      "authors": [
+        "Xinyuan Zhu",
+        "Zekun Fei",
+        "Enye Wang",
+        "Ruiqi He",
+        "Zheli Liu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-03-27T05:03:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.26074v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Proposes dynamic anonymization framework for privacy-preserving RAG",
+      "llm_evidence_cn": "提出用于隐私保护RAG的动态匿名化框架",
+      "llm_evidence": "提出用于隐私保护RAG的动态匿名化框架",
+      "canonical_evidence": "提出用于隐私保护RAG的动态匿名化框架",
+      "llm_tldr_en": "Introduces a dynamic anonymization framework that adaptively processes sensitive entities in RAG systems.",
+      "llm_tldr_cn": "引入动态匿名化框架，自适应处理RAG系统中的敏感实体。",
+      "llm_tldr": "引入动态匿名化框架，自适应处理RAG系统中的敏感实体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.27277v1",
+      "title": "Codebase-Memory: Tree-Sitter-Based Knowledge Graphs for LLM Code Exploration via MCP",
+      "abstract": "Large Language Model (LLM) coding agents typically explore codebases through repeated file-reading and grep-searching, consuming thousands of tokens per query without structural understanding. We present Codebase-Memory, an open-source system that constructs a persistent, Tree-Sitter-based knowledge graph via the Model Context Protocol (MCP), parsing 66 languages through a multi-phase pipeline with parallel worker pools, call-graph traversal, impact analysis, and community discovery. Evaluated across 31 real-world repositories, Codebase-Memory achieves 83% answer quality versus 92% for a file-exploration agent, at ten times fewer tokens and 2.1 times fewer tool calls. For graph-native queries such as hub detection and caller ranking, it matches or exceeds the explorer on 19 of 31 languages.",
+      "authors": [
+        "Martin Vogel",
+        "Falk Meyer-Eschenbach",
+        "Severin Kohler",
+        "Elias Grünewald",
+        "Felix Balzer"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.PL"
+      ],
+      "published": "2026-03-28T14:18:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.27277v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Knowledge graph system for LLM coding agents via Model Context Protocol",
+      "llm_evidence_cn": "通过MCP为LLM编码智能体构建的知识图谱系统",
+      "llm_evidence": "通过MCP为LLM编码智能体构建的知识图谱系统",
+      "canonical_evidence": "通过MCP为LLM编码智能体构建的知识图谱系统",
+      "llm_tldr_en": "A persistent knowledge graph system enabling efficient codebase exploration for coding agents.",
+      "llm_tldr_cn": "为编码智能体提供高效代码库探索的持久知识图谱系统。",
+      "llm_tldr": "为编码智能体提供高效代码库探索的持久知识图谱系统。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.25770v1",
+      "title": "ReCUBE: Evaluating Repository-Level Context Utilization in Code Generation",
+      "abstract": "Large Language Models (LLMs) have recently emerged as capable coding assistants that operate over large codebases through either agentic exploration or full-context generation. Existing benchmarks capture a broad range of coding capabilities, such as resolving GitHub issues, but none of them directly isolate and measure how effectively LLMs leverage repository-level context during code generation. To address this, we introduce ReCUBE, a benchmark in which LLMs reconstruct a masked file within a real-world repository, using all remaining source files, dependency specifications, and documentation as their only source of context. ReCUBE evaluates reconstructed code with usage-aware test cases that simulate both internal module logic and external cross-file integration, reflecting real-world software usage patterns. We further propose the Caller-Centric Exploration (CCE) toolkit, a set of dependency graph-based tools that can be integrated into agentic frameworks to guide agents toward the most relevant caller files during repository exploration. Experiments across eight models in four settings show that repository-level context utilization remains highly challenging even for state-of-the-art models, with GPT-5 achieving only 37.57% strict pass rate in the full-context setting. Agents augmented with our CCE toolkit consistently outperform all baselines across all evaluated models, with improvements of up to 7.56% in strict pass rate. We release our benchmark, code, and evaluation framework as open source for the NLP research community.",
+      "authors": [
+        "Jiseung Hong",
+        "Benjamin G. Ascoli",
+        "Jinho D. Choi"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T08:04:15+00:00",
+      "link": "https://arxiv.org/pdf/2603.25770v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Benchmark evaluating LLM code generation with repository-level context",
+      "llm_evidence_cn": "评估LLM代码生成中仓库级上下文利用的基准",
+      "llm_evidence": "评估LLM代码生成中仓库级上下文利用的基准",
+      "canonical_evidence": "评估LLM代码生成中仓库级上下文利用的基准",
+      "llm_tldr_en": "A benchmark measuring how effectively LLMs leverage repository context for code generation.",
+      "llm_tldr_cn": "衡量LLM在代码生成中利用仓库上下文有效性的基准。",
+      "llm_tldr": "衡量LLM在代码生成中利用仓库上下文有效性的基准。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.27577v1",
+      "title": "Structured Observation Language for Efficient and Generalizable Vision-Language Navigation",
+      "abstract": "Vision-Language Navigation (VLN) requires an embodied agent to navigate complex environments by following natural language instructions, which typically demands tight fusion of visual and language modalities. Existing VLN methods often convert raw images into visual tokens or implicit features, requiring large-scale visual pre-training and suffering from poor generalization under environmental variations (e.g., lighting, texture). To address these issues, we propose SOL-Nav (Structured Observation Language for Navigation), a novel framework that translates egocentric visual observations into compact structured language descriptions for efficient and generalizable navigation. Specifically, we divide RGB-D images into a N*N grid, extract representative semantic, color, and depth information for each grid cell to form structured text, and concatenate this with the language instruction as pure language input to a pre-trained language model (PLM). Experimental results on standard VLN benchmarks (R2R, RxR) and real-world deployments demonstrate that SOL-Nav significantly reduces the model size and training data dependency, fully leverages the reasoning and representation capabilities of PLMs, and achieves strong generalization to unseen environments.",
+      "authors": [
+        "Daojie Peng",
+        "Fulong Ma",
+        "Jun Ma"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-29T08:34:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.27577v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Embodied agent for vision-language navigation using structured observations",
+      "llm_evidence_cn": "使用结构化观察的视觉语言导航具身智能体",
+      "llm_evidence": "使用结构化观察的视觉语言导航具身智能体",
+      "canonical_evidence": "使用结构化观察的视觉语言导航具身智能体",
+      "llm_tldr_en": "A framework translating visual observations to language for efficient embodied navigation.",
+      "llm_tldr_cn": "将视觉观察转化为语言以实现高效具身导航的框架。",
+      "llm_tldr": "将视觉观察转化为语言以实现高效具身导航的框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

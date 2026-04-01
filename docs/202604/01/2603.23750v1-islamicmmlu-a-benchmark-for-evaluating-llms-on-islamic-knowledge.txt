@@ -1,0 +1,443 @@
+Title: IslamicMMLU: A Benchmark for Evaluating LLMs on Islamic Knowledge
+
+URL Source: https://arxiv.org/pdf/2603.23750v1
+
+Published Time: Thu, 26 Mar 2026 00:17:35 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+## IslamicMMLU: A Benchmark for Evaluating LLMs on Islamic Knowledge 
+
+Ali Abdelaal, Mohammed Nader Al Haffar, Mahmoud Fawzi, Walid Magdy 
+
+The University of Edinburgh 
+
+{s2431177, s2419871, m.fawzi}@ed.ac.uk, wmagdy@inf.ed.ac.uk 
+
+Abstract 
+
+Large language models are increasingly con-sulted for Islamic knowledge, yet no com-prehensive benchmark evaluates their perfor-mance across core Islamic disciplines. We introduce IslamicMMLU, a benchmark of 10,013 multiple-choice questions spanning three tracks: Quran (2,013 questions), Hadith (4,000 questions), and Fiqh (jurisprudence, 4,000 questions). Each track is formed of multiple types of questions to examine LLMs capabilities handling different aspects of Is-lamic knowledge. The benchmark is used to create the IslamicMMLU public leaderboard for evaluating LLMs, and we initially evalu-ate 26 LLMs, where their averaged accuracy across the three tracks varied between 39.8% to 93.8% (by Gemini 3 Flash). The Quran track shows the widest span (99.3% to 32.4%), while the Fiqh track includes a novel madhab (Islamic school of jurisprudence) bias detec-tion task revealing variable school-of-thought preferences across models. Arabic-specific models show mixed results, but they all un-derperform compared to frontier models. The evaluation code and leaderboard are made pub-licly available. 
+
+1 Introduction 
+
+Large language models (LLMs) are increasingly consulted for information about Islamic topics by millions of users worldwide (Mubarak et al., 2025). Islamic knowledge spans multiple inter-connected disciplines (e.g., Quranic studies, Ha-dith sciences, and Islamic jurisprudence), each re-quiring distinct scholarly expertise and evaluation methodologies. Yet no comprehensive benchmark evaluates LLM performance across these core do-mains. This gap can lead to religious misinforma-tion affecting daily practice for Muslims who may lack easy access to qualified scholars (Naous et al., 2024; Fawzi et al., 2026). Several recent efforts address aspects of Islamic NLP (e.g., hallucination detection, cultural com-petence, and jurisprudential QA), but none pro-vides comprehensive cross-discipline evaluation. The MMLU paradigm (Hendrycks et al., 2021) has been extended to legal (Hijazi et al., 2024), cultural (Huang et al., 2024), and general Ara-bic (Koto et al., 2024) domains, but to our knowl-edge no systematic Islamic knowledge evaluation benchmark exists. Islamic knowledge evaluation faces unique chal-lenges across all three disciplines. Quranic evalu-ation requires precise textual recall across 6,236 verses ( Ayahs ). Hadith evaluation demands source authentication across authentic canonical collec-tions, textual completion, and reliability grad-ing of authenticity. Fiqh evaluation confronts the inherent pluralism of Islamic jurisprudence, where the same act may receive different rul-ings across multiple valid schools of thought (madhahib ).“Correct/Incorrect” evaluation is fun-damentally insufficient for fiqh, as a model pe-nalised for answering according to one school when the benchmark expected another is not ex-hibiting error but reflecting the genuine plurality of the tradition. We introduce IslamicMMLU with the following contributions: 1. IslamicMMLU benchmark: 10,013 multiple-choice questions spanning three tracks with 12 task types that evaluate different facets of Islamic knowledge. 2. Fiqh track with madhab bias detection: 
+
+A novel evaluation task measuring implicit school-of-thought bias in LLMs. 3. Evaluation of 26 LLMs: Comprehensive evaluation across all three tracks with boot-strap confidence intervals and statistical sig-nificance testing. 4. IslamicMMLU leaderboard 1: Evaluation code and results released publicly via Hug-gingFace, with a live leaderboard supporting 
+
+> 1https://huggingface.co/spaces/ islamicmmlu/leaderboard
+> arXiv:2603.23750v1 [cs.CL] 24 Mar 2026
+
+community evaluation of new models. 
+
+2 Background and Related Work 
+
+2.1 Islamic Knowledge Domains 
+
+Islam, the world’s second-largest religion, centres on three interconnected scholarly traditions that underpin religious practice and daily life. The 
+
+Quran is the central scripture of Islam, com-prising 114 chapters ( surahs ) and 6,236 verses (ayahs ). Muslims believe it to be the verba-tim word of God as revealed to Muhammad, the prophet of Islam. The Quran is recited in the five daily prayers that structure Muslim worship, and is among the most widely memorised religious texts in the world (Abokhodair et al., 2020). The Hadith literature records the sayings, ac-tions, and tacit approvals of the Prophet Muham-mad (Fawzi et al., 2025). It consists of two parts: 1) isnad which is the chain of narrators who nar-rated the quote of the prophet till the time it has been written, and 2) matn , which is the main content of the quote itself. Islam has two main branches. The Sunni branch which is followed by the majority of Muslims and the Shia branch. Six canonical collections of Hadith are widely accepted by Sunni Muslims as the most reliable source of Hadith, which are Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa’i, and Ibn Majah. Hadith sciences classify narrations by authenticity accord-ing to how evident it has been said by the prophet. There are four main authenticity levels: sahih (au-thentic), hasan (good), da‘if (weak), and mawdu‘ 
+
+(fabricated). Shia Muslims use other books. Both Quran and Hadith are the main sources of Islamic jurisprudence (in Arabic Fiqh ). There are four major Sunni schools ( madhab ), namely Hanafi, Maliki, Shafi’i, and Hanbali, developed over centuries and are recognised as equally valid. They often agree but may reach different rul-ings on the same question, creating a legitimate pluralism that standard single-answer evaluation paradigms cannot capture. The Shia disagreement about Hadith may lead to to some variation in Fiqh. Nevertheless, it still agrees with Sunni in many rul-ings regarding life and worship. 
+
+2.2 MMLU and LLM Evaluation 
+
+The MMLU benchmark (Hendrycks et al., 2021) established MCQ-based knowledge evaluation as a standard paradigm, with 15,908 questions across 57 subjects. MMLU-Pro (Wang et al., 2024) extended this to harder questions with ten op-tions. Domain-specific adaptations have emerged for law, medicine, and cultural knowledge, es-tablishing MCQ evaluation as the reproducible, scalable framework for cross-model comparison. HELM (Liang et al., 2023) provides a holistic eval-uation framework spanning multiple scenarios and metrics. 
+
+2.3 Arabic NLP Benchmarks 
+
+ArabicMMLU (Koto et al., 2024) is the most di-rect comparator: 14,575 native Arabic questions across 40 subjects sourced from school exams in eight Arab countries, with quality validation on 100 samples achieving 96% accuracy. It includes Islamic studies as a single category with basic questions without the domain depth needed to ex-amine knowledge in different nuances of Islam. ACVA, introduced with AceGPT (Huang et al., 2024), offers 8,000+ true/false questions on Ara-bic cultural values but explicitly excludes religious jurisprudence. AlGhafa (Almazrouei et al., 2023) provides a general Arabic evaluation benchmark but does not cover Islamic knowledge domains in depth. ILMAAM (Nacar et al., 2025) provides a culturally aligned Arabic MMLU variant. ArabLe-galEval (Hijazi et al., 2024) evaluates LLMs on Saudi secular law with 10,000+ MCQs for domain-specific evaluation. A recent survey catalogues over 40 Arabic benchmarks and identifies gaps in religious domain coverage (Al-Zubaidi et al., 2025). 
+
+2.4 Cultural Bias in LLMs 
+
+Naous et al. (2024) demonstrate that LLMs default to Western cultural norms even when prompted in Arabic. Plaza-del Arco et al. (2024) find dif-ferential treatment across faiths, with Islam fac-ing elevated stereotyping and disproportionate re-fusal rates. Abid et al. (2021) provide foundational evidence of persistent anti-Muslim bias in GPT-3. DLAMA (Keleg and Magdy, 2023) reveals West-ern bias in multilingual knowledge probing. 
+
+2.5 Islamic and Religious NLP 
+
+IslamicEval 2025 (Mubarak et al., 2025) is the first shared task targeting LLM hallucinations in Is-lamic content, attracting 13 teams. The shared task offers solution to LLMs hallucination with Quran and Hadith. Their released dataset highlights the presence of hallucination in Islamic content by dif-ferent LLMs, which further motivates the need for Benchmark Lang #Q Tracks Bias Pub. Val.                                                     
+
+> ArabicMMLU ar 14.6k 1†732 ann. ACVA ar 8k+ 173—IslamicEval ’25 ar —273task PalmX ar —173—FiqhQA ar 960 173synth Isl.LegalBench ar 718 173expert AlGhafa ar 10k+ 073—
+> IslamicMMLU ar 10k 33API expert
+> Table 1: Comparison with related benchmarks. #Q = question count; Tracks = Islamic discipline count (†ArabicMMLU has Islamic Studies as one of 40 sub-jects); Bias = madhab bias detection; Pub. = public access ( 3= open, API = leaderboard-only); Val. = val-idation method.
+
+a benchmark that measures LLMs knowledge of Islamic content. PalmX (Al-Wajih et al., 2025) addresses cul-tural competence including an Islamic culture sub-task. QIAS (Bouchekif et al., 2025) covers Is-lamic inheritance reasoning. FiqhQA (Atif et al., 2025) introduces 960 question-answer pairs cate-gorised by school but relies on synthetically gen-erated answers from a single LLM, raising con-cerns about circular evaluation. IslamicLegal-Bench (Elmahjub et al., 2026) provides 718 man-ually curated instances across seven schools of jurisprudence, measuring legal reasoning depth. QuranQA (Malhas and Elsayed, 2022) establishes reading comprehension benchmarks for Quranic text. IslamTrust (Lahmar et al., 2025) evaluates alignment with consensus Islamic ethics, achiev-ing only 66.5% alignment with GPT-4. Despite these initiatives, a significant gap re-mains for a comprehensive benchmark and leader-board that systematically evaluates LLM perfor-mance across diverse Islamic domains and mea-sures potential bias toward various schools of Fiqh. IslamicMMLU is designed to address this gap (see Table 1). 
+
+3 Data Preparation Methodology 
+
+IslamicMMLU follows the MMLU paradigm: 4-option MCQ, standardised Arabic prompts, and zero-shot evaluation. All questions are gener-ated from native Arabic content sourced from authoritative Islamic texts (not translated from English), programmatic question generation with quality verification, and domain-expert review when needed. IslamicMMLU consists of three main tracks, each differ in source material, ques-              
+
+> Quran Hadith Fiqh
+> Questions 2,013 4,000 4,000 Task types 345Sources 114 surahs 6 collections 1 encyclopedia Bias analysis ——Madhab
+> Table 2: IslamicMMLU benchmark overview. 10,013 questions from 3 tracks across 12 task types.
+
+tion type design, and domain-specific challenges. Table 2 summarises the three tracks. 
+
+3.1 Quran Track 
+
+The Quran track comprises 2,013 four-way multiple-choice questions covering all 114 surahs (S). Sourced from standard Arabic Quranic text, the dataset underwent normalization (e.g., removal of diacritics and kashida; unification of Alef and Ya forms) following (Darwish and Magdy, 2014). To ensure validity, all questions pass a program-matic uniqueness constraint to prevent duplicate candidates or distractors matching the ground truth. 
+
+Verse (Ayah) Count (114 questions, 6%): This task evaluates factual recall of surah lengths. Dis-tractors are selected via a structured strategy: (1) ground truth; (2) subsequent S count; (3) preced-ing S count; and (4) a random S count. If pre-ceding or subsequent counts match the target, we apply an incremental offset ( ±2) to maintain four unique candidates. 
+
+Surah Identification (833 questions, 41%): Models must identify the source S of a given verse. To prioritize contextual reasoning over keyword matching, we only include verses with a Jaccard similarity index J > 0.4 relative to at least one verse in a different S. We employ hard-negative mining to select: (1) the ground truth S; (2) the nearest-neighbor S containing the most lexically similar verse; and (3-4) two randomly sampled surahs. 
+
+Verse Retrieval (1,066 questions, 53%): This task requires mapping a verse index V to its tex-tual content within Surah S. To increase linguis-tic complexity, V is stochastically represented as either a numeric digit or its Arabic textual equiva-lent. We filter for verses with J > 0.4 across the corpus and construct adversarial choices: (1) the ground truth (max 10 words); (2) the most lexi-cally similar verse in the corpus; (3) a positional distractor at an offset of ±2 from V within S;and (4) a "null response" indicating "No verse at this position." The latter acts as the correct answer for trap questions where V exceeds the total verse count of S, specifically testing for model halluci-nation and boundary awareness. 
+
+3.2 Hadith Track 
+
+The Hadith track comprises 4,000 questions span-ning the six canonical Sunni collections ( Kutub al-Sittah ) The dataset employs a deterministic gen-eration pipeline with fixed random seeds for full reproducibility. 
+
+Preprocessing. Raw hadith texts undergo the same standard Arabic text normalisation applied to Quran text; Critically, the isnad (chain of narra-tors) is trimmed from each hadith before question generation to prevent models from trivially iden-tifying the source collection from narrator names rather than demonstrating genuine content knowl-edge, forcing models to identify collections from the matn , the main content alone. Cross-collection filtering removes near-identical narrations appear-ing in multiple collections with different attribu-tions. 
+
+Question Types. The track tests four facets of Hadith knowledge: 
+
+Source Identification (1,000 questions): Given a hadith text with the isnad removed, identify which canonical collection it belongs to. This is applied to Hadith that appeared in only one of the six books. Distractors are other collections. 
+
+Cloze Completion (1,000 questions): Fill in a missing keyword from a hadith text. Target words are selected via IDF weighting to ensure the blank tests substantive vocabulary rather than common particles. Distractors are synonyms to the hidden word generated by an LLM (GPT4o). 
+
+Chapter Classification (1,000 questions): Given a hadith from a given collection, identify which chapter (topic) within the collection it belongs to (e.g., Prayer, Fasting). This is the most challeng-ing type, as it requires mapping narrative content to taxonomic labels rather than keyword matching. 
+
+Authenticity Grading (∼1,000 questions): As-sess the reliability grade of a hadith {authentic, good, weak, fabricated}. This carries the high-est practical stakes, as incorrect grading can af-fect which narrations are used for deriving Is-lamic rulings. Items where narrations appear near-identically across collections with different grades are filtered to reduce ambiguity. We split this set of questions between the four levels of authentic-ity, where fabricated ones were taken from a set of Arabic poems as distractors. 
+
+3.3 Fiqh Track 
+
+The Fiqh track utilised the encyclopedia book "Jurisprudence According to the Four Schools" by ‘Abd al-Rahman al-Jaziri, commissioned by Al-Azhar University. The complete text spans 2,221 pages across 1,043 sections covering eight fiqh categories. We extract a structured corpus of 2,163 rulings across 797 topics using a multi-agent pipeline with adversarial verification (Fig-ure 1a): a content classification stage (GPT-4.1) first filters the 1,043 sections, finding that approxi-mately 60% contain extractable fiqh rulings while the remaining 40% are meta-commentary, philo-sophical discussion, or cross-references. Three models (GPT-4.1 in structured output mode, GPT-4o, and GPT-5.1) then extract in parallel, produc-ing typed records with per-madhab rulings, legal classifications, structural components (pillars, con-ditions, obligations), and evidence chains. En-semble voting via fuzzy-matching alignment re-solves disagreements by majority agreement. Aseparate reasoning model (o1) performs adver-sarial verification against the source text, check-ing madhab attribution, ruling content, numeri-cal counts, and uniqueness claims: 85% of ex-tractions pass directly, 12% enter iterative refine-ment via o3, and 3% are rejected outright. The corpus maintains near-uniform madhab represen-tation (approximately 25% per school). From this corpus, we generate 4,000 questions across five types (Section 4; Figure 1b). Distrac-tor selection varies by type: for ruling identifica-tion, distractors are rulings from other schools or plausible variations; for bias detection, all options are correct (one per school); for multi-hop reason-ing, distractors are partial-reasoning answers. An-swer option order is randomised across all ques-tion types. 
+
+Quality Verification. Each question undergoes automatic verification against five criteria: source traceability, madhab accuracy, linguistic correct-ness, distractor validity, and coverage balance. Ad-ditionally, 213 stratified question samples with their answers were manually reviewed by a pro-fessor in comparative jurisprudence at Al-Azhar University. The reviewer approved 207 of 213 questions (97.2%), with three requiring minor re-visions and three rejected for factual errors (two madhab misattributions, one insufficient source grounding). While the use of a single reviewer lim-its generalisability, the high approval rate across all five question types provides reasonable confi-dence in question quality. Figure 1 presents the two core pipeline archi-tectures for the Fiqh track: (a) the multi-agent extraction pipeline that converts al-Jaziri’s source text into a structured corpus, and (b) the question generation pipeline that produces the 4,000 bench-mark questions from that corpus. 
+
+4 Fiqh Question Design and Bias Methodology 
+
+The 3,200 knowledge questions and 800 bias de-tection questions span eight fiqh categories propor-tional to the source corpus: prayer (34%), family law (20%), ethics (16%), tahara (12%), hajj (6%), criminal law (5%), fasting (5%), and zakat (3%). Five question types test distinct facets of Islamic legal reasoning: 
+
+Madhab Ruling Identification (820 questions). 
+
+Given a fiqh topic and a specified madhab, se-lect the correct ruling from four options. Distrac-tors are populated with rulings from other schools or plausible variations. Example: “What is the Shafi’i position on congregational prayer for the five obligatory prayers?” Correct: Communal obligation ( fard kifaya ). Distractors: Maliki (rec-ommended), Hanbali (individual obligation). 
+
+Multi-Hop Reasoning (810 questions). Ques-tions requiring synthesis of multiple corpus facts to reach the correct answer. For example, deter-mining whether an act invalidates prayer may re-quire knowing both the ruling’s classification and its structural role (pillar vs. condition). 
+
+Madhab Bias Detection (800 questions). All four answer options are valid, each representing the correct ruling from a different madhab. The question avoids any school specification, asking simply “What is the ruling on [topic]?” A model’s selection reveals which school it defaults to when unconstrained. 
+
+Component Parsing (790 questions). Ques-tions asking models to classify sub-actions as pil-lars ( arkan ), conditions of validity ( shurut sihha ), conditions of obligation ( shurut wujub ), or recom-mended acts ( sunan ). 
+
+Comparative Fiqh (780 questions). Questions requiring identification of points of agreement or divergence across schools. Representative exam-ples for all question types appear in Appendix E 
+
+4.1 Madhab Bias Detection Methodology 
+
+The bias detection task exploits the inherent plu-ralism of Sunni jurisprudence. Because all four schools are equally valid within the tradition, no answer is “wrong” in the conventional sense. When a model selects an option, it implicitly en-dorses that school’s position. By aggregating re-sponses across 800 questions, we measure whether models exhibit systematic preferences. A model with no madhab bias would show approximately 25% selection rate for each school; significant de-viation, measured via chi-squared test against the uniform distribution, indicates implicit preference. Answer order is randomised across questions to prevent positional bias. This extends bias measurement from the inter-cultural axis studied by Naous et al. (2024) (Western vs. Islamic norms) to the intra-tradition axis (preferences among equally legitimate Sunni schools). The distinction matters practically: auser following the Maliki school who receives Hanbali-biased responses may adopt rulings their own tradition does not endorse. 
+
+5 Ranking LLMs according to IslamicMMLU 
+
+5.1 Evaluation Protocol 
+
+We evaluate 26 models across four tiers: fron-tier (10 models including Gemini 3, GPT-5 series, Claude 4.5), mid-tier (8 models including GPT-4o, Llama 4, DeepSeek v3), Arabic-specialised (5 models: Fanar-Sadiq, Fanar, Fanar-C-2-27B, Jais-2-70B, ALLaM-7B), and baselines (3 models including GPT-4 and GPT-3.5-turbo); full model specifications appear in Appendix A. All mod-els receive identical Arabic prompts (Appendix B) with zero-shot instructions, temperature set to 0 for deterministic output, and single-letter response format (A, B, C, or D). Invalid responses are marked incorrect. The overall score is the equally weighted aver-age of a model’s accuracy across the three tracks. Equal weighting reflects the design principle that each track represents a distinct Islamic knowledge domain of equal scholarly importance, regardless of question count. We note that alternative weight-extraction verification     
+
+> source section
+> content classification
+> (GPT-4.1)
+> usable? multi-model extraction
+> GPT-4.1 | GPT-4o | GPT-5.1
+> ensemble voting
+> o1 verification judge pass? database storage
+> skip section o3 refinement
+> yes (60%)
+> no (40%)
+> pass (85%)
+> fail (12%)
+
+(a) Multi-agent extraction pipeline. Three models extract in parallel with ensemble voting, followed by o1 verification and o3 refinement for failed extractions.    
+
+> generation
+> validation
+> corpus database
+> fiqh corpus
+> ruling selection
+> topic + madhab
+> type-specific generator
+> ruling ID
+> multi-hop
+> bias detect
+> component
+> comparative
+> LLM generation
+> GPT-5.1
+> rule valid?
+> LLM quality check accept? checkpoint + export
+> discard revise
+> yes
+> no
+> yes
+> no
+
+(b) Question generation pipeline. Rulings are routed to type-specific generators, producing candidates via GPT-5.1. Each question undergoes rule-based validation followed by LLM quality check before inclusion. 
+
+Figure 1: Fiqh track pipeline architectures. (a) Extraction of structured rulings from al-Jaziri’s source text. (b) Gen-eration and validation of benchmark questions from the structured corpus. 
+
+ing schemes (e.g., proportional to question count) would produce slightly different rankings; per-track scores are reported for researchers prefer-ring different aggregation methods. For the Fiqh track, models are evaluated on the 3,200 knowl-edge questions; the 800 bias detection questions are scored separately as they have no single correct answer. The random baseline for 4-choice MCQ is 25%. 
+
+Statistical Methodology. Because all models are evaluated with temperature 0 (deterministic), run-to-run variance is zero and repeated trials are unnecessary. However, accuracy on a finite test set has inherent sampling uncertainty. We compute bootstrap confidence intervals (1,000 resamples of question-level correct/incorrect vectors) for all re-ported accuracies. McNemar’s test on question-level agreement can be applied to the question-level data for pairwise comparisons; as an ex-ample, the difference between Gemini 3 Flash (93.8%) and Gemini 3 Pro (92.3%) is statistically significant (McNemar’s χ2=12 .4, p< 0.001 ), con-firming that the 1.5-point gap is not attributable to sampling variation. 
+
+5.2 Overall Results 
+
+Table 3 presents accuracy for all 26 evaluated models across all three tracks. Gemini 3 Flash achieves the highest overall accuracy (93.77%), followed by Gemini 3 Pro (92.32%) and Gemini 2.5 Pro (90.34%). Google models dominate the top three positions. GPT-5 (89.92%) is the top non-Google model; Claude Sonnet 4.5 (86.15%) is the top Anthropic model. The 54-point gap be-tween the top model and the GPT-3.5-turbo base-line (39.75%) confirms that the benchmark distin-guishes model capabilities effectively above the 25% random baseline floor. 
+
+5.3 Per-Track Analysis 
+
+Performance varies substantially across tracks (per-task breakdowns in Table 4). The Quran track has the widest spread: 99.25% (Gemini 3 Flash) to 32.44% (GPT-3.5-turbo), a 66.8-point gap. Four models exceed 95%, yet weaker models score well below 50%, making it the most discriminative do-main. The Hadith track spans 93.00% to 41.64% (51.4 points), and the Fiqh track spans 89.06% to 45.16% (43.9 points). Cross-track discrepancies reveal model-specific strengths. Claude Opus 4.5 achieves strong Quran (94.6%) and Hadith (90.8%) scores but notably weaker Fiqh (72.7%), suggesting difficulty with comparative reasoning. Fanar-Sadiq scores 94.4% on Quran (competitive with frontier models) but only 72.9% on Hadith, indicating uneven domain coverage. These patterns demonstrate the value of multi-track evaluation: a single aggregate score obscures important domain-specific capabilities and weaknesses. 
+
+5.4 Arabic-Specific Models 
+
+Arabic-specialised models show mixed results. Fanar-Sadiq (Fanar Team et al., 2025) (81.56%) performs competitively, likely benefiting from its specialised Islamic retrieval-augmented gener-ation system. Jais-2-70B (63.4%) and ALLaM-7B (59.5%) rank in the lower-mid tier despite their 20 40 60 80 100      
+
+> Gem. 3 Flash (93.8)
+> Gem. 3 Pro (92.3)
+> Gem. 2.5 Pro (90.3)
+> GPT-5 (89.9)
+> GPT-5.2 (89.5)
+> GPT-5.1 (88.4)
+> Cl. Son. 4.5 (86.2)
+> Cl. Opus 4.5 (86.0)
+> Gem. 2.5 Flash (83.1)
+> Cl. 3.7 Son. (82.3)
+> Fanar-Sadiq (81.6)
+> GPT-4o (77.3)
+> GPT-4.1 (75.6)
+> Grok 4.1 (72.9)
+> DeepSeek v3.2 (68.5)
+> Ll. 4 Mav. (66.7)
+> Fanar (66.0)
+> Cl. Haiku 4.5 (65.4)
+> DeepSeek v3.1 (65.4)
+> Jais-2-70B (63.4)
+> Ll. 4 Scout (59.6)
+> GPT-4 (59.6)
+> ALLaM-7B (59.5)
+> Cl. 3.5 Haiku (57.5)
+> Fanar-C (54.0)
+> GPT-3.5-turbo (39.8)
+> 25% random
+> Accuracy (%)
+> Quran
+> Hadith
+> Fiqh
+
+(a) Per-track accuracy for all 26 models sorted by overall score. Arabic-specific models in bold .         
+
+> 0
+> -10 -5 0510 15 20
+> deviation from 25% ( ∆%)
+> GPT-3.5-turbo
+> Fanar-C
+> Cl. 3.5 Haiku
+> GPT-4
+> Fanar
+> ALLaM-7B
+> Jais-2-70B
+> Fanar-Sadiq
+> Cl. Haiku 4.5
+> DeepSeek v3.1
+> Ll. 4 Mav.
+> Ll. 4 Scout
+> Grok 4.1
+> DeepSeek v3.2
+> GPT-4.1
+> GPT-4o
+> Cl. Opus 4.5
+> Cl. 3.7 Son.
+> GPT-5.1
+> Gem. 2.5 Flash
+> GPT-5
+> Cl. Son. 4.5
+> Gem. 2.5 Pro
+> GPT-5.2
+> Gem. 3 Pro
+> Gem. 3 Flash
+> baseline  arabic  mid-tier  frontier
+> Han. Mal. Sha. Hba.
+
+(b) Madhab selection deviation from uniform 25% on 800 bias detection questions. 
+
+Figure 2: Model evaluation results. (a) Per-track accuracy with cross-track spread. (b) Madhab bias: dots near the centre line indicate balanced school selection. 
+
+large-scale Arabic pretraining, with both showing notably strong Hadith performance (77.8% and 70.9%) but weak Quran scores (48.1% and 43.2%). Fanar (66.0%) and Fanar-C-2-27B (54.0%) score lower still, clustering with or below general-purpose mid-tier models despite their Arabic-specific training. Arabic pretraining alone ap-pears insufficient for Islamic knowledge; domain-specific training data and retrieval augmentation matter more than language coverage. 
+
+5.5 Madhab Bias Analysis 
+
+For the 800 Fiqh bias detection questions, we mea-sure each model’s selection distribution across the four schools. Figure 2b visualises the deviation from uniform 25% selection for all 26 models. 
+
+Variable Bias. Unlike cultural bias studies showing consistent Western skew (Naous et al., 2024), madhab preferences are model-specific. Gemini 3 Flash shows near-uniform distribution (χ2=0 .32 , p> 0.9), while GPT-5.1 significantly favours Hanbali (35.6%). Arabic-specific models show moderate Hanafi preference (32–33%), pos-sibly reflecting Gulf training data where Hanafi jurisprudence predominates. With 26 indepen-dent tests, we apply Bonferroni correction ( αadj =0.05 /26 = 0.0019 ); only Claude Opus 4.5 (χ2=16 .06 ) retains significance after correction. 
+
+Bias–Accuracy Relationship. A moderate neg-ative correlation exists between accuracy and bias magnitude (Pearson r=−0.38 , p=0 .049 ; Spear-man ρ=−0.53 , p=0 .005 ), suggesting higher-performing models tend toward more balanced school selection. However, notable exceptions exist (some high-accuracy models show elevated bias), indicating that capability improvements alone do not guarantee fairness within traditions. 
+
+5.6 Error Analysis Fiqh. Qualitative examination of Fiqh errors re-veals three recurring patterns. Madhab confusion :models return rulings from an incorrect school when a specific madhab is specified, indicating difficulty with school-specific retrieval. Multi-hop reasoning failure : questions requiring syn-thesis of multiple facts (e.g., determining conse-quences of omitting a pillar vs. violating a con-dition) show the largest frontier-to-baseline gap (87.2% vs. 41.1%). Comparative difficulty : Com-parative Fiqh questions achieve the lowest top-model accuracy (76.7%), as cross-school synthe-sis demands tracking divergent positions. We note that per-type accuracy differences should be inter-preted with caution for Comparative Fiqh ( n=780 )and Component Parsing ( n=790 ), where smaller question pools yield wider confidence intervals Model Overall Quran Hadith Fiqh                                                                                                         
+
+> Gemini 3 Flash 93.8 99.3 93.0 89.1
+> Gemini 3 Pro 92.3 97.3 91.7 87.9 Gemini 2.5 Pro 90.3 95.8 89.7 85.5 GPT-5 89.9 98.0 88.2 83.5 GPT-5.2 89.5 94.8 87.8 85.9 GPT-5.1 88.4 95.3 88.3 81.5 Cl. Sonnet 4.5 86.2 88.2 85.4 84.9 Cl. Opus 4.5 86.0 94.6 90.8 72.7 Gem. 2.5 Flash 83.1 82.4 83.8 83.1 Cl. 3.7 Sonnet 82.3 81.0 84.9 81.1
+> Fanar-Sadiq 81.6 94.4 72.9 77.4 GPT-4o 77.3 71.3 82.0 78.5 GPT-4.1 75.6 68.0 81.3 77.5 Grok 4.1 Fast 72.9 79.1 65.6 74.0 DeepSeek v3.2 68.5 60.1 71.1 74.3 Ll. 4 Maverick 66.7 56.3 73.5 70.3
+> Fanar 66.0 56.9 66.5 74.5 Cl. Haiku 4.5 65.4 53.8 73.1 69.4 DeepSeek v3.1 65.4 55.3 71.0 69.8
+> Jais-2-70B 63.4 48.1 77.8 64.4 Ll. 4 Scout 59.6 43.3 64.9 70.6 GPT-4 59.6 42.9 68.4 67.4
+> ALLaM-7B 59.5 43.2 70.9 64.5 Cl. 3.5 Haiku 57.5 47.3 62.8 62.4 Fanar-C-2-27B 54.0 41.9 60.7 59.5 GPT-3.5-turbo 39.8 32.4 41.6 45.2
+
+Table 3: IslamicMMLU accuracy (%) for all 26 mod-els. Arabic-specific models in bold . Fiqh accuracy is on the 3,200 knowledge questions (800 bias detection questions scored separately). Per-question-type break-downs are in Table 4. 
+
+than the larger Ruling Identification ( n=820 ) and Multi-Hop ( n=810 ) sets. 
+
+Quran. The wide performance spread on this track suggests Quranic textual knowledge is highly discriminative: models either have extensive expo-sure to Quranic content or not (see Appendix D for contamination considerations). Ayah identifi-cation is the easiest subtype for top models, while surah identification based on thematic attributes proves harder, requiring reasoning beyond surface-level text matching. Weaker models frequently confuse surahs of similar length or revelation pe-riod. 
+
+Hadith. Chapter classification is the hardest task, where mapping narrative content to tax-onomic chapter labels requires semantic under-standing beyond keyword matching. 
+
+6 Public Leaderboard 
+
+To support future evaluation as new models are re-leased, we deploy IslamicMMLU as an interactive leaderboard on HuggingFace. 2 The platform en-ables evaluation of models by providing an API key and model identifier; the platform runs the full pipeline automatically and publishes results to a public dataset. All 10,013 questions follow a standardised four-option MCQ format with consistent metadata (track, category, question type, difficulty level). This standardised structure is designed for exten-sibility: additional Islamic knowledge domains – such as aqidah (creed), sirah (prophetic biogra-phy), or tafsir (Quranic exegesis) – can be added as new tracks without modifying the evaluation infrastructure. The leaderboard provides rank-ings, analytics including madhab bias visualisa-tions, and side-by-side model comparison across all tracks and question types. 
+
+7 Conclusion and Future Work 
+
+We introduced IslamicMMLU, a comprehensive benchmark of 10,013 questions across 12 tasks covering the Quran, Hadith, and Fiqh. Our eval-uation of 26 LLMs demonstrates the benchmarks strong discriminative power, revealing a 54-point performance gap between frontier and legacy mod-els. Notably, we find a significant correlation be-tween model capability and reduced madhab bias, suggesting that advanced reasoning may naturally mitigate intra-tradition skew. Future work will expand this framework by in-corporating Shia jurisprudence to ensure broader representation. Furthermore, we aim to extend the MMLU paradigm to additional domains. By releasing our evaluation suite and public leader-board, we provide a standardized foundation for the culturally aware and technically rigorous eval-uation of LLMs within Islamic scholarship. 
+
+8 Limitations 
+
+Sunni Scope. All three tracks focus on Sunni Islam. The Quran and Hadith tracks use Sunni canonical sources; the Fiqh track covers only the four Sunni madhahib. Shia perspectives (Ja’fari, Zaydi, Ismaili) are excluded, limiting applicability to approximately 15% of the global Muslim pop-ulation. Extending the benchmark to cover Shia schools is planned for future work. 
+
+Single Source Dependency (Fiqh). The Fiqh corpus derives entirely from al-Jaziri’s encyclope-
+
+> 2https://huggingface.co/spaces/ islamicmmlu/leaderboard
+
+dia. While authoritative, this limits coverage of minority opinions within schools, regional varia-tions, and contemporary ijtihad (independent legal reasoning). 
+
+Partial Human Validation. The Fiqh track has documented external expert validation on a strat-ified sample (207/213 approved, 97.2%). We ac-knowledge that inter-annotator agreement from multiple experts would strengthen validation; the current 97.2% approval rate from a single domain expert provides initial quality evidence. Validation processes for the Quran and Hadith tracks are doc-umented in their respective source works but not independently re-validated for IslamicMMLU. 
+
+Arabic-Only. All questions are in Modern Stan-dard Arabic. This excludes cross-lingual evalua-tion relevant for diaspora communities and multi-lingual Islamic scholarship. 
+
+MCQ Format. Multiple-choice format mea-sures recognition rather than generation. A model selecting the correct ruling from four options may not produce that ruling unprompted. The four-option format also permits a 25% baseline through random guessing. 
+
+Temporal Validity. Results represent model ca-pabilities at evaluation time (January–February 2026). Rankings and bias patterns may shift with model updates. 
+
+9 Ethics Statement 
+
+Religious Content Sensitivity. We handle Is-lamic content with scholarly respect, drawing ex-clusively from established academic sources. Our framing maintains neutrality across madhahib, and we do not position any school as preferred. The benchmark evaluates model knowledge, not reli-gious truth claims. Results from the Hadith au-thenticity grading task should not be treated as au-thoritative religious judgements. 
+
+Privacy. The dataset contains no personally identifiable information. All content derives from published scholarly works. 
+
+Potential for Misuse. Bias detection results could be misrepresented to claim models are “anti-Islamic” or favour particular sects. We emphasise: variable bias likely reflects training data compo-sition, not intentional design; bias measurements are probabilistic tendencies, not deterministic be-haviours; and findings should not be used to make inflammatory claims about AI companies or reli-gious communities. 
+
+Deployment. We discourage using Islam-icMMLU results to market AI systems as authoritative Islamic advisors. Religious guidance should involve qualified human scholars. 
+
+Positionality. This benchmark was developed within an Islamic studies research group at a UK university. The primary author’s background in Is-lamic knowledge informed the Fiqh track design. The benchmark focuses on Sunni tradition, and we acknowledge this scope limitation. 
+
+References                             
+
+> Abubakar Abid, Maheen Farooqi, and James Zou. 2021. Persistent anti-muslim bias in large language models. In Proceedings of the 2021 AAAI/ACM Con-ference on AI, Ethics, and Society .Norah Abokhodair, AbdelRahim A. Elmadany, and Walid Magdy. 2020. Holy tweets: Exploring the sharing of the quran on twitter. Proceed-ings of the ACM on Human-Computer Interaction ,4(CSCW2):1–32. Rana Al-Wajih and 1 others. 2025. Palmx: A shared task on cultural competence for arabic llms. In Pro-ceedings of ArabicNLP 2025 .Ahmed Al-Zubaidi and 1 others. 2025. A survey of arabic nlp benchmarks: Landscape, gaps, and future directions. arXiv preprint .Ebtesam Almazrouei, Ruxandra Cojocaru, Michele Baldo, Quentin Malartic, Hamza Alobeidli, Maryam Washahi, Guilherme Penedo, Daniel Mazzotta, Marc Marone, Hany Hajj, and 1 others. 2023. Al-ghafa evaluation benchmark for arabic language models. In Proceedings of ArabicNLP 2023 .Farah Atif, Nursultan Askarbekuly, Kareem Darwish, and Monojit Choudhury. 2025. Sacred or synthetic? evaluating llm reliability and abstention for religious questions. In Proceedings of the AAAI/ACM Confer-ence on AI, Ethics, and Society , pages 217–226. Abdelhak Bouchekif and 1 others. 2025. Qias: Ashared task on quranic interpretive analysis. In Pro-ceedings of ArabicNLP 2025 .Kareem Darwish and Walid Magdy. 2014. Arabic in-formation retrieval. Foundations and Trends in In-formation Retrieval , 7(4):239–342. Ezieddin Elmahjub and 1 others. 2026. Islamiclegal-bench: A benchmark for islamic legal reasoning. In
+> Proceedings of the 2026 Conference of the North
+
+American Chapter of the Association for Computa-tional Linguistics .Fanar Team, Ummar Abbas, Mohammad Ahmad, Firoj Alam, Enes Altinisik, Ehsannedin Asgari, Yazan Boshmaf, S. Boughorbel, Sanjay Chawla, Sham-mur Chowdhury, Fahim Dalvi, Kareem Darwish, Nadir Durrani, Mohamed Elfeky, Ahmed Elma-garmid, Mohamed Eltabakh, Masoomali Fatehkia, Anastasios Fragkopoulos, Maram Hasanain, and Chaoyi Ruan. 2025. Fanar: An arabic-centric multimodal generative ai platform. arXiv preprint arXiv:2501.13944 .Mahmoud Fawzi, Walid Magdy, and Björn Ross. 2025. “the prophet said so!”: On exploring hadith presence on arabic social media. Proceedings of the ACM on Human-Computer Interaction , 9(CSCW2):1–23. Mahmoud Fawzi, Björn Ross, and Walid Magdy. 2026. Fabricating holiness: Characterizing religious mis-information circulators on arabic social media. In 
+
+Proceedings of the International AAAI Conference on Web and Social Media .Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Stein-hardt. 2021. Measuring massive multitask lan-guage understanding. In International Conference on Learning Representations .Faris Hijazi, Mustafa Jarrar, and Petr Knoth. 2024. Arablegaleval: A multitask benchmark for assessing arabic legal knowledge in large language models. In 
+
+Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing .Huang Huang, Fei Yu, Jianqing Zhu, Xuening Sun, Hao Cheng, Dingjie Song, Zhihong Chen, Abdul-mohsen Alharthi, Bang An, Juncai He, and 1 others. 2024. Acegpt, localizing large language models in arabic. In Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics , pages 8139–8163. Amr Keleg and Walid Magdy. 2023. Dlama: A frame-work for curating culturally diverse facts for probing the knowledge of pretrained language models. In 
+
+Findings of the Association for Computational Lin-guistics: ACL 2023 .Fajri Koto, Haonan Li, Sara Shatnawi, Jad Doughman, Abdelrahman Sadallah, Aisha Alraeesi, Khalid Al-mubarak, Zaid Alyafeai, Neha Sengupta, Shady She-hata, Nizar Habash, Preslav Nakov, and Timothy Baldwin. 2024. Arabicmmlu: Assessing massive multitask language understanding in arabic. In Find-ings of the Association for Computational Linguis-tics: ACL 2024 , pages 5622–5640. Abderrahman Lahmar and 1 others. 2025. Islamtrust: Evaluating llm alignment with islamic values. In 
+
+Proceedings of ArabicNLP 2025 .Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michihiro Yasunaga, Yian Zhang, Deepak Narayanan, Yuhuai Wu, Ananya Ku-mar, and 1 others. 2023. Holistic evaluation of lan-guage models. Transactions on Machine Learning Research .Rana Malhas and Tamer Elsayed. 2022. Arabic ma-chine reading comprehension on the holy qur’an us-ing cl-arabert. Information Processing & Manage-ment , 59(6):103068. Hamdy Mubarak, Rana Malhas, Watheq Man-sour, Abubakr Mohamed, Mahmoud Fawzi, Majd Hawasly, Tamer Elsayed, Kareem Mohamed Dar-wish, and Walid Magdy. 2025. Islamiceval 2025: The first shared task of capturing llms hallucination in islamic content. In Proceedings of The Third Arabic Natural Language Processing Conference: Shared Tasks .Omer Nacar, Khalid Almubarak, and Fajri Koto. 2025. Ilmaam: A culturally aligned arabic mmlu. In Pro-ceedings of ArabicNLP 2025 .Tarek Naous, Michael J. Ryan, Alan Ritter, and Wei Xu. 2024. Having beer after prayer? measuring cul-tural bias in large language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics .Flor Miriam Plaza-del Arco, Amanda Cercas Curry, Susanna Paoli, Alba Cercas Curry, and Dirk Hovy. 2024. Divine llamas: Bias, stereotypes, stigmatiza-tion, and emotion representation of religion in large language models. In Findings of the Association for Computational Linguistics: EMNLP 2024 .Yubo Wang, Xueguang Ma, Ge Zhang, Yunber Ni, Abhranil Chandra, Shiguang Guo, Weiming Ren, Aaran Arulraj, Xuan He, Ziyan Jiang, and 1 oth-ers. 2024. Mmlu-pro: A more robust and challeng-ing multi-task language understanding benchmark. In Advances in Neural Information Processing Sys-tems .
+
+A Model Specifications 
+
+All models were accessed via API between December 2025 and March 2026. Fron-tier models: Gemini 3 Flash/Pro, Gemini 2.5 Flash/Pro (Google); GPT-5, GPT-5.1, GPT-5.2 (OpenAI); Claude Sonnet 4.5, Claude 3.7 Son-net, Claude Opus 4.5 (Anthropic). Mid-tier: GPT-4o, GPT-4.1 (OpenAI); Claude Haiku 4.5 (Anthropic); DeepSeek v3.1, v3.2; Llama 4Scout, Maverick (Meta); Grok 4.1 Fast (xAI). Arabic-specific: Fanar-Sadiq, Fanar, Fanar-C-2-27B (QCRI); Jais-2-70B (Inception/MBZUAI); ALLaM-7B (SDAIA). Baselines: GPT-4, Claude 3.5 Haiku, GPT-3.5-turbo. B Evaluation Prompts 
+
+All models received Arabic prompts: 
+
+“Ajib ‘an al-su’al al-tali bi-ikhtiyar al-ijaba al-sahiha:” (Answer the following question by se-lecting the correct answer:) 
+
+[Question text in Arabic] A) [Option A] B) [Option B] 
+
+C) [Option C] D) [Option D] 
+
+“Ajib bi-l-harf faqat.” 
+
+(Answer with the letter only.) 
+
+Parameters: temperature 0, max tokens 10, no system prompt. C Expanded Results by Question Type 
+
+Quran Hadith Fiqh (by madhab) Model Ayah Surah Count Source Cloze Chap. Auth. Han. Mal. Sha. Hba. Comp. 
+
+Gem. 3 Flash 99.1 99.4 100 96.4 95.8 96.9 82.9 89.7 88.9 92.2 87.1 80.0 Gem. 3 Pro 96.9 97.5 100 93.1 95.7 95.7 82.4 92.6 84.9 90.0 84.8 82.9 Gem. 2.5 Pro 96.6 94.2 100 91.7 95.0 94.1 77.9 88.2 81.9 85.0 87.6 82.9 GPT-5 98.9 96.6 100 87.6 95.2 94.0 76.1 84.2 84.4 82.2 83.7 80.0 GPT-5.2 98.4 92.0 81.6 89.6 92.1 93.6 75.8 88.2 85.9 82.8 87.6 80.0 GPT-5.1 97.5 91.8 100 86.0 94.0 94.2 79.1 77.3 82.9 82.8 84.3 77.1 Cl. Son. 4.5 85.4 90.4 98.2 89.8 91.0 91.8 68.9 84.7 82.4 85.6 87.6 82.9 Cl. Opus 4.5 93.0 96.0 99.1 94.7 95.6 96.6 76.3 70.9 70.4 72.2 79.2 65.7 Gem. 2.5 Flash 78.1 86.2 93.9 89.4 85.3 88.4 72.2 84.7 79.9 87.2 83.1 71.4 Cl. 3.7 Son. 77.3 83.9 94.7 90.9 90.2 92.9 65.5 83.3 79.4 81.7 80.9 77.1 Fanar-Sadiq 93.2 95.7 97.4 62.8 97.6 83.7 47.4 71.9 79.4 79.4 81.5 65.7 GPT-4o 72.5 71.1 62.3 79.5 81.8 89.9 76.7 75.9 76.9 78.3 83.7 77.1 GPT-4.1 67.3 69.2 65.8 82.1 83.5 88.6 71.1 72.9 75.9 80.6 81.5 77.1 Grok 4.1 Fast 78.9 76.5 100 50.3 78.1 86.4 47.6 70.9 71.9 72.8 79.8 80.0 DeepSeek v3.2 41.5 78.5 99.1 72.0 83.3 88.3 40.9 69.0 74.4 75.0 79.2 77.1 Ll. 4 Maverick 46.8 63.1 94.7 79.9 75.5 85.1 53.5 67.5 71.4 67.2 74.2 77.1 Fanar 39.9 75.3 82.5 62.3 79.9 83.7 40.1 67.5 76.9 76.1 78.7 71.4 Cl. Haiku 4.5 44.6 61.3 84.2 73.9 73.6 85.4 59.4 71.4 66.8 66.7 71.9 74.3 DeepSeek v3.1 34.2 76.8 95.6 71.0 84.6 87.6 40.8 67.0 68.3 68.3 75.3 74.3 Jais-2-70B 41.8 57.3 39.5 78.8 78.7 87.0 66.9 64.0 60.3 65.6 69.7 57.1 Ll. 4 Scout 39.3 48.5 42.1 55.7 70.7 83.6 49.5 70.0 64.8 72.8 74.7 74.3 GPT-4 35.5 50.7 55.3 55.2 69.0 83.9 65.4 64.0 69.3 67.2 68.0 74.3 ALLaM-7B 31.2 54.9 70.2 63.1 77.8 86.3 56.4 62.6 62.8 68.3 63.5 71.4 Cl. 3.5 Haiku 40.9 56.7 39.5 58.7 71.9 85.6 34.8 57.6 59.8 64.4 66.9 71.4 Fanar-C-2-27B 34.5 45.8 79.8 53.8 70.6 81.1 36.4 53.0 63.8 58.2 64.7 55.6 GPT-3.5-turbo 26.6 40.3 29.8 37.9 49.8 63.3 15.5 43.8 45.7 44.4 44.9 54.3 
+
+Table 4: Expanded accuracy (%) by question type per track. Quran: Ayah Identification, Surah Identification, Ayah Count. Hadith: Source Identification, Cloze Completion, Chapter Classification, Authenticity Grading. Fiqh: accuracy on questions tagged by madhab (Hanafi, Maliki, Shafi’i, Hanbali) and Comparative Fiqh cross-school questions. 
+
+D Contamination Considerations 
+
+We cannot determine whether evaluated models encountered our source texts during training. The Quran is among the most widely available Arabic texts online, which may partially explain high Quran track scores. However, several factors mitigate contamination concerns. First, our questions test understanding, not memorisation: ayah identification requires contextual attribution rather than verbatim recall. Second, performance is highly variable across models, and if questions were trivially solvable through memori-sation, we would expect uniform high scores rather than the observed 66.8-point Quran spread. Third, Fiqh questions are generated from structured extractions of al-Jaziri’s text and are unlikely to appear ver-batim in training corpora. Fourth, Hadith isnad trimming and TF-IDF-based cloze design produce novel question formulations. E Example Questions by Type 
+
+Table 5: Representative example for each of the 12 question types. Arabic originals with English translations; correct answers bolded . For bias detection, all four options are correct (one per school); school labels are hidden from the model. E Example Questions by Type 
+
+Table 5: Representative example for each of the 12 question types. Arabic originals with English trans-lations; correct answers bolded . For bias detection, all four options are correct (one per school); school labels are hidden from the model. 
+
+Type Example Question and Options 
+
+Quran Track 
+
+Ayah ID ﺍ৚৑ل۰ 5 ݆݁ݿިﺭﺓ ﺍܳޚ؇ﺭﻕ / Verse 5 of Surah al-Tariq.        
+
+> A) ِෛَຬْݠُﺝ ُِ݆݁ඔْ൹ًَ ِﺍܳݱ ّْܹ֡ص ِﻭَﺍܳଐّ֟ଫَﺍೞِಮ B) َ੯ِ੩ُ༠ﻥ ُِّܾ݁֟؇َ૭૙֣ ڣَْܹ٭َٷޙُݠ ِﺍ৕ْ৑ C) َﻥ؇َ૭૙֣৕ْ৑َﺍ ੯َ੩َ༠ D) No verse 5
+
+Surah ID ّ֟೑َಸ ْڢَިْﻡ ُُܳިﻁ ٍﺍညْ৊ُݠْݿَܹඔ൹َِ''؟ ሒᇭ ﺃﻱ ݿިﺭﺓ: ``ᄔَც / In which surah: “The people of Lot denied the messengers”?         
+
+> A) ﺍܳލأݠﺍﺀ (al-Shu’ara’) B) ﺍܳگ݄ݠ C) ﺍܳٺඔ൹ D) ﺍܳٷިﺭ
+
+Ayah Count 
+
+༟ ቕመڎﺩ ﺁل؇ﺕ ݿިﺭﺓ ﺍܳـ۳᠌ژ؟ / How many verses are in Surah al-Kahf?    
+
+> A) 98 B) 111 C) 21 D) 110
+
+Hadith Track 
+
+Source ID ݆݁ﺃﻱ ﺍܳـܝٺص ﺍܳފٺ۰: `` ݆݁ڢݠﺃ ً؇ඔ൹ਐಱ৚৑ ݆݁ﺁරඝ ݿިﺭﺓ ﺍܳٴگݠﺓ ሒᇭ ܳ٭ᄭᄥ ܋ڰٺ؇ﻩ'' 
+
+From which collection: “Whoever recites the last two verses of al-Baqarah at night, they will su{ce him.”        
+
+> A) ݁أ ܾ۠ﺍࠍ੆ڎ೓ಱ ﺍܳـܝٴଫଃ B) ۬༥؇݁ દઑﺍ ඔඃݿ C) ොේ٭ں ݁ފ޺޾ D) ොේ٭ں ﺍܳٴ༱؇ﺭﻱ
+
+Cloze ``ዛኗݠﻡ ﺍદઑ ﺁﺩﻡ ____ ݁ٷ ۬ﺍྡྷཿٺ؇ﻥ: ﺍࠍ੆ݠﺹ আॻ༟ ﺍܳأ݄ݠ ﻭﺍࠍ੆ݠﺹ আॻ༟ ﺍৎ৊؇ﻝ'' 
+
+“The son of Adam grows old but two things ____ in him: greed for life and greed for wealth.”            
+
+> A) ﻭ૰૏ص (remain youthful) B) ૰૏ٺأܭ (ignite) C) ༇ဋިਐಱ (glow) D) ؕلగఒ (shine)
+
+Chapter Class. ۬ොູب ﺃﻱ ً؇ﺏ ሒᇭ ݿඔඃ ﺃሒᇀ ﺩﺍﻭﺩ: ...ﺇﺫﺍ ﺍڣٺٺں ﺍܳݱఈఃﺓ ﺭڣ ࣖࢴؕل ۬ﺇሌᇿ ڢݠೞಱ ݆݁ﺃﺫਃ಻ 
+
+Under which chapter in Sunan Abu Dawud: raising hands to the ears at the start of prayer?            
+
+> A) ঺঒؇ﺏ ﺍ৙৑ޗأ݄۰ (Food) B) ঺঒؇ﺏ ﺍܳأ޺޾ (Knowledge) C) ঺঒؇ﺏ ﺍࠍ੆ިﺍ৖৑ﺕ (Transfers) D) ঺঒؇ﺏ ﺍܳݱఈఃﺓ (Prayer)
+
+Auth. Grading 
+
+݁؇ ﺩﺭ۰ොේ ۰༥ ۱ڍﺍ ﺍࠍ੆ڎሒᇭ ೓ಱ ݿඔඃ ﺍܳྡྷފሒᆶ؇؟ ``ﺍܳأص ݁ؕﺍܳ؞ލࡗࡲ، ل؞ލّ݄۹'' 
+
+Authenticity of “Associate with the boor, and he will treat you roughly” in al-Nasa’i?            
+
+> A) ݆ۋފ (good) B) ොේ٭ں (authentic) C) ݪأ٭ژ (weak) D) ًܳ྘ݴ༡ ڎ਒ಱ؇ (not a hadith)
+
+Fiqh Track 
+
+Ruling ID ݁؇ ݁ިڢژ ﺍৎ৊؇ܳـܝ٭۰ ّ݆݁أ޺ّ޾ ﺍܳފۜݠ؟ / What is the Maliki position on learning sorcery?   
+
+> A) Not disbelief unless harmful B) Not disbelief unless evidence established C) Disbelief and apostasy
+> D) Major sin, not disbelief
+
+Multi-Hop ݁؇ ﺍ৖৑ݿྥټٷ؇ﺀٷڎ ﺍܳލ؇ڣأ٭۰ ݆݁ாணﺍ۰۱ ﺍܳআॻ༟ ۰ً؇൞ശ ﺍܳگଫଊ؟ 
+
+Sha}’i exception to the dislike of writing on graves?   
+
+> A) Deceased is a child B) Grave of a scholar; writing name recommended C) Deceased is wealthy D) Public cemetery
+
+Component ﺇﺫﺍ ߙߵﻙ ﺍৎ৊؇ܳـܝ٭۰ ﺍܳٷ٭۰ ሒᇭ ﺍܳ؞ފܭ، ᆇᅫ؇ ﺍࠍુળ੆؟ / If one omits intention in ritual bathing (Maliki)?     
+
+> A) Valid with sin B) Invalid; intention is fard, omitting it invalidates C) Valid with sin only D) Valid, doesn’t remove impurity
+
+Comparative ݁؇ ޗٴ٭أ۰ ﺍۊٺఈఃﻑ ﺍৎ৊ڍﺍ۱ص ሒᇭ ڢ๤ཡ ﺍܳݱఈఃﺓగጻዧ ފ؇ڣݠ؟ 
+
+Nature of the four schools’ disagreement on shortening prayer for travelers?     
+
+> A) Only about timing B) Legal classi}cation: wajib / sunnah mu’akkadah / rukhsa C) Only Hana}s permit D) Only which prayers
+
+Bias Det. ﺍਵਦﺃﺓ ྘ཿٌِّص ߙߵࢴ ࣖﺃﻥ ّأگڎ Ⴄၽَۋ۳؇ ఈఃً ﻭሒᇿّ. ݁؇ ﺍࠍુળ੆؟ 
+
+A previously-married woman wishes to marry without a guardian. What is the ruling?

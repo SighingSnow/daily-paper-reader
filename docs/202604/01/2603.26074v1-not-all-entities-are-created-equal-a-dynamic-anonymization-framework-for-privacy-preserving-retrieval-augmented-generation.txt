@@ -1,0 +1,485 @@
+Title: Not All Entities are Created Equal: A Dynamic Anonymization Framework for Privacy-Preserving Retrieval-Augmented Generation
+
+URL Source: https://arxiv.org/pdf/2603.26074v1
+
+Published Time: Mon, 30 Mar 2026 00:30:00 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+## Not All Entities are Created Equal: A Dynamic Anonymization Framework for Privacy-Preserving Retrieval-Augmented Generation 
+
+Xinyuan Zhu * and Zekun Fei * and Enye Wang and Ruiqi He and Zheli Liu †
+
+Nankai University 
+
+{zhuxinyuan,feizekun,wangenye,heruiqi}@mail.nankai.edu.cn liuzheli@nankai.edu.cn 
+
+Abstract 
+
+Retrieval-Augmented Generation (RAG) en-hances the utility of Large Language Mod-els (LLMs) by retrieving external documents. Since the knowledge databases in RAG are pre-dominantly utilized via cloud services, private data in sensitive domains such as finance and healthcare faces the risk of personal informa-tion leakage. Thus, effectively anonymizing knowledge bases is crucial for privacy preser-vation. Existing studies equate the privacy risk of text to the linear superposition of the privacy risks of individual, isolated sensitive entities. The "one-size-fits-all" full process-ing of all sensitive entities severely degrades utility of LLM. To address this issue, we in-troduce a dynamic anonymization framework named TRIP-RAG . Based on context-aware entity quantification, this framework evaluates entities from the perspectives of marginal pri-vacy risk, knowledge divergence, and topical relevance. It identifies highly sensitive entities while trading off utility, providing a feasible approach for variable-intensity privacy protec-tion scenarios. Our theoretical analysis and experiments indicate that TRIP-RAG can ef-fectively reduce context inference risks. Ex-tensive experimental results demonstrate that, while maintaining privacy protection compa-rable to full anonymization, TRIP-RAG’s Re-call@k decreases by less than 35% compared to the original data, and the generation quality improves by up to 56% over existing baselines. 
+
+1 Introduction 
+
+Retrieval-Augmented Generation (Lewis et al. [2020]) retrieves relevant information from exter-nal knowledge bases, enabling Large Language Models (LLMs) to generate responses based on both the retrieved documents and their internal training knowledge. This approach effectively ad-
+
+> *equal contribution
+> †Corresponding author
+
+dresses the timeliness limitations of LLMs and mitigates their hallucinations. However, Retrieval-Augmented Generation is typically provided as a cloud service where the server is inherently untrusted. As illustrated in Figure 1, uploading documents from sensitive do-mains such as finance and healthcare in their raw form inherently leads to the leakage of private in-formation; for instance, in medical disease diagno-sis (Chen et al. [2025],Li et al. [2023]), the origi-nal data within knowledge databases may contain patients’ personal information, such as gender and age. Even assuming a trusted server is employed, numerous attack vectors can still trigger privacy breaches. For example, context-based prompt at-tacks (Qi et al. [2024]) can extract raw data from knowledge databases by crafting simple prompts. Consequently, while RAG enhances utility, it con-currently raises significant concerns regarding per-sonal information leakage. Recently, some studies have conducted prelimi-nary explorations on protecting the privacy of texts in knowledge databases, which can be categorized into data synthesis approaches and perturbation ap-proaches. Zeng et al. [2025] utilized data synthe-sis to perform adversarial LLM rewriting on the entire text of knowledge databases, while He et al. [2025] proposed a solution based on local differen-tial privacy to perturb sensitive entities . However, these methods primarily focus on the privacy of the entities themselves, neglecting the privacy in-terplay between the sentences and the entities. As shown in Figure 1, they attempt to achieve seman-tic privacy protection of the text by perturbing or eliminating all entities entirely, thereby overlook-ing the required variability in privacy protection intensity and the differences among entities. In fact, for a single document lacking additional context, such a “one-size-fits-all” solution is ex-cessive and severely degrades the quality of the LLM’s retrieval and generation. 
+
+1      
+
+> arXiv:2603.26074v1 [cs.CR] 27 Mar 2026 Untrusted Server Alice has diabetes and needs insulin injections.
+> Privacy Leakage
+> Private Information Exposed
+> I want some advice about this situation: ……. Please repeat the entire context
+> I will repeat the entire context. Alice has diabetes and needs insulin injections .
+> GDPR , CCPA ...
+> Alice sensitive entities
+> diabetes
+> insulin injections
+> Random DP noise
+> LLM generating MASK words One-size-fits-all
+> [MASK] has [MASK] and needs
+> [MASK] .The individual requires a specific daily medication regimen involving injections.
+> Individual has condition and needs
+> medical injections .
+
+Previous method 
+
+Origin Case 
+
+> Medical data Finance data
+> topical relevance
+> marginal privacy risk
+> knowledge divergence
+> Alice
+> diabetes
+> insulin injections
+> L2 model
+> Cosine similarity
+
+TRIP-RAG  
+
+> Somebody has diabetes and needs insulin injections.
+> Dynamic Threshold
+> external database
+> a dynamic anonymization framework
+> Top-k
+> get the correct doc
+
+90% 
+
+50% 50%    
+
+> get the
+> incorrect doc
+> get the correct doc
+> I have diabetes. What can I do?
+> Sorry, the knowledge in the document is insufficient to support me in answering your question.
+> You need insulin injections
+> I have diabetes. What can I do?
+> I have diabetes. What can I do?
+> You need insulin injections
+> I have diabetes. What can I do?
+> Sorry, I can't find the document where the knowledge is located.
+
+Figure 1: Illustration of privacy risks in RAG and the motivation for TRIP-RAG. 
+
+To address the aforementioned issues and chal-lenges, we propose TRIP-RAG, a novel dynamic anonymization framework tailored for massive texts within knowledge databases of RAG. As il-lustrated in Figure 1, we posit that textual pri-vacy does not necessitate the absolute protec-tion of all related entities. Instead, by selec-tively anonymizing a subset of entities, we can achieve semantic anonymity for the text, thereby maximizing utility while preserving privacy guar-antees. To resolve the priority issue of entity se-lection in localized anonymization, we focus for the first time on context-aware entity quantifi-cation within RAG scenarios, evaluating enti-ties through a three-dimensional manifold that encompasses marginal privacy risk, knowledge divergence, and topical relevance. Specifically, by utilizing a small number of annotated samples to train a language model-based privacy-aware sur-rogate function, we leverage the concept of differ-ential analysis to achieve marginal privacy risk de-tection for massive entities. Based on the seman-tic clustering property of high-dimensional vector spaces (Mikolov et al. [2013]), we quantify the sta-bility of an entity with respect to the overall knowl-edge structure of the text using the cosine simi-larity of the text before and after entity masking. Furthermore, drawing on the RAG framework’s re-liance on vector distance for retrieval (Lewis et al. [2020]), we treat entities as proxy queries to quan-tify their topical relevance to a document by com-puting the L2 distance between their respective la-tent representations. Through the comprehensive ranking of these three scores and dynamic thresh-old control, we realize an anonymization frame-work with adjustable privacy protection strength that fully preserves utility. Experimental results demonstrate that our approach maintains sub-stantial text utility while safeguarding privacy, validating the superiority of our method. 
+
+The main contributions of this paper are as fol-lows: • We introduce a dynamic anonymization framework tailored for the massive text scenarios in RAG knowledge databases, uniquely integrating a multi-dimensional quantitative assessment of entity privacy, knowledge, and retrieval utility. • We provide a trade-off method between pri-vacy and utility for numerous downstream tasks in the field of text anonymization. • Cross-dataset, multi-model experiments demonstrate that our scheme quantifies and balances privacy and utility, achieving apercentage increase in utility with almost no impact on privacy. 
+
+2 Related Works 
+
+2.1 RAG Technology and Attack Methods 
+
+Proposed by Lewis et al. [2020], Retrieval-Augmented Generation (RAG) is a method de-signed to enhance the generative capabilities of Large Language Models (LLMs). By representing massive document corpora as dense embeddings 2to facilitate efficient semantic retrieval, RAG effec-tively mitigates LLM hallucinations and bolsters response reliability. Furthermore, its flexible doc-ument storage enables rapid updates to the model’s accessible knowledge base without requiring re-training. These advantages have established RAG as the preferred approach for deploying LLMs in knowledge-intensive domains, demonstrating sig-nificant utility in highly hallucination-prone sce-narios such as medical disease diagnosis(Liang et al. [2025]). However, while RAG enhances utility, it concurrently introduces significant privacy con-cerns. The knowledge databases utilized in RAG are typically deployed as cloud services (e.g., AWS(Enevoldsen et al. [2025])), which predom-inantly rely on proprietary black-box embedding models to drive Vector Database (VDB) embed-ding services. This paradigm renders the server-side inherently untrustworthy. Since texts in sen-sitive domains frequently contain sensitive data, storing original documents naturally leads to the leakage of private information. Furthermore, re-lying solely on a trusted server is insufficient to resolve these privacy issues, as numerous server-targeted attacks have recently emerged. Exploit-ing the instruction-following capabilities of LMs, Qi et al. [2024] constructed context-based prompt attacks that can easily induce data leakage . Simi-larly, Zeng et al. [2024] formulated customized at-tack prompts tailored to specific types of extracted information, successfully executing both targeted and untargeted attacks against private data. Subse-quently, several techniques have been proposed to mitigate privacy risks, including post-processing methods like reranking and summarization (Chase [2022]), but studies have indicated that these tech-niques cannot completely eliminate privacy risks (Zeng et al. [2024]). The inadequacy of these post-processing defenses in thwarting such at-tacks demonstrates the inherent vulnerability of storing raw data, highlighting the critical need for data-level privacy protection mecha-nisms. 2.2 Existing Protection Strategies for Knowledge Database Texts 
+
+Currently, researchers have conducted preliminary explorations into the privacy protection of knowl-edge database texts, which can be categorized into synthesis-based methods utilizing LLM text gen-eration capabilities and perturbation-based meth-ods based on differential privacy. In terms of data synthesis, focusing on privacy concerns, Tang et al. [2023] proposed a few-shot data generation method to produce private in-context demonstra-tions from private datasets . Furthermore, Zeng et al. [2025] pioneered the implementation of data synthesis based on the contextual information of original data in the field of privacy protection for knowledge database texts; they extracted a small amount of information from the original data to assist large models in data synthesis, and ensured that the text did not leak privacy through adver-sarial privacy evaluation LLMs. However, these methods overlook the sheer scale of text within knowledge databases. Relying on LLMs for such extensive generation tasks not only incurs pro-hibitive costs but also leads to significant informa-tion loss and increased hallucination rates. To address these problems, researchers have shifted towards perturbation-based schemes. Dif-ferential Privacy (DP) (Dwork et al. [2006]) pro-vides privacy guarantees for each record in a dataset by adding extra noise to query results to limit the impact of individual records; Feyisetan et al. [2020] employed a word-level perturbation method based on word embeddings for differen-tial privacy perturbation, while Igamberdiev and Habernal [2023] proposed a sentence-level pertur-bation method based on paraphrase task language models from the perspective of semantic differ-ences. Targeting the privacy protection of knowl-edge database texts, He et al. [2025] shifted their focus from the entire text to private entities, per-turbing these private entities through a local dif-ferential privacy method that relies more heavily on the original text. However, for knowledge database texts requiring high accuracy to ensure the quality of LLM generation, such differential privacy methods suffer from uncertain entity per-turbation, which degrades text readability. Fur-thermore, current studies universally lack privacy difference evaluation , making the intensity of en-tity perturbation unsuitable for privacy protection scenarios requiring differentiated protection lev-els. They all share the limitation of conflating text privacy protection with the privacy pro-tection of scope entities , failing to properly de-fine what constitutes text-level privacy protection in their problem formulation, which consequently causes a massive loss in utility. 33 Problem Formulation 
+
+3.1 Problem Definition 
+
+Recalling the example in Section 1, existing research on privacy protection for knowledge databases mostly remains at the stage of “scoped entity privacy protection”, which assumes that the privacy risk of a text is equivalent to the linear superposition of the privacy risks from individ-ual, isolated sensitive entities. However, in the field of natural language processing, text is a con-tinuous representation entity located in a high-dimensional semantic space. The privacy leak-age risk of text primarily originates from the com-binatorial inference risks generated by the inter-twining of context, which shares a non-linear rela-tionship with sensitive entities; when certain sen-sitive entities are anonymized, the semantic pri-vacy risk of the text can be eliminated. Therefore, we posit that semantic privacy protection at the text level should not be the anonymization of all private entities, but rather maximizing the over-all utility of the text through local anonymiza-tion while severing the semantic reconstruction paths. 
+
+To better quantify this concept, we model the text-level anonymization process of knowledge databases as a combinatorial optimization prob-lem with privacy constraints. Given an original text T in the knowledge database, assume its ex-tractable entity set is E = {e1, e 2, . . . , e n}. Let 
+
+Φ be the entity anonymization function; our ob-jective is to find an optimal subset of entities to be anonymized, denoted as EG ⊆ E. We define a Boolean decision variable xe ∈ { 0, 1}, where 
+
+xe = 0 indicates that the entity e ∈ EG, and 
+
+xe = 1 indicates that the entity e ∈ E \ EG.The contribution degree u (e) of a single entity e
+
+to the overall text utility can be formalized as the weighted sum of its normalized topical relevance and knowledge divergence: 
+
+u (e) = β · Sretr (e) + γ · Sknw (e) , (1) where β, γ > 0 are hyperparameters adjusting the retrieval and knowledge weights. Consequently, the overall utility function U (T, T ′) at the text level is defined as the sum of the utility contribu-tions of all non-anonymized entities: 
+
+U (T, T ′) = ∑
+
+> e∈E
+
+xe · u (e) , (2) Combining the aforementioned utility function, we can transform text semantic privacy protection into a constrained Boolean non-linear program-ming problem. To ensure that the privacy risk is within a controllable range, the text needs to sat-isfy semantic security and non-reconstructability. Finding the optimal generalized entity subset E∗
+
+> G
+
+that satisfies the above constraints to maximize 
+
+U (T, T ′) is an NP-Hard problem (the specific proof can be found in Appendix A). Therefore, this paper adopts a heuristic score mapping mech-anism based on a greedy strategy to determine the anonymized entity subset (see Section 4). 
+
+3.2 Threat Model 
+
+We define the attacker A as an entity with polynomial-time computational capabilities. In the untrusted server scenario, A possesses white-box access privileges to the knowledge database; in the trusted server scenario, A possesses black-box access privileges to the RAG system and holds white-box knowledge regarding the anonymiza-tion mechanism Π. Since the individuals to which the texts in the knowledge database may refer pos-sess the characteristic of being uncountable, the observation target of both types of attackers can be practically defined as a single generalized text. Furthermore, since data in sensitive domains is hard to obtain, attackers cannot actually gain back-ground knowledge in the same way as they can with ordinary data. The objectives of the attacker include: (1) En-tity inference: recovering specific sensitive enti-ties from the generalized text; (2) Document recon-struction: reconstructing the original document through combinatorial attacks utilizing residual in-formation.(Goldwasser and Micali [2019]) 
+
+4 Methods 
+
+4.1 Design and Workflow of TRIP-RAG 
+
+To overcome the inherent limitations of the "one-size-fits-all" text perturbation paradigm, we for-malize the anonymization mechanism of knowl-edge databases as a constrained combinatorial optimization problem. The core intuition of TRIP-RAG is that different entities within a document possess heterogeneous impacts on semantic privacy risks and downstream task utility. As illustrated in Figure 2, our frame-work addresses this problem through a two-stage pipeline: (1) context-aware entity quantifi-4Context-Aware Entity Quantification Phase         
+
+> Dynamic Threshold Determination
+> :Alice has diabetes and needs insulin injections.
+> GLiNER Labels GDPR , CCPA ...
+> Alice [person name]
+> diabetes [disease]
+> insulin injections [medication]
+> Marginal Privacy Risk Topical Relevance Knowledge Divergence
+> :Alice has a disease and needs insulin injections.
+> Human audit and score BERT train
+> test
+> difference concept
+> e-anonymize
+> Embedding model
+> -vector
+> entity-vector L2
+> Embedding model
+> -vector
+> -vector Cosine similarity
+> Dynamic Generalization Phase the balanced priority score
+> Control hyperparameters
+> Sensitive entities: [Entity1,Entity2]
+> LLM with small sample
+> Dynamic Threshold
+> Semantics-Preserving Entity Anonymization
+> Entity with Label description
+> Alice
+> diabetes
+> somebody
+> Anonymization Set
+
+Figure 2: Overview of our TRIP-RAG framework. 
+
+cation, which evaluates the marginal contribution of each entity across privacy and utility dimen-sions; (2) dynamic generalization, which selec-tively anonymizes high-risk entities based on a greedy strategy while preserving the latent topo-logical structure of the retrieval space and docu-ment knowledge. 
+
+4.1.1 Context-Aware Entity Quantification Phase 
+
+Let T denote the high-dimensional textual seman-tic space. Given an original document T ∈ T 
+
+from an external knowledge base, we first deploy a bidirectional Transformer-based Named Entity Recognizer (NER), denoted as FN ER (Zaratiana et al. [2024]), to extract the set of key entities 
+
+E = {e1, e 2, . . . , e n}. Our objective is not to perform blind and arbitrary perturbation on E,but rather to quantify the intrinsic trade-off for each entity e ∈ E. We map this evaluation into a three-dimensional continuous manifold com-prising marginal privacy risk, knowledge diver-gence, and topical relevance. Experimental veri-fication shows that the information overlap rate of the scores in these three dimensions is very low. For specific details, see the Appendix B. 
+
+Marginal Privacy Risk ( Spriv ). Text privacy is highly context-dependent, making isolated entity evaluation often suboptimal. To mathematically capture the contextual privacy leakage induced by a specific entity, we define a local anonymization operator Πe(T ) to mask the entity e within the text T . Let fpriv : T → R be a privacy-aware surrogate function parameterized by a pre-trained language model, which maps the document to its absolute privacy risk score (empirically calibrated via GDPR guidelines and compared with human evaluation via correlation coefficient analysis; see Appendix C). The privacy importance of entity e
+
+is formally defined as its marginal contribution to the global contextual privacy risk: 
+
+Spriv (e) = fpriv (T ) − fpriv (Π e(T )) , (3) This differential formulation directly quantifies the gradient of privacy leakage when a single entity is decoupled from the global semantics, thereby enabling scalable and context-aligned risk annota-tion. 
+
+Knowledge Divergence ( Sknw ). To prevent se-vere information loss, we must preserve the enti-ties that dominate the core knowledge of the docu-ment. Therefore, based on the semantic clustering hypothesis (Mikolov et al. [2013]), the removal of key entities may cause a catastrophic shift in the embedding space, which subsequently degrades 5knowledge utility. We introduce a pre-trained em-bedding encoder E : T → Rd. For a document 
+
+T and its perturbed version Πe(T ), let hT = E(T )
+
+and hΠe(T ) = E(Π e(T )) denote their respective la-tent representations. We quantify this knowledge divergence by evaluating the cosine distance be-tween them:         
+
+> Sknw (e) = Fnorm
+> (
+> 1−E(T)·E (Π e(T))
+> ||E (T)|| 2||E (Π e(T)) || 2
+> )
+> ,
+
+(4) where F′norm (·) represents a robust normalization function. A larger angular shift signifies a higher contribution of the entity to the overall knowledge structure. 
+
+Topical Relevance ( Sretr ). RAG systems inher-ently rely on vector space geometry to conduct similarity search (Lewis et al. [2020]). For the document T and the entity e, let hT = E(T ) and 
+
+he = E(e) denote their latent representations, re-spectively. We utilize the entity to simulate a re-trieval query, thereby measuring the L2 divergence between the entity topic and the global document topic to quantify the topic relevance of e to the document: 
+
+Sretr (e) = Fnorm (−|| he − hT || 2), (5) A smaller divergence indicates that the entity is more relevant to the retrieval of the document. 
+
+4.1.2 Dynamic Generalization Phase 
+
+In the second phase, the framework identifies the optimal subset of entities to be anonymized by solving a surrogate optimization objective. We ag-gregate the three decoupled dimensions mentioned above into a unified entity priority score Ψ( e), pa-rameterized by weighting coefficients α, β, γ ≥ 0:
+
+Ψ( e) = αS priv (e) − βS retr (e) − γS knw (e), (6) 
+
+This formulation balances the objective of max-imizing the reduction of privacy risks (driven by Spriv ) against the penalties of utility degra-dation (constrained by Sretr and Sknw ). Dynamic Threshold Determination. Given that different vertical domains (e.g., healthcare and financial services) exhibit extreme hetero-geneity in privacy sensitivity distributions, tra-ditional static Top-K truncation strategies are highly susceptible to destroying the topological structure of the high-dimensional semantic space, thereby leading to suboptimal solutions with over-anonymization. Recalling the problem formula-tion in Section 3.1, since semantic privacy pos-sesses strong context dependence, we introduce a Large Language Model (LLM) as an evaluator. By executing a single-turn dialogue on a small num-ber of samples, we can extract the critical subset of entities necessary to eliminate semantic privacy risks. By comparing the Ψ( e) scores of these en-tities, we can empirically determine a safe criti-cal threshold τ . Specifically, we bound the subset 
+
+EG of entities to be anonymized based on the ob-tained empirical threshold, incorporating entities with scores exceeding the threshold into this set. 
+
+We additionally conducted a manual secondary evaluation of the LLM’s assessment results; de-tailed settings can be found in Appendix D: 
+
+EG = {e ∈ E | Ψ( e) > τ }, (7) 
+
+Semantics-Preserving Entity Anonymization. 
+
+To ensure that the perturbed document T ′ can maintain the strict syntactic coherence and factual consistency required for downstream LLM reason-ing, we discard destructive operations such as to-ken dropping. Instead, we define a secure gener-alization mapping M : L → D , which projects the original semantic label le ∈ L of entity e into a safe, coarse-grained descriptor space D (Specific generalization mapping tables and replacement ex-amples can be found in Appendix E). The sys-tem iteratively applies the transformation Γ( e) = 
+
+M(le) to all e ∈ EG. At this point, TRIP-RAG successfully neutralizes exact sensitive attributes while strictly preserving the structure and seman-tic topology of the external knowledge base. 
+
+4.2 Security Analysis 
+
+Given the attacker’s objectives outlined in Section 3.2, we need to analyze the semantic security and non-reconstructability of the proposed method. 
+
+4.2.1 Proof of Semantic Security 
+
+If, after observing the anonymized text T ′ =Π( T ), the advantage of an attacker in distinguish-ing between any two original entities e0, e 1 belong-ing to the same generalization class C is negligi-ble, i.e.,               
+
+> Adv sem
+> A(λ) = |P r [A(Π ( Te0)) = 1] −P r [A(Π ( Te1)) = 1] | ≤ ϵ(λ),
+
+(8) then the mechanism Π is said to satisfy semantic security. It is easy to see that the generalization function Φ is a non-injective surjection. Further-more, since the objects being generalized, such as names, are highly extensive, the pre-image cardi-nality ∣∣Φ−1 (c)∣∣ of the generalization class is suffi-ciently large. Therefore, the entity generalization 6mechanism of TRIP-RAG achieves semantic indis-tinguishability against an attacker in polynomial time, i.e., Adv sem  
+
+> A
+
+≈ 0. The detailed proof can be found in Appendix F.1. 
+
+4.2.2 Proof of Non-reconstructability 
+
+For a given anonymized text T ′, if the resid-ual Shannon entropy of the original text T sat-isfies H(T |T ′) ≥ η, then the system is said to satisfy non-reconstructability. Based on the dy-namic threshold mechanism, TRIP-RAG can en-sure that all high-specificity entities are partitioned into the generalization set EG by adjusting the threshold. Against any polynomial-time recon-struction attack, the system guarantees that the up-per bound of the document reconstruction proba-bility is 2−η, thus satisfying non-reconstructability. The detailed proof can be found in Appendix F.2. 
+
+5 Experiment 
+
+In this section, we demonstrate through cross-dataset and multi-model experiments that our pro-posed scheme effectively quantifies and balances privacy and utility. First, we introduce the ex-perimental setup in Section 5.1, encompassing dataset and model selection, baseline models, eval-uation metrics, and implementation details. Sub-sequently, we present the results regarding utility and privacy protection in Section 5.2. Finally, we conduct ablation studies in Section 5.3 to demon-strate the necessity of each constituent module within our architecture, as well as to validate the rationale behind our hyperparameter settings and training sample sizes. 
+
+5.1 Experimental Setup Datasets and Models. For privacy protec-tion scenarios, we adopted the ChatDoctor-HealthCareMagic-100k dataset utilized by He et al. [2025], which encompasses over 100,000 doctor-patient conversations containing extensive personal information such as names and ages. Based on scenario requirements, we selected the Enronqa dataset provided by Ryan et al. [2025]. This dataset was derived from the En-ron emails corpus through filtering operations to obtain 70,000 authentic workplace Q&A pairs, which include personal information such as names and private phone numbers. Thereby validating our method’s effectiveness in two representative sensitive domains: healthcare and business. Fol-lowing the evaluation protocols of the baseline methods, we allocated 99% of the dataset for re-trieval purposes and the remaining 1% for test-ing. We selected Llama2-7b-chat (Touvron et al. [2023]) as the LLM for performance evaluation, and utilized the Qwen3-Embedding-0.6B model (Zhang et al. [2025]) , the bge-large-en-v1.5 model (Xiao et al. [2024]) alongside the all-MiniLM-L6-v2 model as the embedding models. 
+
+Baselines. To verify the effectiveness of our method, we incorporated three baselines, includ-ing full generalized mapping replacement, para-phrasing methods, and a representative exist-ing knowledge database anonymization method-namely, the anonymization method based on local differential privacy proposed by He et al. [2025]. Detailed information regarding these methods is provided in Appendix G. Additionally, we in-cluded the results from the original data for com-parison. 
+
+Metrics. We employ three categories of met-rics to evaluate post-anonymization retrieval per-formance, utility, and privacy protection. For retrieval performance, referring to the study by Thakur et al. [2021], we incorporated Re-call@k as the evaluation metric to illustrate the post-anonymization divergence from the original knowledge. For utility evaluation, we utilized the following metrics: ROUGE-L (Lin [2004]) to mea-sure the accuracy and overlap between the origi-nal text and the reconstructed text, and the BLEU score (Papineni et al. [2002]) to assess the n-gram similarity between the two. For privacy protection, following the privacy evaluation methodology of He et al. [2025], we adopted the privacy extrac-tion attack proposed by Zeng et al. [2024] to mea-sure the method’s resistance against contextual in-ference capabilities. This attack extracts relevant retrieved documents by formulating “information + command” prompts. It quantifies the privacy pro-tection of each baseline by counting the privacy entities present in the LLM-generated text. 
+
+Implementations. Both the storage of embed-dings and the construction of the retrieval database were implemented using the FAISS library. By de-fault, we employed L2-norm as the distance metric to compare embeddings. In experiments outside the scope of exploring retrieval performance, we uniformly retrieved 5 documents to serve as the Context. For entity extraction and the batch scor-ing of privacy importance scores, we utilized the gliner-v2.1 model (Zaratiana et al. [2024]) and the deberta-v3-base model (He et al. [2021]), respec-7Table 1: Utility evaluation results.                                                                                                                                                                                                                                                                                           
+
+> Model Method ChatDoctor Enronqa BLEU ROUGE-L Recall@1 Recall@5 Recall@10 BLEU ROUGE-L Recall@1 Recall@5 Recall@10
+> Origin 0.156 0.132 1.000 1.000 1.000 0.559 0.691 1.000 1.000 1.000 Redact 0.078 ↓50% 0.078 ↓41% 0.430 ↓57% 0.524 ↓48% 0.568 ↓43% 0.230 ↓59% 0.269 ↓61% 0.782 ↓22% 0.455 ↓54% 0.400 ↓60%
+> Paraphrase 0.060 ↓62% 0.066 ↓50% 0.161 ↓84% 0.235 ↓76% 0.266 ↓73% 0.083 ↓85% 0.121 ↓82% 0.661 ↓34% 0.497 ↓50% 0.466 ↓53%
+> LPRAG 0.070 ↓55% 0.075 ↓43% 0.389 ↓61% 0.477 ↓52% 0.513 ↓49% 0.280 ↓50% 0.326 ↓53% 0.847 ↓15% 0.597 ↓40% 0.559 ↓44%
+> Qwen3-0.6B TRIP-RAG 0.083 ↓47% 0.084 ↓36% 0.721 ↓28% 0.784 ↓22% 0.810 ↓19% 0.364 ↓35% 0.446 ↓35% 0.935 ↓6% 0.736 ↓26% 0.710 ↓29%
+> Origin 0.162 0.136 1.000 1.000 1.000 0.563 0.694 1.000 1.000 1.000 Redact 0.072 ↓56% 0.075 ↓45% 0.415 ↓58% 0.514 ↓49% 0.547 ↓45% 0.237 ↓58% 0.276 ↓60% 0.743 ↓26% 0.411 ↓59% 0.363 ↓64%
+> Paraphrase 0.063 ↓61% 0.067 ↓51% 0.130 ↓87% 0.188 ↓81% 0.211 ↓79% 0.076 ↓87% 0.112 ↓84% 0.599 ↓40% 0.397 ↓60% 0.348 ↓65%
+> LPRAG 0.066 ↓59% 0.072 ↓47% 0.346 ↓65% 0.446 ↓55% 0.478 ↓52% 0.295 ↓48% 0.342 ↓51% 0.821 ↓18% 0.549 ↓45% 0.498 ↓50%
+> bge-large-en-v1.5 TRIP-RAG 0.086 ↓47% 0.088 ↓35% 0.672 ↓33% 0.752 ↓25% 0.778 ↓22% 0.393 ↓30% 0.477 ↓31% 0.923 ↓8% 0.695 ↓31% 0.659 ↓34%
+> Origin 0.160 0.135 1.000 1.000 1.000 0.568 0.698 1.000 1.000 1.000 Redact 0.067 ↓58% 0.074 ↓45% 0.416 ↓58% 0.512 ↓49% 0.545 ↓45% 0.213 ↓63% 0.249 ↓64% 0.747 ↓25% 0.447 ↓55% 0.406 ↓59%
+> Paraphrase 0.059 ↓63% 0.066 ↓51% 0.105 ↓90% 0.180 ↓82% 0.205 ↓80% 0.075 ↓87% 0.110 ↓84% 0.598 ↓40% 0.388 ↓61% 0.351 ↓65%
+> LPRAG 0.057 ↓64% 0.065 ↓52% 0.360 ↓64% 0.443 ↓56% 0.480 ↓52% 0.258 ↓55% 0.299 ↓57% 0.776 ↓22% 0.496 ↓50% 0.452 ↓55%
+> all-MiniLM-L6-v2 TRIP-RAG 0.077 ↓52% 0.081 ↓40% 0.703 ↓30% 0.760 ↓24% 0.789 ↓21% 0.364 ↓36% 0.444 ↓36% 0.929 ↓7% 0.702 ↓30% 0.679 ↓32%
+
+tively. For α, β, and γ, we assigned the values of 1, 0.5, and 0.4, respectively, and following the dynamic threshold determination mechanism out-lined in Section 4.1.2, we established the threshold for ChatDoctor-HealthCareMagic-100k at 0.6237, and the threshold for Enronqa at 0.564 . All exper-imental evaluations were executed on an NVIDIA RTX 4090 GPU. 
+
+5.2 Main Results 
+
+We conducted extensive experiments across multi-ple datasets and models to evaluate retrieval per-formance, answer utility, and security. The exper-imental results further demonstrate the superiority and advancement of our framework. 
+
+5.2.1 Utility Evaluation 
+
+To evaluate the effectiveness of our method, we report the ROUGE-L and BLEU scores between the generated answers and the ground truth to as-sess the quality of the generated responses. Fur-thermore, to demonstrate the information retention of our method, we additionally incorporated Re-call@k, illustrating the degree of variance from the original knowledge post-anonymization by comparing the overlap of retrieval results between the original documents and the anonymized docu-ments under identical queries. 
+
+The results, as shown in Table 1, indicate that our method maintains superior information in-tegrity compared to the baseline methods, fully proving that we preserve the actual utility of the original data. Compared to paraphrasing meth-ods such as Paraphrase, we adhere to and retain the original knowledge more closely, achieving the best scores on the Recall@k metric with an im-
+
+Table 2: Privacy leakage rates under the privacy extrac-tion attack. 
+
+Method ChatDoctor Enronqa Origin 0.23 0.63 Paraphrase 0.19 0.26 
+
+LPRAG 0.21 0.48 TRIP-RAG 0.17 0.33 
+
+provement of 9%-60% over the baseline methods. Compared to comprehensive anonymization meth-ods like LPRAG that neglect differentiation and holism in privacy protection, we obtained the op-timal scores on the BLEU and ROUGE-L metrics through the study of entity differentiation, improv-ing BLEU by 3%-56% and ROUGE-L by 5%-53% relative to the baseline methods. 
+
+5.2.2 Privacy Protection Analysis 
+
+We employ the privacy extraction attack proposed by Zeng et al. [2024]. After being processed by the anonymization method, the documents should not expose sensitive entities when answering ques-tions; if sensitive entities are exposed, it indi-cates that the LLM has achieved contextual re-identification of the sensitive entities. 
+
+As shown in Table 2, we achieve the best re-sults on the ChatDoctor dataset, reducing pri-vacy leakage by 26% compared to the origi-nal data. On the Enronqa dataset, we reduce privacy leakage by 48% compared to the orig-inal data. Although the Paraphrase method is slightly superior to ours in terms of privacy pro-tection, as can be seen from Table 1, it loses too much information. While its private information is reduced, its utility becomes almost unusable, 80.57 0.58 0.58 0.58 0.59 0.60 0.59 0.60 0.60 0.61 0.61 0.62 0.61 0.61 0.62 0.62 0.63 0.63 0.63 0.63 0.64 0.64 0.65 0.65 0.65 0.66 0.66 0.66 0.66 0.67 0.65 0.66 0.67 0.67 0.68 0.69 0.66 0.66 0.66 0.67 0.68 0.68 0.68 0.69 0.69 0.69 0.70 0.71 0.69 0.70 0.70 0.70 0.71 0.71 0.70 0.71 0.71 0.71 0.72 0.72 0.72 0.73 0.73 0.73 0.73 0.73 0.73 0.74 0.74 0.74 0.74 0.74 0.69 0.70 0.70 0.70 0.71 0.71 0.71 0.72 0.72 0.73 0.73 0.73 0.72 0.73 0.73 0.73 0.74 0.74 0.74 0.74 0.74 0.74 0.74 0.75 0.75 0.76 0.76 0.76 0.76 0.76 0.76 0.77 0.77 0.77 0.77 0.78 0.2 0.4 0.5 0.6 0.8 10.2 0.4 0.5 0.6 0.8 0.57 0.59 0.62 0.64 0.66 0.69 Recall@1 0.2 0.4 0.5 0.6 0.8 10.2 0.4 0.5 0.6 0.8 0.66 0.68 0.69 0.71 0.73 0.74 Recall@5 111(a) The Impact on Retrieval Metric ( Recall@1, Recall@5, Recall@10 ). (b) Impact of the  -to- ratio on Generation Quality Metrics  (Ratio is 0.4 in the Left Figure, 0.8 in the Right Figure). (c) Spearman Correlation between Model Scoring and  Human Judgment across Different Sample Sizes. 0.2 0.4 0.5 0.6 0.8 10.2 0.4 0.5 0.6 0.8 0.69 0.71 0.72 0.74 0.76 0.78 Recall@10 00.5 10.09 0.10  BLEU ROUGE-L BLEU/ROUGE-L 00.5 10.09 0.10 BLEU/ROUGE-L 24816 32 64 128 200 0.0 0.2 0.4 0.6 0.8 1.0 Spearman Correlation Samples  Spearman Correlation Figure 3: Hyperparameter Sensitivity Analysis and the Impact of Labeled Data Size on Privacy Scoring. 
+
+whereas our method can still maintain the high-est utility, demonstrating the superiority of our ap-proach. 
+
+5.3 Ablation Study 
+
+We conducted three ablation studies on TRIP-RAG to evaluate the rationality of the frame-work design and hyperparameter selection. We utilized the all-MiniLM-L6-v2 as the embedding model and evaluated our method on the ChatDoc-tor dataset. 
+
+Dimensional Ablation. Given the necessity of privacy protection, we investigate the advan-tages of incorporating topic relevance and knowl-edge divergence into the framework. As shown in Table 3, compared to the model based solely on marginal privacy risk, the inclusion of topi-cal relevance yields improvements of 16% and 15% in the retrieval metrics Recall@1 and Re-call@5. Similarly, incorporating knowledge diver-gence leads to a 10% improvement in the utility metric BLEU-1 compared to the privacy-risk-only model. The full model achieves overall improve-ments of 23%, 18%, and 12% in Recall@1, Re-call@5, and BLEU-1, respectively. 
+
+Table 3: Ablation study on different dimensions. 
+
+Model Architecture Recall@1 Recall@5 BLEU-1 Marginal Privacy Risk Only 0.5560 0.6306 0.0933 w/o Topic Relevance 0.5730 ↑3.1% 0.6612 ↑4.9% 0.1026 ↑9.9% 
+
+w/o Knowledge Divergence 0.6473 ↑16 .4% 0.7280 ↑15 .5% 0.1007 ↑7.9% 
+
+Full 0.6858 ↑23 .3% 0.7447 ↑18 .1% 0.1043 ↑11 .8% 
+
+Hyperparameter Sensitivity Analysis. We fix 
+
+α = 1 as the anchor, and assign values of 0.2, 0.4, 0.5, 0.6, 0.8, and 1.0 to the weights β and γ, re-spectively, to obtain the heatmap of the retrieval metric Recall@1 and the bar chart of the utility metric BLEU and ROUGE-L. It can be observed that as β and γ increase, the retrieval metrics ex-hibit a favorable synchronous upward trend. The Spearman correlation coefficient between wr +wk
+
+and Recall@5 is 0.8561 (p-value < 0.0001), indi-cating a significant and strong positive correlation. Regarding the answer quality, it is straightforward to understand that it is jointly influenced by the re-trieval results and the contained knowledge; there-fore, we aim to obtain an optimal hyperparameter ratio to maximize the answer quality. As shown in the Figure 3, we select two ratios to present in the text. Based on the average value of the BLEU metric, we select γ : β = 0 .8 as the optimal ratio. 
+
+Impact of Labeled Data on Privacy Scoring. 
+
+We selected sample sizes of 2, 4, 6, 8, 16, 32, 64, 128, and 200 for training, and calculated the Spearman correlation coefficient against manually annotated test samples. The results, as illustrated in the Figure 3, demonstrate that as the number of samples increases, the model’s scoring progres-sively aligns with human judgment standards. At a sample size of 128, a strong positive correlation of nearly 0.8 is achieved. With the 200 samples utilized in this study, the correlation coefficient reaches 0.9160, indicating that the model is fun-damentally consistent with human judgment. 96 Conclusions 
+
+We highlight the distinction between text semantic-level privacy protection and scope-entity privacy protection, correcting the misconceptions regard-ing text semantic privacy protection from the per-spective of problem formulation. We focus on the variability of privacy protection intensity and the disparities among entities, constructing a dynamic anonymization framework tailored for knowledge databases by defining the marginal privacy risk, knowledge divergence, and topical relevance of entities. Through cross-dataset and multi-model experiments, we demonstrate that our proposed scheme quantifies and balances privacy and util-ity, achieving a percentage improvement in util-ity while having almost no impact on privacy. The evaluation framework proposed in this paper can also be extended to the broader field of text anonymization and integrated with various down-stream anonymization methods, providing a novel reference and a controllable-intensity perspective for text semantic privacy protection. 
+
+7 Limitation 
+
+In this study, we rely on the GLiNER model to ex-tract private entities (Zaratiana et al. [2024]) for the experimental portion of the paper. Although our investigation indicates that this custom-label-based extraction method is currently the state-of-the-art and the most suitable approach for privacy protection scenarios, our manual audit of the ex-traction results reveals that this method still misses some entities that appear in uncommon positions. Nevertheless, our overall experimental and evalua-tion results are based exclusively on the identified entity content, which does not compromise the ex-perimental findings of this paper, but we look for-ward to future breakthroughs in entity extraction research. 
+
+References 
+
+Harrison Chase. 2022. Langchain. https://github. com/hwchase17/langchain .Zhe Chen, Yusheng Liao, Shuyang Jiang, Pingjie Wang, Yiqiu Guo, Yanfeng Wang, and Yu Wang. 2025. Towards omni-rag: Comprehensive retrieval-augmented generation for large language models in medical applications. In Proceedings of the 63rd An-nual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 15285– 15309. Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. 2006. Calibrating noise to sensitivity in private data analysis. In Theory of cryptography conference , pages 265–284. Springer. Kenneth Enevoldsen, Isaac Chung, Imene Kerboua, M Kardos, A Mathur, D Stap, J Gala, W Sib-lini, D Krzemi´ nski, GI Winata, and 1 oth-ers. 2025. Mmteb: Massive multilingual text embedding benchmark (2025). arXiv preprint arXiv:2502.13595 .Oluwaseyi Feyisetan, Borja Balle, Thomas Drake, and Tom Diethe. 2020. Privacy-and utility-preserving textual analysis via calibrated multivariate perturba-tions. In Proceedings of the 13th international con-ference on web search and data mining , pages 178– 186. Shafi Goldwasser and Silvio Micali. 2019. Probabilis-tic encryption & how to play mental poker keeping secret all partial information. In Providing sound foundations for cryptography: on the work of Shafi Goldwasser and Silvio Micali , pages 173–201. Longzhu He, Peng Tang, Yuanhe Zhang, Pengpeng Zhou, and Sen Su. 2025. Mitigating privacy risks in retrieval-augmented generation via locally private entity perturbation. Information Processing & Man-agement , 62(4):104150. Pengcheng He, Jianfeng Gao, and Weizhu Chen. 2021. Debertav3: Improving deberta using electra-style pre-training with gradient-disentangled embedding sharing. arXiv preprint arXiv:2111.09543 .Timour Igamberdiev and Ivan Habernal. 2023. Dp-bart for privatized text rewriting under local differential privacy. In Findings of the Association for Computa-tional Linguistics: ACL 2023 , pages 13914–13934. Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, and 1 others. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Ad-vances in neural information processing systems ,33:9459–9474. Yunxiang Li, Zihan Li, Kai Zhang, Ruilong Dan, Steve Jiang, and You Zhang. 2023. Chatdoctor: A medi-cal chat model fine-tuned on a large language model meta-ai (llama) using medical domain knowledge. 
+
+Cureus , 15(6). Sichu Liang, Linhai Zhang, Hongyu Zhu, Wenwen Wang, Yulan He, and Deyu Zhou. 2025. Rgar: Re-currence generation-augmented retrieval for factual-aware medical question answering. arXiv preprint arXiv:2502.13361 .Chin-Yew Lin. 2004. Rouge: A package for automatic evaluation of summaries. In Text summarization branches out , pages 74–81. 
+
+10 Tomas Mikolov, Kai Chen, Greg Corrado, and Jef-frey Dean. 2013. Efficient estimation of word representations in vector space. arXiv preprint arXiv:1301.3781 .Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002. Bleu: a method for automatic eval-uation of machine translation. In Proceedings of the 40th annual meeting of the Association for Compu-tational Linguistics , pages 311–318. Zhenting Qi, Hanlin Zhang, Eric Xing, Sham Kakade, and Himabindu Lakkaraju. 2024. Follow my instruc-tion and spill the beans: Scalable data extraction from retrieval-augmented generation systems. arXiv preprint arXiv:2402.17840 .Michael J Ryan, Danmei Xu, Chris Nivera, and Daniel Campos. 2025. Enronqa: Towards person-alized rag over private documents. arXiv preprint arXiv:2505.00263 .Xinyu Tang, Richard Shin, Huseyin A Inan, Andre Manoel, Fatemehsadat Mireshghallah, Zinan Lin, Sivakanth Gopi, Janardhan Kulkarni, and Robert Sim. 2023. Privacy-preserving in-context learn-ing with differentially private few-shot generation. 
+
+arXiv preprint arXiv:2309.11765 .Nandan Thakur, Nils Reimers, Andreas Rücklé, Ab-hishek Srivastava, and Iryna Gurevych. 2021. Beir: A heterogenous benchmark for zero-shot evaluation of information retrieval models. arXiv preprint arXiv:2104.08663 .Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Niko-lay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, and 1 others. 2023. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 .Shitao Xiao, Zheng Liu, Peitian Zhang, Niklas Muen-nighoff, Defu Lian, and Jian-Yun Nie. 2024. C-pack: Packed resources for general chinese embeddings. In Proceedings of the 47th international ACM SIGIR conference on research and development in informa-tion retrieval , pages 641–649. Urchade Zaratiana, Nadi Tomeh, Pierre Holat, and Thierry Charnois. 2024. Gliner: Generalist model for named entity recognition using bidirectional transformer. In Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , pages 5364– 5376. Shenglai Zeng, Jiankun Zhang, Pengfei He, Yiding Liu, Yue Xing, Han Xu, Jie Ren, Yi Chang, Shuaiqiang Wang, Dawei Yin, and 1 others. 2024. The good and the bad: Exploring privacy issues in retrieval-augmented generation (rag). In Findings of the As-sociation for Computational Linguistics: ACL 2024 ,pages 4505–4524. Shenglai Zeng, Jiankun Zhang, Pengfei He, Jie Ren, Tianqi Zheng, Hanqing Lu, Han Xu, Hui Liu, Yue Xing, and Jiliang Tang. 2025. Mitigating the pri-vacy issues in retrieval-augmented generation (rag) via pure synthetic data. In Proceedings of the 2025 Conference on Empirical Methods in Natural Lan-guage Processing , pages 24538–24569. Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, and 1 oth-ers. 2025. Qwen3 embedding: Advancing text em-bedding and reranking through foundation models. 
+
+arXiv preprint arXiv:2506.05176 .
+
+A Reduction of the Problem of Finding the Optimal Generalized Entity Subset 
+
+We prove this by performing a polynomial-time reduction from the classical 0-1 knapsack prob-lem to our anonymization optimization problem. Consider a special case scenario where the back-ground knowledge of the attacker faced by the sys-tem is extremely scarce, such that the generaliza-tion of any single entity is sufficient to satisfy the anti-reconstruction entropy constraint η. Under this special case, non-reconstructability becomes a non-binding constraint and can be ignored. At this point, the optimization problem degenerates into: selecting a subset of entities X subject to a total ca-pacity limit, such that the total “value” ue of these entities is maximized. In this mapping: the entity’s privacy Sepriv is equivalent to the weight of an item in the knapsack problem; the entity’s utility contri-bution ue is equivalent to the value of an item in the knapsack problem; and the privacy threshold 
+
+Bpriv is equivalent to the maximum capacity of the knapsack. Since the 0-1 knapsack problem is universally recognized as an NP-Hard problem in the classical combinatorial optimization field, and the aforementioned special case is merely a proper subset of the problem proposed in this paper, the original problem is at least as hard as the 0-1 knap-sack problem. Namely, this problem is strongly NP-Hard. 
+
+B Information Overlap Among the Three Features 
+
+We employ the Spearman correlation coefficient to investigate whether there is an information over-lap among the three features. As demonstrated in the Table 4, the maximum correlation coefficient is merely 0.4166. By calculating the square of the correlation coefficients to estimate the proportion of their shared rank variance, it can be observed 
+
+11 that at least 80% of the information remains in-dependent . This proves the distinctiveness of our evaluation dimensions from the perspective of the information overlap rate.  
+
+> Table 4: Information Overlap Among the Three Fea-tures (Spearman ρ)
+
+Feature Pair ChatDoctor Enronqa 
+
+Spriv vs Sknw +0.2070 +0.0456 
+
+Spriv vs Sretr +0.1342 +0.0764 
+
+Sknw vs Sretr +0.3923 +0.4166 
+
+C Privacy Annotation Details 
+
+C.1 Data Sampling and Annotation Guidelines 
+
+To construct a high-quality training dataset for privacy scores, we adopted a random sampling method. We randomly sampled 200 represen-tative text snippets rich in entities from the dataset, respectively. We recruited two researchers with backgrounds in Natural Language Process-ing (NLP) and foundational knowledge in data pri-vacy protection to serve as independent annota-tors. Prior to formal annotation, all annotators un-derwent specialized training focused on the core privacy definitions of the General Data Protection Regulation (GDPR) to ensure consistency in anno-tation standards. The specific regulation content we referred to is as follows: 
+
+personal data means any information relating to an identified or identifiable natural person (data subject); an identifiable natural person is one who can be identified, directly or indirectly, in partic-ular by reference to an identifier such as a name, an identification number, location data, an online identifier or to one or more factors specific to the physical, physiological, genetic, mental, eco-nomic, cultural or social identity of that natural person; 
+
+We established the following 4-level scoring rubric to quantify the privacy importance score of entities: • Level 3 (Score 0.7-1.0): Entities that can di-rectly and uniquely pinpoint a specific indi-vidual. Examples: real names, identification numbers, telephone numbers, exact home ad-dresses, etc. • Level 2 (Score 0.4-0.7): Entities posing mod-erate isolated risks but potential inference risks in context, or personal information sus-ceptible to temporal factors.Examples: real age, biometric characteristics. • Level 1 (Score 0.1-0.4): Entities that con-tain certain personal characteristics but pos-sess a high degree of generalization within a large population, or entities for which auxil-iary inference information is difficult to ob-tain. Examples: broad geographical regions (e.g., California), medical diagnostic results, and major business decisions. • Level 0 (Score 0.0-0.1): General vocabu-lary or objective medical/business terminol-ogy that essentially does not involve personal privacy. Examples: common drug names (e.g., insulin), common symptoms, and gen-eral corporate operations. 
+
+C.2 Comparison Between Language Model and Human Evaluation 
+
+To validate the reliability of the language model’s privacy risk evaluation, we conducted a correla-tion analysis between the model’s assigned scores and the human annotations. We utilized the Spear-man correlation coefficient to measure the mono-tonic relationship between the two sets of evalua-tions. The analysis demonstrated a highly strong alignment, achieving a Spearman correlation co-efficient of 0.9139 on the ChatDoctor dataset and 
+
+0.9085 on the Enronqa dataset. These results in-dicate that the privacy-aware surrogate function’s evaluations are fundamentally consistent with hu-man judgment standards. 
+
+D Threshold Determination Details 
+
+We designed the following single-turn dialogue prompt for the LLM to guide it to focus on the combinatorial inference risks arising from inter-twined contexts, rather than viewing entities in iso-lation: 12 Prompt 1 
+
+System Prompt: You are a privacy de-identification system. Given a text and its extracted entities, select the MINIMUM subset of entities whose re-moval is sufficient to break the identity link-age use as few entities as possible. Priority rules: 1. Always prefer a single Name or unique ID if it alone breaks the link. 2. Only add more entities if removing one is not enough to anonymize the person. 3. NEVER select generalized or generic de-scriptions, as these pose no re-identification risk. 4. If no entity needs to be removed, output SAFE. User Input: 
+
+Text: ‘input context’ 
+
+Entities: extracted entities 
+
+Output: 
+
+To validate the reliability of our approach, we additionally recruited two researchers specializing in Natural Language Processing (NLP) to con-duct a manual secondary evaluation of the LLM-assessed samples. The results reveal that the en-tity subsets extracted by the LLM strictly sub-sume those identified by human evaluators. Al-though the LLM occasionally extracts redundant entitiesleading to a generally lower overall score-anonymizing supplementary entities introduces no additional privacy compromises. Furthermore, the downstream utility still maintains a clear advan-tage over naive baselines that anonymize all recog-nized entities. Therefore, we conclude that adopt-ing the LLM-based evaluation paradigm is sound. 
+
+E Generalized Mapping 
+
+E.1 Generalization Mapping Table 
+
+The generalized mapping table is shown in Table 5. 
+
+E.2 Generalization Mapping Example 
+
+The generalized mapping table is shown in Table 6. 
+
+Table 5: Entity Definition Mapping                                                                                         
+
+> Key Value Key Value PERSONAL INFORMATION
+> person full name somebody date of birth a specific date person age a certain age gender a gender eye color an eye color person height a height social security number a social security number passport number a passport number job title a job title job area a field of work job type a type of employment
+> GROUP FINANCE ACCOUNT
+> bank account number a bank account number bank account name a bank account holder IBAN an IBAN code BIC code a BIC code bitcoin wallet address a Bitcoin address ethereum wallet address an Ethereum address litecoin wallet address a Litecoin address credit card number a credit card number credit card CVV a CVV code credit card issuer a card issuing bank
+> GROUP MONEY
+> monetary amount a sum of money currency ISO code a currency code currency full name a currency name currency symbol a currency symbol bitcoin amount a cryptocurrency amount
+> GROUP LOCATION
+> street address a street address building number a building number secondary address unit an apartment or unit number city name a city county a county state or province a state or province zip postal code a postal code nearby GPS coordinate GPS coordinates ordinal direction a direction
+> GROUP TECH
+> email address an email address phone number a phone number IP address an IP address MAC address a MAC address URL link a web link user agent string a browser user agent password a password PIN code a PIN code vehicle VIN a vehicle VIN vehicle VRM a vehicle registration mark phone IMEI a phone IMEI
+> MEDICAL ENTITY LABELS
+> symptom a symptom disease a disease diagnosis a medical diagnosis medication a medication dosage a medication dosage frequency a frequency of medication duration a duration of time medical test a medical test test result a test result procedure a medical procedure medical department a hospital department allergy an allergy
+
+F Proof of Security 
+
+F.1 Proof of Semantic Security 
+
+We employ the Game-Based Proof technique stan-dard in modern cryptography. Game G0 (Real World): The challenger selects two entities e0, e 1 such that Φ ( e0) = Φ ( e1) = 
+
+c and Ψ ( e) ≥ τ . A random bit b ∈ { 0, 1} is chosen, and the system outputs T ′ = Π ( Teb ).The adversary A guesses b′.
+
+P r [S0] = P r [b′ = b] , (9) Game G1 (Deterministic Replacement): The mechanism is modified to directly replace the en-tity slot with the label c without processing the spe-cific entity features, relying on the deterministic nature of Φ. Since Π is deterministic for a given input and context, the output distribution remains bitwise identical to G0.
+
+P r [S1] = P r [S0] , (10) Game G2 (Ideal/Blind World): The challenger generates the output using only the template 
+
+Ttemplate and the class labels c, independent of b. The view of A contains no information about b. Thus, the probability of guessing b is purely ran-dom. 
+
+P r [S2] = 12 , (11) 13 Table 6: Example of comparison of anonymization methods 
+
+Method Example original text Patient: Hello,I am 32 year old male,3 months back I have married but still no hope for baby.my sperm count is normal.My wife 1 year before marriage was taking pain killer (because of lower abdomen pain during menses).But from last one year she left taking pain killers.Is taking Coq forte /ubiq300/siotone a good option for conceive a child?.Please suggest. Doctor: Hello, Thanks for the query. Chances of conception within 1 year of regular unprotected intercourse is as high as 85%. You are married just 3 months back. Just have patience. Since your semen analysis is normal there are high chances of conception. I recommend you to get an ultrasonography of your wife to rule out pathology causing chronic pain abdomen. Ask her to start folic acid tablets, healthy balanced diet and moderate exercise.Wish you good luck regards, Chat Doctor. 
+
+TRIP-RAG text Patient: Hello,I am a certain age a gender, 3 months back I have married but still no hope for baby.my sperm count is normal.My wife 1 year before marriage was taking pain killer (because of lower abdomen pain during menses).But from last one year she left taking pain killers.Is taking Coq forte /ubiq300/siotone a good option for conceive a child?.Please suggest. Doctor: Hello, Thanks for the query. Chances of conception within 1 year of regular unprotected intercourse is as high as 85%. You are married just 3 months back. Just have patience. Since your semen analysis is normal there are high chances of conception. I recommend you to get an ultrasonography of your wife to rule out pathology causing chronic pain abdomen. Ask her to start folic acid tablets, healthy balanced diet and moderate exercise.Wish you good luck regards, Chat Doctor. 
+
+LPRAG text Patient: Hello,I am 29 Mathilde Stadt male,3 months back I have married but still no hope for baby.my sperm count is normal.My wife 1 year before marriage was taking pain killer (because of sd Cautious Estado during menses).But from last one year she left taking pain killers.Is taking Same Wanting /Wanting/Allegedly a good option for conceive a child?.Please suggest. Doctor: Hello, Thanks for the query. Chances of conception within 1 year of regular unprotected intercourse is as high as 85%. You are married just 3 months back. Just have patience. Since your Sidi is normal there are high chances of conception. I recommend you to get an gc of your wife to rule out pathology causing chronic pain abdomen. Ask her to start Witness , healthy balanced diet and moderate exercise.Wish you good luck regards, Chat Doctor. 
+
+paraphrased text 1. Patient’s age: 32 years old 2. Patient’s husband’s age: Not mentioned 3. Patient’s wife’s history of taking painkillers: 1 year before marriage, for lower abdomen pain during menses 4. Patient’s wife’s current status regarding painkillers: Not taking them for the past year 5. Patient’s semen analysis results: Normal 6. Doctor’s recommendation:Chances of conception within 1 year of regular unprotected intercourse are high (85%). Get an ultrasonography of the wife to rule out any pathology causing chronic pain abdomen. Ask the wife to start folic acid tablets, healthy balanced diet, and moderate exercise 7. Doctor’s closing remarks: Wish the couple good luck. 
+
+redacted text Patient: Hello,I am a certain age year old a gender,3 months back I have married but still no hope for baby.my sperm count is normal.My wife 1 year before marriage was taking pain killer (because of a symptom during menses).But from last one year she left taking pain killers.Is taking a medication /a medication/a medication a good option for conceive a child?.Please suggest. Doctor: Hello, Thanks for the query. Chances of conception within 1 year of regular unprotected intercourse is as high as 85%. You are married just 3 months back. Just have patience. Since your a medical test is normal there are high chances of conception. I recommend you to get an a medical test of your wife to rule out pathology causing chronic pain abdomen. Ask her to start a medication, healthy balanced diet and moderate exercise.Wish you good luck regards, Chat Doctor. 
+
+Conclusion: The advantage is |P r [S0] − 12 | =
+
+|P r [S2] − 12 | = 0 . This proves absolute semantic indistinguishability for generalized entities. 
+
+F.2 Proof of Non-reconstructability 
+
+We model the reconstruction attack as an attempt to minimize the conditional entropy H (T |T ′). Let 
+
+EG = {e ∈ E | Ψ( e) ≥ τ } be the set of gen-eralized entities. The dynamic threshold τ ensures that entities with high privacy scores or high infor-mation content are included in EG.For an attacker to reconstruct T, they must correctly guess the pre-image for every generalized slot. Let ∆c be the size of the plausible candidate set for a label c. The probability of exact reconstruction is bounded by: 
+
+P r [Reconstruct] ≤ ∏
+
+e∈EG
+
+1
+
+|Φ−1(Φ( e)) | ≤
+
+( 1min (∆) 
+
+)|EG|
+
+, (12) Taking the negative logarithm, the residual entropy is: 
+
+H (T ∣∣ T ′) ≥ | EG| · log 2 (min (∆)) , (13) Since the dynamic threshold guarantees |EG| ≥ k
+
+for high-risk documents, we have H (T | T ′) ≥ η,proving the system is robust against combinatorial intersection attacks. 
+
+G Introduction to Experimental Baseline Methods 
+
+• Redact obtains the anonymized text by per-forming a generalized mapping replacement on the identified and extracted entities based on their labels. • Paraphrase utilizes the capabilities of LLMs to extract relevant and important components from the retrieved context. Less important parts can be filtered out, and certain sentences may require rewriting. The prompt we used for paraphrasing is shown in Prompt G. • LPRAG The LPRAG method employs three modulesa word perturbation module, a phrase perturbation module, and a number perturbation moduleto perform local differen-tial privacy perturbation. During our repro-duction, we allocated a global privacy budget of 5.0. Prompt 2 “Given the following context, extract the useful or important part of the Context.” “Remember, *DO NOT* edit the extracted parts of the context.” > Context: 
+
+> > > {input context} > > > 
+
+Extracted relevant parts: 
+
+14

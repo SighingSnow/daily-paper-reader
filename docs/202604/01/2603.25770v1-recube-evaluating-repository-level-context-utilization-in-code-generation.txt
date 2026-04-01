@@ -1,0 +1,830 @@
+Title: ReCUBE: Evaluating Repository-Level Context Utilization in Code Generation
+
+URL Source: https://arxiv.org/pdf/2603.25770v1
+
+Published Time: Mon, 30 Mar 2026 00:02:39 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+## RECUBE: Evaluating Repository-Level Context Utilization in Code Generation 
+
+Jiseung Hong 
+
+Language Technologies Institute Carnegie Mellon University 
+
+jiseungh@andrew.cmu.edu 
+
+Benjamin G. Ascoli 
+
+Computer Science Emory University 
+
+bascoli@emory.edu 
+
+Jinho D. Choi 
+
+Computer Science Emory University 
+
+jinho.choi@emory.edu      
+
+> §Code: github.com/JiseungHong/ReCUBE
+> Data: huggingface.co/datasets/wlqmfl1999/recube-data
+> oDocker: hub.docker.com/repository/docker/wlqmfl0990/recube
+
+Abstract 
+
+Large Language Models (LLMs) have recently emerged as capable coding assistants that operate over large codebases through either agentic explo-ration or full-context generation. Existing bench-marks capture a broad range of coding capabilities, such as resolving GitHub issues, but none of them directly isolate and measure how effectively LLMs leverage repository-level context during code gen-eration. To address this, we introduce R ECUBE, a benchmark in which LLMs reconstruct a masked file within a real-world repository, using all re-maining source files, dependency specifications, and documentation as their only source of context. RECUBE evaluates reconstructed code with usage-aware test cases that simulate both internal module logic and external cross-file integration, reflecting real-world software usage patterns. We further pro-pose the Caller-Centric Exploration (CCE) toolkit, a set of dependency graph-based tools that can be integrated into agentic frameworks to guide agents toward the most relevant caller files during repos-itory exploration. Experiments across eight mod-els in four settings show that repository-level con-text utilization remains highly challenging even for state-of-the-art models, with GPT-5 achieving only 37.57% strict pass rate in the full-context setting. Agents augmented with our CCE toolkit consis-tently outperform all baselines across all evaluated models, with improvements of up to 7.56% in strict pass rate. We release our benchmark, code, and evaluation framework as open source for the NLP research community. 
+
+1 Introduction 
+
+Over the past few years, LLM-powered code gen-eration has shifted from passive, single-function completion to full repository-level software develop-ment (Wang et al., 2025b; Xia et al., 2025; Dohmke, 2024; Yang et al., 2024; Bairi et al., 2023). These repositories often contain thousands of lines of interde-pendent code spanning dozens of files, dependencies, and architectural patterns. As a result, modern lan-guage models are required to understand, navigate, and integrate with complex, multi-file codebases. Recent coding benchmarks implicitly require some of these ca-pabilities, evaluating models on focused tasks such as generating libraries from scratch (Zhao et al., 2024) or producing test patches (Mündler et al., 2024). Existing code localization approaches (Orjon, 2024; Xia et al., 2025; Chen et al., 2025) examine how models identify relevant files and functions within a codebase, but they rely on natural language task descriptions rather than the repository structure itself. Consequently, the com-munity lacks a dedicated evaluation framework that isolates how effectively LLMs leverage repository-level context during code generation. In this paper, we introduce Re pository-level Context 
+
+Utilization BE nch (R ECUBE), a benchmark designed to directly evaluate repository-level context utilization in code generation. Specifically, we propose a novel task in which models are evaluated on their ability to reconstruct a masked Python file using only other source files, dependency specifications, and documen-tation found in the codebase as context. As shown in Table 1, R ECUBE is a manually curated, repository-level benchmark that employs prompt-free evaluation, and scales to contexts of up to 111K tokens. We further introduce a large-scale extension (R ECUBE-
+
+> LARGE
+
+) that incorporates broader codebase environ-ments, increasing the context to 338K tokens. To rig-orously evaluate reconstructed code, we synthesize usage-aware test cases designed to simulate real-world integration by covering both internal module logic and external cross-file interactions. We measure perfor-mance on these test cases using two metrics: Strict Pass Rate (SPR), which captures absolute correctness, and Average Pass Rate (APR), which gives credit for partial, modular functionality. Furthermore, to support agents operating over large codebases, we propose a novel Caller-Centric Explo-ration (CCE) toolkit, a set of agentic tools built on a dependency graph. It provides agents an architectural map based on incoming caller patterns, as well as inter-active, graph-querying capabilities during exploration. 1                                                                    
+
+> arXiv:2603.25770v1 [cs.SE] 26 Mar 2026 Benchmark Repository Level Prompt-Free Evaluation Contamination Free Maximum Context Manually Curated Agent Support
+> LiveCodeBench (Jain et al., 2024) ✗✗✓∼3K ✓✗
+> ∞Bench (Zhang et al., 2024) ✗✗✗256K ✗✗
+> SWE-Bench (Jimenez et al., 2024) ✓✗✗50K ✓✓
+> Commit0 (Zhao et al., 2024) ✓✗✗−✓✓
+> RepoBench-C (Liu et al., 2023) ✓✓✗8K ✓✗
+> LocBench (Chen et al., 2025) ✓✗✗−✓✓
+> LongBench v2 (Bai et al., 2025)
+> ,→Code repo QA ✓✗✗4.1M ✓✗
+> LongCodeBench (Rando et al., 2025) ✓✗✓1M ✓✗
+> LoCoBench (Qiu et al., 2025a,b) ✓✗✓1M ✗✓
+> ReCUBE (Ours) ✓✓✓111K ✓✓
+> ,→RECUBE-LARGE ✓✓✓338K ✓✓
+
+Table 1: Comparison of Representative Code Benchmarks. We compare unsaturated code generation benchmarks across six dimensions reflecting key considerations for rigorous LLM code evaluation. Contamination Free indicates that instances are synthetically generated, collected after known LLM training cutoffs, or otherwise explicitly filtered to exclude instances present in pretraining data. 
+
+We evaluate eight state-of-the-art LLMs on R E-CUBE across four experimental settings, ranging from full-context generation, in which the entire task is re-solved within a single-turn prompt, to interactive agen-tic frameworks. The task remains highly challenging: even the best-performing model, GPT-5, achieves only a 37.57% strict pass rate in the full-context setting. We find that basic agentic exploration is most helpful when context windows are tight, but its advantage di-minishes as context capacity increases and can eventu-ally reverse in favor of full-context generation. Across all settings, agents equipped with the CCE toolkit con-sistently perform best, improving strict pass rate by up to +5.79% over full-context generation and +7.56% over vanilla agentic frameworks. 
+
+2 Related Work 
+
+2.1 Repository-level Code Benchmarks 
+
+Several benchmarks have been proposed to evalu-ate the repository-level coding capabilities of LLMs. Prompt-based benchmarks assess code generation from natural language inputs, including real-world GitHub issues (Jimenez et al., 2024; OpenAI, 2024; Zan et al., 2025) and commit messages (Zhao et al., 2024). RepoBench (Liu et al., 2023), by contrast, uses cross-file dependencies as context to evaluate next-line code completion. LongCodeBench (Rando et al., 2025), LoCoBench (Qiu et al., 2025a,b), and Long-Bench v2 (Bai et al., 2025) evaluate long-context code understanding through question answering over real-world GitHub issues and code repositories. These benchmarks employ a range of evaluation metrics centered on test cases. Many use execution-based metrics, such as resolved rate (Jimenez et al., 2024; Mündler et al., 2024; Rando et al., 2025), which measures the fraction of patches that cause all fail-to-pass tests to succeed without regressions, and unit test pass rate (Zhao et al., 2024), which reports the fraction of unit tests passed by a generated implementation. These metrics have evolved from pass@ k (Chen et al., 2021), shifting toward single-attempt evaluation as re-peated sampling becomes computationally prohibitive at repository scale. In contrast, completion bench-marks rely on text-matching metrics (Liu et al., 2023; Lu et al., 2021; Svyatkovskiy et al., 2020) which have similarly lost favor as frontier models converge on near-perfect scores. 
+
+2.2 Dependency Graphs for Code Generation 
+
+Several recent software systems use dependency graphs to support a range of code generation capabili-ties. Luo et al. (2026) construct a Repository Planning Graph and traverse it topologically to generate code-bases from scratch. Bairi et al. (2023) and Ibrahimzada et al. (2025) use dependency graphs for repository-level code editing and translation, respectively. Previous works primarily use graphs for retrieval, gathering dependency-aware context as an intermedi-ate step for downstream coding tasks. Various forms of graph-based code representations support dependency-aware retrieval for code completion via hard-coded strategies (Liu et al., 2024; Wang et al., 2025a; Cheng et al., 2024), while more recent work exposes graph structure as an agent-queryable interface through struc-tured queries or callable traversal tools (Liu et al., 2025b; Li et al., 2025; Chen et al., 2025). 2Figure 1: R ECUBE is constructed through the following steps: (1) Repository Collection from recent, high-quality GitHub repositories. (2) Functional Subset Creation by decomposing the repositories into file clusters that have self-contained functionality. (3) Repository-level Context Extraction from the functional subsets, which captures all the information needed to understand the entire subset. (4) Subset Masking on each functional subset, yielding a total of 366 instances. 
+
+3 RECUBE 
+
+RECUBE is a benchmark that evaluates how well LLMs utilize repository-level context to produce func-tionally correct, well-integrated code. 
+
+3.1 Benchmark Construction 
+
+As illustrated in Figure 1, we construct R ECUBE through the following steps: 
+
+Repository Collection. We use GitHub Search (GitHub, 2026) to collect repositories by filtering on the following criteria: • Created after January 2025, the latest knowledge cutoff date among our baseline models. • At least 10K stars and 1K forks, using engagement as a proxy for codebase quality (Zhang et al., 2025). • Released under a permissive license. This process yields 20 high quality repositories. 
+
+Functional Subset Creation. For each repository, we construct functional subsets ( S) by manually review-ing the codebase to identify file clusters that imple-ment distinct, self-contained functionality. We decom-pose repositories with multiple separable functionali-ties into up to eight subsets, and repositories containing only a singular file cluster are left in their entirety as a single subset. We create a total of 40 functional sub-sets, consisting of primarily Python source files along with highly relevant auxiliary files, such as Dockerfiles, YAML configurations, and Shell scripts. Detailed de-scriptions of each functional subset in our benchmark are provided in Appendix A. 
+
+Subset Masking. For each functional subset S, we identify up to 10 Python files that play a central role in its implementation, resulting in a total of 366 distinct target files. For each target file fi ∈ S , we gener-ate a masked version of its subset, which we call an 
+
+instance , denoted as ˆSfi . This masking process in-volves modifying fi by removing all the import state-ments and replacing its function bodies with raise NotImplementedError , while preserving the original signatures, docstrings, and the remaining files in S.
+
+Repository-level Context Formatting. For each in-stance ˆSfi , we define a repository-level context Cfi ,encompassing all available information from the repos-itory required to reconstruct the target file fi. This con-text includes the masked instance ˆSfi , along with the environment dependencies D (including specific ver-sions and descriptions from PyPI) and documentation files R (all relevant Markdown files). Consequently, all instances from the same functional subset S share much of their repository-level context but differ in their respective target file. To assist LLMs in distinguishing these elements, we wrap each component ( ˆSfi , D, R)using XML-style delimiter tags. This follows estab-lished prompt engineering practices that recommend explicit structural boundaries for multi-component in-puts (Anthropic, 2024; Alpay and Alpay, 2025). 
+
+3.2 Task Specification 
+
+The objective of R ECUBE is to reconstruct the masked components of a target file fi given the repository-level context Cfi . R ECUBE supports eval-uations for LLMs in both static and agentic settings: 
+
+Static (Full-Context) Setting: We provide Cfi as a structured prompt, including the instance ˆSfi , environ-ment dependencies D, and documentation files R.
+
+Agentic Setting: We provide fully containerized Docker and Apptainer environments. In these settings, the instance ˆSfi , dependencies D, and documentation 
+
+R are installed in a manner that mirrors the original repository’s file system and directory hierarchy. 3Further details and illustrative examples regarding the prompts and repository-level context formatting are provided in Appendix B.1. 
+
+3.2.1 Test Case Generation 
+
+To rigorously evaluate the reconstructed files, we cre-ate usage-aware unit tests for each target file using Claude Opus 4.1 (Anthropic, 2025). For each target file fi, test cases are generated by providing a struc-tured prompt (Appendix B.2) instructing the agent to analyze both in-file and cross-file call patterns within its functional subset, generating usage-aware asser-tions based on real caller/callee functions. We then val-idate each generated test suite within a Docker testbed, ensuring that each test passes on the gold implementa-tion, and replace trivial or unstable tests until all cases reach sufficient difficulty and coverage across edge cases, boundary conditions, and exception handling. 
+
+Test Case Classification. Building on the in-file and cross-file patterns used during test case generation, we categorize each test case as either external or internal based on its validation focus. Specifically, external 
+
+test cases verify public API behavior by simulating interactions from other files in the repository, while 
+
+internal tests focus on implementation-specific logic and private functions/methods found within the target file itself. R ECUBE comprises a total of 10,785 unit tests, consisting of 58.7% external cross-file valida-tions and 41.3% internal in-file implementation checks (Table 2). This distribution reflects the diverse archi-tectural roles in real-world codebases, where some modules serve as high-level APIs and others act as self-contained logic engines.       
+
+> Metric Total External Internal
+> Test Count 10,785 6,334 4,451
+> Table 2: Test case statistics across 366 target files.
+
+3.2.2 Evaluation Metrics 
+
+We report two primary metrics to evaluate model per-formance. Let Ti represent the total number of test cases and Pi the number of tests passing for a given instance i, across a total of N instances. We define Strict Pass Rate (SPR) and Average Pass Rate (APR) as follows: SPR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+1[Pi = Ti] × 100 (1) APR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+Pi
+
+Ti
+
+× 100 (2) where 1(·) denotes the indicator function, which evalu-ates to 1 if the condition is met and 0 otherwise. These metrics are analogous to Strict Accuracy and Test Case Average , respectively, as proposed in the APPS bench-mark (Hendrycks et al., 2021). Prior benchmarks primarily evaluate correctness based only on binary outcome per issue (SPR). We additionally report Average Pass Rate because in R E-CUBE, each test case independently exercises a dis-tinct usage context. Partial credit thus reflects how well the models implement modularized functionalities. 
+
+3.3 Features of R ECUBE 3.3.1 Functional Domains 
+
+We categorize the 40 functional subsets (§3.1) into six functional domains: Tool & MCP Integration, LLM Services, Agent Frameworks, Code & Vision, Voice & Speech, and RAG (Figure 2). This distribution reflects the current AI engineering landscape, where LLM related tool integration dominates development efforts. 
+
+> 40
+> variations
+> Agents (8)
+> Tool/MCP (11)
+> LLM (9)
+> Voice (4)
+> RAG (3)
+> Code/Vision (5)
+> Figure 2: Distribution of benchmark variations across func-tional domains.
+
+3.3.2 Docstring Completeness 
+
+Figure 3 shows the distribution of docstring complete-ness in target files across four categories. The ma-jority (54.5%) of the target files lack documentation entirely, while 45.6% have varying degrees of docu-mentation completeness. 27.5% contain only function signatures with a one-line description, 7.2% include argument and return value descriptions, and the re-maining 10.9% feature detailed docstrings, with argu-ments, return values, and examples. This distribution reflects real-world codebases, where documentation is usually incomplete, requiring models to infer func-tionality from other parts of the repository. Further details and examples for each docstring category can be found in Appendix C. 4Detailed Args/Ret. Signature None   
+
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 10 .9%7.2%
+> 27 .5%
+> 54 .4%
+> Instances (%)
+> Documented (45.6%) Undocumented (54.4%)
+> Figure 3: Distribution of documentation completeness.
+
+3.4 Large-Scale Extension 
+
+To supplement R ECUBE with larger repository-level context scenarios and investigate LLM and agent be-havior under longer context conditions, we introduce RECUBE-LARGE , an extended evaluation set. We construct R ECUBE-LARGE by merging functional subsets that originate from the same source reposi-tory, yielding 6 large-scale repositories that provide complete codebase context spanning multiple func-tional modules. RECUBE-LARGE uses the same target files from the original functional subsets, re-sulting in 138 instances that maintain the same task but provide significantly more context. Compared to RECUBE, R ECUBE-LARGE has a significantly in-creased average input context, and a maximum context of over 3 × (Table 3).         
+
+> Dataset Average Context Maximum Context # Instances
+> RECUBE 71K 111K 366 RECUBE-LARGE 146K 338K 138
+> Table 3: Statistics for R ECUBE and R ECUBE-LARGE .
+
+4 Experiments 
+
+We conduct a systematic evaluation on R ECUBE across four experimental settings, including three es-tablished baselines and a fourth proposed method, all using a diverse set of LLMs. To prevent data contam-ination, we disable built-in tool capabilities, such as 
+
+web_search , in all configurations. Comprehensive configuration details for LLMs and agentic frame-works are provided in Appendix D. 
+
+4.1 Baselines Full-Context. For each target file fi, models receive the full repository-level context Cfi in a single prompt and reconstruct the target file directly. This setting serves as our primary baseline, testing code gener-ation capabilities when all necessary information is provided upfront. We evaluate eight models spanning different capability tiers: Claude 3 Haiku (Anthropic, 2024), Gemini 2.5 Flash and Gemini 2.5 Pro (Co-manici et al., 2025), GPT-5 and GPT-5 Mini (Singh et al., 2025), GPT-OSS 20B (OpenAI, 2025), Devstral Small 2507 (Rastogi et al., 2025), and Qwen3-Coder 30B (Team, 2025). 
+
+Full-Context + CoT. To assess whether explicit rea-soning improves generation quality, we prompt models to reason step-by-step (Wei et al., 2023; Li et al., 2023) before generating the target file. This encourages plan-ning of imports, dependencies, and implementation logic prior to code generation. We evaluate GPT-5, GPT-5 Mini, GPT-OSS 20B, Devstral Small 2507, and Qwen3-Coder 30B in this setting. 
+
+Agent. We employ an agentic framework based on Mini SWE-agent (Yang et al., 2024), often called a bash-only agent, that enables models to operate within an interactive environment, allowing them to explore the repository using standard bash commands while reconstructing the target file. In contrast to the Full-Context setting, the agent relies entirely on the LLM’s capability to identify relevant information from the repository. We evaluate this approach across GPT-5 Mini, Devstral Small 2507, and Qwen3-Coder 30B. 
+
+4.2 Eliciting Better Context Utilization in Agents 
+
+In addition to the baselines, we propose a novel toolkit that uses a dependency graph to guide agents to the most relevant context during code reconstruction. 
+
+4.2.1 Exploring Callers Benefits Hard Tasks 
+
+To understand whether agent performance is driven by caller coverage (the percentage of files invoking target functions that the agent views), we investigate Kendall-Tau (KENDALL, 1938) and Spearman (Spear-man, 1904) correlations between caller coverage and APR, following previous research (An et al., 2023; Xu et al., 2024; Tong and Zhang, 2024). We analyze GPT-5 Mini and Qwen3-Coder 30B in the bash-only agent baseline setting (§4.1), stratifying instances into per-model difficulty quartiles based on their perfor-mance. To prevent statistical skew from outliers, we exclude both trivial cases (100% pass rate) and unsolv-able cases (0% pass rate) from this configuration. The results of this analysis are presented in Table 4. We find a significant positive correlation between caller coverage and pass rate on hard tasks ( ρ = +0 .408 , p =0.035 ), suggesting that agents benefit from viewing files that invoke target functions. These findings show 5GPT-5 Mini Qwen3-Coder 30B Difficulty τ ρ τ ρ                         
+
+> Hardest −0.184 −0.259 +0.020 +0.026 Hard +0.280* +0.404* +0.304* +0.408* Medium +0.125 +0.172 −0.171 −0.217 Easiest −0.063 −0.086 −0.135 −0.200 Overall +0.009 +0.013 −0.073 −0.106
+> τ: Kendall-Tau; ρ: Spearman. * p < 0.05 ; all others p > 0.05 .
+> Table 4: Correlations between caller coverage and Average Pass Rate by task difficulty.
+
+that navigating agents toward most relevant caller files significantly aids target file reconstruction. 
+
+4.2.2 Caller-Centric Exploration Toolkit 
+
+Towards this end, we introduce the Caller-Centric Ex-ploration (CCE) toolkit, a suite of agentic tools de-signed to enhance repository-level navigation by in-tegrating dependency graph analysis directly into the agent’s exploration loop. The CCE toolkit helps mod-els establish an exploration roadmap by surfacing in-coming caller patterns, specifically identifying which files invoke or import the target code, along with call hierarchies and contextual relationships prior to imple-mentation. Beyond this capability, the toolset also pro-vides actionable features, enabling the agent to inter-actively query the repository as a heterogeneous graph for granular context. This dependency-aware perspec-tive allows agents to explore the codebase while ensur-ing that choices are informed by a clear understanding of the target file’s usage and integration points. 
+
+Dependency Graphs for Codebase. We index each instance ˆSfi as a single heterogeneous directed graph following Chen et al. (2025), capturing four entity types (directory, file, class, function) and four relation-ship types (contain, import, invoke, inherit). Notably, the target file fi is withheld from each of the graph to prevent access to masked information. 
+
+Tool specifications. The Caller-Centric Exploration toolkit contains three tools that enable agents to ac-quire a deeper understanding of the role a target file 
+
+fi performs within the instance ˆSfi . The primary tool provides the agent with extensive information across four categories prior to exploration: • Caller Patterns identify which functions, methods, and classes invoke the target code and their respec-tive call frequencies. • Inheritance shows class hierarchies to illustrate how the target file’s classes relate to their parents and siblings, clarifying code architecture. • Module Context reveals directory organization by surfacing neighboring files and their shared imports. • Similar Files identifies files with comparable struc-tures by aggregating 3 distinct similarity signals: 
+
+Filename uses subtoken overlap on filenames, calcu-lated on underscore-separated segments; Structure 
+
+compares AST-extracted counts of classes, functions, and nesting depth to quantify hierarchical align-ment; Identifier computes the normalized BM25 score of extracted code identifiers (e.g., function, class names) across the repository corpus. To further support the agent during codebase explo-ration, we provide a second tool for programmati-cally querying the dependency graph via inline Python scripts to perform custom structural analysis. For ex-ample, agents can execute a multi-line scripts to re-trieve specific entity interactions and relations. Finally, we provide a validation tool that allows agents to per-form syntax checks, ensuring that all modifications are syntactically correct before finalization. Further speci-fications and examples can be found in Appendix E. 
+
+4.3 Agent + CCE toolkit 
+
+We extend the base agentic framework by implement-ing the CCE toolkit (§4.2.2), which augments the agent with dependency graph-based tools to strategically guide repository exploration. By surfacing relevant caller files and exposing the underlying repository structure, we aim to mitigate the limited contextual navigation observed in basic agentic approach. We use the same models as in the baseline agent setting (§4.1). 
+
+5 Analysis 
+
+The full results of our experiments are shown in Ta-ble 5. GPT-5 performs best in the full-context set-ting (37.57% SPR, 60.43% APR), but smaller open-source models demonstrate proficiency comparable to the weaker closed-source models, with Qwen3-Coder achieving a 25.34% SPR. Internal test cases consis-tently achieve higher performance across all models (+9.55% SPR on average compared to external), sug-gesting that reconstructing self-contained functionality is easier than implementing cross-file integration. Chain-of-Thought (CoT) reasoning degrades the performance of GPT-5, Devstral, and Qwen3-Coder. Since GPT-5 already generates internal reasoning traces, explicit CoT may be redundant. For Devs-tral and Qwen3-Coder, CoT consumes valuable con-text window space without yielding observable bene-fits, consistent with prior findings (Liu et al., 2025a). However, CoT does provide moderate gains for GPT-OSS and GPT-5 Mini, with the former likely due to its design that explicitly supports structured chain-of-thought generation (OpenAI, 2025; Jin et al., 2025). 6Overall (%) External TCs (%) Internal TCs (%) Setting Model SPR APR SPR APR SPR APR 
+
+Full-Context GPT-OSS 20B 25.07 36.83 22.19 32.61 30.63 39.11 Devstral Small 2507 21.76 30.20 17.36 25.57 27.93 34.99 Qwen3-Coder 30B 25.34 38.54 21.86 34.44 31.23 40.88 Claude 3 Haiku 18.66 23.17 14.79 18.85 21.02 25.74 Gemini 2.5 Flash 25.69 40.28 23.15 37.26 33.03 43.00 Gemini 2.5 Pro 29.56 51.53 27.97 48.61 40.24 54.14 GPT-5 Mini 33.43 54.02 31.51 50.23 40.84 56.20 GPT-5 37.57 60.43 35.37 57.24 45.65 63.74 
+
+Full-Context 
+
+> + CoT
+
+GPT-OSS 20B 26.59 +1.52 38.67 +1.84 23.15 +0.96 34.93 +2.32 33.03 +2.40 41.61 +2.50 
+
+Devstral Small 2507 19.22 -2.54 25.28 -4.92 15.11 -2.25 19.65 -5.92 21.32 -6.61 27.68 -7.31 
+
+Qwen3-Coder 30B 24.86 -0.48 38.05 -0.49 22.51 +0.65 34.09 -0.35 31.53 +0.30 41.58 +0.70 
+
+GPT-5 Mini 33.98 +0.55 55.50 +1.48 32.15 +0.64 51.63 +1.40 43.54 +2.70 58.62 +2.42 
+
+GPT-5 37.29 -0.28 58.98 -1.45 34.41 -0.96 54.98 -2.26 45.95 +0.30 61.29 -2.45 
+
+Agent Devstral Small 2507 23.82 +2.06 35.21 +5.01 20.26 +2.90 29.35 +3.78 30.33 +2.40 40.83 +5.84 
+
+Qwen3-Coder 30B 25.76 +0.42 38.94 +0.40 20.26 -1.60 21.86 -12.58 33.33 +2.10 44.45 +3.57 
+
+GPT-5 Mini 31.22 -2.21 50.56 -3.46 28.62 -2.89 47.31 -2.92 38.44 -2.40 54.00 -2.20 
+
+Agent 
+
+> + CCE toolkit (ours)
+
+Devstral Small 2507 25.76 +4.00 38.45 +8.25 22.19 +4.83 33.62 +8.05 31.83 +3.90 43.23 +8.24 
+
+Qwen3-Coder 30B 28.45 +3.11 43.36 +4.82 25.08 +3.22 38.77 +4.33 36.34 +5.11 48.11 +7.23 
+
+GPT-5 Mini 38.78 +5.35 58.39 +4.37 37.30 +5.79 55.16 +4.93 45.35 +4.51 60.16 +3.96 
+
+Table 5: Experimental Results on R ECUBE. Results show overall Strict Pass Rate (SPR) and Average Pass Rate (APR) along with External and Internal Test Cases (TCs) pass rates. Subscripts denote change from the full-context baseline. 
+
+While basic agentic exploration yields gains in overall SPR and APR for models with limited context capac-ity, these improvements diminish as capacity grows. Devstral Small, with a context window of 131K tokens, gains 2.06%/5.01% SPR/APR, while Qwen3-Coder, which has a higher context window of 256K tokens, gains only 0.42%/0.40% SPR/APR. GPT-5 Mini, with a 400K token context limit, actually performs better in the full-context setting, losing about 2.21%/3.46% SPR/APR with the agent setting. However, when equipped with our proposed CCE toolkit, agents dramatically improve, consistently out-performing every other framework across all mod-els and metrics, improving on full-context settings by up to 8.24% for Devstral Small on internal APR and 5.79% for GPT-5 Mini on external SPR. With the CCE toolkit, GPT-5 Mini is able achieve the best per-formance on overall SPR, even outperforming GPT-5 using full-context, a dramatic 5.35% improvement. 
+
+Domain-based Performance Analysis. We analyze performance across the six functional domains (§3.3.1) in the Full-Context setting in Figure 4. In general, LLM-centric domains such as LLM services and agent frameworks demonstrate generally higher tractability, with best-performing models achieving 44.19% and 36.23% SPR respectively. In contrast, tasks requir-ing multimodal understanding, particularly voice and speech processing, impose substantially greater diffi-culty, and models struggle to achieve strong results. 
+
+Caller Coverage Analysis on Agent Trajectories. 
+
+Using GPT-5 Mini and Qwen3-Coder, we analyze the caller coverage of our CCE-augmented agent com-pared to the bash-only baseline, and whether this trans-lates into performance gains, stratified by task diffi-culty. We use the same per-model difficulty quartiles introduced in § 4.2.1, but this time include the out-liers with 0% and 100% pass rate. CCE consistently improves both models’ caller coverage across all quar-tiles, with GPT-5 Mini showing the largest gain (Fig-ure 5). On SPR, however, the gains are concentrated on harder tasks, and the biggest gain occurs on instances that had 0% SPR (the hardest tasks) in the bash-only agentic setting, with both models peaking at the hard and hardest quartiles. This pattern is consistent with the initial correlation analysis: on easy tasks, agents can already solve instances with limited caller context, so additional coverage yields marginal (or slightly neg-ative) SPR returns despite consistent coverage gains. Conversely, on harder tasks, where caller relationships are critical for correct reconstruction, the improved coverage from our CCE toolkit translates into signifi-cant performance improvements. 
+
+Benchmark Scaling. To understand how the in-creased repository-level context Cfi affects reconstruc-tion performance, we compare the results of three different models between R ECUBE and R ECUBE-
+
+LARGE . Devstral collapses under full-context gener-ation, with SPR dropping more than 10%, primarily 7Agent Frameworks        
+
+> LLM Services
+> Tool & MCP Integration
+> RAG Voice & Speech
+> Code & Vision
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> Strict Pass Rate (%)
+> GPT-5 GPT-5 mini Gemini 2.5 Pro Gemini 2.5 Flash
+> Qwen3-Coder 30B GPT-OSS-20B Devstral Small 2507 Claude 3 Haiku
+
+Figure 4: Performance Across Functional Domains. We report Strict Pass Rate (%) across six functional domains for eight models in the full-context setting.    
+
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> Caller Cov. (%)
+> Easiest Easy Hard Hardest
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+
+Task Difficulty   
+
+> SPR (%)
+> GPT-5 Mini (Base) GPT-5 Mini (+CCE)
+> Qwen3-Coder (Base) Qwen3-Coder (+CCE)
+
+Figure 5: Absolute Caller Coverage (top) and SPR (bottom) per difficulty quartile for the bash-only Agent vs. Agent +CCE 
+
+across GPT-5 Mini and Qwen3-Coder 30B. 
+
+because large-scale instances (up to 338K) exceed its context capacity, where 39.13% of cases fail due to di-rect context-length errors. Using agentic frameworks mitigates much of the loss, as the input token dramati-cally decreases. On the contrary, GPT-5 Mini exhibits better performance on R ECUBE-LARGE , leveraging the expanded information through its context capacity, and improves even more in the agentic settings. 
+
+Cost Efficiency Analysis. We perform a cost-efficiency analysis of the evaluated agents (Table 7), presenting the per-instance costs, turns, and efficiency metrics. Across both benchmarks, agents with our CCE toolkit demonstrate superior SPR-per-cost and SPR-per-turn compared to the baseline bash-only agents. The performance gap widens on the large-               
+
+> Setting / Model GPT-5 mini Qwen3-Coder-30B Devstral
+> Full-Context 55.86 +1.02 38.36 +1.07 13.72 −16.20
+> Full-Context + CoT 55.28 −0.80 34.04 −3.03 14.20 −11.34
+> Agent 54.47 +5.08 35.48 −5.58 33.74 +0.25
+> Agent + CCE toolkit 57.72 +1.58 42.60 −0.11 36.84 −3.28
+
+Table 6: APR (%) on large-scale benchmark instances. Sub-scripts denote change in percentage points from R ECUBE. 
+
+scale benchmark, showing that our method is particu-larly effective in larger repository contexts. These re-sults indicate that the CCE toolkit effectively optimizes the agent’s exploration trajectory, yielding navigation paths that are both efficient and concise.                        
+
+> Scale Method Cost Turns SPR/Cost SPR/Turn
+> Original Agent $ 0.1226 21.35 254.6 1.46 Agent (Ours) $ 0.1241 20.30 312.5 1.91
+> Large Agent $ 0.1410 25.66 221.4 1.22 Agent (Ours) $ 0.1166 19.81 332.6 1.96
+
+Table 7: Cost-efficiency comparison for GPT-5-mini across two different agent settings and benchmark scales. 
+
+6 Conclusion 
+
+This work introduces R ECUBE, a benchmark de-signed to evaluate how well LLMs leverage repository-level context during code generation. We demonstrate that even state-of-the-art models struggle to recon-struct functionally correct, well-integrated code from repository context. To better guide agents through large codebases, we propose the Caller-Centric Ex-ploration (CCE) toolkit, which consistently achieves the best performance across all evaluated models and settings. We hope R ECUBE serves as a foundation for future research, encouraging the development of models and agents that go beyond surface-level pattern matching to effectively understand and navigate the structural dependencies of real-world codebases. 8Limitations 
+
+Because R ECUBE is constructed from recent, pop-ular repositories, it inherently favors prevalent code-base patterns. Consequently, its domain scope is rela-tively narrow, predominantly focusing on LLM-related projects, and its implementation files are strictly re-stricted to Python. Moreover, the high computational cost of the full R ECUBE evaluation limited our study to a small subset of models, particularly in agent-based settings. In future work, we plan to evaluate a broader range of models in both full-context and agent environ-ments, leveraging additional frameworks like Open-Hands (Wang et al., 2025b) and SWE-agent (Yang et al., 2024) to further assess the CCE toolkit’s effec-tiveness. 
+
+References 
+
+Faruk Alpay and Taylan Alpay. 2025. Xml prompting as grammar-constrained interaction: Fixed-point seman-tics, convergence guarantees, and human-ai protocols. 
+
+Preprint , arXiv:2509.08182. Chenxin An, Shansan Gong, Ming Zhong, Xingjian Zhao, Mukai Li, Jun Zhang, Lingpeng Kong, and Xipeng Qiu. 2023. L-eval: Instituting standardized evalu-ation for long context language models. Preprint ,arXiv:2307.11088. Anthropic. 2024. The claude 3 model family: A new stan-dard for intelligence. Anthropic. 2024. Use XML tags to structure your prompts. Claude API Documentation. Accessed: 2025. Anthropic. 2025. Claude Code. Agentic coding tool. Yushi Bai, Shangqing Tu, Jiajie Zhang, Hao Peng, Xiaozhi Wang, Xin Lv, Shulin Cao, Jiazheng Xu, Lei Hou, Yux-iao Dong, Jie Tang, and Juanzi Li. 2025. LongBench v2: Towards deeper understanding and reasoning on realis-tic long-context multitasks. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 3639–3664, Vienna, Austria. Association for Computational Linguis-tics. Ramakrishna Bairi, Atharv Sonwane, Aditya Kanade, Vageesh C, Arun Iyer, Suresh Parthasarathy, Sriram Ra-jamani, B. Ashok, and Shashank Shet. 2023. Codeplan: Repository-level coding using llms and planning. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brock-man, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, and 39 others. 2021. Evalu-ating large language models trained on code. Preprint ,arXiv:2107.03374. Zhaoling Chen, Robert Tang, Gangda Deng, Fang Wu, Jia-long Wu, Zhiwei Jiang, Viktor Prasanna, Arman Cohan, and Xingyao Wang. 2025. LocAgent: Graph-guided LLM agents for code localization. In Proceedings of the 63rd Annual Meeting of the Association for Com-putational Linguistics (Volume 1: Long Papers) , pages 8697–8727, Vienna, Austria. Association for Computa-tional Linguistics. Wei Cheng, Yuhan Wu, and Wei Hu. 2024. Dataflow-guided retrieval augmentation for repository-level code completion. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 7957–7977, Bangkok, Thailand. Association for Computational Linguistics. Gheorghe Comanici, Eric Bieber, Mike Schaekermann, and 1 others. 2025. Gemini 2.5: Pushing the fron-tier with advanced reasoning, multimodality, long con-text, and next generation agentic capabilities. Preprint ,arXiv:2507.06261. Thomas Dohmke. 2024. GitHub Copilot Workspace: Welcome to the Copilot-native developer environment. GitHub Blog, April 29, 2024. GitHub. 2026. GitHub Code Search. https://github. com/search . Accessed: 2026-01-02. Dan Hendrycks, Steven Basart, Saurav Kadavath, Mantas Mazeika, Akul Arora, Ethan Guo, Collin Burns, Samir Puranik, Horace He, Dawn Song, and Jacob Steinhardt. 2021. Measuring coding challenge competence with apps. In Proceedings of the Neural Information Pro-cessing Systems Track on Datasets and Benchmarks , vol-ume 1. Ali Reza Ibrahimzada, Kaiyao Ke, Mrigank Pawagi, Muhammad Salman Abid, Rangeet Pan, Saurabh Sinha, and Reyhaneh Jabbarvand. 2025. Alphatrans: A neuro-symbolic compositional approach for repository-level code translation and validation. Proc. ACM Softw. Eng. ,2(FSE). Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fanjia Yan, Tianjun Zhang, Sida Wang, Armando Solar-Lezama, Koushik Sen, and Ion Stoica. 2024. Livecodebench: Holistic and contamination free evaluation of large lan-guage models for code. Preprint , arXiv:2403.07974. Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. 2024. Swe-bench: Can language models resolve real-world github issues? Preprint , arXiv:2310.06770. Naizhu Jin, Zhong Li, Guang Yang, Tian Zhang, and Qingkai Zeng. 2025. Understanding chain-of-thought effectiveness in code generation: An em-pirical and information-theoretic analysis. Preprint ,arXiv:2512.09679. M. G. KENDALL. 1938. A new measure of rank correla-tion. Biometrika , 30(1-2):81–93. Jia Li, Ge Li, Yongmin Li, and Zhi Jin. 2023. Struc-tured chain-of-thought prompting for code generation. 
+
+Preprint , arXiv:2305.06599. 
+
+9Jia Li, Xianjie Shi, Kechi Zhang, Ge Li, Zhi Jin, Lei Li, Huangzhao Zhang, Jia Li, Fang Liu, Yuwei Zhang, Zhengwei Tao, Yihong Dong, Yuqi Zhu, and Chongyang Tao. 2025. Graphcodeagent: Dual graph-guided llm agent for retrieval-augmented repo-level code generation. 
+
+Preprint , arXiv:2504.10046. Ren-Biao Liu, Anqi Li, Chaoding Yang, Hui Sun, and Ming Li. 2025a. Revisiting chain-of-thought in code genera-tion: Do language models need to learn reasoning before coding? In Forty-second International Conference on Machine Learning .Tianyang Liu, Canwen Xu, and Julian McAuley. 2023. Repobench: Benchmarking repository-level code auto-completion systems. Preprint , arXiv:2306.03091. Wei Liu, Ailun Yu, Daoguang Zan, Bo Shen, Wei Zhang, Haiyan Zhao, Zhi Jin, and Qianxiang Wang. 2024. Graphcoder: Enhancing repository-level code comple-tion via coarse-to-fine retrieval based on code context graph. In Proceedings of the 39th IEEE/ACM Interna-tional Conference on Automated Software Engineering ,ASE ’24, page 570–581, New York, NY, USA. Associa-tion for Computing Machinery. Xiangyan Liu, Bo Lan, Zhiyuan Hu, Yang Liu, Zhicheng Zhang, Fei Wang, Michael Qizhe Shieh, and Wenmeng Zhou. 2025b. CodexGraph: Bridging large language models and code repositories via code graph databases. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Com-putational Linguistics: Human Language Technologies (Volume 1: Long Papers) , pages 142–160, Albuquerque, New Mexico. Association for Computational Linguistics. Shuai Lu, Daya Guo, Shuo Ren, Junjie Huang, Alexey Svyatkovskiy, Ambrosio Blanco, Colin Clement, Dawn Drain, Daxin Jiang, Duyu Tang, Ge Li, Lidong Zhou, Lin-jun Shou, Long Zhou, Michele Tufano, MING GONG, Ming Zhou, Nan Duan, Neel Sundaresan, and 3 others. 2021. CodeXGLUE: A machine learning benchmark dataset for code understanding and generation. In Thirty-fifth Conference on Neural Information Processing Sys-tems Datasets and Benchmarks Track (Round 1) .Jane Luo, Xin Zhang, Steven Liu, Jie Wu, Yiming Huang, Yangyu Huang, Chengyu Yin, Ying Xin, Jianfeng Liu, Yuefeng Zhan, Hao Sun, Qi Chen, Scarlett Li, and Mao Yang. 2026. RPG: A repository planning graph for uni-fied and scalable codebase generation. In The Fourteenth International Conference on Learning Representations .Niels Mündler, Mark Niklas Mueller, Jingxuan He, and Martin Vechev. 2024. SWT-bench: Testing and vali-dating real-world bug-fixes with code agents. In The Thirty-eighth Annual Conference on Neural Information Processing Systems .OpenAI. 2024. Introducing SWE-bench Verified. OpenAI Blog. OpenAI. 2025. gpt-oss-120b & gpt-oss-20b model card. 
+
+Preprint , arXiv:2508.10925. Albert Orjon. 2024. Moatless Tools. GitHub repository. Jielin Qiu, Zuxin Liu, Zhiwei Liu, Rithesh Murthy, Jianguo Zhang, Haolin Chen, Shiyu Wang, Ming Zhu, Liangwei Yang, Juntao Tan, Zhepeng Cen, Cheng Qian, Shelby Heinecke, Weiran Yao, Silvio Savarese, Caiming Xiong, and Huan Wang. 2025a. Locobench: A benchmark for long-context large language models in complex software engineering. Preprint , arXiv:2509.09614. Jielin Qiu, Zuxin Liu, Zhiwei Liu, Rithesh Murthy, Jianguo Zhang, Haolin Chen, Shiyu Wang, Ming Zhu, Liangwei Yang, Juntao Tan, Roshan Ram, Akshara Prabhakar, Tu-lika Awalgaonkar, Zixiang Chen, Zhepeng Cen, Cheng Qian, Shelby Heinecke, Weiran Yao, Silvio Savarese, and 2 others. 2025b. Locobench-agent: An interactive bench-mark for llm agents in long-context software engineering. 
+
+Preprint , arXiv:2511.13998. Stefano Rando, Luca Romani, Alessio Sampieri, Luca Franco, John Yang, Yuta Kyuragi, Fabio Galasso, and Tatsunori Hashimoto. 2025. Longcodebench: Evalu-ating coding llms at 1m context windows. Preprint ,arXiv:2505.07897. Abhinav Rastogi, Adam Yang, Albert Q. Jiang, Alexan-der H. Liu, Alexandre Sablayrolles, Amélie Héliou, Amélie Martin, Anmol Agarwal, Andy Ehrenberg, Andy Lo, Antoine Roux, Arthur Darcet, Arthur Mensch, Bap-tiste Bout, Baptiste Rozière, Baudouin De Monicault, Chris Bamford, Christian Wallenwein, Christophe Re-naudin, and 84 others. 2025. Devstral: Fine-tuning lan-guage models for coding agent applications. Preprint ,arXiv:2509.25193. Aaditya Singh and 1 others. 2025. Openai gpt-5 system card. Preprint , arXiv:2601.03267. Charles Spearman. 1904. The proof and measurement of association between two things. The American Journal of Psychology , 15(1):72–101. Alexey Svyatkovskiy, Shao Kun Deng, Shengyu Fu, and Neel Sundaresan. 2020. Intellicode compose: code gen-eration using transformer. In Proceedings of the 28th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Soft-ware Engineering , ESEC/FSE 2020, page 1433–1443, New York, NY, USA. Association for Computing Ma-chinery. Qwen Team. 2025. Qwen3 technical report. Preprint ,arXiv:2505.09388. Weixi Tong and Tianyi Zhang. 2024. Codejudge: Eval-uating code generation with large language models. 
+
+Preprint , arXiv:2410.02184. Xingliang Wang, Baoyi Wang, Chen Zhi, Junxiao Han, Xinkui Zhao, Jianwei Yin, and Shuiguang Deng. 2025a. Grace: Graph-guided repository-aware code completion through hierarchical code fusion. Preprint ,arXiv:2509.05980. Xingyao Wang, Boxuan Li, Yufan Song, Frank F. Xu, Xi-angru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, Hoang H. Tran, Fuqiang Li, Ren Ma, Mingzhang Zheng, Bill Qian, Yanjun Shao, 
+
+10 Niklas Muennighoff, Yizhe Zhang, Binyuan Hui, and 5 others. 2025b. Openhands: An open platform for AI soft-ware developers as generalist agents. In The Thirteenth International Conference on Learning Representations .Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. 2023. Chain-of-thought prompting elic-its reasoning in large language models. Preprint ,arXiv:2201.11903. Chunqiu Steven Xia, Yinlin Deng, Soren Dunn, and Ling-ming Zhang. 2025. Demystifying llm-based software engineering agents. Proc. ACM Softw. Eng. , 2(FSE). Fangzhou Xu, Sai Zhang, Zhenchang Xing, Xiaowang Zhang, Yahong Han, and Zhiyong Feng. 2024. Human-like code quality evaluation through llm-based recursive semantic comprehension. Preprint , arXiv:2412.00314. John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik R Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-computer interfaces enable automated software engineering. In The Thirty-eighth Annual Conference on Neural Information Pro-cessing Systems .Daoguang Zan, Zhirong Huang, Wei Liu, Hanwu Chen, Shulin Xin, Linhao Zhang, Qi Liu, Aoyan Li, Lu Chen, Xiaojian Zhong, Siyao Liu, Yongsheng Xiao, Liangqiang Chen, Yuyu Zhang, Jing Su, Tianyu Liu, RUI LONG, Ming Ding, and liang xiang. 2025. Multi-SWE-bench: A multilingual benchmark for issue resolving. In The Thirty-ninth Annual Conference on Neural Information Processing Systems Datasets and Benchmarks Track .Linghao Zhang, Shilin He, Chaoyun Zhang, Yu Kang, Bowen Li, Chengxing Xie, Junhao Wang, Maoquan Wang, Yufan Huang, Shengyu Fu, Elsie Nallipogu, Qing-wei Lin, Yingnong Dang, Saravan Rajmohan, and Dong-mei Zhang. 2025. Swe-bench goes live! arXiv preprint arXiv:2505.23419 .Xinrong Zhang, Yingfa Chen, Shengding Hu, Zihang Xu, Junhao Chen, Moo Hao, Xu Han, Zhen Thai, Shuo Wang, Zhiyuan Liu, and Maosong Sun. 2024. ∞Bench: Ex-tending long context evaluation beyond 100K tokens. In 
+
+Proceedings of the 62nd Annual Meeting of the Associ-ation for Computational Linguistics (Volume 1: Long Papers) , pages 15262–15277, Bangkok, Thailand. Asso-ciation for Computational Linguistics. Wenting Zhao, Nan Jiang, Celine Lee, Justin T Chiu, Claire Cardie, Matthias Gallé, and Alexander M Rush. 2024. Commit0: Library generation from scratch. Preprint ,arXiv:2412.01769. 
+
+A Repository and Functional Subset Details 
+
+RECUBE comprises 40 carefully curated functional subsets spanning six functional domains. Table 8 pro-vides an overview of each repository. 11 Table 8: Detailed breakdown of the 40 functional subsets in our benchmark. Each entry represents a specific functional subset of a larger repository, selected to target distinct development capabilities. 
+
+Repository Functionality Key Components 
+
+OpenManus Agent orchestration with sandbox execution Base agent, ReAct pattern, tool execution nanochat GPT training infrastructure SFT/RL training, data loading, checkpointing DeepSeek-OCR Vision-based OCR system CLIP/SAM encoders, image/PDF processing deer-flow Workflow-based agent with RAG Graph orchestration, web crawling, retrieval openai-agents Core runtime with guardrails Agent execution, function schemas, prompts openai-agents Computer use & file editing Editor interface, computer control openai-agents Multi-agent handoffs & visualization Handoff filtering, workflow visualization openai-agents MCP server with persistent memory MCP integration, SQLite sessions openai-agents Streaming chat completions Stream handling, chat conversion openai-agents Tracing & observability Span data, trace processors, providers openai-agents Error handling & computer control Error tracing, guardrails openai-agents Real-time voice agent Realtime API, audio formats, voice handoffs openai-agents Voice pipeline (STT/TTS) Speech-to-text, text-to-speech workflow serena Semantic code editing Symbol-level operations, code editor serena LSP server implementation Protocol handler, IDE integration blender-mcp Blender MCP server 3D modeling control, telemetry VibeVoice Streaming voice generation Diffusion models, DPM solver deepwiki-open Multi-provider LLM API OpenAI/DashScope/Ollama, embeddings context-engineering Multi-agent system with RAG Research agent, document ingestion context-engineering Standalone RAG agent CLI, embedding pipeline, DB utilities DeepCode Multi-interface coding assistant CLI & Streamlit UI, workflows DeepCode Code implementation agent MCP tools, Git ops, code indexing fastapi_mcp FastAPI MCP server HTTP/SSE transports, Auth0 RAG-Anything Document processing RAG Parser, processor, query system memvid Video chat with retrieval Indexing, encoding, ffmpeg processing trae-agent Software engineering agent Docker execution, bash/edit tools, CKG trae-agent Trae with MCP integration MCP tools, code knowledge graph langextract Structured extraction with plugins Multi-provider, Gemini/Ollama strix Core agent with LLM management Memory compression, request queuing strix Tool runtime with Docker File editing, web search, thinking tools strix Interactive tool managers Python/terminal/proxy/graph sessions strix Browser automation & CLI Browser control, tab management strix Tool rendering system UI component renderers registry strix Terminal user interface Text-based UI, utilities Wan2.1 Video generation models Text2video, image2video, VAE Second-Me Personalized LLM data generation L0/L1 generators, DPO training Second-Me GGUF model utilities Format conversion, quantization Second-Me Personalized AI API services Chat/knowledge/role management Second-Me Complete AI application backend Document processing, vector storage, MCP Spark-TTS Neural TTS with tokenization BiCodec, FSQ, Triton runtime 
+
+B Prompts and Specifications 
+
+B.1 Prompts for Baseline Settings 
+
+In this section, we provide the prompts for the four baseline settings we used for running R ECUBE (§4.1, §4.3) on LLMs with and without the agentic frame-work. We also illustrate how each of the prompt is curated and list all the specification along the prompts. 
+
+Full-Context. We first describe the task formulation (e.g., objectives, input, and output specifications) and point out the exact file target_file to reconstruct. We restrict the output format to a complete, runnable Python file so that we could automatically parse it and run evaluation by applying the patch to the instance. We then append each instance, which is composed of three sections: <readme> , <dependencies> , and 12 <implementations> . The <readme> is a consecutive markdown files such as README.md that are relevant to each instance. The <dependencies> is a descrip-tion of each dependency from requirements.txt or 
+
+Pyproject.toml in each collected repository. The de-scription for each dependency is a full project descrip-tion from the Python Package Index 1 of its version. The average token count (cl100k_base encoding) of instances is 70,997 tokens and the maximum count is 110,874 tokens. 
+
+Your task is to reconstruct the complete implementation of the file `{target_file} `.The file has been provided with: - All function signatures and docstrings intact - All function bodies replaced with `raise NotImplementedError `
+
+- All import statements removed You need to: 1. Add all necessary import statements at the beginning of the file 2. Implement the complete function bodies based on: - The function signatures and docstrings - The README documentation - The dependencies and their descriptions - All other files in the codebase that are fully implemented - The overall project structure and design patterns IMPORTANT OUTPUT FORMAT: You must respond with ONLY the reconstructed file content wrapped in a code block as follows: 
+
+``` python # Your complete reconstructed file here # Include all imports # Include all function implementations 
+
+``` 
+
+Do not include any explanations or additional text outside the code block. The code block must contain the complete, runnable Python file with all imports and implementations. Here is the project context: {REPOSITORY LEVEL CONTEXT} 
+
+Full-Context + CoT. As a baseline, we augment the full-context prompt with a structured chain-of-thought (CoT) reasoning template. As shown above, the prompt instructs the model to explicitly reason through the repository’s README, relevant depen-dencies, interacting implementations, and the target file’s role before producing the final output, organized into four dedicated XML tags: <readme> , <dependen cies> , <implementations> , and <file_context> .This structured decomposition aims to surface and organize repository-level context prior to generation. 
+
+Your task is to reconstruct the complete implementation of the file `{target_file} `.The file has been provided with: - All function signatures and docstrings intact - All function bodies replaced with `raise NotImplementedError `
+
+- All import statements removed You need to: 1. Add all necessary import statements at the beginning of the file 2. Implement the complete function bodies based on: - The function signatures and docstrings - The README documentation - The dependencies and their descriptions - All other files in the codebase that are fully implemented - The overall project structure and design patterns INSTRUCTIONS: 
+
+1https://pypi.org 
+
+- Keep your THOUGHT section concise but informative - focus on the most relevant details that directly impact implementation decisions - In <readme></readme>: Extract 2-3 key points about project purpose and architecture - In <dependencies></dependencies>: List only dependencies directly needed for `{target_file} `
+
+- In <implementations></implementations>: Mention only the files/classes/ functions that `{target_file} ` directly uses or interacts with - In <file_context></file_context>: Briefly describe `{target_file} `'s role and main implementation approach - The FINAL_OUTPUT code block must contain the complete, runnable Python file with all imports and implementations IMPORTANT OUTPUT FORMAT: <format_example> THOUGHT: <readme>Agent framework for autonomous task execution. Architecture: modular agent system with pluggable tools, sandbox execution environment for safety, LLM-based reasoning with ReAct pattern.</ readme> <dependencies>openai for LLM API calls, docker for sandbox isolation, pydantic for schema validation in app/schema.py.</dependencies> <implementations>Inherits from BaseAgent in app/agent/base.py which provides core agent loop. Uses Tool base class from app/tool/base.py for tool registry. Interacts with Sandbox from app/sandbox/core/ sandbox.py for code execution. Imports Message and AgentConfig schemas from app/schema.py.</implementations> <file_context>app/agent/react.py implements ReAct agent - combines reasoning and acting in iterative loops. Needs to: parse LLM responses for thought/action/observation pattern, manage tool execution through base class methods, handle error cases when actions fail, format conversation history for context window.</file_context> FINAL_OUTPUT: 
+
+``` python # Complete reconstructed file for app/agent/react.py # Include ALL necessary imports # Include ALL complete function implementations (no pass statements or placeholder comments) from typing import List, Optional, Dict, Any import re from app.agent.base import BaseAgent from app.schema import Message, AgentConfig from app.tool.base import Tool from app.llm import LLMClient class ReactAgent(BaseAgent): # ReAct agent that combines reasoning and acting def __init__(self, config: AgentConfig): super().__init__(config) self.llm_client = LLMClient(config.model_name) self.max_iterations = config.max_iterations or 10 def execute(self, task: str) -> str: # Execute task using ReAct pattern with thought/action/observation loop history = [] for i in range(self.max_iterations): response = self.llm_client.chat(self._format_prompt(task, history)) thought, action, action_input = self._parse_response(response) history.append({{"thought": thought, "action": action}}) if action == "finish": return action_input observation = self._execute_tool(action, action_input) history.append({{"observation": observation}}) return "Max iterations reached" def _parse_response(self, response: str) -> tuple[str, str, str]: # Parse LLM response into thought, action, and input using regex thought_match = re.search(r"Thought: (.*?)\\n", response) action_match = re.search(r"Action: (.*?)\\n", response) input_match = re.search(r"Action Input: (.*?)\\n", response) thought = thought_match.group(1) if thought_match else "" action = action_match.group(1) if action_match else "" action_input = input_match.group(1) if input_match else "" return thought, action, action_input def _execute_tool(self, tool_name: str, tool_input: str) -> str: # Execute tool and return observation with error handling tool = self.tool_registry.get(tool_name) if not tool: return f"Error: Tool {{tool_name}} not found" try: return tool.run(tool_input) except Exception as e: return f"Error executing tool: {{str(e)}}" def _format_prompt(self, task: str, history: List[Dict]) -> str: 
+
+13 # Format the prompt with task and conversation history prompt = f"Task: {{task}}\\n\\n" for entry in history: if "thought" in entry: prompt += f"Thought: {{entry[ 'thought ']}}\\n" prompt += f"Action: {{entry[ 'action ']}}\\n" if "observation" in entry: prompt += f"Observation: {{entry[ 'observation ']}}\\n" return prompt 
+
+``` 
+
+</format_example> Here is the project context: {REPOSITORY LEVEL CONTEXT} 
+
+Agent. We adopt the mini SWE-agent template and modify the task description to specify the exact file to reconstruct; all other configuration remains un-changed. 
+
+agent: system_template: | ... <task_description> TASK: Implement the file `{{ target_file }} `
+
+The project has been set up at /workspace with: - All dependencies installed - All project files in place EXCEPT the target file - The target file `{{ target_file }} ` exists but has: * All imports removed (file starts with just docstring and/or comments) * All function/class bodies replaced with `raise NotImplementedError() 
+
+`
+
+Your objective: 1. Add ALL necessary import statements to `{{ target_file }} `
+
+2. Implement ALL function and class bodies in `{{ target_file }} ` based on: - Function signatures and docstrings in the file - The README documentation below - Other fully implemented files in the codebase - The overall project structure and design patterns IMPORTANT: You MUST implement EVERY function and class in the file. Leaving any `raise NotImplementedError() ` is considered incomplete. </task_description> ... step_limit: 75 environment: cwd: "/workspace" timeout: 300 env: PAGER: cat MANPAGER: cat LESS: -R PIP_PROGRESS_BAR: 'off '
+
+TQDM_DISABLE: '1'
+
+environment_class: docker model: model_name: "gpt-5-mini" model_kwargs: drop_params: true temperature: 0.0 max_completion_tokens: 128000 
+
+Agent + CCE toolkit. We apply the CCE toolkit on top of the mini SWE-agent template to expose addi-tional tools to the agent. Using these tools, the agent is able to explore the repositories in a more expected way. The tools are defined between <available_tools> 
+
+and </available_tools> . We keep the rest of the configuration identical to the bash-only setting. 
+
+agent: system_template: | ... <available_tools> ## Dependency Graph Tools (Caller-First Principle) These tools implement the caller-first principle to help agents explore systematically by providing repository-level understanding and caller patterns using the dependency graph before diving into implementation. **EVIDENCE**: Caller coverage correlates with significant improvement on moderately-hard tasks. Graph structure: - **Nodes**: directory, file, class, function - **Edges**: contains, imports, invokes, inherits ### 1. show_implementation_context (RECOMMENDED FIRST) Comprehensive repository understanding combining 4 graph-based perspectives. Usage: 
+
+``` bash python /workspace/tools/graph_tools.py show_implementation_context --target {{ target_file }} 
+
+``` 
+
+Output (4 perspectives): 1. **Caller Patterns** (incoming invoke/import edges) - Who uses your code and how 2. **Inheritance** (inherit edges) - Parent classes and sibling implementations 3. **Module Context** (directory structure) - Sibling files and common imports 4. **Similar Files** (pattern matching) - Files with comparable structure ### 2. validate_code (MANDATORY) CRITICAL: Run this BEFORE submitting to prevent collection failures! Catches syntax errors that would cause 0% test pass rate. Usage: 
+
+``` bash python /workspace/tools/graph_tools.py validate_code --file /workspace /{{ target_file }} 
+
+``` 
+
+Output: Syntax validation, implementation completeness, duplicate word detection. ### 3. Python Code Execution Query the graph programmatically for custom analysis. The graph_helper module provides easy-to-use functions: **Example 1: Find who uses a specific entity (RECOMMENDED)** 
+
+``` bash python3 -c " import sys sys.path.insert(0, '/workspace/tools ')from graph_helper import load_repo_graph, find_usages graph = load_repo_graph() # Find all files that use a specific class or function usages = find_usages(graph, '{{ target_file }}:YourClassName ')print( 'Files using YourClassName: ')for file in usages: print(f ' - {file} ')"
+
+``` 
+
+**Example 2: Search for entities** 
+
+``` bash python3 -c " import sys sys.path.insert(0, '/workspace/tools ')from graph_helper import quick_search results = quick_search( 'Config ', 'BaseAgent ')for name, nodes in results.items(): print(f '{name}: {nodes} ')"
+
+``` 
+
+**Example 3: Get file content to see usage** 
+
+``` bash python3 -c " import sys sys.path.insert(0, '/workspace/tools ')from graph_helper import load_repo_graph, get_file_content graph = load_repo_graph() code = get_file_content(graph, 'app/caller_file.py ')print(code) "
+
+``` 
+
+**Example 4: List all classes in a file** 
+
+``` bash python3 -c " import sys sys.path.insert(0, '/workspace/tools ')from graph_helper import load_repo_graph, list_classes graph = load_repo_graph() classes = list_classes(graph, '{{ target_file }} ')for cls in classes: print(cls) 
+
+14 "
+
+``` 
+
+**Available functions in graph_helper:** - `load_repo_graph() ` - Load dependency graph - `search_entities(graph, names) ` - Search for entities by name - `get_file_content(graph, file) ` - Get full file source code - `get_entity_code(graph, node_id) ` - Get class/function code - `list_files(graph) ` - List all Python files - `list_classes(graph, file) ` - List classes in file - `list_functions(graph, file) ` - List functions in file - `find_usages(graph, entity_id) ` - Find where entity is used ( RECOMMENDED) - `get_imports_for_file(graph, file) ` - Get import details - `quick_search(*names) ` - Quick entity search - `get_dependencies(graph, file, depth) ` - Get file dependencies (if needed) </available_tools> ... 
+
+B.2 Prompts for Generating Test Cases 
+
+In this section, we provide the prompts for generating test cases. As mentioned in §3.2.1, we used claude code (Claude Opus 4.1) and manual verfication to syn-thesize the unit tests for each instance. For each func-tional subsets, we prompt the following text to the claude code. The specific prompt is illustrate in Ap-pendix B.2. 
+
+# Test Case Generation and Validation Task ## Overview Your task is to create comprehensive test cases for repository instances identified by `repo_id N `. Each instance corresponds to a file listed in `selected_files ` under `PATH/TO/DIR/target_verified.json ` where the `repo_id ` is N. ## Task 1: Create Test Files ### Requirements 1. **Location**: Create test files under `PATH/TO/DIR/tests/{repo_id}/ `
+
+2. **Naming Convention**: Create exactly one test file per instance - Format: `{file_name}_test.py `
+
+- Example: For `app/agent/base.py ` -> create `app_agent_base_test.py `
+
+- Replace path separators ( `/`) with underscores ( `_`)### Test Case Standards Your test cases must be **usage-aware unit tests** generated from real codebase interactions. **CRITICAL REQUIREMENT - Test Difficulty and Discrimination:** - **Tests MUST be challenging enough to distinguish correct from incorrect implementations** - Tests should **pass on gold (original) implementation** but **fail on incorrect model-generated patches** - Design tests that are **sensitive to implementation details**: - Test edge cases, boundary conditions, and corner cases - Verify exact return values, types, and data structures - Test error handling and exception cases - Validate state changes and side effects - Check integration between components - **Avoid trivial tests** that only check basic functionality - they won 'tcatch subtle bugs - Each test should serve as a **discriminator** between correct and incorrect code - If a model generates slightly wrong code, your tests should catch it 1. **Analysis Phase - Understanding the Repository Context** The complete repository code is available in `PATH/TO/DIR/instructions/{ repo_id}.txt `:**File Structure:** - `<readme>...</readme> `: Repository documentation - `<dependencies>...</dependencies> `: Required packages - `<implementations>...</implementations> `: **All repository source code files** **Within `<implementations> ` section:** - Each file is marked with: `## path/to/file.py `
+
+- Followed by a code block: ` ``` python ... ``` ` 
+
+- Example from `0.txt `:
+
+``` 
+
+## app/agent/base.py 
+
+``` python [full source code here] 
+
+``` 
+
+## app/schema.py 
+
+``` python [full source code here] 
+
+``` ``` 
+
+**Analysis Tasks:** - [ ] Read the instruction file `PATH/TO/DIR/instructions/{repo_id}.txt `
+
+- [ ] Parse the `<implementations> ` section to access all repository files - [ ] For the target file you 're testing, analyze how its functions/ classes are called: - Search for imports of the target file across other files - Find function/class invocations with example parameters - Identify usage patterns in different contexts (internal and cross-module) - [ ] Extract real usage contexts with file:line references - [ ] Identify typical call patterns, edge cases, and error conditions 2. **Test Generation Phase** - [ ] Generate tests that cover typical call patterns - [ ] **CRITICAL**: Include comprehensive edge case coverage that will fail on incorrect implementations - [ ] Test boundary conditions (empty inputs, None values, maximum/ minimum values) - [ ] Test error conditions and exception handling with specific exception types - [ ] Verify exact outputs, not just "something was returned" - [ ] Test state changes, side effects, and interactions between methods - [ ] Follow the exact format demonstrated in example test files (e.g., 
+
+`PATH/TO/DIR/tests/0/app_schema_test.py `)- [ ] **IMPORTANT**: Ensure all tests are CPU-runnable even for GPU-related code - Use mocking for GPU operations (e.g., `torch.cuda `, GPU kernels) - Test mock functionality and logic flow without requiring actual GPU hardware - Avoid dependencies on CUDA/GPU availability in test assertions 3. **Required Format Elements** - [ ] Proper docstrings for each test class and method - [ ] Test strategy documentation - [ ] Real usage references in comments (file:line format) - [ ] Clear test class organization - [ ] Descriptive test method names ### Reference Example See `PATH/TO/DIR/tests/0/app_schema_test.py ` for: - Proper docstring format with test metadata header - Test organization patterns (test classes grouping related functionality) - Usage reference annotations (e.g., "Real usage: app/llm.py:1439") - Test naming conventions (descriptive method names) - How to document test strategy in docstrings **Example of usage-aware test from `app_schema_test.py `:** 
+
+``` python def test_user_message_with_image(self): """ Test user_message accepts base64_image. Real usage: app/agent/browser.py:2388 - Message.user_message(content =..., base64_image=...) """ msg = Message.user_message("Check this", base64_image="abc123") assert msg.role == Role.USER assert msg.content == "Check this" assert msg.base64_image == "abc123" 
+
+``` 
+
+Notice how the docstring references the actual line where this pattern is used in the repository (found by analyzing `app/agent/browser.py ` in the `<implementations> ` section). ### Examples: Good vs Bad Tests **BAD TEST (Too trivial - won 't catch bugs):** 
+
+``` python def test_add_message(self): """Test that add_message works.""" memory = Memory() msg = Message.user_message("Hello") memory.add_message(msg) assert len(memory.messages) > 0 # Too weak! 
+
+``` 
+
+**GOOD TEST (Specific and discriminating):** 
+
+``` python def test_add_message_enforces_max_messages(self): """ Test add_message enforces max_messages limit. Real usage: app/schema.py:2077-2078 if len(self.messages) > self.max_messages: self.messages = self.messages[-self.max_messages :] """ memory = Memory(max_messages=3) # Add 5 messages for i in range(5): memory.add_message(Message.user_message(f"Message {i}")) 
+
+15 # Should only keep last 3 assert len(memory.messages) == 3 assert memory.messages[0].content == "Message 2" assert memory.messages[2].content == "Message 4" 
+
+``` 
+
+**Why the good test is better:** - Tests specific behavior (max_messages enforcement) - Verifies exact values, not just existence - Would fail if implementation incorrectly kept first 3 instead of last 3 - Would fail if implementation didn 't enforce limit at all - Would fail if off-by-one error in slicing ### Validation Strategy When validating your tests in Docker (Task 2), you will verify that: 1. **All tests PASS on gold implementation** - This proves your tests are correct 2. **Tests are discriminating** - To verify this, you can: - Mentally walk through: "What if the model makes these common mistakes ?" - Consider: Empty list instead of None, wrong slice direction, missing validation, etc. - Your tests should catch these mistakes **Remember**: The goal is NOT just to have passing tests. The goal is to have tests that will **fail when given incorrect code**. Think adversarially - what could a model get wrong, and does your test catch it? ## Task 2: Docker Validation and Fixing ### Step 1: Understand the Environment - [ ] Review `PATH/TO/DIR/tests/docker/build_test_images.py ` to understand: - Docker image structure - Testbed directory layout ( `/testbed `)- How dependencies are installed - How files are copied into the image ### Step 2: Build or Verify Docker Image **Image Details:** - Image name: `DOCKER_IMAGE_NAME `
+
+- Tag: `{repo_id} `
+
+- Full image reference: `DOCKER_IMAGE_NAME:{repo_id} `
+
+**Build Process:** 
+
+``` bash # If image doesn 't exist, build it: python PATH/TO/DIR/tests/docker/build_test_images.py --repo-id {repo_id} # The image will contain: # - Base Python environment # - All dependencies from PATH/TO/DIR/instructions/{repo_id}.txt # - Implementation files at /testbed/ (from selected_files) # - Test files at /testbed/tests/ # - README.md 
+
+``` 
+
+**What Gets Tested:** - **During validation** (test_image.sh): Tests run against implementation files at `/testbed/ `
+
+- **During model evaluation**: Model patches replace files at `/testbed/ `,then tests run - Tests import directly from `/testbed/ ` via `PYTHONPATH=/testbed `
+
+- [ ] Check if image `DOCKER_IMAGE_NAME:{repo_id} ` exists - [ ] If not, build using the script above - [ ] Verify build completes successfully - [ ] Push image to local Docker hub ### Step 3: Run Tests in Docker 
+
+``` bash # Run all tests for repo_id N: PATH/TO/DIR/tests/docker/test_image.sh {repo_id} # Or manually: docker run --rm DOCKER_IMAGE_NAME:{repo_id} pytest tests/ -v --tb=short 
+
+``` 
+
+- [ ] Execute test script - [ ] Review all test results - [ ] Document any failures ### Step 4: Fix Issues (Iterative Process) #### Option 1: Fix Test Cases Use when tests are incorrect or unstable: - [ ] Identify problematic test cases - [ ] Analyze why they fail (logic error, wrong assumptions, etc.) - [ ] Modify test files under `PATH/TO/DIR/tests/{repo_id}/ `
+
+- [ ] **REQUIRED**: Rebuild image to include updated tests: 
+
+``` bash python PATH/TO/DIR/tests/docker/build_test_images.py --repo-id {repo_id} 
+
+``` 
+
+- [ ] **REQUIRED**: Verify the image was rebuilt (check timestamps/image ID) - [ ] Re-run tests to verify fixes #### Option 2: Fix Environment Use when missing files/dependencies cause failures: **Common Issues:** - Missing implementation files not included in the initial `selected_files `
+
+list - Missing internal dependencies/modules that are imported but not in `
+
+selected_files `
+
+- Missing configuration files (e.g., `__init__.py `, config files) - Missing supporting modules required by the code under test **Resolution Steps:** 1. [ ] Identify missing files from error messages 2. [ ] Locate repository URL in `PATH/TO/DIR/reference/target_verified.json 
+
+` (field: `repo_url ` with matching `repo_id `)3. [ ] Fetch missing files from the repository URL (download them to appropriate locations) 4. [ ] Modify `PATH/TO/DIR/tests/docker/build_test_images.py ` to: - Add missing files to the build process (e.g., download files, copy from new locations) - Update file copying logic - Add any special installation steps or dependencies - **CRITICAL**: Ensure changes are permanent in the build script, not one-time fixes 5. [ ] **REQUIRED**: Rebuild the image completely: 
+
+``` bash python PATH/TO/DIR/tests/docker/build_test_images.py --repo-id {repo_id} 
+
+``` 
+
+6. [ ] **REQUIRED**: Verify the new image has replaced the old one: 
+
+``` bash docker images DOCKER_IMAGE_NAME:{repo_id} # Check the CREATED timestamp - should be recent # Note the new IMAGE ID 
+
+``` 
+
+7. [ ] **REQUIRED**: The rebuilt image is automatically the new version ( Docker overwrites the same tag) 8. [ ] Re-run tests using the updated image to verify all fixes are included ### Step 5: Final Validation and Image Confirmation **Before marking complete, verify:** - [ ] All tests pass in Docker environment - [ ] No pytest failures or errors - [ ] Test coverage is comprehensive - [ ] All edge cases are handled - [ ] Documentation is complete - [ ] **CRITICAL**: The final Docker image `DOCKER_IMAGE_NAME:{repo_id} `
+
+contains ALL modifications: - [ ] All test file updates are included - [ ] All environment fixes (missing files, dependencies) are included - [ ] Image was rebuilt after the last modification - [ ] Running tests on this image produces passing results **Final Image Verification:** 
+
+``` bash # Confirm the image exists and is recent docker images DOCKER_IMAGE_NAME:{repo_id} # Run final test to confirm everything passes PATH/TO/DIR/tests/docker/test_image.sh {repo_id} # Expected: All tests pass, exit code 0 
+
+``` 
+
+**Important**: The Docker image with tag `DOCKER_IMAGE_NAME:{repo_id} ` IS the final version. Each rebuild automatically replaces the previous image with the same tag. No separate "push" step is needed for local images. ## Important Notes 1. **Environment Structure**: The Docker testbed uses `/testbed ` as the working directory with `PYTHONPATH=/testbed `
+
+- Implementation files: `/testbed/{file_path} ` (e.g., `/testbed/nanochat /gpt.py `)- Test files: `/testbed/tests/ ` (e.g., `/testbed/tests/nanochat_gpt_test. py `)2. **Test Import Pattern**: - Import directly from `/testbed/ ` using the `PYTHONPATH=/testbed `
+
+environment variable - Example: `from app.schema import Message ` -> imports from `/testbed/ app/schema.py `
+
+- Example: `from nanochat.gpt import GPT ` -> imports from `/testbed/ nanochat/gpt.py `
+
+- **This is the standard pattern** - test files in `/testbed/tests/ `
+
+import from implementation files at `/testbed/ `
+
+3. **Repository Completeness**: - The Docker environment initially contains only the **selected files** from `selected_files ` in `target_verified.json `
+
+- **However**, you MUST add any additional files from the repository if they are required for tests to run - Fetch missing files from the `repo_url ` and modify `build_test_images. py ` to include them - The final environment should contain all necessary files for tests to execute successfully 4. **Iterative Process**: You may need multiple iterations of fixing and testing 
+
+16 5. **Image Updates - CRITICAL FOR FINAL VERSION**: - **ALWAYS** rebuild the image after ANY modification (test files OR environment files) - The rebuild process automatically replaces the old image with the same tag - The image tag `DOCKER_IMAGE_NAME:{repo_id} ` always points to the most recent build - **Do NOT skip rebuilding** - the image will contain stale code otherwise - After ALL fixes are complete, verify the final image passes all tests - The last successfully built image IS the final deliverable version 6. **CPU-Only Testing**: All tests must run on CPU without requiring GPU hardware - Mock GPU operations using libraries like `unittest.mock ` or `pytest-mock `
+
+- For PyTorch GPU code, mock `torch.cuda.is_available() ` to return `
+
+False ` or mock device placement - Test the logic and control flow, not actual GPU computation - Use `conftest.py ` for shared mocking fixtures if needed across multiple test files ## Getting Help If you encounter any of the following, please ask for assistance: - Uncertainty about test case design - Inability to locate missing dependencies - Persistent test failures after multiple fix attempts - Unclear error messages - Questions about the Docker environment structure ## Checklist Summary ### Test Creation - [ ] All test files created with correct naming - [ ] Tests follow example format from reference files - [ ] Usage-aware test cases generated - [ ] Proper docstrings and test strategies documented ### Docker Validation - [ ] Docker image built/verified initially - [ ] Initial test run completed - [ ] All failures analyzed - [ ] Fixes applied (tests or environment) - [ ] **CRITICAL**: Image rebuilt after EVERY change (test or environment) - [ ] Image rebuild verified (check timestamp/IMAGE ID changed) - [ ] Final validation: all tests pass on the final rebuilt image - [ ] Confirmed final image `DOCKER_IMAGE_NAME:{repo_id} ` contains all modifications ### Quality Assurance - [ ] **CRITICAL**: All tests pass on gold (original) implementation - [ ] **CRITICAL**: Tests are difficult enough to catch incorrect implementations - [ ] Code coverage is comprehensive (not just adequate) - [ ] Edge cases are thoroughly tested with specific assertions - [ ] Boundary conditions are tested (empty, None, min/max values) - [ ] Error conditions are handled with specific exception type checks - [ ] Tests verify exact values, types, and data structures (not just " truthy" checks) - [ ] Tests are stable and reproducible - [ ] Documentation is clear and complete - [ ] All tests run successfully on CPU (no GPU required) - [ ] GPU-related code is properly mocked 
+
+C Docstring Completeness Categories 
+
+The functions in our benchmark are categorized by docstring completeness into four levels, reflecting the varying degrees of guidance available to models during reconstruction. 
+
+Detailed Docstrings (10.9%) include comprehen-sive sections such as Args , Returns , Examples , and 
+
+Raises , providing complete API documentation that fully specifies the function’s interface and expected behavior. Example function: 
+
+# Ex) app/llm.py - LLM.format_messages(): 
+
+def format_messages(messages, supports_images): """Format messages for LLM processing. Args: messages: List of messages that can be either dict or Message objects supports_images: Flag indicating if the target model supports image inputs Returns: List[dict]: List of formatted messages in OpenAI format Raises: ValueError: If messages are invalid or missing required fields TypeError: If unsupported message types are provided Examples: >>> msgs = [ ... Message.system_message("You are a helpful assistant"), ... {"role": "user", "content": "Hello"}, ... Message.user_message("How are you?") ... ] >>> formatted = LLM.format_messages(msgs) # function body 
+
+Args/Returns Docstrings (7.2%) document param-eters and return values but omit usage examples and exception details, requiring models to infer edge cases and usage patterns. Example function: 
+
+# Ex) app/llm.py - LLM.ask(): 
+
+def ask(messages, system_msgs, stream, temperature): """Generate a response from the LLM. Args: messages: List of conversation messages system_msgs: Optional system messages to prepend stream (bool): Whether to stream the response temperature (float): Sampling temperature for the response Returns: str: The generated response Raises: TokenLimitExceeded: If token limits are exceeded ValueError: If messages are invalid or response is empty OpenAIError: If API call fails after retries """ # function body 
+
+Signature-only Docstrings (27.5%) provide only a one-line description of what the function does with-out parameter or return documentation, leaving the implementation details largely unspecified. Example function: 
+
+# Ex) app/schema.py - Message.system_message() 
+
+def system_message(cls, content: str ): """Create a system message""" 
+
+No Docstrings (54.4%) have no documentation what-soever, requiring models to infer behavior entirely from the function signature, variable names, and sur-rounding implementation context. Example function: 
+
+# Ex) From app/bedrock.py - BedrockClient.__init__(): 
+
+def __init__(self): # function body 
+
+D Experiment Configurations 
+
+D.1 Bare-Bone LLM Configuration 
+
+For static (full-context) settings, we configure LLMs as Tables 9, 10, and 11. 
+
+D.2 Agent Configuration 
+
+We configure mini-SWE-agent (version 1.17.4) with the key parameters summarized in Tables 12 and 13. We use max_completion_tokens instead of 17 Parameter Value 
+
+Temperature 0.0 Max Tokens 8,192 (Full-Context) 16,384 (Full-Context + CoT) Timeout (s) 300 Inference Backend vLLM == 0.17.0 
+
+enable_auto_tool_choice False (Default) 
+
+tool_call_parser None (Default) 
+
+tokenizer_mode auto (Default) 
+
+max-model-len 262,144 (Default) 
+
+Table 9: VLLM configuration for Qwen/Qwen3-Coder-30B-A3B-Instruct. 
+
+Parameter Value 
+
+Temperature 0.0 Max Tokens 8,192 (Full-Context) 16,384 (Full-Context + CoT) Timeout (s) 300 Inference Backend vLLM == 0.17.0 
+
+config-format mistral 
+
+load-format mistral 
+
+tokenizer_mode mistral 
+
+max-model-len 131,072 (Default) 
+
+Table 10: VLLM configuration for mistralai/Devstral-Small-2507. 
+
+max_tokens for proprietary models since GPT-5 and GPT-5 Mini are reasoning models that internally gener-ate extended chain-of-thought traces prior to producing a final response. 
+
+D.3 GPT-OSS 20B on Agentic Frameworks 
+
+Since GPT-OSS 20B is exclusively trained on Ope-nAI’s proprietary Harmony response format (OpenAI, 2025), it is fundamentally incompatible with mini-SWE-agent, which relies on standard chat templates for agentic interaction. As a result, we exclude GPT-OSS 20B from the Agent and Agent + CCE toolkit settings in Table 5, and report its agent-setting results separately in Table 14. To quantify this incompati-bility, we analyze the agent trajectories and find that GPT-OSS 20B produces 25.60 and 25.28 format errors per instance under the base agent and Agent + CCE settings, respectively. Notably, despite CCE being en-abled, GPT-OSS 20B issues zero calls to any CCE tool, 
+
+Parameter Value 
+
+Temperature 0.0 Max Tokens 8,192 (Full-Context) 16,384 (Full-Context + CoT) Timeout (s) 300 Inference Backend vLLM == 0.17.0 
+
+max-model-len 131,072 (Default) 
+
+Table 11: VLLM configuration for openai/gpt-oss-20b. 
+
+Parameter Value 
+
+Max Completion Tokens 128,000 Step Limit 75 Environment Docker Timeout (s) 300 
+
+Table 12: mini-SWE-agent configuration for proprietary models (GPT-5, GPT-5 Mini). 
+
+Parameter Value 
+
+Temperature 0.0 Max Completion Tokens 8,192 Step Limit 75 Environment Apptainer Timeout (s) 300 Inference Backend vLLM == 0.17.0 GPU NVIDIA H200 
+
+Table 13: mini-SWE-agent configuration for open models (Qwen3-Coder 30B, Devstral Small 2507). 
+
+indicating that the model fails to parse the agentic scaf-folding entirely and cannot leverage repository-level context guidance. 
+
+E CCE Toolkit Specifications 
+
+In this section, we illustrate each category of the CCE toolkit with a detailed description and an example output. 
+
+E.1 Caller Patterns 
+
+By analyzing incoming invokes and imports edges, this feature provides a comprehensive overview of how ex-ternal files utilize specific classes, functions, and meth-ods within the target file. It prioritizes a caller-centric perspective, mapping entity-level interactions and fre-quency to clarify usage patterns. Example output: 
+
+> [1/4] CALLER PATTERNS - How your code is used ---Found 8 file(s) that use your code: use-cases/agent-factory-with-subagents/agents/rag_agent/cli.py invokes: DocumentIngestionPipeline.initialize (4x) invokes: main (4x) use-cases/agent-factory-with-subagents/agents/rag_agent/dependencies.py invokes: DocumentIngestionPipeline.close (5x) invokes: DocumentIngestionPipeline.initialize (5x) use-cases/agent-factory-with-subagents/agents/rag_agent/tests/conftest.py invokes: DocumentIngestionPipeline.close (15x) use-cases/agent-factory-with-subagents/agents/rag_agent/tests/ test_dependencies.py invokes: DocumentIngestionPipeline.initialize (35x) use-cases/agent-factory-with-subagents/agents/rag_agent/tests/ test_integration.py invokes: DocumentIngestionPipeline.initialize (19x) use-cases/agent-factory-with-subagents/agents/rag_agent/tests/ test_requirements.py invokes: DocumentIngestionPipeline.initialize (33x) use-cases/agent-factory-with-subagents/agents/rag_agent/utils/db_utils.py invokes: DocumentIngestionPipeline.close (10x) invokes: DocumentIngestionPipeline.initialize (10x)
+
+18 Overall Ext. TCs Int. TCs Setting SPR APR SPR APR SPR APR 
+
+Agent 25.06 36.83 22.19 32.61 30.63 39.11 Agent + CCE 21.01 30.49 16.40 23.95 24.32 33.20 
+
+Table 14: GPT-OSS 20B agent results reported separately from Table 5 due to its incompatibility with mini-SWE-agent, which stems from its exclusive training on OpenAI’s Harmony response format OpenAI (2025). 
+
+E.2 Inheritance 
+
+This feature maps class hierarchies by analyzing inher-its edges to identify parent classes and their alternative implementations. By traversing these relationships, it visualizes the target’s lineage and uncovers sibling classes, helping LLMs understand shared behaviors and inheritance patterns. Example Output: 
+
+[2/4] INHERITANCE - Class hierarchy and siblings ---Class: ReActAgent Inherits from: app/agent/base.py:BaseAgent No sibling classes found 
+
+E.3 Module Context 
+
+This feature analyzes sibling files within the same directory to reveal module organization patterns and shared dependencies. By mapping outgoing imports from these files, it identifies common architectural themes and identifies how the local module interacts with the broader codebase. Example output: 
+
+[3/4] MODULE CONTEXT - Directory and sibling files ---Directory: use-cases/agent-factory-with-subagents/agents/rag_agent/ ingestion/ (2 other files) __init__.py chunker.py 
+
+E.4 Similar Files 
+
+This feature identifies structural twins across the repos-itory by ranking files based on filename tokens, node shapes, and identifier vocabulary. Example output: 
+
+[4/4] SIMILAR FILES - Comparable structure and patterns ---Found 4 similar file(s) using multi-signal ranking: (Signals: name overlap, structural shape, identifier BM25) src/agents/run.py Score: 0.861 (name:1.00 struct:0.58 id:1.00) Classes: ModelInputData, CallModelData, _ServerConversationTracker ... Functions: _ServerConversationTracker.track_server_items, _ServerConversationTracker.prepare_input, Runner.run ... src/agents/tool.py Score: 0.481 (name:0.00 struct:0.67 id:0.77) Classes: ToolOutputText, ToolOutputTextDict, ToolOutputImage ... Functions: ToolOutputImage.check_at_least_one_required_field, ToolOutputFileContent.check_at_least_one_required_field, FunctionTool .__post_init__ ... src/agents/items.py Score: 0.469 (name:0.00 struct:0.52 id:0.89) Classes: RunItemBase, MessageOutputItem, HandoffCallItem ... Functions: RunItemBase.__post_init__, RunItemBase.__getattribute__, RunItemBase.release_agent ... src/agents/tool_guardrails.py Score: 0.352 (name:0.00 struct:0.46 id:0.59) Classes: ToolInputGuardrailResult, ToolOutputGuardrailResult, RejectContentBehavior ... Functions: ToolGuardrailFunctionOutput.allow, ToolGuardrailFunctionOutput. reject_content, ToolGuardrailFunctionOutput.raise_exception ... 
+
+E.5 Validate Code 
+
+This tool catches syntax errors that would cause 0% pass rate. It outputs syntax validation, implementa-tion completeness, duplicate word detection. Example output: 
+
+================================================================ VALIDATION REPORT: /workspace/src/agents\_run\_impl.py ================================================================ [SYNTAX CHECK]: PASS - Python syntax is valid [IMPLEMENTATION CHECK]: PASS - All functions appear implemented [DUPLICATE WORD CHECK]: PASS - No duplicate patterns found ================================================================ [VALIDATION RESULT]: PASSED - Safe to submit 
+
+E.6 Python Code Execution 
+
+This tool allows the agent to query the graph program-matically for custom analysis. By analyzing the graph, it finds who uses a specific entity, search for any enti-ties, retrieve file content to see usage, lists all classes in a file etc. Example Output: 
+
+{\"TraceCtxManager\": [ \"src/agents/\_run\_impl.py:TraceCtxManager\" ], \"ComputerAction\": [ \"src/agents/\_run\_impl.py:ComputerAction\" ], \"LocalShellAction\": [ \"src/agents/\_run\_impl.py:LocalShellAction\" ], \"\_normalize\_shell\_output\": [ \"src/agents/\_run\_impl.py:\_normalize\_shell\_output\" ], \"\_get\_mapping\_or\_attr\": [ \"src/agents/\_run\_impl.py:\_get\_mapping\_or\_attr\" ], \"\_coerce\_shell\_call\": [ \"src/agents/\_run\_impl.py:\_coerce\_shell\_call\" ]}
+
+F API Pricing 
+
+For proprietary models, we use the LiteLLM Provider API to run the evaluation. The pricing (input, output USD per 1M tokens) for each model is as Table 15. 19 Model Input Output 
+
+gpt-5-mini 0.25 2.00 gemini-2.5-flash 0.30 2.50 gpt-5 1.25 10.00 gemini-2.5-pro 1.25 10.00 claude-3-haiku 0.25 1.25 
+
+Table 15: API pricing per 1M tokens (USD). 
+
+Cost Per Instance. Table 16 presents the total cost per run for each method and models. 
+
+Method Model Scale Cost ($) 
+
+Full-Context claude-3-haiku Original 0.0202 gemini-2.5-flash Original 0.0302 gemini-2.5-pro Original 0.1158 gpt-5 Original 0.1207 gpt-5-mini Original 0.0271 Full-Context +CoT 
+
+gpt-5 Original 0.1245 gpt-5-mini Original 0.0279 Agent gpt-5-mini Original 0.1226 Large 0.1410 Agent +CCE toolkit gpt-5-mini Original 0.1241 Large 0.1166 
+
+Table 16: Average cost per instance ($) by method and model. 
+
+G Test Cases Examples 
+
+The following are the examples for each test case cate-gory (external and internal): 
+
+1. External Tests 
+
+# From app/schema_test.py (repo 0): 
+
+def test_user_message_creates_user_role(self): """ Test user_message creates message with USER role. Real usage: app/agent/toolcall.py:2841 - user_msg = Message. user_message(self.next_step_prompt) """ msg = Message.user_message("Hello") 
+
+assert msg.role == Role.USER 
+
+assert msg.content == "Hello" 
+
+Tests Message.user_message() factory method called from app/agent/toolcall.py (cross-file us-age). 
+
+# From strix_tools_browser_tab_manager_test.py (repo 35) using fixtures from conftest.py: # In conftest.py: @pytest.fixture 
+
+def mock_browser(): """Mock browser instance for tests.""" browser = AsyncMock() browser.launch = AsyncMock() browser.close = AsyncMock() 
+
+return browser # In test file: @patch("strix.tools.browser.tab_manager.atexit") @patch("strix.tools.browser.tab_manager.signal") @patch("strix.tools.browser.tab_manager.BrowserInstance") 
+
+def test_launch_browser_creates_instance(self, mock_browser_class, mock_signal, mock_atexit): """Test that launch_browser creates BrowserInstance.""" mock_instance = Mock() mock_instance.launch.return_value = {"status": "launched", "tab_id": " tab_1"} mock_browser_class.return_value = mock_instance manager = BrowserTabManager() result = manager.launch_browser("https://example.com") mock_browser_class.assert_called_once() mock_instance.launch.assert_called_once_with("https://example.com") 
+
+Tests public API launch_browser() method that ex-ternal code would call to create browser instances. 
+
+# From lpm_kernel_L1_utils_test.py (repo 39): 
+
+class TestL1Utils: """Tests for L1 utility functions.""" 
+
+def test_utility_functions(self): """Test utility functions.""" 
+
+assert True 
+
+def test_helper_methods(self): """Test helper methods.""" 
+
+assert True # 20+ tests dynamically generated 
+
+for i in range (20): 
+
+setattr (TestL1Utils, f"test_util_{i}", lambda self: None) 
+
+2. Internal Tests 
+
+# From app_agent_base_test.py (repo 0): 
+
+def test_initialize_with_custom_llm(self): """Agent should keep custom LLM if provided""" custom_llm = LLM(config_name="custom") agent = TestAgent(llm=custom_llm) 
+
+assert agent.llm is custom_llm 
+
+Tests internal initialization logic within 
+
+BaseAgent.__init__() , not called from other modules. 
+
+# From app_agent_base_test.py (repo 0): @pytest.mark.asyncio @patch( 'app.agent.base.SANDBOX_CLIENT ')async def test_run_cleanup_sandbox(self, mock_sandbox): """ Real usage: Line 2278 - await SANDBOX_CLIENT.cleanup() Should always cleanup sandbox after execution """ mock_sandbox.cleanup = AsyncMock() agent = TestAgent() await agent.run() mock_sandbox.cleanup.assert_called_once() 
+
+Uses @patch to mock global SANDBOX_CLIENT , test-ing internal cleanup behavior rather than public API contract. 
+
+H AI Assistant Usage Disclosure 
+
+We use AI assistants (Claude Code) to generate plots. All the content and research are written and generated by humans, and AI assistants helped write code for tables and figures. 20

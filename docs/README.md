@@ -6,106 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-31
-- 运行时间：2026-03-31 20:51:17 UTC
+- 最新运行日期：2026-04-01
+- 运行时间：2026-04-01 20:47:54 UTC
 - 运行状态：成功
-- 本次总论文数：28
-- 精读区：16
+- 本次总论文数：20
+- 精读区：8
 - 速读区：12
 
 ### 今日简报（AI）
-1) 今日精读16篇论文，聚焦AI代码审查基准与LLM超参优化能力实测。
-2) 重点推荐《Code Review Agent Benchmark》建立的评估标准，以及LLM挑战经典超参数优化算法的实证研究。
-3) 建议关注AI Agent在代码审查中的落地进展，并尝试利用LLM辅助自动化调参以提升研发效率。
-- 详情：[/202603/31/README](/202603/31/README)
+1) 今日精读20篇前沿论文，聚焦具身智能世界模型与多模态推理智能体。
+2) LOME以9.0高分展示了自我中心世界模型在操作任务中的突破，MuSEAgent则揭示了状态化经验对多模态推理的关键作用。
+3) 建议关注AI如何通过“脑补”未来来学习物理交互，以及智能体如何利用记忆机制变得更像人类。
+- 详情：[/202604/01/README](/202604/01/README)
 
 ### 精读区论文标签
-1. [Code Review Agent Benchmark](/202603/31/2603.23448v2-code-review-agent-benchmark)  
-   标签：评分：9.0/10、query:agent
-   evidence：构建代码审查智能体在PR审查上的基准数据集
-2. [Can LLMs Beat Classical Hyperparameter Optimization Algorithms? A Study on autoresearch](/202603/31/2603.24647v2-can-llms-beat-classical-hyperparameter-optimization-algorithms-a-study-on-autoresearch)  
-   标签：评分：9.0/10、query:agent
-   evidence：LLM智能体通过编辑训练代码搜索最优超参数配置
-3. [Out of Sight but Not Out of Mind: Hybrid Memory for Dynamic Video World Models](/202603/31/2603.25716v2-out-of-sight-but-not-out-of-mind-hybrid-memory-for-dynamic-video-world-models)  
+1. [LOME: Learning Human-Object Manipulation with Action-Conditioned Egocentric World Model](/202604/01/2603.27449v1-lome-learning-human-object-manipulation-with-action-conditioned-egocentric-world-model)  
    标签：评分：9.0/10、query:wmodel
-   evidence：视频世界模型提出混合记忆范式并构建HM-World数据集
-4. [Vision2Web: A Hierarchical Benchmark for Visual Website Development with Agent Verification](/202603/31/2603.26648v1-vision2web-a-hierarchical-benchmark-for-visual-website-development-with-agent-verification)  
+   evidence：用于人-物操作的自我中心世界模型
+2. [MuSEAgent: A Multimodal Reasoning Agent with Stateful Experiences](/202604/01/2603.27813v1-museagent-a-multimodal-reasoning-agent-with-stateful-experiences)  
    标签：评分：9.0/10、query:agent
-   evidence：视觉网站开发代码智能体基准
-5. [The Observability Gap: Why Output-Level Human Feedback Fails for LLM Coding Agents](/202603/31/2603.26942v1-the-observability-gap-why-output-level-human-feedback-fails-for-llm-coding-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：LLM代码智能体增量构建函数库
-6. [Uni-World VLA: Interleaved World Modeling and Planning for Autonomous Driving](/202603/31/2603.27287v1-uni-world-vla-interleaved-world-modeling-and-planning-for-autonomous-driving)  
+   evidence：用于信息检索的多模态推理智能体
+3. [AutoWorld: Scaling Multi-Agent Traffic Simulation with Self-Supervised World Models](/202604/01/2603.28963v1-autoworld-scaling-multi-agent-traffic-simulation-with-self-supervised-world-models)  
    标签：评分：9.0/10、query:wmodel
-   evidence：统一VLA模型，实现自动驾驶中的交错世界建模与规划
-7. [PubMed Reasoner: Dynamic Reasoning-based Retrieval for Evidence-Grounded Biomedical Question Answering](/202603/31/2603.27335v1-pubmed-reasoner-dynamic-reasoning-based-retrieval-for-evidence-grounded-biomedical-question-answering)  
+   evidence：基于自监督世界模型的多智能体交通仿真
+4. [WybeCoder: Verified Imperative Code Generation](/202604/01/2603.29088v1-wybecoder-verified-imperative-code-generation)  
    标签：评分：9.0/10、query:agent
-   evidence：生物医学问答智能体，含自批评查询优化和反思检索
-8. [From Tool to Teammate: LLM Coding Agents as Collaborative Partners for Behavioral Labeling in Educational Dialogue Analysis](/202603/31/2603.27440v1-from-tool-to-teammate-llm-coding-agents-as-collaborative-partners-for-behavioral-labeling-in-educational-dialogue-analysis)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于行为标注的LLM代码智能体
-9. [AgentSwing: Adaptive Parallel Context Management Routing for Long-Horizon Web Agents](/202603/31/2603.27490v1-agentswing-adaptive-parallel-context-management-routing-for-long-horizon-web-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：面向信息检索的长程网络智能体，优化搜索效率
-10. [KAT-Coder-V2 Technical Report](/202603/31/2603.27703v1-kat-coder-v2-technical-report)  
-   标签：评分：9.0/10、query:agent
-   evidence：KAT-Coder-V2是具备WebSearch和Terminal能力的智能编程模型
-11. [Needle in the Repo: A Benchmark for Maintainability in AI-Generated Repository Edits](/202603/31/2603.27745v1-needle-in-the-repo-a-benchmark-for-maintainability-in-ai-generated-repository-edits)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于代码仓库编辑的AI编程智能体
-12. [EffiSkill: Agent Skill Based Automated Code Efficiency Optimization](/202603/31/2603.27850v1-effiskill-agent-skill-based-automated-code-efficiency-optimization)  
-   标签：评分：9.0/10、query:agent
-   evidence：基于LLM智能体的代码效率优化框架
-13. [HeteroHub: An Applicable Data Management Framework for Heterogeneous Multi-Embodied Agent System](/202603/31/2603.28010v1-heterohub-an-applicable-data-management-framework-for-heterogeneous-multi-embodied-agent-system)  
-   标签：评分：9.0/10、query:agent
-   evidence：面向异构多具身智能体系统的数据管理框架
-14. [Synergy: A Next-Generation General-Purpose Agent for Open Agentic Web](/202603/31/2603.28428v1-synergy-a-next-generation-general-purpose-agent-for-open-agentic-web)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于代码编写和跨平台操作的通用智能体框架
-15. [Video Generation Models as World Models: Efficient Paradigms, Architectures and Algorithms](/202603/31/2603.28489v1-video-generation-models-as-world-models-efficient-paradigms-architectures-and-algorithms)  
+   evidence：用于验证代码生成的智能体代码验证框架
+5. [HCLSM: Hierarchical Causal Latent State Machines for Object-Centric World Modeling](/202604/01/2603.29090v1-hclsm-hierarchical-causal-latent-state-machines-for-object-centric-world-modeling)  
    标签：评分：9.0/10、query:wmodel
-   evidence：综述视频生成模型作为世界模拟器的高效框架与算法
-16. [Gen-Searcher: Reinforcing Agentic Search for Image Generation](/202603/31/2603.28767v1-gen-searcher-reinforcing-agentic-search-for-image-generation)  
+   evidence：用于以物体为中心的视频预测的世界模型架构
+6. [Webscraper: Leverage Multimodal Large Language Models for Index-Content Web Scraping](/202604/01/2603.29161v1-webscraper-leverage-multimodal-large-language-models-for-index-content-web-scraping)  
    标签：评分：9.0/10、query:agent
-   evidence：具有多跳推理的搜索增强图像生成智能体
+   evidence：基于MLLM的自主网页导航与数据提取智能体
+7. [An Empirical Study of Multi-Agent Collaboration for Automated Research](/202604/01/2603.29632v1-an-empirical-study-of-multi-agent-collaboration-for-automated-research)  
+   标签：评分：9.0/10、query:agent
+   evidence：用于自动化研究的多智能体协作框架
+8. [SkillReducer: Optimizing LLM Agent Skills for Token Efficiency](/202604/01/2603.29919v1-skillreducer-optimizing-llm-agent-skills-for-token-efficiency)  
+   标签：评分：9.0/10、query:agent
+   evidence：基于LLM的代码智能体技能优化框架
 
 ### 速读区论文标签
-1. [Policy-Guided World Model Planning for Language-Conditioned Visual Navigation](/202603/31/2603.25981v1-policy-guided-world-model-planning-for-language-conditioned-visual-navigation)  
+1. [MMaDA-VLA: Large Diffusion Vision-Language-Action Model with Unified Multi-Modal Instruction and Generation](/202604/01/2603.25406v2-mmada-vla-large-diffusion-vision-language-action-model-with-unified-multi-modal-instruction-and-generation)  
+   标签：评分：8.0/10、query:agent
+   evidence：统一多模态理解与机器人控制的VLA模型框架
+2. [Vega: Learning to Drive with Natural Language Instructions](/202604/01/2603.25741v2-vega-learning-to-drive-with-natural-language-instructions)  
    标签：评分：8.0/10、query:wmodel
-   evidence：用于导航的世界模型规划
-2. [AgenticRS-Architecture: System Design for Agentic Recommender Systems](/202603/31/2603.26085v1-agenticrs-architecture-system-design-for-agentic-recommender-systems)  
+   evidence：视觉-语言-世界-动作模型及大规模驾驶数据集
+3. [Language-Conditioned World Modeling for Visual Navigation](/202604/01/2603.26741v1-language-conditioned-world-modeling-for-visual-navigation)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：具身智能体的世界建模，贡献数据集和框架
+4. [Codebase-Memory: Tree-Sitter-Based Knowledge Graphs for LLM Code Exploration via MCP](/202604/01/2603.27277v1-codebase-memory-tree-sitter-based-knowledge-graphs-for-llm-code-exploration-via-mcp)  
    标签：评分：8.0/10、query:agent
-   evidence：基于智能体的推荐系统架构
-3. [Automating Domain-Driven Design: Experience with a Prompting Framework](/202603/31/2603.26244v1-automating-domain-driven-design-experience-with-a-prompting-framework)  
-   标签：评分：8.0/10、query:agent
-   evidence：用于领域驱动设计的提示框架
-4. [AIRA_2: Overcoming Bottlenecks in AI Research Agents](/202603/31/2603.26499v1-aira2-overcoming-bottlenecks-in-ai-research-agents)  
-   标签：评分：8.0/10、query:agent
-   evidence：使用ReAct智能体的AI研究系统解决搜索瓶颈
-5. [Policy-Guided Threat Hunting: An LLM enabled Framework with Splunk SOC Triage](/202603/31/2603.23966v1-policy-guided-threat-hunting-an-llm-enabled-framework-with-splunk-soc-triage)  
-   标签：评分：7.0/10、query:agent
-   evidence：集成智能体AI的LLM威胁狩猎框架
-6. [Policy-Guided Threat Hunting: An LLM enabled Framework with Splunk SOC Triage](/202603/31/2603.23966v2-policy-guided-threat-hunting-an-llm-enabled-framework-with-splunk-soc-triage)  
-   标签：评分：7.0/10、query:agent
-   evidence：提出集成智能体AI与Splunk SIEM的自动化威胁狩猎框架
-7. [GraphER: An Efficient Graph-Based Enrichment and Reranking Method for Retrieval-Augmented Generation](/202603/31/2603.24925v1-grapher-an-efficient-graph-based-enrichment-and-reranking-method-for-retrieval-augmented-generation)  
-   标签：评分：7.0/10、query:agent
-   evidence：智能体检索策略，通过生成额外查询扩展语义搜索空间
-8. [MMaDA-VLA: Large Diffusion Vision-Language-Action Model with Unified Multi-Modal Instruction and Generation](/202603/31/2603.25406v1-mmada-vla-large-diffusion-vision-language-action-model-with-unified-multi-modal-instruction-and-generation)  
+   evidence：通过MCP为LLM编码智能体构建的知识图谱系统
+5. [MobileDev-Bench: A Comprehensive Benchmark for Evaluating Language Models on Mobile Application Development](/202604/01/2603.24946v1-mobiledev-bench-a-comprehensive-benchmark-for-evaluating-language-models-on-mobile-application-development)  
    标签：评分：7.0/10、query:wmodel
-   evidence：大型扩散VLA模型，统一多模态理解与生成用于机器人控制
-9. [CatRAG: Functor-Guided Structural Debiasing with Retrieval Augmentation for Fair LLMs](/202603/31/2603.21524v1-catrag-functor-guided-structural-debiasing-with-retrieval-augmentation-for-fair-llms)  
+   evidence：包含384个真实移动应用开发任务的基准数据集
+6. [Photon: Speedup Volume Understanding with Efficient Multimodal Large Language Models](/202604/01/2603.25155v1-photon-speedup-volume-understanding-with-efficient-multimodal-large-language-models)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于高效3D医学体数据理解的框架
+7. [Training the Knowledge Base through Evidence Distillation and Write-Back Enrichment](/202604/01/2603.25737v1-training-the-knowledge-base-through-evidence-distillation-and-write-back-enrichment)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于知识库训练的WriteBack-RAG框架
+8. [ReCUBE: Evaluating Repository-Level Context Utilization in Code Generation](/202604/01/2603.25770v1-recube-evaluating-repository-level-context-utilization-in-code-generation)  
+   标签：评分：7.0/10、query:agent
+   evidence：评估LLM代码生成中仓库级上下文利用的基准
+9. [Design Space and Implementation of RAG-Based Avatars for Virtual Archaeology](/202604/01/2603.23353v1-design-space-and-implementation-of-rag-based-avatars-for-virtual-archaeology)  
    标签：评分：6.0/10、query:agent
-   evidence：基于RAG的LLM去偏框架，含结构化引导
-10. [VideoDetective: Clue Hunting via both Extrinsic Query and Intrinsic Relevance for Long Video Understanding](/202603/31/2603.22285v1-videodetective-clue-hunting-via-both-extrinsic-query-and-intrinsic-relevance-for-long-video-understanding)  
-   标签：评分：6.0/10、query:agent
-   evidence：VideoDetective框架用于查询相关视频片段定位
-11. [CoCR-RAG: Enhancing Retrieval-Augmented Generation in Web Q&A via Concept-oriented Context Reconstruction](/202603/31/2603.23989v1-cocr-rag-enhancing-retrieval-augmented-generation-in-web-qa-via-concept-oriented-context-reconstruction)  
-   标签：评分：6.0/10、query:agent
-   evidence：用于网页问答多源文档融合的RAG框架
-12. [Beyond the Golden Data: Resolving the Motion-Vision Quality Dilemma via Timestep Selective Training](/202603/31/2603.25527v1-beyond-the-golden-data-resolving-the-motion-vision-quality-dilemma-via-timestep-selective-training)  
+   evidence：RAG对话化身的框架设计空间
+10. [IslamicMMLU: A Benchmark for Evaluating LLMs on Islamic Knowledge](/202604/01/2603.23750v1-islamicmmlu-a-benchmark-for-evaluating-llms-on-islamic-knowledge)  
    标签：评分：6.0/10、query:wmodel
-   evidence：视频生成模型的数据集构建
+   evidence：用于评估LLM伊斯兰知识的综合基准数据集
+11. [Not All Entities are Created Equal: A Dynamic Anonymization Framework for Privacy-Preserving Retrieval-Augmented Generation](/202604/01/2603.26074v1-not-all-entities-are-created-equal-a-dynamic-anonymization-framework-for-privacy-preserving-retrieval-augmented-generation)  
+   标签：评分：6.0/10、query:agent
+   evidence：提出用于隐私保护RAG的动态匿名化框架
+12. [Structured Observation Language for Efficient and Generalizable Vision-Language Navigation](/202604/01/2603.27577v1-structured-observation-language-for-efficient-and-generalizable-vision-language-navigation)  
+   标签：评分：6.0/10、query:agent
+   evidence：使用结构化观察的视觉语言导航具身智能体
 
 
 <div class="dpr-home-promo-card">
