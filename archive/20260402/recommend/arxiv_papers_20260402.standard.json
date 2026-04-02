@@ -1,0 +1,975 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-02T19:57:14.400962+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 28,
+    "deep_cap": 7,
+    "deep_selected": 11,
+    "quick_candidates": 32,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.27524v1",
+      "title": "Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs",
+      "abstract": "AI coding agents are increasingly integrated into modern software engineering workflows, actively collaborating with human developers to create pull requests (PRs) in open-source repositories. Although coding agents improve developer productivity, they often generate code with more bugs and security issues than human-authored code. While human-authored PRs often break backward compatibility, leading to breaking changes, the potential for agentic PRs to introduce breaking changes remains underexplored. The goal of this paper is to help developers and researchers evaluate the reliability of AI-generated PRs by examining the frequency and task contexts in which AI agents introduce breaking changes. We conduct a comparative analysis of 7,191 agent-generated PRs with 1402 human-authored PRs from Python repositories in the AIDev dataset. We develop a tool that analyzes code changes in commits corresponding to the agentic PRs and leverages an abstract syntax tree (AST) based analysis to detect potential breaking changes. Our findings show that AI agents introduce fewer breaking changes overall than humans (3.45% vs. 7.40%) in code generation tasks. However, agents exhibit substantially higher risk during maintenance tasks, with refactoring and chore changes introducing breaking changes at rates of 6.72% and 9.35%, respectively. We also identify a \"Confidence Trap\" where highly confident agentic PRs still introduce breaking changes, indicating the need for stricter review during maintenance oriented changes regardless of reported confidence score.",
+      "authors": [
+        "K M Ferdous",
+        "Dipayan Banik",
+        "Kowshik Chowdhury",
+        "Shazibul Islam Shamim"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-29T05:15:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.27524v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "comparative study of AI coding agents creating pull requests",
+      "llm_evidence_cn": "AI代码智能体创建PR的比较研究",
+      "llm_evidence": "AI代码智能体创建PR的比较研究",
+      "canonical_evidence": "AI代码智能体创建PR的比较研究",
+      "llm_tldr_en": "Study comparing breaking changes in human vs AI coding agent pull requests in open-source repositories.",
+      "llm_tldr_cn": "比较人类与AI代码智能体在开源仓库PR中引入破坏性变更的研究。",
+      "llm_tldr": "比较人类与AI代码智能体在开源仓库PR中引入破坏性变更的研究。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.28955v1",
+      "title": "Enhancing Policy Learning with World-Action Model",
+      "abstract": "This paper presents the World-Action Model (WAM), an action-regularized world model that jointly reasons over future visual observations and the actions that drive state transitions. Unlike conventional world models trained solely via image prediction, WAM incorporates an inverse dynamics objective into DreamerV2 that predicts actions from latent state transitions, encouraging the learned representations to capture action-relevant structure critical for downstream control. We evaluate WAM on enhancing policy learning across eight manipulation tasks from the CALVIN benchmark. We first pretrain a diffusion policy via behavioral cloning on world model latents, then refine it with model-based PPO inside the frozen world model. Without modifying the policy architecture or training procedure, WAM improves average behavioral cloning success from 59.4% to 71.2% over DreamerV2 and DiWA baselines. After PPO fine-tuning, WAM achieves 92.8% average success versus 79.8% for the baseline, with two tasks reaching 100%, using 8.7x fewer training steps.",
+      "authors": [
+        "Yuci Han",
+        "Alper Yilmaz"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-30T19:56:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.28955v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World-Action Model for policy learning",
+      "llm_evidence_cn": "用于策略学习的世界-动作模型",
+      "llm_evidence": "用于策略学习的世界-动作模型",
+      "canonical_evidence": "用于策略学习的世界-动作模型",
+      "llm_tldr_en": "Presents an action-regularized world model that jointly reasons over observations and actions for control.",
+      "llm_tldr_cn": "提出动作正则化世界模型，联合推理观测和动作以实现控制。",
+      "llm_tldr": "提出动作正则化世界模型，联合推理观测和动作以实现控制。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29630v1",
+      "title": "BigEarthNet.txt: A Large-Scale Multi-Sensor Image-Text Dataset and Benchmark for Earth Observation",
+      "abstract": "Vision-langugage models (VLMs) have shown strong performance in computer vision (CV), yet their performance on remote sensing (RS) data remains limited due to the lack of large-scale, multi-sensor RS image-text datasets with diverse textual annotations. Existing datasets predominantly include aerial Red-Green-Blue imagery, with short or weakly grounded captions, and provide limited diversity in annotation types. To address this limitation, we introduce BigEarthNet.txt, a large-scale, multi-sensor image-text dataset designed to advance instruction-driven image-text learning in Earth observation across multiple tasks. BigEarthNet.txt contains 464044 co-registered Sentinel-1 synthetic aperture radar and Sentinel-2 multispectral images with 9.6M text annotations, including: i) geographically anchored captions describing land-use/land-cover (LULC) classes, their spatial relations, and environmental context; ii) visual question answering pairs relevant for different tasks; and iii) referring expression detection instructions for bounding box prediction. Through a comparative statistical analysis, we demonstrate that BigEarthNet.txt surpasses existing RS image-text datasets in textual richness and annotation type variety. We further establish a manually-verified benchmark split to evaluate VLMs in RS and CV. The results show the limitations of these models on tasks that involve complex LULC classes, whereas fine-tuning using BigEarthNet.txt results in consistent performance gains across all considered tasks.",
+      "authors": [
+        "Johann-Ludwig Herzog",
+        "Mathis Jürgen Adler",
+        "Leonard Hackel",
+        "Yan Shu",
+        "Angelos Zavras",
+        "Ioannis Papoutsis",
+        "Paolo Rota",
+        "Begüm Demir"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-31T11:52:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.29630v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "large-scale multi-sensor image-text dataset",
+      "llm_evidence_cn": "大规模多传感器图文数据集",
+      "llm_evidence": "大规模多传感器图文数据集",
+      "canonical_evidence": "大规模多传感器图文数据集",
+      "llm_tldr_en": "Introduces BigEarthNet.txt, a large-scale multi-sensor image-text dataset for Earth observation tasks.",
+      "llm_tldr_cn": "发布BigEarthNet.txt大规模多传感器图文数据集用于地球观测任务。",
+      "llm_tldr": "发布BigEarthNet.txt大规模多传感器图文数据集用于地球观测任务。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29844v1",
+      "title": "DIAL: Decoupling Intent and Action via Latent World Modeling for End-to-End VLA",
+      "abstract": "The development of Vision-Language-Action (VLA) models has been significantly accelerated by pre-trained Vision-Language Models (VLMs). However, most existing end-to-end VLAs treat the VLM primarily as a multimodal encoder, directly mapping vision-language features to low-level actions. This paradigm underutilizes the VLM's potential in high-level decision making and introduces training instability, frequently degrading its rich semantic representations. To address these limitations, we introduce DIAL, a framework bridging high-level decision making and low-level motor execution through a differentiable latent intent bottleneck. Specifically, a VLM-based System-2 performs latent world modeling by synthesizing latent visual foresight within the VLM's native feature space; this foresight explicitly encodes intent and serves as the structural bottleneck. A lightweight System-1 policy then decodes this predicted intent together with the current observation into precise robot actions via latent inverse dynamics. To ensure optimization stability, we employ a two-stage training paradigm: a decoupled warmup phase where System-2 learns to predict latent futures while System-1 learns motor control under ground-truth future guidance within a unified feature space, followed by seamless end-to-end joint optimization. This enables action-aware gradients to refine the VLM backbone in a controlled manner, preserving pre-trained knowledge. Extensive experiments on the RoboCasa GR1 Tabletop benchmark show that DIAL establishes a new state-of-the-art, achieving superior performance with 10x fewer demonstrations than prior methods. Furthermore, by leveraging heterogeneous human demonstrations, DIAL learns physically grounded manipulation priors and exhibits robust zero-shot generalization to unseen objects and novel configurations during real-world deployment on a humanoid robot.",
+      "authors": [
+        "Yi Chen",
+        "Yuying Ge",
+        "Hui Zhou",
+        "Mingyu Ding",
+        "Yixiao Ge",
+        "Xihui Liu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-31T15:02:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.29844v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Vision-Language-Action agent with latent world modeling for decision making",
+      "llm_evidence_cn": "具有潜在世界建模的视觉-语言-动作智能体用于决策",
+      "llm_evidence": "具有潜在世界建模的视觉-语言-动作智能体用于决策",
+      "canonical_evidence": "具有潜在世界建模的视觉-语言-动作智能体用于决策",
+      "llm_tldr_en": "Introduces DIAL framework bridging high-level intent and low-level action via latent world modeling.",
+      "llm_tldr_cn": "提出DIAL框架通过潜在世界建模连接高层意图与底层动作。",
+      "llm_tldr": "提出DIAL框架通过潜在世界建模连接高层意图与底层动作。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00073v1",
+      "title": "Terminal Agents Suffice for Enterprise Automation",
+      "abstract": "There has been growing interest in building agents that can interact with digital platforms to execute meaningful enterprise tasks autonomously. Among the approaches explored are tool-augmented agents built on abstractions such as Model Context Protocol (MCP) and web agents that operate through graphical interfaces. Yet, it remains unclear whether such complex agentic systems are necessary given their cost and operational overhead. We argue that a coding agent equipped only with a terminal and a filesystem can solve many enterprise tasks more effectively by interacting directly with platform APIs. We evaluate this hypothesis across diverse real-world systems and show that these low-level terminal agents match or outperform more complex agent architectures. Our findings suggest that simple programmatic interfaces, combined with strong foundation models, are sufficient for practical enterprise automation.",
+      "authors": [
+        "Patrice Bechard",
+        "Orlando Marquez Ayala",
+        "Emily Chen",
+        "Jordan Skelton",
+        "Sagar Davasam",
+        "Srinivas Sunkara",
+        "Vikas Yadav",
+        "Sai Rajeswar"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-31T14:14:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.00073v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Terminal-based coding agents for enterprise automation tasks",
+      "llm_evidence_cn": "基于终端的代码智能体用于企业自动化任务",
+      "llm_evidence": "基于终端的代码智能体用于企业自动化任务",
+      "canonical_evidence": "基于终端的代码智能体用于企业自动化任务",
+      "llm_tldr_en": "Terminal agents with filesystem access match or outperform complex agent architectures for enterprise tasks.",
+      "llm_tldr_cn": "配备文件系统的终端智能体在企业任务中匹敌或超越复杂智能体架构。",
+      "llm_tldr": "配备文件系统的终端智能体在企业任务中匹敌或超越复杂智能体架构。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00491v1",
+      "title": "Executing as You Generate: Hiding Execution Latency in LLM Code Generation",
+      "abstract": "Current LLM-based coding agents follow a serial execution paradigm: the model first generates the complete code, then invokes an interpreter to execute it. This sequential workflow leaves the executor idle during generation and the generator idle during execution, resulting in unnecessary end-to-end latency. We observe that, unlike human developers, LLMs produce code tokens sequentially without revision, making it possible to execute code as it is being generated. We formalize this parallel execution paradigm, modeling it as a three-stage pipeline of generation, detection, and execution, and derive closed-form latency bounds that characterize its speedup potential and operating regimes. We then present Eager, a concrete implementation featuring AST-based chunking, dynamic batching with gated execution, and early error interruption. We evaluate Eager across four benchmarks, seven LLMs, and three execution environments. Results show that Eager reduces the non-overlapped execution latency by up to 99.9% and the end-to-end latency by up to 55% across seven LLMs and four benchmarks.",
+      "authors": [
+        "Zhensu Sun",
+        "Zhihao Lin",
+        "Zhi Chen",
+        "Chengran Yang",
+        "Mingyi Zhou",
+        "Li Li",
+        "David Lo"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL",
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-04-01T05:17:53+00:00",
+      "link": "https://arxiv.org/pdf/2604.00491v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based coding agent with parallel execution paradigm for reduced latency",
+      "llm_evidence_cn": "具有并行执行范式以减少延迟的LLM代码智能体",
+      "llm_evidence": "具有并行执行范式以减少延迟的LLM代码智能体",
+      "canonical_evidence": "具有并行执行范式以减少延迟的LLM代码智能体",
+      "llm_tldr_en": "Presents Eager system enabling code execution during generation for LLM coding agents.",
+      "llm_tldr_cn": "提出Eager系统使LLM代码智能体在生成时并行执行代码。",
+      "llm_tldr": "提出Eager系统使LLM代码智能体在生成时并行执行代码。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00824v1",
+      "title": "Yet Even Less Is Even Better For Agentic, Reasoning, and Coding LLMs",
+      "abstract": "Training effective software engineering agents requires large volumes of task-specific trajectories, incurring substantial data construction costs. Inspired by the \"Less-Is-More\" hypothesis in mathematical reasoning, we investigate its extension to agentic scenarios and propose an end-to-end training framework that achieves superior agentic capabilities with fewer but higher-quality training trajectories. This is achieved via STITCH (Sliding-memory Trajectory Inference and Task Chunking Heuristic), a coarse-to-fine mechanism that filters low-value noise and retains decision-critical tokens to maximize training signal quality. We conduct experiments across multiple agent frameworks (e.g., mini-SWE-agent, MSWE-agent), model scales (30B to 355B), and multilingual settings (Python, Java, and ArkTS). On SWE-bench Verified, models trained with STITCH achieve up to 63.16% relative improvement over base models. On Multi-SWE-bench (Java), MiniMax-M2.5-STITCH achieves 43.75% with our CodeArts Agent scaffold (+16.67%). On HarmonyOS (ArkTS), GLM-4.7-STITCH improves the compilation pass rate to 61.31% (+43.34%) with less than 1K training trajectories. Our results confirm that the \"Less-Is-More\" paradigm generalizes effectively to complex agentic tasks across diverse languages and model scales.",
+      "authors": [
+        "Yang Ye",
+        "Jingyuan Tan",
+        "Tianyue Jiang",
+        "Ruizhe Ye",
+        "Qiankun He",
+        "Jiarui Yang",
+        "Jian Dong",
+        "Sicong Liang",
+        "Chongjian Yue",
+        "Peibai Xu",
+        "Lufan Lu",
+        "Taotao Qian",
+        "Junbao Hu",
+        "Yuechan Hao",
+        "Ensheng Shi",
+        "Qi Zhang",
+        "Yi Hao",
+        "Na Fan",
+        "Xin Tan",
+        "Shuai Yao",
+        "Zhiwei Shen",
+        "Zongchen Li",
+        "Yanlin Wang",
+        "Chong Chen",
+        "Yuchi Ma"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-01T12:33:25+00:00",
+      "link": "https://arxiv.org/pdf/2604.00824v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Training framework for software engineering agents with STITCH",
+      "llm_evidence_cn": "用STITCH训练软件工程智能体的框架",
+      "llm_evidence": "用STITCH训练软件工程智能体的框架",
+      "canonical_evidence": "用STITCH训练软件工程智能体的框架",
+      "llm_tldr_en": "Proposes STITCH framework to train effective coding agents with fewer but higher-quality trajectories.",
+      "llm_tldr_cn": "提出STITCH框架，用更少但更高质量的轨迹训练高效编程智能体。",
+      "llm_tldr": "提出STITCH框架，用更少但更高质量的轨迹训练高效编程智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00917v1",
+      "title": "Investigating Autonomous Agent Contributions in the Wild: Activity Patterns and Code Change over Time",
+      "abstract": "The rise of large language models for code has reshaped software development. Autonomous coding agents, able to create branches, open pull requests, and perform code reviews, now actively contribute to real-world projects. Their growing role offers a unique and timely opportunity to investigate AI-driven contributions and their effects on code quality, team dynamics, and software maintainability. In this work, we construct a novel dataset of approximately $110,000$ open-source pull requests, including associated commits, comments, reviews, issues, and file changes, collectively representing millions of lines of source code. We compare five popular coding agents, including OpenAI Codex, Claude Code, GitHub Copilot, Google Jules, and Devin, examining how their usage differs in various development aspects such as merge frequency, edited file types, and developer interaction signals, including comments and reviews. Furthermore, we emphasize that code authoring and review are only a small part of the larger software engineering process, as the resulting code must also be maintained and updated over time. Hence, we offer several longitudinal estimates of survival and churn rates for agent-generated versus human-authored code. Ultimately, our findings indicate an increasing agent activity in open-source projects, although their contributions are associated with more churn over time compared to human-authored code.",
+      "authors": [
+        "Razvan Mihai Popescu",
+        "David Gros",
+        "Andrei Botocan",
+        "Rahul Pandita",
+        "Prem Devanbu",
+        "Maliheh Izadi"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-01T13:58:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.00917v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Empirical study of autonomous coding agents in open-source",
+      "llm_evidence_cn": "开源项目中自主编程智能体的实证研究",
+      "llm_evidence": "开源项目中自主编程智能体的实证研究",
+      "canonical_evidence": "开源项目中自主编程智能体的实证研究",
+      "llm_tldr_en": "Large-scale study of coding agents' contributions to real-world open-source projects.",
+      "llm_tldr_cn": "大规模研究编程智能体对真实开源项目的贡献。",
+      "llm_tldr": "大规模研究编程智能体对真实开源项目的贡献。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00969v1",
+      "title": "DLWM: Dual Latent World Models enable Holistic Gaussian-centric Pre-training in Autonomous Driving",
+      "abstract": "Vision-based autonomous driving has gained much attention due to its low costs and excellent performance. Compared with dense BEV (Bird's Eye View) or sparse query models, Gaussian-centric method is a comprehensive yet sparse representation by describing scene with 3D semantic Gaussians. In this paper, we introduce DLWM, a novel paradigm with Dual Latent World Models specifically designed to enable holistic gaussian-centric pre-training in autonomous driving using two stages. In the first stage, DLWM predicts 3D Gaussians from queries by self-supervised reconstructing multi-view semantic and depth images. Equipped with fine-grained contextual features, in the second stage, two latent world models are trained separately for temporal feature learning, including Gaussian-flow-guided latent prediction for downstream occupancy perception and forecasting tasks, and ego-planning-guided latent prediction for motion planning. Extensive experiments in SurroundOcc and nuScenes benchmarks demonstrate that DLWM shows significant performance gains across Gaussian-centric 3D occupancy perception, 4D occupancy forecasting and motion planning tasks.",
+      "authors": [
+        "Yiyao Zhu",
+        "Ying Xue",
+        "Haiming Zhang",
+        "Guangfeng Jiang",
+        "Wending Zhou",
+        "Xu Yan",
+        "Jiantao Gao",
+        "Yingjie Cai",
+        "Bingbing Liu",
+        "Zhen Li",
+        "Shaojie Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-01T14:41:21+00:00",
+      "link": "https://arxiv.org/pdf/2604.00969v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Dual Latent World Models with queries for autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶的双潜世界模型与查询",
+      "llm_evidence": "用于自动驾驶的双潜世界模型与查询",
+      "canonical_evidence": "用于自动驾驶的双潜世界模型与查询",
+      "llm_tldr_en": "Introduces DLWM with dual latent world models using queries for Gaussian-centric pre-training in autonomous driving.",
+      "llm_tldr_cn": "提出DLWM双潜世界模型，使用查询实现自动驾驶高斯中心预训练。",
+      "llm_tldr": "提出DLWM双潜世界模型，使用查询实现自动驾驶高斯中心预训练。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.01195v1",
+      "title": "ORBIT: Scalable and Verifiable Data Generation for Search Agents on a Tight Budget",
+      "abstract": "Search agents, which integrate language models (LMs) with web search, are becoming crucial for answering complex user queries. Constructing training datasets for deep research tasks, involving multi-step retrieval and reasoning, remains challenging due to expensive human annotation, or cumbersome prerequisites. In this work, we introduce ORBIT, a training dataset with 20K reasoning-intensive queries with short verifiable answers, generated using a frugal framework without relying on paid API services. The modular framework relies on four stages: seed creation, question--answer pair generation, and two stages of verification: self and external. ORBIT spans 15 domains and each training pair requires 4--5 reasoning steps, with external search verification required from the complete web. We train Qwen3-4B as the base model on ORBIT using GRPO and evaluate it on Wikipedia question answering tasks. Extensive experiment results demonstrate that ORBIT-4B achieves strong performance among sub-4B LLMs as search agents, proving the utility of synthetic datasets. Our framework, code and datasets are open-sourced and available publicly.",
+      "authors": [
+        "Nandan Thakur",
+        "Zijian Chen",
+        "Xueguang Ma",
+        "Jimmy Lin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-04-01T17:42:41+00:00",
+      "link": "https://arxiv.org/pdf/2604.01195v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Dataset generation framework for search agents",
+      "llm_evidence_cn": "搜索智能体的数据集生成框架",
+      "llm_evidence": "搜索智能体的数据集生成框架",
+      "canonical_evidence": "搜索智能体的数据集生成框架",
+      "llm_tldr_en": "Introduces ORBIT, a scalable dataset with 20K queries for training search agents.",
+      "llm_tldr_cn": "提出ORBIT数据集，包含2万条查询用于训练搜索智能体。",
+      "llm_tldr": "提出ORBIT数据集，包含2万条查询用于训练搜索智能体。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.01221v1",
+      "title": "HippoCamp: Benchmarking Contextual Agents on Personal Computers",
+      "abstract": "We present HippoCamp, a new benchmark designed to evaluate agents' capabilities on multimodal file management. Unlike existing agent benchmarks that focus on tasks like web interaction, tool use, or software automation in generic settings, HippoCamp evaluates agents in user-centric environments to model individual user profiles and search massive personal files for context-aware reasoning. Our benchmark instantiates device-scale file systems over real-world profiles spanning diverse modalities, comprising 42.4 GB of data across over 2K real-world files. Building upon the raw files, we construct 581 QA pairs to assess agents' capabilities in search, evidence perception, and multi-step reasoning. To facilitate fine-grained analysis, we provide 46.1K densely annotated structured trajectories for step-wise failure diagnosis. We evaluate a wide range of state-of-the-art multimodal large language models (MLLMs) and agentic methods on HippoCamp. Our comprehensive experiments reveal a significant performance gap: even the most advanced commercial models achieve only 48.3% accuracy in user profiling, struggling particularly with long-horizon retrieval and cross-modal reasoning within dense personal file systems. Furthermore, our step-wise failure diagnosis identifies multimodal perception and evidence grounding as the primary bottlenecks. Ultimately, HippoCamp exposes the critical limitations of current agents in realistic, user-centric environments and provides a robust foundation for developing next-generation personal AI assistants.",
+      "authors": [
+        "Zhe Yang",
+        "Shulin Tian",
+        "Kairui Hu",
+        "Shuai Liu",
+        "Hoang-Nhat Nguyen",
+        "Yichi Zhang",
+        "Zujin Guo",
+        "Mengying Yu",
+        "Zinan Zhang",
+        "Jingkang Yang",
+        "Chen Change Loy",
+        "Ziwei Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-04-01T17:58:33+00:00",
+      "link": "https://arxiv.org/pdf/2604.01221v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "benchmark for agents performing search on personal files; evaluates search and reasoning capabilities",
+      "llm_evidence_cn": "用于评估智能体在个人文件上执行搜索的基准；评估搜索和推理能力",
+      "llm_evidence": "用于评估智能体在个人文件上执行搜索的基准；评估搜索和推理能力",
+      "canonical_evidence": "用于评估智能体在个人文件上执行搜索的基准；评估搜索和推理能力",
+      "llm_tldr_en": "HippoCamp benchmarks contextual agents on multimodal file management with search and reasoning tasks.",
+      "llm_tldr_cn": "HippoCamp基准评估智能体在多模态文件管理中的搜索和推理能力。",
+      "llm_tldr": "HippoCamp基准评估智能体在多模态文件管理中的搜索和推理能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.24506v2",
+      "title": "Toward Physically Consistent Driving Video World Models under Challenging Trajectories",
+      "abstract": "Video generation models have shown strong potential as world models for autonomous driving simulation. However, existing approaches are primarily trained on real-world driving datasets, which mostly contain natural and safe driving scenarios. As a result, current models often fail when conditioned on challenging or counterfactual trajectories-such as imperfect trajectories generated by simulators or planning systems-producing videos with severe physical inconsistencies and artifacts. To address this limitation, we propose PhyGenesis, a world model designed to generate driving videos with high visual fidelity and strong physical consistency. Our framework consists of two key components: (1) a physical condition generator that transforms potentially invalid trajectory inputs into physically plausible conditions, and (2) a physics-enhanced video generator that produces high-fidelity multi-view driving videos under these conditions. To effectively train these components, we construct a large-scale, physics-rich heterogeneous dataset. Specifically, in addition to real-world driving videos, we generate diverse challenging driving scenarios using the CARLA simulator, from which we derive supervision signals that guide the model to learn physically grounded dynamics under extreme conditions. This challenging-trajectory learning strategy enables trajectory correction and promotes physically consistent video generation. Extensive experiments demonstrate that PhyGenesis consistently outperforms state-of-the-art methods, especially on challenging trajectories. Our project page is available at: https://wm-research.github.io/PhyGenesis/.",
+      "authors": [
+        "Jiawei Zhou",
+        "Zhenxin Zhu",
+        "Lingyi Du",
+        "Linye Lyu",
+        "Lijun Zhou",
+        "Zhanqian Wu",
+        "Hongcheng Luo",
+        "Zhuotao Tian",
+        "Bing Wang",
+        "Guang Chen",
+        "Hangjun Ye",
+        "Haiyang Sun",
+        "Yu Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-25T16:47:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.24506v2",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "World model framework for physically consistent driving video generation",
+      "llm_evidence_cn": "用于物理一致性驾驶视频生成的世界模型框架",
+      "llm_evidence": "用于物理一致性驾驶视频生成的世界模型框架",
+      "canonical_evidence": "用于物理一致性驾驶视频生成的世界模型框架",
+      "llm_tldr_en": "Proposes PhyGenesis world model for generating driving videos with physical consistency.",
+      "llm_tldr_cn": "提出PhyGenesis世界模型生成具有物理一致性的驾驶视频。",
+      "llm_tldr": "提出PhyGenesis世界模型生成具有物理一致性的驾驶视频。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.25144v1",
+      "title": "FD$^2$: A Dedicated Framework for Fine-Grained Dataset Distillation",
+      "abstract": "Dataset distillation (DD) compresses a large training set into a small synthetic set, reducing storage and training cost, and has shown strong results on general benchmarks. Decoupled DD further improves efficiency by splitting the pipeline into pretraining, sample distillation, and soft-label generation. However, existing decoupled methods largely rely on coarse class-label supervision and optimize samples within each class in a nearly identical manner. On fine-grained datasets, this often yields distilled samples that (i) retain large intra-class variation with subtle inter-class differences and (ii) become overly similar within the same class, limiting localized discriminative cues and hurting recognition. To solve the above-mentioned problems, we propose FD$^{2}$, a dedicated framework for Fine-grained Dataset Distillation. FD$^{2}$ localizes discriminative regions and constructs fine-grained representations for distillation. During pretraining, counterfactual attention learning aggregates discriminative representations to update class prototypes. During distillation, a fine-grained characteristic constraint aligns each sample with its class prototype while repelling others, and a similarity constraint diversifies attention across same-class samples. Experiments on multiple fine-grained and general datasets show that FD$^{2}$ integrates seamlessly with decoupled DD and improves performance in most settings, indicating strong transferability.",
+      "authors": [
+        "Hongxu Ma",
+        "Guang Li",
+        "Shijie Wang",
+        "Dongzhan Zhou",
+        "Baoli Sun",
+        "Takahiro Ogawa",
+        "Miki Haseyama",
+        "Zhihui Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T08:03:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.25144v1",
+      "tags": [
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Framework for fine-grained dataset distillation",
+      "llm_evidence_cn": "细粒度数据集蒸馏框架",
+      "llm_evidence": "细粒度数据集蒸馏框架",
+      "canonical_evidence": "细粒度数据集蒸馏框架",
+      "llm_tldr_en": "Proposes a dedicated framework for distilling fine-grained datasets to improve recognition on subtle inter-class differences.",
+      "llm_tldr_cn": "提出专门框架用于细粒度数据集蒸馏，改善细微类间差异识别。",
+      "llm_tldr": "提出专门框架用于细粒度数据集蒸馏，改善细微类间差异识别。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.27695v1",
+      "title": "Optimizing Coverage and Difficulty in Reinforcement Learning for Quiz Composition",
+      "abstract": "Quiz design is a tedious process that teachers undertake to evaluate the acquisition of knowledge by students. Our goal in this paper is to automate quiz composition from a set of multiple choice questions (MCQs). We formalize a generic sequential decision-making problem with the goal of training an agent to compose a quiz that meets the desired topic coverage and difficulty levels. We investigate DQN, SARSA and A2C/A3C, three reinforcement learning solutions to solve our problem. We run extensive experiments on synthetic and real datasets that study the ability of RL to land on the best quiz. Our results reveal subtle differences in agent behavior and in transfer learning with different data distributions and teacher goals. This was supported by our user study, paving the way for automating various teachers' pedagogical goals.",
+      "authors": [
+        "Ricardo Pedro Querido Andrade Silva",
+        "Nassim Bouarour",
+        "Dina Fettache",
+        "Sarab Boussouar",
+        "Noha Ibrahim",
+        "Sihem Amer-Yahia"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-29T13:46:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.27695v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "RL agent trained to compose quizzes with coverage and difficulty optimization",
+      "llm_evidence_cn": "训练RL智能体进行具有覆盖度和难度优化的测验组合",
+      "llm_evidence": "训练RL智能体进行具有覆盖度和难度优化的测验组合",
+      "canonical_evidence": "训练RL智能体进行具有覆盖度和难度优化的测验组合",
+      "llm_tldr_en": "Uses DQN, SARSA and A2C agents to automate quiz composition from MCQ banks.",
+      "llm_tldr_cn": "使用DQN、SARSA和A2C智能体从选择题库自动组合测验。",
+      "llm_tldr": "使用DQN、SARSA和A2C智能体从选择题库自动组合测验。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.24587v2",
+      "title": "DreamerAD: Efficient Reinforcement Learning via Latent World Model for Autonomous Driving",
+      "abstract": "We introduce DreamerAD, the first latent world model framework that enables efficient reinforcement learning for autonomous driving by compressing diffusion sampling from 100 steps to 1 - achieving 80x speedup while maintaining visual interpretability. Training RL policies on real-world driving data incurs prohibitive costs and safety risks. While existing pixel-level diffusion world models enable safe imagination-based training, they suffer from multi-step diffusion inference latency (2s/frame) that prevents high-frequency RL interaction. Our approach leverages denoised latent features from video generation models through three key mechanisms: (1) shortcut forcing that reduces sampling complexity via recursive multi-resolution step compression, (2) an autoregressive dense reward model operating directly on latent representations for fine-grained credit assignment, and (3) Gaussian vocabulary sampling for GRPO that constrains exploration to physically plausible trajectories. DreamerAD achieves 87.7 EPDMS on NavSim v2, establishing state-of-the-art performance and demonstrating that latent-space RL is effective for autonomous driving.",
+      "authors": [
+        "Pengxuan Yang",
+        "Yupeng Zheng",
+        "Deheng Qian",
+        "Zebin Xing",
+        "Qichao Zhang",
+        "Linbo Wang",
+        "Yichen Zhang",
+        "Shaoyu Guo",
+        "Zhongpu Xia",
+        "Qiang Chen",
+        "Junyu Han",
+        "Lingyun Xu",
+        "Yifeng Pan",
+        "Dongbin Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-03-25T17:57:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.24587v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Latent world model framework for RL-based autonomous driving",
+      "llm_evidence_cn": "用于自动驾驶强化学习的潜在世界模型框架",
+      "llm_evidence": "用于自动驾驶强化学习的潜在世界模型框架",
+      "canonical_evidence": "用于自动驾驶强化学习的潜在世界模型框架",
+      "llm_tldr_en": "DreamerAD introduces a latent world model framework achieving 80x speedup for autonomous driving RL.",
+      "llm_tldr_cn": "DreamerAD提出潜在世界模型框架，实现自动驾驶强化学习80倍加速。",
+      "llm_tldr": "DreamerAD提出潜在世界模型框架，实现自动驾驶强化学习80倍加速。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.25415v1",
+      "title": "Modernising Reinforcement Learning-Based Navigation for Embodied Semantic Scene Graph Generation",
+      "abstract": "Semantic world models enable embodied agents to reason about objects, relations, and spatial context beyond purely geometric representations. In Organic Computing, such models are a key enabler for objective-driven self-adaptation under uncertainty and resource constraints. The core challenge is to acquire observations maximising model quality and downstream usefulness within a limited action budget.   Semantic scene graphs (SSGs) provide a structured and compact representation for this purpose. However, constructing them within a finite action horizon requires exploration strategies that trade off information gain against navigation cost and decide when additional actions yield diminishing returns.   This work presents a modular navigation component for Embodied Semantic Scene Graph Generation and modernises its decision-making by replacing the policy-optimisation method and revisiting the discrete action formulation. We study compact and finer-grained, larger discrete motion sets and compare a single-head policy over atomic actions with a factorised multi-head policy over action components. We evaluate curriculum learning and optional depth-based collision supervision, and assess SSG completeness, execution safety, and navigation behaviour.   Results show that replacing the optimisation algorithm alone improves SSG completeness by 21\\% relative to the baseline under identical reward shaping. Depth mainly affects execution safety (collision-free motion), while completeness remains largely unchanged. Combining modern optimisation with a finer-grained, factorised action representation yields the strongest overall completeness--efficiency trade-off.",
+      "authors": [
+        "Roman Kueble",
+        "Marco Hueller",
+        "Mrunmai Phatak",
+        "Rainer Lienhart",
+        "Joerg Haehner"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-03-26T13:10:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.25415v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Semantic world models for embodied agents navigation",
+      "llm_evidence_cn": "用于具身智能体导航的语义世界模型",
+      "llm_evidence": "用于具身智能体导航的语义世界模型",
+      "canonical_evidence": "用于具身智能体导航的语义世界模型",
+      "llm_tldr_en": "RL-based navigation framework for embodied agents to build semantic scene graphs as world models.",
+      "llm_tldr_cn": "基于强化学习的具身智能体导航框架，构建语义场景图作为世界模型。",
+      "llm_tldr": "基于强化学习的具身智能体导航框架，构建语义场景图作为世界模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28968v1",
+      "title": "Large Neighborhood Search for Multi-Agent Task Assignment and Path Finding with Precedence Constraints",
+      "abstract": "Many multi-robot applications require tasks to be completed efficiently and in the correct order, so that downstream operations can proceed at the right time. Multi-agent path finding with precedence constraints (MAPF-PC) is a well-studied framework for computing collision-free plans that satisfy ordering relations when task sequences are fixed in advance. In many applications, however, solution quality depends not only on how agents move, but also on which agent performs which task. This motivates the lifted problem of task assignment and path finding with precedence constraints (TAPF-PC), which extends MAPF-PC by jointly optimizing assignment, precedence satisfaction, and routing cost. To address the resulting coupled TAPF-PC search space, we develop a large neighborhood search approach that starts from a feasible MAPF-PC seed and iteratively improves it through reassignment-based neighborhood repair, restoring feasibility within each selected neighborhood. Experiments across multiple benchmark families and scaling regimes show that the best-performing configuration improves 89.1% of instances over fixed-assignment seed solutions, demonstrating that large neighborhood search effectively captures the gains from flexible reassignment under precedence constraints.",
+      "authors": [
+        "Viraj Parimi",
+        "Brian C. Williams"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.MA"
+      ],
+      "published": "2026-03-30T20:12:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.28968v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "multi-agent path finding framework with task assignment",
+      "llm_evidence_cn": "多智能体路径规划与任务分配框架",
+      "llm_evidence": "多智能体路径规划与任务分配框架",
+      "canonical_evidence": "多智能体路径规划与任务分配框架",
+      "llm_tldr_en": "A framework for multi-agent task assignment and path finding with precedence constraints.",
+      "llm_tldr_cn": "解决带优先级约束的多智能体任务分配与路径规划框架。",
+      "llm_tldr": "解决带优先级约束的多智能体任务分配与路径规划框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.26648v2",
+      "title": "Vision2Web: A Hierarchical Benchmark for Visual Website Development with Agent Verification",
+      "abstract": "Recent advances in large language models have improved the capabilities of coding agents, yet systematic evaluation of complex, end-to-end website development remains limited. To address this gap, we introduce Vision2Web, a hierarchical benchmark for visual website development, spanning from static UI-to-code generation, interactive multi-page frontend reproduction, to long-horizon full-stack website development. The benchmark is constructed from real-world websites and comprises a total of 193 tasks across 16 categories, with 918 prototype images and 1,255 test cases. To support flexible, thorough and reliable evaluation, we propose workflow-based agent verification paradigm based on two complementary components: a GUI agent verifier and a VLM-based judge. We evaluate multiple visual language models instantiated under different coding-agent frameworks, revealing substantial performance gaps at all task levels, with state-of-the-art models still struggling on full-stack development.",
+      "authors": [
+        "Zehai He",
+        "Wenyi Hong",
+        "Zhen Yang",
+        "Ziyang Pan",
+        "Mingdao Liu",
+        "Xiaotao Gu",
+        "Jie Tang"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-27T17:50:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.26648v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmark for evaluating coding agents on website development",
+      "llm_evidence_cn": "评估代码智能体网站开发能力的基准",
+      "llm_evidence": "评估代码智能体网站开发能力的基准",
+      "canonical_evidence": "评估代码智能体网站开发能力的基准",
+      "llm_tldr_en": "Vision2Web provides hierarchical benchmark with agent verification for visual website development.",
+      "llm_tldr_cn": "Vision2Web提供带智能体验证的分层基准用于视觉网站开发。",
+      "llm_tldr": "Vision2Web提供带智能体验证的分层基准用于视觉网站开发。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.26599v1",
+      "title": "VGGRPO: Towards World-Consistent Video Generation with 4D Latent Reward",
+      "abstract": "Large-scale video diffusion models achieve impressive visual quality, yet often fail to preserve geometric consistency. Prior approaches improve consistency either by augmenting the generator with additional modules or applying geometry-aware alignment. However, architectural modifications can compromise the generalization of internet-scale pretrained models, while existing alignment methods are limited to static scenes and rely on RGB-space rewards that require repeated VAE decoding, incurring substantial compute overhead and failing to generalize to highly dynamic real-world scenes. To preserve the pretrained capacity while improving geometric consistency, we propose VGGRPO (Visual Geometry GRPO), a latent geometry-guided framework for geometry-aware video post-training. VGGRPO introduces a Latent Geometry Model (LGM) that stitches video diffusion latents to geometry foundation models, enabling direct decoding of scene geometry from the latent space. By constructing LGM from a geometry model with 4D reconstruction capability, VGGRPO naturally extends to dynamic scenes, overcoming the static-scene limitations of prior methods. Building on this, we perform latent-space Group Relative Policy Optimization with two complementary rewards: a camera motion smoothness reward that penalizes jittery trajectories, and a geometry reprojection consistency reward that enforces cross-view geometric coherence. Experiments on both static and dynamic benchmarks show that VGGRPO improves camera stability, geometry consistency, and overall quality while eliminating costly VAE decoding, making latent-space geometry-guided reinforcement an efficient and flexible approach to world-consistent video generation.",
+      "authors": [
+        "Zhaochong An",
+        "Orest Kupyn",
+        "Théo Uscidda",
+        "Andrea Colaco",
+        "Karan Ahuja",
+        "Serge Belongie",
+        "Mar Gonzalez-Franco",
+        "Marta Tintore Gazulla"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-27T16:57:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.26599v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Video world model framework for geometric consistency",
+      "llm_evidence_cn": "视频世界模型框架用于几何一致性",
+      "llm_evidence": "视频世界模型框架用于几何一致性",
+      "canonical_evidence": "视频世界模型框架用于几何一致性",
+      "llm_tldr_en": "Proposes VGGRPO framework for geometry-aware video generation in world models.",
+      "llm_tldr_cn": "提出VGGRPO框架用于世界模型的几何感知视频生成。",
+      "llm_tldr": "提出VGGRPO框架用于世界模型的几何感知视频生成。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28980v1",
+      "title": "Stepper: Stepwise Immersive Scene Generation with Multiview Panoramas",
+      "abstract": "The synthesis of immersive 3D scenes from text is rapidly maturing, driven by novel video generative models and feed-forward 3D reconstruction, with vast potential in AR/VR and world modeling. While panoramic images have proven effective for scene initialization, existing approaches suffer from a trade-off between visual fidelity and explorability: autoregressive expansion suffers from context drift, while panoramic video generation is limited to low resolution. We present Stepper, a unified framework for text-driven immersive 3D scene synthesis that circumvents these limitations via stepwise panoramic scene expansion. Stepper leverages a novel multi-view 360° diffusion model that enables consistent, high-resolution expansion, coupled with a geometry reconstruction pipeline that enforces geometric coherence. Trained on a new large-scale, multi-view panorama dataset, Stepper achieves state-of-the-art fidelity and structural consistency, outperforming prior approaches, thereby setting a new standard for immersive scene generation.",
+      "authors": [
+        "Felix Wimbauer",
+        "Fabian Manhardt",
+        "Michael Oechsle",
+        "Nikolai Kalischek",
+        "Christian Rupprecht",
+        "Daniel Cremers",
+        "Federico Tombari"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T20:26:28+00:00",
+      "link": "https://arxiv.org/pdf/2603.28980v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "text-driven 3D scene synthesis for world modeling applications",
+      "llm_evidence_cn": "用于世界建模应用的文本驱动3D场景合成",
+      "llm_evidence": "用于世界建模应用的文本驱动3D场景合成",
+      "canonical_evidence": "用于世界建模应用的文本驱动3D场景合成",
+      "llm_tldr_en": "Stepper synthesizes immersive 3D scenes via stepwise panoramic expansion for world modeling.",
+      "llm_tldr_cn": "Stepper通过逐步全景扩展合成沉浸式3D场景用于世界建模。",
+      "llm_tldr": "Stepper通过逐步全景扩展合成沉浸式3D场景用于世界建模。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.27423v1",
+      "title": "AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases",
+      "abstract": "We present AstraAI, a command-line interface (CLI) coding framework for high-performance computing (HPC) software development. AstraAI operates directly within a Linux terminal and integrates large language models (LLMs) with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)-based structural analysis to enable context-aware code generation for complex scientific codebases. The central idea is to construct a high-fidelity prompt that is passed to the LLM for inference. This prompt augments the user request with relevant code snippets retrieved from the underlying framework codebase via RAG and structural context extracted from AST analysis, providing the model with precise information about relevant functions, data structures, and overall code organization. The framework is designed to perform scoped modifications to source code while preserving structural consistency with the surrounding code. AstraAI supports both locally hosted models from Hugging Face and API-based frontier models accessible via the American Science Cloud, enabling flexible deployment across HPC environments. The system generates code that aligns with existing project structures and programming patterns. We demonstrate AstraAI on representative HPC code generation tasks within AMReX, a DOE-supported HPC software infrastructure for exascale applications.",
+      "authors": [
+        "Mahesh Natarajan",
+        "Xiaoye Li",
+        "Weiqun Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-28T21:49:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.27423v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "CLI coding framework integrating LLMs with RAG and AST analysis",
+      "llm_evidence_cn": "集成LLM、RAG和AST分析的命令行代码框架",
+      "llm_evidence": "集成LLM、RAG和AST分析的命令行代码框架",
+      "canonical_evidence": "集成LLM、RAG和AST分析的命令行代码框架",
+      "llm_tldr_en": "AstraAI enables context-aware code generation for HPC codebases via RAG and AST-guided assistance.",
+      "llm_tldr_cn": "AstraAI通过RAG和AST引导实现HPC代码库的上下文感知代码生成。",
+      "llm_tldr": "AstraAI通过RAG和AST引导实现HPC代码库的上下文感知代码生成。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.27476v1",
+      "title": "PeopleSearchBench: A Multi-Dimensional Benchmark for Evaluating AI-Powered People Search Platforms",
+      "abstract": "AI-powered people search platforms are increasingly used in recruiting, sales prospecting, and professional networking, yet no widely accepted benchmark exists for evaluating their performance. We introduce PeopleSearchBench, an open-source benchmark that compares four people search platforms on 119 real-world queries across four use cases: corporate recruiting, B2B sales prospecting, expert search with deterministic answers, and influencer/KOL discovery. A key contribution is Criteria-Grounded Verification, a factual relevance pipeline that extracts explicit, verifiable criteria from each query and uses live web search to determine whether returned people satisfy them. This produces binary relevance judgments grounded in factual verification rather than subjective holistic LLM-as-judge scores. We evaluate systems on three dimensions: Relevance Precision (padded nDCG@10), Effective Coverage (task completion and qualified result yield), and Information Utility (profile completeness and usefulness), averaged equally into an overall score. Lessie, a specialized AI people search agent, performs best overall, scoring 65.2, 18.5% higher than the second-ranked system, and is the only system to achieve 100% task completion across all 119 queries. We also report confidence intervals, human validation of the verification pipeline (Cohen's kappa = 0.84), ablations, and full documentation of queries, prompts, and normalization procedures. Code, query definitions, and aggregated results are available on GitHub.",
+      "authors": [
+        "Wei Wang",
+        "Tianyu Shi",
+        "Shuai Zhang",
+        "Boyang Xia",
+        "Zequn Xie",
+        "Chenyu Zeng",
+        "Qi Zhang",
+        "Lynn Ai",
+        "Yaqi Yu",
+        "Kaiming Zhang",
+        "Feiyue Tang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-29T02:21:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.27476v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Benchmark for evaluating AI-powered people search platforms",
+      "llm_evidence_cn": "AI驱动的人员搜索平台评估基准",
+      "llm_evidence": "AI驱动的人员搜索平台评估基准",
+      "canonical_evidence": "AI驱动的人员搜索平台评估基准",
+      "llm_tldr_en": "PeopleSearchBench provides benchmark for evaluating people search platforms with verifiable criteria.",
+      "llm_tldr_cn": "PeopleSearchBench提供可验证标准的人员搜索平台评估基准。",
+      "llm_tldr": "PeopleSearchBench提供可验证标准的人员搜索平台评估基准。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.00265v1",
+      "title": "Benchmarking Interaction, Beyond Policy: a Reproducible Benchmark for Collaborative Instance Object Navigation",
+      "abstract": "We propose Question-Asking Navigation (QAsk-Nav), the first reproducible benchmark for Collaborative Instance Object Navigation (CoIN) that enables an explicit, separate assessment of embodied navigation and collaborative question asking. CoIN tasks an embodied agent with reaching a target specified in free-form natural language under partial observability, using only egocentric visual observations and interactive natural-language dialogue with a human, where the dialogue can help to resolve ambiguity among visually similar object instances. Existing CoIN benchmarks are primarily focused on navigation success and offer no support for consistent evaluation of collaborative interaction. To address this limitation, QAsk-Nav provides (i) a lightweight question-asking protocol scored independently of navigation, (ii) an enhanced navigation protocol with realistic, diverse, high-quality target descriptions, and (iii) an open-source dataset, that includes 28,000 quality-checked reasoning and question-asking traces for training and analysis of interactive capabilities of CoIN models. Using the proposed QAsk-Nav benchmark, we develop Light-CoNav, a lightweight unified model for collaborative navigation that is 3x smaller and 70x faster than existing modular methods, while outperforming state-of-the-art CoIN approaches in generalization to unseen objects and environments. Project page at https://benchmarking-interaction.github.io/",
+      "authors": [
+        "Edoardo Zorzi",
+        "Francesco Taioli",
+        "Yiming Wang",
+        "Marco Cristani",
+        "Alessandro Farinelli",
+        "Alberto Castellini",
+        "Loris Bazzani"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-31T21:45:00+00:00",
+      "link": "https://arxiv.org/pdf/2604.00265v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Benchmark framework for embodied navigation agents",
+      "llm_evidence_cn": "具身导航智能体的基准框架",
+      "llm_evidence": "具身导航智能体的基准框架",
+      "canonical_evidence": "具身导航智能体的基准框架",
+      "llm_tldr_en": "Proposes reproducible benchmark for collaborative navigation with question-asking agents.",
+      "llm_tldr_cn": "提出可复现的协作导航基准，支持问答交互评估。",
+      "llm_tldr": "提出可复现的协作导航基准，支持问答交互评估。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

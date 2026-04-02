@@ -1,0 +1,803 @@
+Title: PeopleSearchBench: A Multi-Dimensional Benchmark for Evaluating AI-Powered People Search Platforms
+
+URL Source: https://arxiv.org/pdf/2603.27476v1
+
+Published Time: Tue, 31 Mar 2026 01:07:08 GMT
+
+Number of Pages: 25
+
+Markdown Content:
+# PeopleSearchBench: A Multi-Dimensional Benchmark for Evaluating AI-Powered People Search Platforms 
+
+# Wei Wang*, Tianyu Shi* †, Shuai Zhang* †, Boyang Xia, Zequn Xie, Chenyu Zeng, Qi Zhang, Lynn Ai, Yaqi Yu, Kaiming Zhang, Feiyue Tang LessieAI research team 
+
+# dev@lessie.ai tys@cs.toronto.edu https://github.com/LessieAI/people-search-bench 
+
+# Abstract 
+
+AI-powered people search platforms are increasingly used in recruiting, sales prospecting, and profes-sional networking, yet there is still no standard, comprehensive benchmark for evaluating and com-paring their performance. To address this gap, we present PeopleSearchBench , an open-source benchmark that evaluates four people search platforms on 119 real-world queries among four distinct scenarios: corporate recruiting, B2B sales prospecting, expert search with deterministic answers, and influencer/KOL discovery. A central contribution of this work is Criteria-Grounded Verification, an evaluation pipeline for factual relevance assessment. The pipeline extracts explicit, verifiable crite-ria from each query and checks whether each returned person satisfies them using live web search. This process produces binary relevance judgments grounded in factual verification, rather than the more subjective quality scores often used in holistic LLM-as-judge evaluation. We evaluate systems along three dimensions: Relevance Precision, measured by padded nDCG@10; Effective Coverage, measured by task completion and qualified result yield; and Information Utility, measured by the completeness and usefulness of the returned profiles. These dimensions are averaged with equal weight to produce an overall score. Across four people search platforms, our benchmark shows that Lessie, a specialized AI people search agent, achieves the strongest overall performance. The overall score of Lessie is 65.2, which is 18.5% higher than that of the second-ranked system. It is also the only system to achieve 100% task completion across all 119 queries. To support reproducibility and reliability, we also report confidence intervals, human validation of the verification pipeline (Cohen’s 
+
+κ = 0 .84), ablation studies on key design choices, and full documentation of queries, prompts, and normalization procedures. All code, query definitions, and aggregated results are publicly available at https://github.com/LessieAI/people-search-bench .
+
+# 1 Introduction 
+
+People search—the task of finding individuals who match a specific combination of role, skills, location, and domain expertise—is a common workflow in recruiting, sales, and marketing. As AI-powered platforms increasingly automate this process, comparing their effectiveness has become important but remains difficult. 
+
+> 0†Corresponding authors.
+
+1
+
+> arXiv:2603.27476v1 [cs.AI] 29 Mar 2026
+
+Despite rapid adoption, there is still no widely accepted methodology for evaluating people-search systems in a rigorous and reproducible manner. Existing benchmarks for information retrieval [12, 16] and question answering [9] do not adequately address this setting, where outputs are real individuals, valid answers are often non-exhaustive, and key profile attributes require independent verification. The challenge extends beyond the absence of a labeled dataset to the evaluation methodology itself. Standard benchmarks typically rely on pre-defined relevance labels, while holistic LLM-as-judge approaches often depend on subjective overall assessments [20]. Neither is fully adequate for people search. Most queries admit many correct answers, and practical utility depends not only on retrieving relevant individuals, but also on returning enough qualified candidates with verifiable and navigable profile information to support immediate downstream action. As a result, evaluation must account for multiple criteria and support factual verification against external evidence. We introduce PeopleSearchBench, an open-source benchmark containing 119 queries in four languages (En-glish, Portuguese, Spanish, Dutch) grouped into four commercially relevant scenarios: Recruiting (30 queries), B2B Prospecting (32), Expert/Deterministic Search (28), and Influencer/KOL Discovery (29). Evaluation is conducted through our Criteria-Grounded Verification pipeline, which breaks down each query into explicit checkable criteria and verifies each result against those criteria through live web search. This produces binary factual judgments instead of subjective quality scores, making the evaluation process more reproducible and less prone to bias. We apply our evaluation framework to four platforms that represent distinct architectural approaches to people search: a specialized AI search agent, a structured search API, an AI-powered recruiting platform, and a general-purpose AI agent. The results reveal that Lessie, the specialized AI people search agent, achieves the highest overall score (65.2) with an 18.5% lead over the second-ranked platform, and is the only system that maintains 100% task completion across all 119 queries. Performance varies substantially across query types: recruiting queries are relatively competitive for platforms with access to large professional databases, while influencer discovery shows the widest performance gap between systems. The original conference version of this work presented the core benchmark design and main experimental results. In this extended technical report, we address the need for greater reproducibility and statistical rigor by adding several key contributions: (1) bootstrap confidence intervals and paired significance tests for all scores; (2) human validation of the verification pipeline on 200 person-query pairs (Cohen’s κ = 0.84); (3) the complete set of 119 queries with metadata and the normalization schema; (4) all evaluation prompts and execution protocols; (5) cost and latency analysis; (6) systematic error analysis with case studies; and (7) ablation studies on the qualified-result threshold, dimension weights, top-K, and partial credit. We believe these additions make this benchmark a valuable resource for the research community as AI-powered people search continues to evolve. 
+
+# 2 Related Work 
+
+This section surveys four areas that inform our benchmark design and identifies the specific gap each leaves open for people search evaluation. 
+
+Information retrieval benchmarks. The TREC benchmarks [13] established the template for modern in-formation retrieval evaluation with test collections and pooling-based relevance judgments. More recently, BEIR [12] broadened the scope to include 18 heterogeneous datasets for zero-shot retrieval evaluation, and MTEB [11] extended this approach to embedding models across a wide range of tasks.However, all of these benchmarks evaluate document-level or passage-level retrieval where a result is judged as a single text unit. People search differs in that each result is a real individual with multiple independently verifiable attributes (role, employer, location, skills), and relevance cannot be reduced to a single topical-match judgment. 
+
+LLM-based evaluation. Zheng et al. [20] demonstrated that LLM judges can approximate human prefer-ences in open-ended text generation tasks, and follow-up work has addressed limitations including positional bias [14], multi-dimensional rubrics [8], and score calibration [15]. A shared limitation of existing work is 2that judges still rely primarily on parametric knowledge to assess output quality. For people search, para-metric knowledge is insufficient because a person’s current employer, title, and location change over time and must be verified against external sources. Our Criteria-Grounded Verification pipeline addresses this by decomposing evaluation into explicit factual checks grounded in live web search. 
+
+Entity-centric search. Entity retrieval from knowledge bases [6] and enterprise corpora [1] was studied in the INEX and SemSearch tracks, which assume fixed entity collections with known attributes. Balog et al. [2] surveyed expertise retrieval within closed organizational corpora, and Geyik et al. [5] described LinkedIn’s talent search, evaluated using platform-specific engagement data. Neither setting supports cross-platform comparison over open-web results. Moreover, these efforts predate LLM-powered autonomous search agents and do not provide evaluation protocols suited to their output formats and capabilities. Our benchmark addresses both gaps by using externally verifiable criteria applied uniformly across architecturally diverse platforms. 
+
+Agentic AI evaluation. Recent agent benchmarks cover software engineering [7], web interaction [21], and general task completion [10]. These primarily evaluate binary task success—whether the agent completed a single well-defined goal. People search requires evaluating not only whether the agent returned valid results, but also how many it found, how precisely each matches multi-attribute criteria, and whether the returned profiles are actionable. This combination of set-level evaluation, per-result factual verification, and information-quality assessment is not addressed by existing agent benchmarks. 
+
+# 3 Methodology 
+
+This section describes the benchmark dataset (Section 3.1), our Criteria-Grounded Verification pipeline (Section 3.2), and the three evaluation dimensions we use to measure performance (Section 3.3). 
+
+3.1 Benchmark Dataset 
+
+Our benchmark consists of 119 queries that were designed to reflect the actual needs of practitioners across four commercially important scenarios. Table 1 provides an overview of the query distribution. 
+
+Recruiting (30 queries). These queries seek candidates with specific combinations of skills, experience levels, and geographic preferences, for example: “Find backend developers in London with experience in microser-vices architecture.” 
+
+B2B Prospecting (32 queries). These queries target decision-makers at potential customer companies, for example: “Find corporate innovation leaders in Europe working at large enterprises who speak about digital transformation on LinkedIn.” 
+
+Expert / Deterministic Search (28 queries). These are queries with verifiable correct answers or that seek specific domain experts, for example: “Find all co-founders of Together AI” or “List all research scientists at OpenAI.” This category is particularly useful for validating factual accuracy. 
+
+Influencer / KOL (29 queries). These queries target content creators and thought leaders in specific domains, for example: “Find AI KOLs with 10K+ followers on Twitter.” This scenario tends to produce the largest performance differences across platforms. The query set is intentionally multilingual to reflect the global nature of modern people search, covering English, Portuguese, Spanish, and Dutch. The 119 queries are balanced across the four categories (between 28 and 32 queries per category), which provides sufficient statistical power for comparing performance across scenarios. 3Table 1 Query category distribution with summary metadata.     
+
+> Category Queries Languages Avg. Constraints Deterministic
+
+Recruiting 30 EN, PT, ES 3.2 ± 1.1 0% B2B Prospecting 32 EN, ES 2.8 ± 0.9 0% Expert / Deterministic 28 EN 2.1 ± 0.7 100% Influencer / KOL 29 EN, NL, ES 2.6 ± 1.0 0%       
+
+> Total 119 42.7 ±1.0 23.5%
+
+3.2 Criteria-Grounded Verification 
+
+Our approach to evaluation differs fundamentally from traditional LLM-as-judge methods that assign holistic subjective scores. Instead, we decompose the evaluation process into a sequence of explicit, verifiable factual judgments. The pipeline runs in three stages, which we describe below. 
+
+Stage 1: Criteria Extraction. For each search query, we use an LLM to extract N explicit, independently checkable conditions from the stated search intent. An example is shown below:     
+
+> Query: “Find senior ML engineers at Google in Bay Area”
+> →c1: Role is Senior ML Engineer or equivalent
+> →c2: Currently employed at Google
+> →c3: Located in San Francisco Bay Area
+
+Stage 2: Per-Person Verification. Each person returned by the platform is verified against every extracted criterion using live web search via the Tavily Search API with advanced depth settings. Each criterion receives one of three judgments: 
+
+• met (1.0) — the criterion is fully satisfied with external evidence 
+
+• partially met (0.5) — the criterion is partially satisfied 
+
+• not met (0.0) — no supporting evidence or contradicting evidence exists The person’s relevance grade is then calculated as the average of the individual criterion scores: rel( pi) = 1
+
+N
+
+> N
+
+X
+
+> j=1
+
+score( cj , p i) (1) 
+
+Stage 3: Information Utility Assessment. At the same time, the verification agent assesses the quality of the returned person’s data along three sub-dimensions: structural completeness, query-specific evidence, and actionability. We describe these in more detail in Section 3.3.3. 
+
+Advantages over holistic LLM-as-judge. Table 2 contrasts our approach with traditional holistic judgment methods. By requiring explicit factual checks verified through external web search, we substantially reduce the scope for subjective bias and improve reproducibility. 
+
+3.3 Evaluation Dimensions 
+
+Each platform is scored on three independently computed dimensions, all scaled to the 0–100 range. These dimensions are then combined via equal-weight averaging to produce an overall score. 
+
+3.3.1 Relevance Precision (Padded nDCG@10) 
+
+Relevance Precision measures whether the returned people match the query and are correctly ranked, using a variant of nDCG@10 that we call padded nDCG. 4Table 2 Comparison of Criteria-Grounded Verification and traditional holistic LLM-as-judge. 
+
+Aspect Traditional LLM-as-Judge Criteria-Grounded Verifica-tion 
+
+Judgment type Subjective quality score (0–10) Factual yes/no per criterion Evidence source LLM parametric knowledge External web search verification Reproducibility Low (prompt-sensitive) High (criteria are explicit) Bias risk High (style, length bias) Low (binary factual checks) 
+
+Figure 1 Overview of the PeopleSearchBench evaluation pipeline. Queries are executed across all platforms, results are normalized to a unified schema, and each person is independently verified against extracted criteria using web search. 
+
+Discounted Cumulative Gain. Given relevance grades rel( p1), . . . , rel( pK ) for the top-K results, DCG@K is calculated as: DCG@ K =
+
+> K
+
+X
+
+> i=1
+
+rel( pi)log 2(i + 1) (2) 
+
+Padded Ideal DCG. Unlike standard nDCG, which normalizes against the best possible ordering of the returned results, we use a padded ideal that always assumes K = 10 perfectly relevant results are achievable: IDCG@ K =
+
+> 10
+
+X
+
+> i=1
+
+1.0log 2(i + 1) (3) This design prevents platforms that return only a few perfect results from receiving an artificially high score. A platform that returns 3 perfectly relevant people will receive a lower score than one that returns 10, which aligns with user expectations for people search where finding more qualified candidates is almost always better. 5Platform score. 
+
+Relevance Precision = 1
+
+|Q|
+
+X
+
+> q∈Q
+
+DCG@10( q)IDCG@10 × 100 (4) 
+
+3.3.2 Effective Coverage 
+
+Effective Coverage measures how many correct people the platform can find per query. We begin with two definitions: 
+
+Definition 1 (Qualified result) . A person with rel (pi) ≥ 0.5, meaning they match at least half of the extracted criteria. 
+
+Definition 2 (Task success) . A query achieves task success if the platform returns at least one qualified result. 
+
+The coverage score combines task completion rate (TCR) with the average yield of qualified results per query: Effective Coverage = TCR × 1
+
+|Q|
+
+X
+
+> q∈Q
+
+min 
+
+ qualified( q)
+
+K , 1.0
+
+
+
+× 100 (5) where K is the target number of results per query (10 in our experiments), and TCR = |{ q : qualified( q) ≥
+
+1}| /|Q|.
+
+3.3.3 Information Utility 
+
+Information Utility measures whether the returned data is sufficiently complete and structured that users can take action without further manual verification. It is the average of three equally weighted sub-dimensions: 1. Profile Completeness (structural): the richness of the person’s data, including name, title, company, contact information, work history, and education. 2. Query-Specific Evidence : whether the result includes explanations for why the person matches each criterion and provides sources for verification. 3. Actionability : whether the user can take next steps (contact, shortlisting, outreach) based on the provided data alone. Each sub-dimension is scored on a 0.0–1.0 scale: utility( pi) = structural + evidence + actionability 3 (6) Information Utility = 1
+
+|Q|
+
+X
+
+> q∈Q
+
+ 1
+
+|Pq |
+
+X
+
+> pi∈Pq
+
+utility( pi)
+
+ × 100 (7) where P is the set of all evaluated persons across all queries. While our current metric evaluates individual profile completeness, overall information utility and result presentation could be further enhanced in the future by incorporating clustering algorithms (e.g., [17–19]) to group similar candidates and reduce redundancy. 
+
+3.3.4 Overall Score 
+
+Overall = Relevance Precision + Effective Coverage + Information Utility 3 (8) We use equal-weight averaging following the Multi-Criteria Decision Analysis principle that equal weights perform comparably to optimized weights in most multi-attribute decision problems [3]. We verify this choice through ablation studies in Section 9. 6Table 3 Characteristics of the evaluated platforms.                
+
+> Platform Type Data Sources Max Results
+> Lessie AI Agent (special-ized) Multi-source: web, social, professional, academic 15 Exa Search API Structured entity database 15 Juicebox AI Recruiting Plat-form 800M+ profiles, 60+ sources 15 Claude Code General AI Agent Web search (Claude Sonnet 4.6) Variable
+
+# 4 Experimental Setup 
+
+4.1 Platforms Evaluated 
+
+We evaluate four platforms that represent diverse architectural approaches to AI-powered people search. Table 3 summarizes their characteristics. Lessie is a specialized AI people search agent that autonomously searches across professional networks, social platforms, academic databases, and public registries. Exa is an AI-powered search API that returns structured entity results from its proprietary database. Juicebox (PeopleGPT) is an AI recruiting platform with access to 800 million+ professional profiles from 60 different sources. Claude Code is Anthropic’s general-purpose AI coding agent (Claude Sonnet 4.6) that produces text-based search reports with variable result counts. 
+
+4.2 Evaluation Configuration 
+
+We evaluate up to 15 results per query per platform to ensure consistent comparison. The verification pipeline uses Gemini 3 Flash Preview via OpenRouter for all LLM judgments, and the Tavily Search API (advanced depth) for all web-based fact-checking. The same model and configuration are applied identically to all platforms, and the verification agent has no information about which platform produced each result to avoid any bias. 
+
+Temporal Control. All platform evaluations were conducted between January 15 and January 22, 2025, with each platform evaluated on the same day using identical query ordering. We recorded the specific versions and configurations: Lessie (v2.1.0, web interface), Exa (API v1, entity search endpoint), Juicebox (PeopleGPT v3.2, web interface), Claude Code (claude-sonnet-4-6-20250101, via API). Web verification timestamps were logged for each result to facilitate future replication. 
+
+4.3 Statistical Methodology 
+
+To provide rigorous statistical guarantees, we use bootstrap resampling with 1000 iterations to estimate 95% confidence intervals for all reported mean scores. For pairwise comparisons between platforms, we use paired bootstrap tests to assess statistical significance, following the procedure described in Efron and Tibshirani [4]. We also report query-level win/tie/loss statistics to provide a granular view of performance differences. 
+
+# 5 Main Results 
+
+The overall benchmark results of the four platforms are shown in Table 4, with 95% confidence intervals estimated via bootstrap. Lessie ranks first overall (65.2 ± 1.5), followed by Exa (55.0 ± 1.8), Claude Code (46.0 ± 2.1), and Juicebox (45.8 ± 1.9). Lessie leads in all three dimensions and is the only platform with 100% task completion (Table 5). All differences between the top-ranked and second-ranked platform are statistically significant (p < 0.05, paired bootstrap). 7Table 4 Overall benchmark results (0–100 scale) with 95% confidence intervals via bootstrap (1000 iterations). Best performance per column is shown in blue bold . † indicates the difference is statistically significant over the second-best platform ( p < 0.05, paired bootstrap test).                                                                                       
+
+> Platform Relevance Precision ↑Eff. Coverage ↑Info. Utility ↑Overall ↑
+> Lessie 70.2 ±2.1 †69.1 ±2.4 †56.4 ±1.8 †65.2 ±1.5 †
+> Exa 53.8 ±2.4 58.1 ±2.6 53.1 ±2.0 55.0 ±1.8 Claude Code 54.3 ±2.8 41.1 ±3.1 42.7 ±2.2 46.0 ±2.1 Juicebox 44.7 ±2.6 41.8 ±2.9 50.9 ±1.9 45.8 ±1.9
+> Table 5 Task completion rate and mean qualified results per query with 95% confidence intervals.
+> Platform Task Completion Rate (%) Mean Qualified / Query Total Queries Lessie 100.0 10.4 ±0.6 119 Exa 96.6 ±1.8 9.0 ±0.5 119 Claude Code 86.5 ±3.1 7.1 ±0.5 119 Juicebox 84.0 ±3.3 7.5 ±0.5 119
+
+Key observations. Lessie is the only platform that scores above 65 on both Relevance Precision and Effective Coverage, indicating that it successfully returns both precise results and a large volume of qualified candi-dates. Exa achieves second place in Overall score and Effective Coverage (58.1 ± 2.6) due to its high task completion rate (96.6%) and consistent result counts, but its Relevance Precision (53.8 ± 2.4) trails Lessie by 16.4 percentage points, suggesting difficulty with complex multi-constraint queries. Claude Code achieves moderate Relevance Precision (54.3 ± 2.8) but lower Coverage (41.1 ± 3.1) and the lowest Information Utility (42.7 ± 2.2), as its markdown reports typically lack structured contact information and per-criterion match explanations. Juicebox shows the lowest Relevance Precision (44.7 ± 2.6), suggesting that its recruiting-focused database design is less effective on non-recruiting queries, though it maintains moderate Information Utility (50.9 ± 1.9) due to its rich LinkedIn-style profile fields. 
+
+Query-level win/tie/loss analysis. Table 6 presents pairwise comparisons at the query level. Each cell shows the number of queries where the row platform achieves a higher, equal, or lower overall score than the column platform. Lessie wins against all other platforms on between 74.8% and 88.2% of queries, which demonstrates consistent superiority across diverse query types. 
+
+5.1 Scenario Analysis 
+
+The performance of each platform across the four query scenarios is shown in Table 7, with per-dimension breakdowns for Relevance Precision, Effective Coverage, and Information Utility in Tables 8–10 respectively. 
+
+Recruiting. Recruiting produces the most competitive overall scores across platforms. Juicebox achieves the highest Effective Coverage (75.3 ± 2.7) and Information Utility (55.8 ± 2.3) in this category, which reflects its large database of professional profiles. Lessie leads overall (68.2 ± 2.8) and in Relevance Precision (74.8 
+
+± 2.6) while maintaining strong Coverage (75.6 ± 2.8). In this category, Juicebox ranks second overall (65.7 
+
+± 2.9), ahead of Exa (64.7 ± 3.1). 
+
+B2B Prospecting. Lessie leads across all three dimensions in this scenario. The gap is most pronounced in Relevance Precision (62.8 ± 2.9 versus 50.0 ± 3.2 for Exa), which suggests that multi-source data fusion is particularly valuable when queries target decision-makers outside of standard professional databases. Juice-box’s task completion rate drops to 84.4% in this category, which contributes to its lower Coverage (52.7 ±
+
+3.4). 8Relevance 
+
+## Precision 
+
+## Effective 
+
+## Coverage 
+
+## Information 
+
+## Utility 
+
+## Overall 
+
+## 0
+
+## 10 
+
+## 20 
+
+## 30 
+
+## 40 
+
+## 50 
+
+## 60 
+
+## 70 
+
+## 80     
+
+> Score (0–100)
+> 70.2 69.1
+> 56.4
+> 65.2
+> 53.8
+> 58.1
+> 53.1 55.0
+> 44.7 41.8
+> 50.9
+> 45.8
+> 54.3
+> 41.1 42.7
+> 46.0
+
+Lessie 
+
+Exa 
+
+Juicebox 
+
+Claude Code Figure 2 Overall benchmark results decomposed by dimension with 95% confidence intervals. Lessie leads across all three dimensions and achieves the highest overall score.                     
+
+> Table 6 Query-level win/tie/loss analysis for overall score. Each cell shows wins / ties / losses for the row platform against the column platform.
+> Lessie Exa Claude Code Juicebox Lessie —89/18/12 102/11/6 105/9/5
+> Exa 12/18/89 —71/24/24 73/22/24
+> Claude Code 6/11/102 24/24/71 —52/29/38
+> Juicebox 5/9/105 24/22/73 38/29/52 —
+
+Expert / Deterministic. Lessie achieves its highest Relevance Precision score here (79.0 ± 2.3), which is 9.4 points above the next platform (Claude Code, 69.6 ± 2.7). Claude Code performs relatively well on deterministic queries—its general-purpose web search can effectively locate specific known individuals—but its Coverage (62.9 ± 3.2) and Information Utility (38.5 ± 3.4) lag behind other platforms. 
+
+Influencer / KOL. This scenario exhibits the widest spread in performance across platforms. Lessie’s Rel-evance Precision (65.2 ± 3.1) is 2.45 times higher than Juicebox’s (26.6 ± 4.0). Influencer data is scattered across social platforms like Instagram, Twitter/X, and YouTube rather than being concentrated in profes-sional databases, which gives multi-source platforms like Lessie a substantial advantage. Juicebox’s Coverage drops to 22.8 ± 4.1 in this category, with task completion at only 79.3%. 
+
+5.2 Cross-Scenario Consistency 
+
+Lessie is the only platform that maintains consistent Relevance Precision across all query categories, with a range of 62.8–79.0 (coefficient of variation: 9.7%). Other platforms show significantly wider variance: Juicebox ranges from 26.6 to 66.1 (CV: 35.2%), Exa from 37.4 to 66.2 (CV: 22.8%), and Claude Code from 43.0 to 69.6 (CV: 19.1%). This suggests that multi-source architectures are less sensitive to query type, whereas platforms built around a single data domain show sharper performance drops outside that domain. 9Table 7 Overall scores by query scenario with 95% confidence intervals.                                                                                                               
+
+> Scenario Queries Lessie Exa Juicebox Claude Code
+> Recruiting 30 68.2 ±2.8 64.7 ±3.1 65.7 ±2.9 50.5 ±3.5 B2B Prospecting 32 60.6 ±2.6 55.2 ±2.9 51.4 ±3.2 43.0 ±3.4 Expert / Deterministic 28 70.4 ±2.4 61.2 ±2.8 44.2 ±3.6 57.0 ±3.1 Influencer / KOL 29 62.3 ±3.0 41.6 ±3.4 31.1 ±3.8 43.2 ±3.3
+> Table 8 Relevance Precision (padded nDCG@10) by scenario with 95% confidence intervals.
+> Scenario Lessie Exa Juicebox Claude Code
+> Recruiting 74.8 ±2.6 66.2 ±3.0 66.1 ±2.8 59.0 ±3.4 B2B Prospecting 62.8 ±2.9 50.0 ±3.2 46.1 ±3.5 43.0 ±3.6 Expert / Deterministic 79.0 ±2.3 61.6 ±2.9 39.0 ±3.8 69.6 ±2.7 Influencer / KOL 65.2 ±3.1 37.4 ±3.6 26.6 ±4.0 46.9 ±3.5
+
+5.3 Architectural Tradeoffs 
+
+Our results reveal clear tradeoffs between different architectural approaches to people search. 
+
+Specialized multi-source agent (Lessie). Lessie searches across professional networks, social platforms, aca-demic databases, and public registries. This multi-source approach yields the highest Relevance Precision across all scenarios and the only 100% task completion rate. Its per-result match explanations, which provide structured evidence showing why each person matches the query, contribute to its Information Utility lead in the Expert (57.1 ± 2.3) and Influencer (58.9 ± 2.6) categories. 
+
+Structured search API (Exa). Exa returns structured entity results from its database, achieving solid second-place performance overall (55.0 ± 1.8). Its 96.6% task completion rate and consistent result counts make it reliable, but its Relevance Precision (53.8 ± 2.4) suggests that it struggles with complex multi-constraint queries, particularly in the Influencer category (37.4 ± 3.6). 
+
+Recruiting-focused platform (Juicebox). Juicebox’s large database of 800 million+ profiles gives it a natural advantage in the Recruiting scenario, where it ranks second overall (65.7 ± 2.9) with the highest Coverage (75.3 ± 2.7) and Information Utility (55.8 ± 2.3). However, performance degrades sharply outside this domain: Influencer Relevance Precision drops to 26.6 ± 4.0, and task completion falls to 79.3%. 
+
+General-purpose AI agent (Claude Code). Claude Code achieves reasonable Relevance Precision (54.3 ±
+
+2.8) via general-purpose web search, with notably strong performance on Expert/Deterministic queries (69.6 
+
+± 2.7). However, its lower Coverage (41.1 ± 3.1) reflects that it typically finds fewer qualified people per query, and its Information Utility is the lowest (42.7 ± 2.2) because its markdown reports lack structured contact data and per-criterion verification evidence. 
+
+# 6 Verification Pipeline Validation 
+
+A core contribution of this benchmark is the Criteria-Grounded Verification pipeline itself. To ensure that this pipeline produces reliable and reproducible results, we conducted extensive validation experiments. 
+
+6.1 Human Validation Study 
+
+We conducted a human validation study on a stratified random sample of 200 person-query pairs, with 50 pairs selected from each of the four scenarios. 10 Table 9 Effective Coverage by scenario with 95% confidence intervals.                                                                                                          
+
+> Scenario Lessie Exa Juicebox Claude Code
+> Recruiting 75.6 ±2.8 73.8 ±3.0 75.3 ±2.7 46.7 ±3.8 B2B Prospecting 63.5 ±2.7 58.5 ±3.1 52.7 ±3.4 42.3 ±3.6 Expert / Deterministic 75.2 ±2.5 69.0 ±2.9 46.9 ±3.7 62.9 ±3.2 Influencer / KOL 62.8 ±3.2 39.3 ±3.7 22.8 ±4.1 39.3 ±3.7
+> Table 10 Information Utility by scenario with 95% confidence intervals.
+> Scenario Lessie Exa Juicebox Claude Code
+> Recruiting 54.3 ±2.4 54.0 ±2.6 55.8 ±2.3 45.8 ±3.0 B2B Prospecting 55.5 ±2.5 57.0 ±2.4 55.4 ±2.6 43.6 ±3.2 Expert / Deterministic 57.1 ±2.3 52.9 ±2.7 46.8 ±3.1 38.5 ±3.4 Influencer / KOL 58.9 ±2.6 48.0 ±3.0 44.0 ±3.3 43.4 ±3.1
+
+Annotation protocol. Two trained human annotators independently reviewed each pair following the same criteria extraction and verification procedure that our automated pipeline uses. Annotators had access to the same web search tools and were blinded to the source platform of each result. 
+
+Inter-annotator agreement. The two human annotators achieved substantial agreement on criterion-level judgments: 
+
+• Criterion match status (met/partially met/not met): Cohen’s κ = 0 .87 (95% CI: 0.83–0.91) 
+
+• Relevance grade (continuous): Pearson’s r = 0 .92 (95% CI: 0.89–0.94) 
+
+• Qualified status (rel ≥ 0.5): Cohen’s κ = 0 .91 (95% CI: 0.87–0.95) 
+
+LLM versus human agreement. We compared the LLM verifier’s judgments against the human consensus (majority vote of the two annotators): 
+
+• Criterion match status: Cohen’s κ = 0 .84 (95% CI: 0.79–0.89) 
+
+• Relevance grade: Pearson’s r = 0 .89 (95% CI: 0.85–0.92) 
+
+• Qualified status: Cohen’s κ = 0 .88 (95% CI: 0.83–0.93) 
+
+Disagreement analysis. Of the 26 criterion-level disagreements between the LLM verifier and human con-sensus, 18 (69%) involved “partially met” judgments where the LLM was more conservative than the human annotators, and 8 (31%) involved missing evidence where the LLM found information that humans missed. This suggests that the LLM verifier is slightly more conservative than human annotators but not systemati-cally biased toward any platform. 
+
+6.2 Criteria Extraction Stability 
+
+To assess the stability of the criteria extraction step, we ran the extraction prompt five times on each of 30 randomly selected queries with temperature set to 0.7. Across the 150 extractions (30 queries × 5 runs), we find: 
+
+• Number of criteria extracted: mean = 2.73, standard deviation = 0.41, range = 2–4 
+
+• Semantic equivalence of criteria sets (assessed by GPT-4): 94.7% of runs produced semantically equiv-alent criteria sets 
+
+• Exact string match: 78.0% (this is a lower bound since paraphrasing is acceptable) 11 Lessie 
+
+> Exa
+> Juicebox
+> Claude Code
+> Recruiting
+> B2B
+> Expert
+> Influencer
+
+68.2 64.7 65.7 50.5 
+
+60.6 55.2 51.4 43.0 
+
+70.4 61.2 44.2 57.0 
+
+62.3 41.6 31.1 43.2 30                  
+
+> 40
+> 50
+> 60
+> 70
+> Overall Score Figure 3 Heatmap of overall scores by query scenario and platform. Lessie leads in all four scenarios, with the largest margin in the Influencer/KOL discovery scenario.
+> Table 11 Human validation results: LLM versus human consensus on 200 person-query pairs.
+> Metric Agreement Rate Cohen’s κ95% CI
+> Criterion match (3-level) 86.5% 0.84 [0.79, 0.89] Qualified status (binary) 93.0% 0.88 [0.83, 0.93] Relevance grade (continuous) —r= 0 .89 [0.85, 0.92]
+
+These results indicate that the criteria extraction process is stable across runs even with non-zero temperature. 
+
+6.3 Judge Model Sensitivity 
+
+We tested the verification pipeline with alternative judge models on a subset of 50 queries (200 person-query pairs) to assess how sensitive results are to the choice of judge model. All models show high agreement (κ > 0.75) with the primary Gemini model, which indicates that the pipeline is robust to the choice of judge model. Platform rankings remain consistent across all judge models. 
+
+6.4 Prompt Robustness 
+
+We tested three prompt variants on 50 queries to assess how sensitive results are to prompt design: 
+
+• Original : The production prompt used in our main experiments 
+
+• Simplified : Removed examples and detailed instructions 
+
+• Enhanced : Added explicit chain-of-thought reasoning steps The simplified prompt shows acceptable agreement but slightly lower reliability. The enhanced prompt with chain-of-thought shows the highest agreement but at the cost of increased latency. In all cases, platform rankings remain stable. 
+
+# 7 Cost and Latency Analysis 
+
+To provide a complete picture of benchmark feasibility for other researchers who wish to replicate or extend our work, we report the computational cost and latency of running the full evaluation. 12 Recruiting 
+
+> B2B
+> Expert
+> Influencer
+> 20
+> 40
+> 60
+> 80
+> Lessie
+> Exa
+> Juicebox
+> Claude Code
+
+Figure 4 Cross-scenario Relevance Precision. Lessie maintains the most consistent performance across all four scenarios (range: 62.8–79.0, coefficient of variation: 9.7%). Other platforms exhibit wider variance: Juicebox ranges from 26.6 to 66.1, Exa from 37.4 to 66.2. 
+
+Table 12 Verification results across different judge models (200 person-query pairs). 
+
+Judge Model Agreement with Gemini Cohen’s κ Average Relevance 
+
+Gemini 3 Flash (primary) — — 0.612 GPT-4o 91.5% 0.87 0.608 Claude 3.5 Sonnet 90.2% 0.85 0.621 GPT-4o-mini 87.3% 0.79 0.598 
+
+7.1 Cost Breakdown 
+
+The total cost of evaluating all four platforms across 119 queries is shown in Table 14. 
+
+Per-platform query costs. The verification cost is identical for all platforms since we use the same pipeline to process all results. Platform query costs vary: 
+
+• Lessie: $12.60 (subscription-based, prorated) 
+
+• Exa: $8.40 (API calls at $0.07 per query) 
+
+• Juicebox: $14.20 (subscription-based, prorated) 
+
+• Claude Code: $12.60 (API calls at $0.105 per query) 
+
+Per-query verification cost. The average verification cost per query is $0.86, broken down as: criteria ex-traction ( $0.002), web search ( $0.75), LLM verification ( $0.11). 13 80 85 90 95 100 
+
+# Task Completion Rate (%) 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+70 
+
+75 
+
+80 
+
+> Relevance Precision (nDCG@10)
+
+Lessie 
+
+Exa 
+
+Juicebox 
+
+Claude Code 
+
+> Bubble size
+> Overall=45
+> Overall=55
+> Overall=65
+
+Figure 5 Task completion rate versus Relevance Precision. Bubble size indicates overall score. Lessie is the only platform that achieves both 100% task completion and the highest relevance. 
+
+Table 13 Verification results across prompt variants. 
+
+Prompt Variant Agreement with Original Cohen’s κ Average Time (seconds) 
+
+Original — — 3.2 Simplified 88.5% 0.81 2.1 Enhanced (CoT) 93.2% 0.89 5.8 
+
+7.2 Latency Analysis 
+
+The average latency per query, broken down by platform and pipeline stage, is shown in Table 15. Web verification dominates latency because each criterion requires an independent web search. The entire pipeline is easily parallelizable: running verification on eight concurrent workers reduces the total evaluation time from 4.9 hours to about 1.2 hours. 
+
+# 8 Error Analysis 
+
+We conducted a systematic error analysis to understand the typical failure modes across different platforms and query types. 
+
+8.1 Error Taxonomy 
+
+We manually reviewed all queries with at least one error (task failure or below-threshold results) and catego-rized errors into four main types: 14 Table 14 Cost and latency analysis for full benchmark evaluation (119 queries × 4 platforms). 
+
+Component Cost (USD) Wall-Clock Time 
+
+Platform query execution 47.80 2.3 hours Criteria extraction (119 queries) 0.24 4.2 minutes Web verification (Tavily API) 89.40 1.8 hours LLM verification (Gemini 3 Flash) 12.60 42 minutes 
+
+Total 150.04 4.9 hours Table 15 Average latency per query by platform and pipeline stage (seconds). 
+
+Stage Lessie Exa Juicebox Claude Code 
+
+Platform execution 45.2 3.8 38.6 62.4 Criteria extraction 2.1 2.1 2.1 2.1 Web verification 54.3 48.7 51.2 49.8 LLM verification 21.2 18.4 19.8 17.6 
+
+Total per query 122.8 73.0 111.7 131.9 
+
+8.2 Error Patterns by Scenario 
+
+Recruiting errors. Juicebox shows the lowest false positive rate (6.2%) in recruiting, which reflects the high quality of its professional database. Claude Code’s errors are dominated by incomplete profiles (38.5%), since its markdown reports often lack structured contact information. 
+
+B2B Prospecting errors. Juicebox’s task failure rate jumps to 15.6% for B2B queries, because many target companies fall outside the coverage of its database. Exa shows elevated false positives (22.1%) when job titles are ambiguous. 
+
+Expert/Deterministic errors. Claude Code achieves the lowest error rate in this category (12.5%), since deterministic queries benefit from general-purpose web search. Juicebox struggles with 28.6% task failure when target individuals lack LinkedIn profiles. 
+
+Influencer/KOL errors. This scenario has the highest error rates across all platforms. Juicebox’s false negative rate reaches 41.4% because influencers often lack traditional professional profiles. Lessie maintains the lowest error rate (18.5%) due to its multi-source coverage. 
+
+8.3 Case Studies 
+
+To illustrate the typical failure modes we observed, we present three case studies: 
+
+Case 1: False positive from Juicebox. 
+
+Query: “Find VP-level product managers at fintech startups in Singapore” 
+
+Juicebox returned: A product manager at a traditional bank in Singapore 
+
+Error Analysis: The system matched “product manager” + “Singapore” + “finance” but missed the “fintech startup” constraint. This is a common error for database-focused platforms that rely on keyword matching rather than semantic understanding. 
+
+Case 2: False negative from Claude Code. 
+
+Query: “Find AI researchers who published at NeurIPS 2024 on diffusion models” 
+
+Claude Code returned: A markdown report with 3 names, all correct 
+
+Error Analysis: The report missed 12 other valid researchers that Lessie and Exa found. This illustrates 
+
+15 Table 16 Error taxonomy with frequency by platform (percentage of all results with errors). 
+
+Error Type Description Les. Exa Jbx CC 
+
+False Positive Returned person doesn’t match cri-teria 8.2% 18.4% 24.6% 16.8% False Negative Valid person exists but not returned 0% 3.4% 16.0% 13.5% Incomplete Profile Person matches but lacks key infor-mation 12.4% 14.2% 8.6% 31.2% Task Failure Platform returned no results or er-ror 0% 3.4% 16.0% 13.5% 
+
+Table 17 Platform rankings under different qualified thresholds. 
+
+Effective Coverage Rank Overall Rank Platform ≥0.3 ≥0.5 ≥0.7 ≥0.3 ≥0.5 ≥0.7 Lessie 1 1 1 1 1 1Exa 2 2 2 2 2 2Juicebox 3 3 4 4 4 3Claude Code 4 4 3 3 3 4a limitation of single-pass search in general-purpose agents: they often stop after finding a few results rather than continuing to search for more. 
+
+Case 3: Verification failure. 
+
+Query: “Find co-founders of Anthropic” 
+
+Platform returned: Dario Amodei, Daniela Amodei (both correct) 
+
+Error Analysis: Web search returned conflicting information about whether other individuals should also be counted as co-founders. Human review confirmed the Amodeis are the primary co-founders; the LLM verifier correctly marked other claims as “partially met” due to the conflicting sources. This shows that the pipeline properly handles ambiguous cases rather than forcing incorrect binary judgments. 
+
+# 9 Ablation and Sensitivity Studies 
+
+We conducted ablation studies to validate the key design choices we made in developing the benchmark. 
+
+9.1 Qualified Threshold Sensitivity 
+
+Our primary results use rel( pi) ≥ 0.5 as the threshold for defining a qualified result. We tested three different thresholds to assess how this choice affects platform rankings. Rankings are stable across all tested thresholds. Lessie and Exa maintain positions 1–2 regardless of the threshold. Juicebox and Claude Code swap positions at the 0.7 threshold, which reflects Juicebox’s higher precision but lower recall compared to Claude Code. 
+
+9.2 Top-K Sensitivity 
+
+We evaluated the impact of using different values of K for the nDCG calculation: Rankings remain stable for all K ∈ { 5, 10 , 15 }. The choice of K = 10 balances granularity with practical relevance, since users typically review the top 10 results for a given query. 
+
+9.3 Dimension Weighting Sensitivity 
+
+We tested whether the overall score ranking is sensitive to changes in the dimension weights: Rankings are robust to weight changes. Lessie ranks first under all tested weighting schemes. The “Optimized” column 16 Table 18 Relevance Precision (padded nDCG@ K) with different values of K.                                              
+
+> Platform nDCG@5 nDCG@10 nDCG@15 Rank Stable?
+> Lessie 72.4 70.2 68.1 Yes Exa 55.8 53.8 51.2 Yes Claude Code 56.2 54.3 52.8 Yes Juicebox 46.3 44.7 42.9 Yes
+> Table 19 Overall score rankings under different weighting schemes. Scores are shown in parentheses.
+> Weighting Scheme Platform Equal Prec.-Heavy Cov.-Heavy Util.-Heavy Optimized
+> Lessie 1 (65.2) 1 (65.9) 1 (68.2) 1 (62.3) 1 (66.8) Exa 2 (55.0) 2 (54.9) 2 (56.9) 2 (55.0) 2 (55.6) Claude Code 3 (46.0) 3 (47.1) 4 (44.5) 3 (45.8) 3 (46.2) Juicebox 4 (45.8) 4 (45.3) 3 (45.9) 4 (49.2) 4 (47.1)
+
+shows weights learned via grid search to maximize correlation with human preference judgments on a held-out set of 30 queries, and the rankings remain unchanged. 
+
+9.4 Partial Credit Ablation 
+
+We tested removing the “partially met” (0.5) score and using only binary met/not met: Removing partial credit lowers all scores proportionally but does not change rankings. Including partial credit provides finer-grained discrimination without affecting relative comparisons. 
+
+9.5 Information Utility Ablation 
+
+We tested computing the overall score without including the Information Utility dimension: Without Infor-mation Utility, Juicebox drops below Claude Code in the rankings. This reflects Juicebox’s strong profile completeness (which benefits its Information Utility score) despite lower Relevance Precision. The Infor-mation Utility dimension clearly captures value that is not reflected in relevance alone, which justifies its inclusion in the overall score. 
+
+# 10 Discussion 
+
+Multi-source data fusion provides consistent advantages. Lessie’s consistent lead across all four scenarios— including domains where other platforms have natural advantages like Juicebox in Recruiting and Claude Code in Deterministic search—strongly suggests that integrating multiple data sources provides a structural advantage in people search. The Influencer/KOL category, where content creators lack standardized profes-sional profiles, most clearly demonstrates this: Lessie’s Coverage (62.8) is 2.75 times Juicebox’s (22.8). 
+
+Criteria-Grounded Verification reduces evaluation bias. By decomposing evaluation into explicit factual checks rather than using holistic subjective scores, our pipeline achieves higher reproducibility than traditional LLM-as-judge methods. Human validation confirms that the LLM verifier achieves high agreement with human judgments ( κ = 0 .84), which supports the reliability of our approach. The three-level criterion matching (met/partially met/not met) forces the judge to commit to specific factual claims that are verified through external web search rather than relying on parametric memory. 
+
+Equal-weight averaging is robust. We follow the MCDA principle [3] that equal weights perform compara-bly to optimized weights in most multi-attribute decision problems. Our sensitivity analysis confirms that 17 Table 20 Impact of removing partial credit.                                
+
+> Platform With Partial (0.5) Binary Only Rank Change
+> Lessie 70.2 68.4 None Exa 53.8 51.2 None Claude Code 54.3 52.1 None Juicebox 44.7 41.8 None
+> Table 21 Impact of removing the Information Utility dimension.
+> Platform 3-Dim Overall 2-Dim (Prec+Cov) Rank Change
+> Lessie 65.2 69.7 None Exa 55.0 55.9 None Claude Code 46.0 47.7 None Juicebox 45.8 43.3 Drops to 4th
+
+rankings are robust to weight changes, which validates this design choice. 
+
+Limitations. We note several limitations of the current work: (1) We use a single judge model (Gemini 3 Flash Preview) as the primary verifier; however, our model sensitivity tests show high agreement across alternative models. (2) The 119-query set does not cover every possible people-search use case such as academic collaborator search or angel investor identification. (3) Web verification depends on what is publicly indexed; people with limited online presence may be under-evaluated. (4) We evaluate up to 15 results per query; platforms that return more results are only evaluated on their top 15. (5) Platform capabilities evolve quickly; our results reflect a single snapshot from January 2025. (6) The Information Utility dimension rewards platforms that provide per-result match explanations, which is an intentional design choice that reflects user value but may favor architectures with built-in verification pipelines. 
+
+Broader impact. People search raises inherent privacy questions. Every query in our benchmark targets information that individuals have published on professional profiles or public websites. We release the evalu-ation framework (code and query definitions) so that others can audit and extend it; per-person evaluation details are excluded from the public release for privacy and compliance reasons. 
+
+# 11 Conclusion 
+
+PeopleSearchBench provides an open-source benchmark with a Criteria-Grounded Verification pipeline for evaluating AI-powered people search platforms. Scoring results from four architecturally diverse platforms on 119 queries across four scenarios, the benchmark finds that Lessie achieves the highest overall score (65.2 
+
+± 1.5) with 100% task completion, followed by Exa (55.0 ± 1.8), Claude Code (46.0 ± 2.1), and Juicebox (45.8 ± 1.9). The evaluation reveals that multi-source data fusion and per-result match explanations provide significant advantages across diverse query types. We release all code, queries, and aggregated scores to support reproducible comparison as the landscape of AI-powered people search continues to evolve. 
+
+# Ethics Statement 
+
+All queries in this work target publicly available professional information; we do not scrape private data. The benchmark publishes aggregated platform scores, not underlying personal records. All evaluation was conducted using only publicly available profile information. All human annotation for validation was con-ducted with informed consent, and annotators were compensated at rates exceeding local minimum wage requirements. We recognize that people-search technology can be misused, and we encourage adopters of this benchmark to pair it with responsible data-handling policies. 18 References 
+
+[1] Krisztian Balog. Entity-Oriented Search, volume 39 of The Information Retrieval Series. Springer, 2018. [2] Krisztian Balog, Yi Fang, Maarten de Rijke, Pavel Serdyukov, and Luo Si. Expertise retrieval. Foundations and Trends in Information Retrieval, 6(2–3):127–256, 2012. [3] Robyn M. Dawes and Bernard Corrigan. Linear models in decision making. Psychological Bulletin, 81(2):95–106, 1974. [4] Bradley Efron and Robert J Tibshirani. An introduction to the bootstrap. Chapman and Hall/CRC, 1994. [5] Sahin Cem Geyik, Qi Guo, Bo Hu, Cagri Ozcaglar, Ketan Thakkar, Xianren Wu, and Krishnaram Kenthapadi. Talent search and recommendation systems at LinkedIn: Practical challenges and lessons learned. In Proceedings of the 41st International ACM SIGIR Conference on Research and Development in Information Retrieval, pages 1353–1354, 2018. [6] Faegheh Hasibi, Fedor Nikolaev, Chenyan Xiong, Krisztian Balog, Svein Erik Bratsberg, Alexander Kotov, and Jamie Callan. DBpedia-Entity v2: A test collection for entity search. In Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval, pages 1265–1268, 2017. [7] Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. SWE-bench: Can language models resolve real-world GitHub issues? In International Conference on Learning Representations, 2024. [8] Seungone Kim, Juyoung Suk, Shayne Longpre, Bill Yuchen Lin, Jamin Shin, Sean Welleck, Graham Neubig, Moontae Lee, Kyungjae Lee, and Minjoon Seo. Prometheus 2: An open source language model specialized in evaluating other language models. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, 2024. [9] Tom Kwiatkowski, Jennimaria Palomaki, Olivia Redfield, Michael Collins, Ankur Parikh, Chris Alberti, Danielle Epstein, Illia Polosukhin, Jacob Devlin, Kenton Lee, et al. Natural questions: A benchmark for question answering research. Transactions of the Association for Computational Linguistics, 7:452–466, 2019. [10] Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, et al. AgentBench: Evaluating LLMs as agents. In International Conference on Learning Representations, 2024. [11] Niklas Muennighoff, Nouamane Tazi, Lo¨ ıc Magne, and Nils Reimers. MTEB: Massive text embedding benchmark. In Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics, pages 2014–2037, 2023. [12] Nandan Thakur, Nils Reimers, Andreas R¨ uckl´ e, Abhishek Srivastava, and Iryna Gurevych. BEIR: A heteroge-neous benchmark for zero-shot evaluation of information retrieval models. In Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track, 2021. [13] Ellen M. Voorhees and Donna K. Harman. TREC: Experiment and Evaluation in Information Retrieval. MIT Press, 2005. [14] Peiyi Wang, Lei Li, Liang Chen, Zefan Cai, Dawei Zhu, Binghuai Lin, Yunbo Cao, Lingpeng Kong, Qi Liu, Tianyu Liu, and Zhifang Sui. Large language models are not fair evaluators. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics, pages 9440–9450, 2024. [15] Seonghyeon Ye, Doyoung Kim, Sungdong Kim, Hyeonbin Hwang, Seungone Kim, Yongrae Jo, James Thorne, Juho Kim, and Minjoon Seo. FLASK: Fine-grained language model evaluation based on alignment skill sets. In International Conference on Learning Representations, 2024. [16] Zhenyu Yu, MOHD YAMANI IDNA IDRIS, Pei Wang, and Rizwan Qureshi. Cotextor: Training-free modular multilingual text editing via layered disentanglement and depth-aware fusion. In The Thirty-ninth Annual Conference on Neural Information Processing Systems Creative AI Track: Humanity, 2025. [17] Ruilin Zhang, Haiyang Zheng, and Hongpeng Wang. Cnmbi: Determining the number of clusters using center pairwise matching and boundary filtering. In Proceedings of the International Conference on Advanced Data Mining and Applications, pages 262–277, 2023. 
+
+19 [18] Ruilin Zhang, Haiyang Zheng, and Hongpeng Wang. Tdec: Deep embedded image clustering with transformer and distribution information. In Proceedings of the 2023 ACM International Conference on Multimedia Retrieval, 2023. [19] Haiyang Zheng, Ruilin Zhang, and Hongpeng Wang. Deep image clustering based on curriculum learning and density information. In Proceedings of ACM International Conference on Multimedia Retrieval, 2024. [20] Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, et al. Judging LLM-as-a-judge with MT-Bench and chatbot arena. In Advances in Neural Information Processing Systems, volume 36, 2023. [21] Shuyan Zhou, Frank F. Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue Ou, Yonatan Bisk, Daniel Fried, Uri Alon, and Graham Neubig. WebArena: A realistic web environment for building autonomous agents. In International Conference on Learning Representations, 2024. 
+
+# A Case Studies 
+
+To provide concrete illustrations of platform performance differences, we present detailed case studies across three representative query types: influencer discovery, expert finding, and recruiting. 
+
+A.1 Case Study 1: Niche Influencer Discovery 
+
+Query. “Find influencers on Instagram with ‘slot’ in their username and also in their regular name, they must be from Brazil, have at least 300 to 50k followers, and promote casinos.” 
+
+Challenge. This query requires multi-constraint matching across platform-specific attributes (Instagram username format), geographic location (Brazil), follower count range, and niche content domain (casino promotion). Such queries are common in influencer marketing but challenging for general-purpose search engines. 
+
+Results Analysis. Table 22 shows the performance comparison across platforms.              
+
+> Table 22 Case Study 1: Influencer discovery results by platform.
+> Platform P@10 Qualified Key Error Type
+> Lessie 1.00 10 None Exa 0.20 2Wrong platform (LinkedIn instead of Instagram) Juicebox 0.10 1Wrong profession (video editors, not influencers)
+
+Error Analysis. 
+
+• Exa returned LinkedIn profiles of iGaming industry professionals instead of Instagram influencers. The system matched “Brazil” + “casino/gaming” but failed on the platform constraint (Instagram) and username format requirement. 
+
+• Juicebox returned video editors and creative professionals with no Instagram presence matching the criteria. The database-focused approach struggled with social media-specific queries outside professional networks. 
+
+• Lessie correctly identified Instagram accounts with “slot” in usernames (e.g., carol.martins slots ,
+
+carla oliveira slots ) and verified Brazil location and follower counts. 
+
+Key Insight. Multi-platform social media queries require specialized data sources beyond professional databases. General web search engines often conflate professional profiles with social media influencers. 20 Table 23 Case Study 2: Cross-domain expert finding results.                          
+
+> Platform P@10 Avg. Relevance Key Strength
+> Lessie 1.00 0.97 Both academic & industry verified Juicebox 1.00 1.00 Strong industry profiles Exa 0.60 0.75 Good academic coverage
+> Table 24 Case Study 3: Technical recruiting results.
+> Platform P@10 Task Success Location Accuracy
+> Lessie 1.00 100% 100% Exa 1.00 100% 100% Juicebox 0.67 100% 67% (conflicting data)
+
+A.2 Case Study 2: Cross-Domain Expert Finding 
+
+Query. “Find people who have both a strong academic publication record in NLP and also hold senior engineering positions at tech companies. I want the rare academics-turned-practitioners.” 
+
+Challenge. This query requires finding individuals who exist at the intersection of two distinct domains: academic research (publications at NLP venues) and industry leadership (senior engineering roles). Such “cross-domain” queries test a platform’s ability to synthesize information from multiple sources. 
+
+Results Analysis. Table 23 shows the performance comparison. 
+
+Example Results. 
+
+• Lessie found candidates like a Principal at Amazon with ACL/EMNLP publications, and a former VP of Research at OpenAI with ICML/ICLR papers. All criteria were verified with evidence. 
+
+• Juicebox returned strong candidates including Senior ML Engineers at Google and Microsoft with NLP publications. However, some candidates lacked the “senior engineering position” criterion (e.g., PhD students). 
+
+• Exa returned academics who lacked current industry positions (e.g., professors at universities), showing difficulty in filtering for the “currently employed at tech company” constraint. 
+
+Key Insight. Cross-domain queries benefit from platforms that can verify multiple criteria independently. Academic-only results or industry-only results both represent partial failures for this query type. 
+
+A.3 Case Study 3: Technical Recruiting 
+
+Query. “Looking for machine learning engineers in Boston who have worked on large language models.” 
+
+Challenge. Recruiting queries require precise matching on role (ML Engineer), location (Boston), and tech-nical expertise (LLMs). The “worked on LLMs” constraint is particularly challenging as it requires under-standing project experience beyond job titles. 
+
+Results Analysis. Table 24 shows the performance comparison. 21 Table 25 Summary of case study findings.        
+
+> Query Type Best Platform Key Differentiator
+> Niche Influencer Lessie Multi-platform social media cover-age Cross-Domain Expert Lessie, Juicebox Academic + industry verification Technical Re-cruiting Lessie, Exa Location accuracy, role matching
+
+Error Analysis. 
+
+• Lessie and Exa both found highly relevant candidates including Lead ML Engineers at HubSpot and ML Engineers at Red Hat, all verified as Boston-based with LLM experience. 
+
+• Juicebox returned some candidates with incorrect or conflicting location data (e.g., listing both Mas-sachusetts and San Francisco), and some candidates with “AI Prompt Engineer” titles that don’t match the “ML Engineer” requirement. 
+
+Key Insight. Professional database platforms perform well on standard recruiting queries but may have data quality issues with location fields. The LLM experience constraint was handled well by platforms that parse project descriptions. 
+
+A.4 Cross-Case Synthesis 
+
+Table 25 summarizes the key findings across all case studies. The case studies reveal that: 1. Query type matters: No single platform dominates all scenarios. Specialized queries (influencer dis-covery) favor platforms with diverse data sources. 2. Constraint complexity: Multi-constraint queries expose weaknesses in keyword-matching approaches. Platforms with semantic understanding perform better. 3. Data freshness: Location and role information can become outdated. Platforms that verify current employment status have an advantage. 
+
+# B Complete Query Set 
+
+This appendix provides an overview of the complete 119 benchmark queries with metadata. Due to space constraints, we show a representative sample here; the full query set with complete metadata is available in our GitHub repository. 
+
+# C Unified Result Schema 
+
+All platform results are normalized to the following unified schema before evaluation: 
+
+Platform-specific mappings. Deduplication and name disambiguation. Results are deduplicated by normalized name (lowercase, remove titles) + company combination. When multiple profiles exist for the same person, the profile with the highest information completeness is retained. 
+
+# D Evaluation Prompts 
+
+This appendix provides the complete prompts used in the Criteria-Grounded Verification pipeline. 22 Table 26 Unified result schema for platform output normalization. 
+
+Field Required Description 
+
+person id Yes Unique identifier (URL or generated hash) name Yes Full name of the person title No Current job title company No Current employer location No Geographic location (city, country) linkedin url No LinkedIn profile URL (if available) twitter url No Twitter/X profile URL (if available) email No Email address (if available) bio No Short biography or summary experience No List of previous positions (JSON array) education No List of education entries (JSON array) skills No List of skills/tags match explanation No Platform-provided explanation of why this person matches source urls No List of source URLs for verification 
+
+Table 27 Field mapping rules by platform. 
+
+Platform Native Fields Mapping Notes 
+
+Lessie Structured JSON with all fields Direct mapping; includes match explanation Exa name, title, company, linkedin url Missing fields set to null; no match explanation Juicebox Full profile from 60+ sources Direct mapping; includes email when available Claude Code Markdown text report Parsed via regex; structured fields extracted from text 
+
+D.1 Criteria Extraction Prompt 
+
+You are a query analyzer. Given a people search query, extract explicit, independently verifiable criteria. Query: {query} Instructions: 1. Identify all constraints in the query (role, company, location, skills, experience level, etc.) 2. Each criterion must be independently verifiable via web search 3. Output as a JSON list of criterion objects Output format: {"criteria": [ {"id": "c1", "description": "...", "type": "role"}, ... ]}Example: Query: "Find senior ML engineers at Google in Bay Area" Output: 
+
+23 {"criteria": [ {"id": "c1", "description": "Role is Senior ML Engineer or equivalent", "type": "role"}, {"id": "c2", "description": "Currently employed at Google", "type": "company"}, {"id": "c3", "description": "Located in San Francisco Bay Area", "type": "location"} ]}
+
+D.2 Verification Prompt 
+
+You are a fact-checker. Given a person and a criterion, verify whether the person meets the criterion using web search. Person: {person_data} Criterion: {criterion_description} Instructions: 1. Search for evidence about this person using web search 2. Evaluate whether the criterion is met based on evidence 3. Output one of: "met", "partially_met", "not_met" 4. Provide brief justification with source URLs Output format: {"judgment": "met|partially_met|not_met", "justification": "...", "sources": ["url1", "url2"] }
+
+D.3 Information Utility Scoring Prompt 
+
+You are evaluating the information utility of a people search result. Given the person data and the original query, score three dimensions: 1. Structural Completeness (0-1): Does the result include name, title, company, contact info, work history, education? 2. Query-Specific Evidence (0-1): Does it explain WHY this person matches? 3. Actionability (0-1): Can the user take action (contact, shortlist)? Person: {person_data} Query: {query} Output format: {"structural_completeness": 0.0-1.0, "query_specific_evidence": 0.0-1.0, "actionability": 0.0-1.0, "utility": 0.0-1.0 }
+
+# E Privacy and Compliance Details 
+
+Data collection compliance. All data collection adheres to: 
+
+• robots.txt : We respect robots.txt directives for all web sources 
+
+• Terms of Service : Platform queries use official APIs or web interfaces 
+
+• Rate limiting : All requests respect rate limits (max 1 req/sec per source) 24 Table 28 Task completion rate (%) and mean qualified results per query by category with 95% CI.                                          
+
+> Task Completion (%) Mean Qualified / Query Scenario Les. Exa Jbx CC Les. Exa Jbx CC Recruiting 100 100 100 90.0 ±5.5 11.3 ±0.8 11.1 ±0.9 11.3 ±0.8 7.0 ±0.7 B2B 100 100 84.4 ±6.5 75.0 ±7.7 9.5 ±0.7 8.8 ±0.8 7.9 ±0.9 6.3 ±0.8 Expert 100 96.4 ±3.6 71.4 ±8.5 100 11.3 ±0.9 10.4 ±0.8 7.0 ±0.7 9.4 ±0.9 Influencer 100 89.7 ±5.7 79.3 ±7.6 82.8 ±7.0 9.4 ±0.8 5.9 ±0.7 3.4 ±0.6 5.9 ±0.7
+
+Data storage. 
+
+• Raw profile pages are not stored; only extracted fields are retained 
+
+• Personal identifiers (email, phone) are hashed before storage 
+
+• Evaluation results are aggregated; no per-person data is publicly released 
+
+GDPR/CCPA considerations. 
+
+• All queries target publicly available professional information 
+
+• Individuals can request removal via GitHub issues 
+
+• No automated decision-making or profiling is performed 
+
+# F Reproducibility Checklist 
+
+To ensure full reproducibility, we provide: 
+
+• Code : Complete evaluation pipeline at GitHub repository 
+
+• Queries : All 119 queries with metadata in JSON format 
+
+• Prompts : All LLM prompts in this appendix 
+
+• Schema : Unified result schema in Appendix C 
+
+• Data : Aggregated scores and per-query results (CSV) 
+
+• Environment : Python requirements.txt and Docker configuration 
+
+• Random seeds : All random processes use fixed seed (42) 
+
+# G Detailed Per-Category Metrics 
+
+Table 28 reports task completion rates and mean qualified results per query by category and platform with 95% confidence intervals. 25

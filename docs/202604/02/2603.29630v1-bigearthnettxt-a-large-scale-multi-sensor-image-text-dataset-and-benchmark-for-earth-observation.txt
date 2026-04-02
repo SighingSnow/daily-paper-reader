@@ -1,0 +1,505 @@
+Title: BigEarthNet.txt: A Large-Scale Multi-Sensor Image-Text Dataset and Benchmark for Earth Observation
+
+URL Source: https://arxiv.org/pdf/2603.29630v1
+
+Published Time: Wed, 01 Apr 2026 00:56:25 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# BigEarthNet.txt: A Large-Scale Multi-Sensor Image-Text Dataset and Benchmark for Earth Observation 
+
+Johann-Ludwig Herzog ∗1 , Mathis Jürgen Adler ∗1 , Leonard Hackel 1 , Yan Shu 2, Angelos Zavras 3 , Ioannis Papoutsis 3, Paolo Rota 2, and Begüm Demir 1 
+
+> 1
+
+BIFOLD and Technische Universität Berlin  
+
+> 2
+
+University of Trento  
+
+> 3
+
+National Technical University and National Observatory of Athens 
+
+> *These authors contributed equally to this work.
+
+https://txt.bigearth.net 
+
+Abstract. Vision-language models (VLMs) have shown strong perfor-mance in computer vision (CV), yet their performance on remote sensing (RS) data remains limited due to the lack of large-scale, multi-sensor RS image-text datasets with diverse textual annotations. Existing datasets predominantly include aerial Red-Green-Blue imagery, with short or weakly grounded captions, and provide limited diversity in annotation types. To address this limitation, we introduce BigEarthNet.txt , a large-scale, multi-sensor image-text dataset designed to advance instruction-driven image-text learning in Earth observation across multiple tasks. 
+
+BigEarthNet.txt contains 464 044 co-registered Sentinel-1 synthetic aperture radar and Sentinel-2 multispectral images with 9.6 M text anno-tations, including: i) geographically anchored captions describing land-use/land-cover (LULC) classes, their spatial relations, and environmental context; ii) visual question answering pairs relevant for different tasks; and iii) referring expression detection instructions for bounding box pre-diction. Through a comparative statistical analysis, we demonstrate that 
+
+BigEarthNet.txt surpasses existing RS image-text datasets in textual richness and annotation type variety. We further establish a manually-verified benchmark split to evaluate VLMs in RS and CV. The results show the limitations of these models on tasks that involve complex LULC classes, whereas fine-tuning using BigEarthNet.txt results in consistent performance gains across all considered tasks. 
+
+Keywords: Multi-Sensor Image-Text Dataset · Vision-Language Mod-els · Earth Observation · Remote Sensing 
+
+## 1 Introduction 
+
+Unprecedented advances in satellite technology have led to a significant increase in the volume of Earth observation (EO) data archives ( e.g . the Sentinel satellites of the Copernicus program alone acquire roughly 20 TB of satellite images per 
+
+> arXiv:2603.29630v1 [cs.CV] 31 Mar 2026
+
+2 J. Herzog et al. 
+
+> B
+> i
+> n
+> a
+> r
+> y
+> V
+> Q
+> A
+
+R
+
+e
+
+f
+
+.
+
+E
+
+x
+
+p
+
+.
+
+D
+
+e
+
+t
+
+e
+
+c
+
+t
+
+i
+
+o
+
+n
+
+> Captioning
+> M
+> u
+> l
+> t
+> i
+> p
+> l
+> e
+> -
+> C
+> h
+> o
+> i
+> c
+> e
+> VQ
+> A
+> Adj
+> A
+> Cnt
+> Pr
+> Ref. Point Detection
+> Ref. LULC Detection
+> Adj
+> A
+> Clt
+> Cnt
+> Loc
+> Pr
+> RP
+> S
+
+B
+
+i
+
+g
+
+E
+
+a
+
+r
+
+t
+
+h
+
+N
+
+e
+
+t
+
+.txt                                                                              
+
+> Input: Which sea-son is shown in the satellite image? a) Spring, b) Sum-mer, c) Winter, d) Autumn
+> Output: b
+> Input: Are there regions of coastal wetlands in the satellite image?
+> Output: No
+> Input: Does any inland water border inland wetlands in this scene?
+> Output: Yes
+> Input: How many areas covered by urban fabric can be seen? a) More than five, b) 3, c) 1, d) 0
+> Output: b
+> Input: Output abounding box enclosing the land cover class in-stance positioned at <point>(0.83, 0.06)</point>.
+> Output: [0.49 0.0, 1.0 0.2]
+> Input: Where can the <ref>largest area of urban fabric</ref> be found?
+> Output: [0.0 0.55, 0.2 1.0]
+> Input: What is the relative position of the arable land to the inland waters? a) to the left, b) to the bottom, c) to the top-right, d) to the top
+> Output: a
+> Input: Describe the content of the image, including the region, climate zone, and land cover distribution.
+> Output: This satellite image, captured during the summer season in Switzerland, showcases adiverse landscape within the "temperate, no dry season, warm summer" climate zone. The dominant features are arable land ( ∼526,000 sqm) [...] are adjacent to both inland waters ( ∼305,000 sqm) and urban fabric. No-tably, the urban fabric is distributed over three indi-vidual marginal areas. The varied landscape presents amix of agricultural areas, wetlands, water bodies, and artificial surfaces.
+
+Fig. 1: BigEarthNet.txt comprises 464 044 co-registered Sentinel-1 (S1) and Sentinel-2 (S2) images with diverse text annotations, resulting in a total of ∼ 9.6 million S1-S2-text triplets. The dataset supports 15 tasks (Presence, Area, Counting, Adjacency, Relative Position, Country, Season, and Climate Zone, denoted as Pr, A, Cnt, Adj, RP, Loc, S, and Clt, respectively) across 4 broad categories. 
+
+day). In this data-rich landscape, natural language provides an intuitive interface for querying and interpreting these vast EO archives, with vision-language mod-els (VLMs) emerging as an effective framework for jointly encoding visual obser-vations and natural language for tasks such as image captioning [6,12,32], visual question answering (VQA) [5,10,19] and referring expression detection [15,30,42]. In general, VLMs are applied to EO data either by using general-purpose computer vision (CV) VLMs directly or by training remote sensing (RS)-specific VLMs. The first approach is limited by the fundamentally different spectral and spatial characteristics between the CV and RS images. For example, the S2 multispectral (MS) images comprise 13 spectral bands associated with varying spatial resolutions, while those in CV include Red-Green-Blue (RGB) bands in general. The high spectral resolution data enable the discrimination of complex land-use/land-cover (LULC) classes in RS. Although RGB information may be sufficient to distinguish generic classes, e.g .,“Water” from “Forests and semi-natural areas”, additional spectral information beyond the visible spectrum is needed to differentiate complex LULC classes, e.g ., “Mixed forest” vs. “Conif-erous forest” [31]. Due to their pretraining phase using RGB-only image-text data, the VLMs in CV have limited capability to effectively query and inter-BigEarthNet.txt 3
+
+pret RS data. Although several RS-specific VLMs trained on RS image-text datasets [2,15,24,42] have recently been developed, most of these models are still trained only on RGB data and thus subject to the above-mentioned limitations. It is worth noting that there are only a few works that include multispectral or multi-sensor (e.g., multispectral, synthetic aperture radar (SAR)) image-text data during pre-training [27, 30]. The use of multi-sensor data is particularly crucial, since different satellite sensors have the capability of measuring differ-ent physical properties of LULC classes and their joint use can improve task performance [11, 33, 34]. However, as shown in Tab. 1, the existing RS image-text datasets suffer from: i) limited availability of co-registered multi-sensor data that includes more than three bands, and ii) limited diversity in text annotation types. These limitations directly hinder the ability of VLMs to characterize: 1) the complex spatial/spectral content of RS images; and also 2) complementary information among multi-sensor data.                                                                                                                                                                                         
+
+> Table 1: Comparison of existing RS image-text datasets. Datasets are compared in terms of: 1) the presence of co-registered multi-sensor imagery exceeding three spectral bands; 2) methods used for text annotation, including the presence of an extensive manual quality check (QC); 3) supported tasks; 4) availability of geolocation data and 5) the number of image-text (IT) samples. ( ✓) indicates that only parts of the dataset fulfill this property. Dataset Multi-Sensor Images Annotation Method Supported Tasks Geolocation data #IT samples Available >3 bands per image Co-registered Manual Template Web scraped LLM-based Manual QC Captioning VQA Ref. Exp. Detection UCM-Captions [25] ✗✗✗✓✗✗✗✓✓✗✗✗10.5k Sydney-Captions [25] ✗✗✗✓✗✗✗✓✓✗✗✗3k RSICD [20] ✗✗✗✓✗✗✗✓✓✗✗✗54.6k RSITMD [39] ✗✗✗✓✗✗✗✓✓✗✗✗23.7k NWPU-Captions [6] ✓✗✗✓✗✗✗✓✓✗✗✗157k GAIA [41] ✓✗✗✗✗✓✓✗✓✗✗(✓)205k Git-10M [17] ✓✗✗✗✗✗✓✗✓✗✗✓10.5M RSVQAxBEN [18] ✗✗✗✗✓✗✗✗✗✓✗✗14.8M RS5M [44] ✓✗✗✗✗(✓) ( ✓)✗✓✗✗(✓)5.0M RSTeller [9] ✗✗✗✗✗✗✓✗✓✗✗✗2.6M Landsat30-AU [21] ✗✗✗✗✗✗✓(✓)✓✓✗(✓)216k ChatEarthNet [38] ✗✓✗✗✗✗✓(✓)✓✗✗✗173k MS-Clip [23] ✓✓✓✗✗✗✓✗✓✗✗✗985k
+> BigEarthNet.txt (ours) ✓✓✓✗✓✗✓(✓)✓✓✓✓9.6M
+
+To overcome the above-mentioned limitations, in this paper we present 
+
+BigEarthNet.txt : a large-scale image-text dataset made up of 464 044 co-4 J. Herzog et al. 
+
+registered Sentinel-1 synthetic aperture radar and Sentinel-2 multispectral im-ages with 9.6 M text annotations, including captions, VQAs with varying answer formats, and referring expression detection annotations (see Fig. 1). In addition, we introduce a benchmark split that contains 1082 image pairs with manually verified text annotations for systematic evaluation of VLMs for EO tasks. Using our benchmark split, we demonstrate that current VLMs in both CV and RS show limited ability to characterize the complex content of multi-sensor RS im-ages. Fine-tuning a state-of-the-art (SOTA) VLM (InternVL3-1B [45]) adapted for multi-sensor input (denoted as RS-InternVL) on BigEarthNet.txt leads to substantial performance gains across all considered tasks. In summary, our contributions are as follows: 1. We show that the existing VLMs from both CV and RS domains exhibit limited capability to characterize the complex spatial/spectral content of multi-sensor images in RS. To this end, we conduct extensive experiments across 15 tasks of 4 categories: image captioning, binary VQA, multiple-choice question (MCQ), and referring expression detection. 2. We introduce BigEarthNet.txt (which is the first dataset unifying co-registered multi-sensor RS data with diverse textual descriptions) together with a manually checked subset (benchmark split). 3. We adapt InternVL to accommodate multi-sensor RS inputs and perform domain-specific fine-tuning using BigEarthNet.txt . Our results serve as experimental validation of the critical role of large-scale, multi-sensor image-text datasets for accurate interactions with EO data. 
+
+## 2 Related work 
+
+VLMs in RS enable natural language interactions with images across multi-ple tasks, including VQA, change captioning, and referring expression detec-tion [14, 15, 30]. To facilitate the research and development of VLMs, several image-text datasets have been proposed in RS. Early RS image–text datasets, such as UCM-Captions, Sydney-Captions [25], RSICD [20], RSITMD [39], and NWPU-Captions [6] contain high-resolution aerial imagery with human-written single-sentence descriptions with limited intra-class diversity. To overcome this bottleneck, recently proposed datasets shift toward large-scale, automatically generated texts: RS5M [44] introduces the first million-scale corpus with 5 mil-lion image–caption pairs; GAIA [41] provides 205 150 pairs, with multi-sentence captions emphasizing environmental dynamics; and Landsat30-AU [21] contains 
+
+196 262 image-caption pairs and 17 725 multiple-choice (MC) VQAs. For VQA specifically, RSVQA [19] comprises 77 232 and 1 066 316 question-answer triplets for low- and high-resolution imagery, while RSVQAxBEN [18] scales to approxi-mately 15 million pairs with S2 BigEarthNet [31] RGB composites for CORINE Land Cover (CLC) class presence. Recent studies also extend the spectral range of image-text datasets beyond RGB. Yuan et. al [38] generate captions for nine-band S2 images, yet descriptions rely on broad LULC classes from ESA BigEarthNet.txt 5
+
+WorldCover [40] ( e.g . water, tree, snow). Marimo et al. [23] scale to 975 000 co-registered S1–S2 images from SSL4EO [37] but generate captions using a VLM that receives RGB bands only, preventing texts from relying on information beyond the visible spectrum. 
+
+## 3 BigEarthNet.txt Dataset 
+
+To address the scarcity of large-scale multi-sensor image-text datasets in RS, we introduce BigEarthNet.txt , which comprises co-registered S1 and S2 im-ages with semantically rich natural-language annotations relevant for 15 tasks across 4 broad categories: i) captioning; ii) binary and iii) multiple-choice VQA; and iv) referring expression detection. The co-registered S1 and S2 images in 
+
+BigEarthNet.txt are taken from BigEarthNet v2.0 [7], which comprises 549 488 
+
+pairs of S1 and S2 images acquired over ten European countries. Each pair is ac-companied by a pixel-level LULC reference map based on the CLC 2018 product (V2020_20u1 ) [8]. Some images in BigEarthNet v2.0 are partly covered by sea-sonal snow, clouds, and cloud shadows, and also associated with reference maps containing unclassified pixels (with no LULC label). To construct our dataset, we filter out such image pairs, resulting in 464 044 co-registered S1 and S2 im-ages. In the following, we describe in detail our annotation generation pipeline, present the caption statistics and then finally introduce our benchmark split. 
+
+3.1 Annotation Generation Pipeline 
+
+The textual annotations for BigEarthNet.txt are generated through a three-stage pipeline (template-based caption generation, large language model (LLM)-based linguistic augmentation, VQA and LULC annotation generation). An overview of the caption generation and linguistic augmentation stage is given in Fig. 2. 
+
+Template-based caption generation. We first construct captions by extracting four categories of spatial attributes directly from the reference maps: the presence 
+
+of LULC classes, the count of individual contiguous regions per class (instances), the size of each class in total and per instance, and pairwise spatial adjacency 
+
+between classes. Area values are rounded to the nearest 1000 m 2 to reduce label noise. Classes are assigned to one of three tiers based on their image coverage: i) primary (> 25 % ); ii) secondary (5 % - 25 % ); or iii) marginal (< 5 % ). Captions are composed from pre-defined templates that contain classes, sizes, and adja-cency relations accordingly. Each caption is further grounded in spatio-seasonal context by appending the acquisition season, country, and Köppen-Geiger cli-mate zone [3], derived from high-resolution climate maps. 
+
+LLM-based linguistic augmentation. Although template-based captions guaran-tee factual correctness, they exhibit limited linguistic variety. Therefore, we apply a two-stage augmentation using the quantized Llama-4-Scout-17B model [36]. 6 J. Herzog et al. 
+
+First, a paraphrasing step diversifies lexical and syntactic structure while pro-hibiting the addition of unsupported information. Second, a self-refinement 
+
+step [22] revises the paraphrased output against the original template to elim-inate hallucinated content and restore missing information. To further increase valid lexical variation, the prompt includes the CLC nomenclature, permitting semantically valid substitutions ( e.g . referring to Urban fabric collectively as 
+
+Artificial surfaces ). Manual evaluation of 3209 randomly sampled augmented captions against four binary criteria (linguistic correctness, factual accuracy, completeness, and absence of generation artifacts) yields an average correctness of 93 .76 % , with 77 .50 % of captions satisfying all four criteria simultaneously. 
+
+VQA and referring expression detection generation. We further augment each image pair with question-answer annotations relevant for binary yes/no VQA, MCQ VQA, and referring expression detection. Binary questions target the four spatial categories from the captioning stage (presence, count, size, adjacency), with one “yes” and one “no” answer generated per pair. To prevent “no” answers from being solvable by class-absence detection alone, count and size questions are constructed such that the queried class is present but the stated quantity is incor-rect; presence and adjacency “no” questions use semantically similar classes from the CLC hierarchy. MCQs extend the four spatial categories from the captioning stage with questions about relative class position, acquisition country, season, and Köppen-Geiger climate zone. Each set of answers for the MCQs includes one correct answer and three incorrect ones, sampled by analogous principles to the binary VQAs. For referring expression detection, we generate referring LULC detection instructions targeting instances covering between 1 % and 50 % 
+
+of the image area and at least 40 % of their enclosing bounding box, along with referring point detection instructions for instances whose centroid lies within the instance region. Examples are given in Fig. 1. Each annotation type uses more than 20 linguistic templates to ensure variability without relying on LLM augmentation. In total, each image pair is associated with up to 16 VQA pairs, and approximately 80 % of pairs carry at least one referring expression detection annotation. 
+
+3.2 Caption Statistics 
+
+The caption annotations of BigEarthNet.txt contain approximately 50 million words and 2.1 million sentences, averaging 107 words and 4.5 sentences. The vocabulary comprises 12 394 unique terms. Caption lengths follow a bimodal distribution (Fig. 3a) corresponding to single-class and multi-class scenes: single-class captions are shorter due to the absence of adjacency descriptions, while multi-class captions vary with scene complexity. Sentence counts per caption (Fig. 3b) peak between four and six, reflecting the predominance of complex scenes. As shown in Fig. 3c, the caption annotations of BigEarthNet.txt achieve a measure of textual lexical diversity (MTLD) score of 64 .69 , surpassing the largest existing image-text RS dataset containing images with more than three bands (MS-CLIP [23]) by more than 1.7×. Additionally, caption annotations BigEarthNet.txt 7
+
+Reference map 
+
+This image primarily shows [class] ([size] )... Smaller areas are occu-pied by [class] ([size] )and [class] ([size] ). 
+
+[Class] is distributed over [count] individual areas, where [count] 
+
+are smaller ([size] and 
+
+[size] ) and ... and 
+
+[count] are marginal. 
+
+[Class] is adjacent to 
+
+[class] . Also, ... and 
+
+[class] borders [class] .
+
+The image was taken during [season] in [lo-cation] in the [climate zone] .
+
+526 000 m 2
+
+460 000 m 2
+
+305 000 m 2
+
+marginal marginal marginal 
+
+Size 
+
+Urban fabric Arable land Inl. Wetlands Inl. water 
+
+> Presence
+
+× 1
+
+× 1
+
+× 1
+
+× 3
+
+> Count
+
+Adjacency 
+
+Location Climate 
+
+This image primary ... ( [size] ). [Class] is distributed ... marginal. 
+
+[Class] is adjacent ... [class] . The image was ... [climate zone] .
+
+> Extract Attributes, Fill & Concatenate Templates
+> LLM
+
+You are a Remote Sensing expert. Use the following definitions to increase variance in the output: ... Do not violate these rules: ...  
+
+> Para-phrase
+> LLM
+
+Control your caption. Ensure that you followed the rules. Update the caption by ... Do NOT explain the mistakes. 
+
+> Refine
+
+This satellite image, captured during the summer season in Switzerland, showcases a diverse landscape within the "temperate, no dry season, warm summer" climate zone. The dominant features are arable land ( ∼526,000 sqm) and inland wetlands ( ∼460,000 sqm), which are adjacent to each other. The arable land borders both inland wetlands and urban fabric ( ∼149,000 sqm). Moreover, the inland wetlands are adjacent to both inland waters ( ∼305,000 sqm) and urban fabric. Notably, the urban fabric is distributed over three individual marginal areas. The varied landscape presents a mix of agricultural areas, wetlands, water bodies, and artificial surfaces. 
+
+> Final Caption
+
+Fig. 2: Caption generation process for BigEarthNet.txt : i) Attribute extraction from the reference map and template filling based on the attributes and metadata such as location, season and climate zone information, followed by concatenation of the templates; ii) increasing linguistic variance and ensuring correctness via self-refinement. 
+
+of BigEarthNet.txt encompass ∼25 % more words in half as many samples compared to MS-CLIP. This shows that BigEarthNet.txt is not only lexically more diverse, but also richer in the semantic content per caption. 
+
+3.3 The BigEarthNet.txt benchmark split 
+
+We divide BigEarthNet.txt into train, validation, and test splits as in BigEarth-Net v2.0, resulting in 229 114 , 118 095 , and 116 835 image pairs and 4 674 281 ,
+
+2 454 690 , and 2 424 991 text annotations, respectively. However, because LLM-8 J. Herzog et al.      
+
+> Density of Occurrences 050 100 150 200 250
+> Length (words)
+> 0.000
+> 0.002
+> 0.004
+> 0.006
+> 0.008
+> 0.010
+> Density of Occurrences
+
+(a) Length ( Words /Caption )      
+
+> Density of Occurrences 246810 12 14
+> Length (sentences)
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> Density of Occurrences
+
+(b) Length ( Sentences /Caption )     
+
+> MTLD Score 10 410 510 610 710 8
+> Number of Image-Text pairs
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> MTLD score
+> 1.7× more diverse
+> GAIA
+> Landsat30-AU Git-10m
+> MS-Clip
+> ChatEarthNet
+> RSVQAxBEN
+> BigEarthNet. txt
+> 10 7
+> 10 8
+> Number of Words
+> Number of Words
+
+(c) Number of Image-Text Pairs 
+
+Fig. 3: Probability density function (PDF) of (a) caption lengths and (b) number of sentences in a caption in the BigEarthNet.txt dataset. (c) Comparison of existing image-text RS datasets in terms of size and semantic richness of the text data. The Natural Language Toolkit (NLTK) word tokenizer is used to divide the captions and questions into tokens. The color of each point indicates the total number of tokens in the dataset. Datasets that encompass images with more than three spectral bands are denoted with a star. The BigEarthNet.txt dataset is 1.7× more diverse compared to the largest existing RS dataset encompassing more than three bands. 
+
+augmented captions may contain hallucinated content, we construct a curated benchmark split to enable reliable model evaluation on the annotations intro-duced in BigEarthNet.txt . The benchmark split contains 1082 image pairs with 
+
+15 029 text annotations from the test split whose augmented captions passed manual verification on all four quality dimensions. To expose answer-bias in eval-uated models, binary and MCQ annotations are balanced across answer options. Annotations are further balanced across LULC classes to the extent permitted by their natural distribution. Overall, the benchmark split contains 6927 binary and 5550 multiple-choice VQA annotations, 970 captions, and 1582 referring expression detection annotations across 1082 image pairs. 
+
+## 4 Experiments 
+
+4.1 Performance Evaluation of VLMs for RS Tasks 
+
+To benchmark BigEarthNet.txt we have considered a wide range of general-purpose CV and specialized RS VLMs. In detail, we select five SOTA models each from the CV and RS domain. For the CV domain, we select GPT-5.2 [29] 4, 
+
+> 4
+
+OpenAI API, endpoint /v1/chat/completions BigEarthNet.txt 9
+
+Qwen3-VL [1], GLM-4.6v-Flash [35], LLaVa-OneVision [16], and InternVL3-1B [45], denoted as GPT, Qwen, GLM, LLaVa, and IVL, respectively. For the RS domain, we select GeoChat [15], LHRS-Bot [24], SkyEyeGPT [42], Earth-Dial [30], and EarthMind [27], denoted as GC, LHRS, SE, ED rgb /ED s2 , and EM rgb /EM s1s2 , respectively. The majority of these models accept only RGB inputs; for these, we provide only the RGB bands of S2 during inference. As EarthDial and EarthMind also accept multispectral and multi-sensor inputs, we evaluate each under two configurations: i) ED rgb and EM rgb using RGB inputs; and ii) ED s2 and EM s1s2 using 12 S2 bands and S1+12 S2 bands as input, respectively. We provide the BigEarthNet.txt instructions by default, with additional instructions to follow the output format and model specific to-kens where necessary. We extract answers even when they do not adhere exactly to the specified format. To reduce computational resources during evaluation, we disable thinking for GLM. Throughout the paper, we report the results on the benchmark split only. Tab. 2 shows the results obtained for each of our general categories: caption-ing, binary VQA, MCQ, and referring expression detection, grouped by RS spe-cialized VLMs (top) and general-purpose CV VLMs (bottom). From the table, one can observe that none of the VLMs in general provides good performance, while CV VLMs perform better than RS VLMs in general despite processing only RGB input. This is because CV VLMs exhibit stronger generalizability and instruction-following ability (Tab. 3–6), whereas most RS VLMs are mainly suitable for tasks achievable using solely RGB data. The considered CV VLMs                                                                                   
+
+> Table 2: Results of VLMs in RS and CV on the main categories of the
+> BigEarthNet.txt benchmark split. Reported metrics for captioning: BLEU-4, binary VQA: accuracy, MCQ: accuracy, and referring expression detection: mean intersection-over-union (mIoU). All results in percent (%). *: Reported parameter count. Model # Parameters Captioning Binary VQA MCQ Ref. Exp. Detection GC [15] 7B 0.75 50 .82 28 .36 4.85
+> LHRS [24] 7B 0.43 48 .23 22 .99 4.79
+> SE [42] 7B 0.00 48 .87 27 .60 6.08
+> ED rgb [30] 4B 0.62 58 .38 32 .94 7.13
+> ED s2 [30] 4B 0.00 44 .06 8.43 0.49
+> EM rgb [27] 4B 1.66 57 .90 34 .25 12 .12
+> EM s1s2 [27] 4B 1.46 57 .79 35 .26 16 .18
+> GPT [29] 2T* 0.30 60.39 34 .93 31.73
+> Qwen [1] 8B 0.57 61.96 37.55 18 .00
+> GLM [35] 10B 0.79 56 .59 34 .45 27.24
+> LLaVa [16] 7B 0.96 58 .60 36.27 20 .17
+> IVL [45] 1B 0.45 54 .11 26 .76 5.76
+
+may also have been pretrained using some RS data, which is a growing trend in 10 J. Herzog et al.                                                                                    
+
+> Table 3: Results on the binary VQA tasks for VLMs in RS and CV: Presence, Area, Counting, Adjacency, and Overall, denoted as Pr, A, Cnt, Adj, and OA, in terms of accuracy. All results are in percent (%). IF shows whether an unambiguous answer could be extracted all the time. Model Pr ACnt Adj OA IF GC [15] 51 .65 46 .86 43 .57 55 .51 50 .82 ✓
+> LHRS [24] 48 .83 51 .23 49 .23 46 .10 48 .23 ✗
+> SE [42] 52 .19 51 .61 46 .63 46 .94 48 .87 ✓
+> ED rgb [30] 64 .47 53 .06 51 .99 60.62 58 .38 ✗
+> ED s2 [30] 37 .45 40 .20 47 .17 47 .78 44 .06 ✗
+> EM rgb [27] 69.34 56 .20 51 .07 55 .97 57 .90 ✓
+> EM s1s2 [27] 69.07 54 .59 50 .15 56 .98 57 .79 ✓
+> GPT [29] 61 .59 67.38 61.94 55 .86 60.39 ✓
+> Qwen [1] 64 .33 66.62 62.33 58 .45 61.96 ✓
+> GLM [35] 60 .01 62 .40 54 .75 53 .03 56 .59 ✓
+> LLaVa [16] 62 .07 58 .19 54 .36 58.94 58 .60 ✓
+> IVL [45] 56 .24 48 .77 51 .61 56 .60 54 .11 ✗
+
+recent works [28]. Additionally, models accepting multispectral (ED s2 ) or multi-sensor (EM s1s2 ) inputs show no consistent benefit (and in some cases decreased performance) compared to their RGB counterparts. This is because their pre-training and fine-tuning data largely consist of RGB images, and the models were therefore not trained to exploit the additional spectral information provided at inference. Even GPT [29], which is the largest model, scores only 60.39% on binary VQA and 34.93% on MCQ due to its inherent RGB data limitation. Tab. 3 shows detailed per-task results for binary VQA. From the table, one can clearly observe that for some tasks, models perform noticeably better ( e.g ., 
+
+69 .34 % accuracy for EarthMind on the binary presence task). This good result on presence VQA is expected, as determining whether a LULC class appears in an image is closely analogous to scene classification, which is a dominant objec-tive in RS VLM pre-training datasets [13, 15, 24, 27, 30, 42]. Nevertheless, none of these models, including the largest, GPT, achieve consistently strong perfor-mance across all binary VQA tasks. In Tab. 4, one can observe the performance on the MCQ tasks. These results closely mirror the binary VQA findings: the best performance is again observed on tasks that most closely resemble typical pre-training objectives. Beyond understanding the image content, instruction-following is an additional challenge: most RS models struggle to consistently adhere to the MCQ format, as this task is less common in RS VLM pre-training data and thus less reliably learned. The results on referring LULC detection and referring point detection are presented in Tab. 5 and Tab. 6. For models trained on segmentation rather than bounding box prediction, we derive bound-ing boxes from their segmentation outputs. In referring LULC detection, models must identify and localize a target instance from a textual description alone, without any spatial prior. In referring point detection, models are additionally BigEarthNet.txt 11                                                                                                                                       
+
+> Table 4: Results on the MCQ tasks for VLMs in RS and CV: Presence, Area, Counting, Adjacency, Relative Position, Country, Season, Climate Zone, and Overall, denoted as Pr, A, Cnt, Adj, RP, Loc, S, Clt, and OA, respectively in terms of accuracy. All results are in percent (%). IF shows whether an unambiguous answer could be extracted all the time. Model Pr ACnt Adj RP Loc SClt OA IF GC [15] 32 .58 26 .80 24 .72 29 .75 25 .46 34 .62 22 .57 30 .52 28 .23 ✗
+> LHRS [24] 23 .84 16 .54 21 .19 27 .23 17 .48 28 .53 23 .71 23 .56 22 .99 ✗
+> SE [42] 30 .89 21 .75 24 .91 30 .51 22 .09 29 .81 24 .71 33 .63 27 .60 ✓
+> ED rgb [30] 46.40 27 .41 36.43 30 .66 29 .14 54.17 25 .57 27 .26 32 .94 ✗
+> ED s2 [30] 21 .16 5.51 4.65 8.62 0.00 15 .06 6.86 7.26 8.43 ✗
+> EM rgb [27] 41 .75 24 .81 27 .32 42 .87 29 .91 40 .06 23 .43 37 .04 34 .25 ✗
+> EM s1s2 [27] 43.58 25 .57 25 .28 44.70 31 .60 40 .06 25 .71 36 .74 35 .26 ✗
+> GPT [29] 38 .08 44.41 22 .68 39 .16 27 .91 41 .35 28 .43 34 .52 34 .93 ✓
+> Qwen [1] 34 .41 37.67 29 .00 42 .87 34.66 47.76 27.29 45.93 37.55 ✓
+> GLM [35] 34 .27 32 .31 34.01 39 .44 31 .90 38 .78 24 .71 37 .93 34 .45 ✓
+> LLaVa [16] 34 .56 32 .47 32 .71 43.33 34.82 40 .38 27.43 39.56 36.27 ✓
+> IVL [45] 28 .77 26 .03 23 .05 30 .59 23 .01 26 .92 24 .29 26 .96 26 .76 ✗
+
+provided with a point within the target instance, and must predict the enclos-ing bounding box. As one can see from the table, several models from the CV domain perform substantially better on referring point detection than on re-ferring LULC detection. We think that the provided point allows models with strong general spatial reasoning to constrain the predicted box to the vicinity of the given location, reducing the task to local boundary estimation rather than open-vocabulary instance search. GPT achieves the best performance on both task types, mainly owing to its scale and the breadth of its pre-training data. Finally, Tab. 7 shows the obtained performance on the captioning task across several metrics. We employ n-gram-based (BLEU, ROUGE, METEOR, CIDEr), embedding-based (BERTScore, SBERT-Cosine [26,43]), and LLM-based metrics (CLAIR [4]). For CLAIR, an LLM is prompted to output a score between 0 and 100 for a candidate caption based on how likely it describes the same image as the reference caption. We use the distilled reasoning model DeepSeek-R1-Distill-Qwen-32B with greedy decoding as the judge. We observe that all evaluated SOTA VLMs have limited capabilities in describing existing LULC classes and their spatial composition in detail. In general, these results demonstrate that SOTA VLMs currently fall short on tasks requiring multi-sensor spectral information and complex LULC under-standing. Exceptions arise when a task closely resembles the model’s pre-training objectives, e.g ., EarthMind’s strong performance on binary presence VQA. This suggests that the poor generalization to other BigEarthNet.txt tasks is pri-marily a consequence of insufficient pre-training data, rather than an inherent limitation of the model architectures themselves. 12 J. Herzog et al. 
+
+Table 5: Results on referring LULC detection for VLMs in RS and CV in terms of mIoU, and accuracy@ k (where a prediction is counted as correct if the overlap with the reference is greater than k%). All results are in percent (%). IF shows whether an unambiguous answer could be extracted all the time. Model mIoU Acc@25 Acc@50 Acc@75 Acc@90 IF GC [15] 7.51 11 .34 1.51 0.00 0.00 ✓
+
+LHRS [24] 7.47 12 .59 1.89 0.50 0.00 ✗
+
+SE [42] 12 .12 20 .03 6.55 2.27 0.13 ✓
+
+ED rgb [30] 8.99 12 .85 2.02 0.00 0.00 ✓
+
+ED s2 [30] 0.98 0.63 0.00 0.00 0.00 ✗
+
+EM rgb [27] 21 .90 35 .52 17.88 5.67 1.39 ✗
+
+EM s1s2 [27] 22 .65 38.41 16 .62 4.53 1.01 ✗
+
+GPT [29] 25.16 40.81 19.52 4.28 1.26 ✓
+
+Qwen [1] 15 .60 25 .31 9.95 2.39 0.38 ✓
+
+GLM [35] 22 .35 37 .03 16 .75 3.53 1.39 ✓
+
+LLaVa [16] 23.04 38.41 15 .74 3.90 0.63 ✓
+
+IVL [45] 5.01 5.29 0.88 0.00 0.00 ✗
+
+Table 6: Results on referring point detection for VLMs in RS and CV in terms of mIoU, and accuracy@ k (where a prediction is counted as correct if the overlap with the reference is greater than k%). IF shows whether an unambiguous answer could be extracted all the time. Model mIoU Acc@25 Acc@50 Acc@75 Acc@90 IF GC [15] 2.16 3.43 0.63 0.13 0.00 ✗
+
+LHRS [24] 3.09 0.25 0.00 0.00 0.00 ✗
+
+SE [42] 0.00 0.00 0.00 0.00 0.00 ✗
+
+ED rgb [30] 5.26 3.05 0.13 0.00 0.00 ✓
+
+ED s2 [30] 0.00 0.00 0.00 0.00 0.00 ✗
+
+EM rgb [27] 9.35 14 .21 4.57 1.27 0.13 ✗
+
+EM s1s2 [27] 12 .65 17 .51 5.08 0.89 0.13 ✗
+
+GPT [29] 38.95 64.21 35.53 8.63 2.79 ✓
+
+Qwen [1] 20 .42 28 .81 8.25 0.89 0.00 ✓
+
+GLM [35] 32.16 56.09 22.46 4.82 1.40 ✓
+
+LLaVa [16] 17 .27 19 .67 3.17 0.51 0.13 ✓
+
+IVL [45] 6.52 3.05 0.00 0.00 0.00 ✗
+
+4.2 Results of Multi-Sensor InternVL (RS-InternVL) 
+
+Using the training and validation sets of BigEarthNet.txt , we fine-tune a SOTA VLM adapted to accommodate multi-sensor input and evaluate it on the benchmark split. To this end, we build on InternVL-3-1B [45] as a backbone and introduce modality-specific branches for S1 and S2 inputs, while we retain the original InternVL components. The architecture is denoted as (RS-InternVL). For each sensor modality, a pretrained vision transformer (ViT) produces patch BigEarthNet.txt 13                                                                                                         
+
+> Table 7: Results on the captioning task for VLMs in RS and CV in terms of n-gram-based (BLEU-4, ROUGE, METEOR, CIDEr), sentence-embedding-based (BERTScore, SBert-Cosine) and LLM-based (CLAIR) metrics. All results are in per-cent (%). Model BLEU-4 ROUGE METEOR CIDEr BERTScore SBERT-Cosine CLAIR GC [15] 0.75 14 .95 14 .24 0.65 83 .42 43 .05 19 .91
+> LHRS [24] 0.72 12 .44 16 .93 0.01 82 .52 54.61 28 .62
+> SE [42] 0.00 5.91 2.21 0.00 82 .79 38 .30 43 .86
+> ED rgb [30] 0.48 13 .65 11 .36 0.51 83 .45 50 .49 46 .51
+> ED s2 [30] 0.03 8.64 3.51 0.00 83 .34 35 .00 59.70
+> EM rgb [27] 1.66 16.54 14 .93 0.96 84.34 50 .55 56 .73
+> EM s1s2 [27] 1.46 16.43 14 .62 0.76 84.15 51 .97 56 .45
+> GPT [29] 0.30 13 .39 12 .69 0.63 83 .58 52 .52 57 .68
+> Qwen [1] 0.70 11 .09 17.83 0.01 81 .87 52 .62 28 .38
+> GLM [35] 0.79 14 .94 17.05 0.43 83 .51 55.90 50 .91
+> LLaVa [16] 0.96 14 .84 15 .41 0.81 83 .89 52 .39 58.91
+> IVL [45] 0.34 11 .61 16 .71 0.06 81 .75 51 .22 35 .68
+
+embeddings, which are aligned to the InternVL LLM embedding space via lin-ear projection layers. The projected S1 and S2 tokens are concatenated with the RGB tokens and the tokenized instruction before being passed to the LLM. To preserve pretrained representations and reduce computational complexity, all ViT backbones are frozen. Only the modality-specific projections and LoRA adapters for the LLM (rank 8, α = 32 , dropout 0.1) are trained, resulting in 5.8 M 
+
+trainable parameters out of 1.1 B in total. We initialize the S1 and S2 encoders with BigEarthNet-pretrained ViTs [7], removing their classification heads. We process only the 10 m and 20 m bands of S2, as the 60 m bands are primarily used for cloud screening and atmospheric correction and carry limited information for semantic RS image understanding [33]. Training uses a linear warm-up cosine annealing schedule, increasing the learning rate from 10 −6 to 10 −4 over the first 
+
+1 % of steps, followed by cosine decay. We fine-tune separately for each task to provide per-task baselines. The model is fine-tuned on the combined train-ing and validation sets for one epoch and evaluated on the BigEarthNet.txt 
+
+benchmark split. Fine-tuning takes approximately two days on four NVIDIA H200 GPUs in total. Tab. 8 shows the results obtained by RS-InternVL on the general categories. From the table, one can see that, once a model is fine-tuned on pairs of S1 and S2 data with diverse text annotations, performance on the benchmark split improves substantially across all tasks, even at small model scale. 14 J. Herzog et al.                       
+
+> Table 8: Results on the main tasks of the BigEarthNet.txt benchmark split for the fine-tuned adapted RS-InternVL model as well as best results from VLMs in RS and CV, which are EM rgb [27] and LLaVa [16] for captioning, ED rgb [30] and Qwen [1] for binary VQA, EM s1s2 [27] and Qwen [1] for MCQ, and EM s1s2 [27] and GPT [29] for referring expression detection. Reported metric for captioning is BLEU-4, while that for binary VQA, and MCQ is accuracy, and that for referring expression detection is mIoU. All results are in percent (%). Model Captioning Binary VQA MCQ Ref. Exp. Detection SOTA RS 1.66 58 .38 35 .26 16 .18
+> SOTA CV 0.96 61 .96 37 .55 31 .73
+> RS-InternVL 34.04 73.29 51.49 65.84
+
+## 5 Conclusion 
+
+In this work, we present BigEarthNet.txt , a large-scale multi-sensor RS image-text dataset that encompasses 15 downstream tasks across four distinct cate-gories: image captioning, binary VQA, MCQ, and referring expression detection. Our dataset addresses the critical scarcity of large-scale RS image-text resources spanning diverse textual annotations associated with co-registered multi-sensor data. With this dataset, we also provide a benchmark split, which contains man-ually verified image-text samples, enabling reliable evaluation of VLM capabil-ities to model the complex spatial and spectral characteristics of multi-sensor RS data. Through systematic evaluation on the benchmark split, we show that both general-purpose CV and RS-specialized VLMs are subject to limited ca-pabilities. In particular, RS-specific models lead to almost no advantage over their general-purpose counterparts. To demonstrate that these limitations stem from data scarcity rather than architectural constraints, we adapt InternVL-3-1B [45] for multi-sensor data and fine-tune on BigEarthNet.txt . The adapted model achieves an improvement of 31 .52 % on average, demonstrating that even a small-scale VLM with simple adaptations can effectively model complex con-tent of multi-sensor data when adequate training data is considered. In this context, the proposed dataset is very promising for effective and interactive EO, enabling natural language interactions with the complex content of RS images, thus democratizing the use of EO data for non-experts as well. 
+
+## Acknowledgements 
+
+We thank Kai Norman Clasen for his support at the initial phase of this work. BigEarthNet.txt 15 
+
+## References 
+
+1. Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., Cheng, Z., Deng, L., et al.: Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 (2025) 2. Bazi, Y., Bashmal, L., Al Rahhal, M.M., Ricci, R., Melgani, F.: Rs-llava: A large vision-language model for joint captioning and question answering in remote sens-ing imagery. Remote Sensing 16 (9), 1477 (2024) 3. Beck, H.E., McVicar, T.R., Vergopolan, N., Berg, A., Lutsko, N.J., Dufour, A., Zeng, Z., et al.: High-resolution (1 km) köppen-geiger maps for 1901–2099 based on constrained cmip6 projections. Scientific Data 10 (1), 724 (2023) 4. Chan, D.M., Petryk, S., Gonzalez, J.E., Darrell, T., Canny, J.: CLAIR: Evaluating image captions with large language models. In: Conference on Empirical Methods in Natural Language Processing. pp. 13638–13646 (2023) 5. Chappuis, C., Zermatten, V., Lobry, S., Le Saux, B., Tuia, D.: Prompt–rsvqa: Prompting visual context to a language model for remote sensing visual question answering. In: Conference on Computer Vision and Pattern Recognition Work-shops. pp. 1371–1380 (2022) 6. Cheng, Q., Huang, H., Xu, Y., Zhou, Y., Li, H., Wang, Z.: Nwpu-captions dataset and mlca-net for remote sensing image captioning. IEEE Transactions on Geo-science and Remote Sensing 60 , 1–19 (2022) 7. Clasen, K.N., Hackel, L., Burgert, T., Sumbul, G., Demir, B., Markl, V.: reBEN: Refined bigearthnet dataset for remote sensing image analysis. In: IEEE Interna-tional Geoscience and Remote Sensing Symposium. pp. 1264–1268 (2025) 8. Feranec, J., Soukup, T., Hazeu, G., Jaffrain, G.: European Landscape Dynamics: CORINE Land Cover Data. CRC Press, 1st edn. (2016) 9. Ge, J., Zhang, X., Zheng, Y., Guo, K., Liang, J.: Rsteller: Scaling up visual lan-guage modeling in remote sensing with rich linguistic semantics from openly avail-able data and large language models. ISPRS Journal of Photogrammetry and Re-mote Sensing 226 , 146–163 (2025) 10. Hackel, L., Clasen, K.N., Ravanbakhsh, M., Demir, B.: Lit-4-rsvqa: Lightweight transformer-based visual question answering in remote sensing. In: IEEE Interna-tional Geoscience and Remote Sensing Symposium. pp. 2231–2234 (2023) 11. Hong, D., Gao, L., Yokoya, N., Yao, J., Chanussot, J., Du, Q., Zhang, B.: More diverse means better: Multimodal deep learning meets remote-sensing imagery clas-sification. IEEE Transactions on Geoscience and Remote Sensing 59 (5), 4340–4354 (2020) 12. Hoxha, G., Melgani, F., Demir, B.: Toward remote sensing image retrieval under a deep image captioning perspective. IEEE Journal of Selected Topics in Applied Earth Observation and Remote Sensing 13 , 4462–4475 (2020) 13. Hu, Y., Yuan, J., Wen, C., Lu, X., Liu, Y., Li, X.: Rsgpt: A remote sensing vision language model and benchmark. ISPRS Journal of Photogrammetry and Remote Sensing 224 , 272–286 (2025) 14. Irvin, J.A., Liu, E.R., Chen, J.C., Dormoy, I., Kim, J., Khanna, S., Zheng, Z., Ermon, S.: TEOChat: A large vision-language assistant for temporal earth obser-vation data. In: International Conference on Learning Representations (2025) 15. Kuckreja, K., Danish, M.S., Naseer, M., Das, A., Khan, S., Khan, F.S.: Geochat: Grounded large vision-language model for remote sensing. In: IEEE Conference on Computer Vision and Pattern Recognition. pp. 27831–27840 (2024) 16 J. Herzog et al. 16. Li, B., Zhang, Y., Guo, D., Zhang, R., Li, F., Zhang, H., Zhang, K., Zhang, P., Zhang, Y., Liu, Z., Li, C.: Llava-onevision: Easy visual task transfer. arXiv preprint arXiv:2408.03326 (2024) 17. Liu, C., Chen, K., Zhao, R., Zou, Z., Shi, Z.: Text2earth: Unlocking text-driven re-mote sensing image generation with a global-scale dataset and a foundation model. IEEE Geoscience and Remote Sensing Magazine 13 (3), 238–259 (2025) 18. Lobry, S., Demir, B., Tuia, D.: Rsvqa meets bigearthnet: A new, large-scale, visual question answering dataset for remote sensing. In: IEEE International Geoscience and Remote Sensing Symposium. pp. 1218–1221 (2021) 19. Lobry, S., Marcos, D., Murray, J., Tuia, D.: Rsvqa: Visual question answering for remote sensing data. IEEE Transactions on Geoscience and Remote Sensing 
+
+58 (12), 8555–8566 (2020) 20. Lu, X., Wang, B., Zheng, X., Li, X.: Exploring models and data for remote sensing image caption generation. IEEE Transactions on Geoscience and Remote Sensing 
+
+56 (4), 2183–2195 (2018) 21. Ma, S., Li, Z., Taylor, J.A.: Landsat30-au: A vision-language dataset for australian landsat imagery. arXiv preprint arXiv:2508.03127 (2025) 22. Madaan, A., Tandon, N., Gupta, P., Hallinan, S., Gao, L., Wiegreffe, S., Alon, U., Dziri, N., Prabhumoye, S., Yang, Y., et al.: Self-refine: Iterative refinement with self-feedback. In: Advances in Neural Information Processing Systems. vol. 36, pp. 46534–46594 (2023) 23. Marimo, C.T., Blumenstiel, B., Nitsche, M., Jakubik, J., Brunschwiler, T.: Be-yond the visible: Multispectral vision-language learning for earth observation. In: Machine Learning and Knowledge Discovery in Databases. Research Track. pp. 359–375. Springer Nature Switzerland (2026) 24. Muhtar, D., Li, Z., Gu, F., Zhang, X., Xiao, P.: Lhrs-bot: Empowering remote sens-ing with vgi-enhanced large multimodal language model. In: European Conference on Computer Vision. pp. 440–457. Springer Nature Switzerland, Cham (2025) 25. Qu, B., Li, X., Tao, D., Lu, X.: Deep semantic understanding of high resolution remote sensing image. In: International Conference on Computer, Information and Telecommunication Systems. pp. 1–5 (2016) 26. Reimers, N., Gurevych, I.: Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In: Conference on Empirical Methods in Natural Language Pro-cessing and the 9th International Joint Conference on Natural Language Process-ing. pp. 3982–3992. Association for Computational Linguistics (2019) 27. Shu, Y., Ren, B., Xiong, Z., Paudel, D.P., Van Gool, L., Demir, B., Sebe, N., Rota, P.: Earthmind: Leveraging cross-sensor data for advanced earth observation inter-pretation with a unified multimodal llm. arXiv preprint arXiv:2506.01667 (2025) 28. Siméoni, O., Vo, H.V., Seitzer, M., Baldassarre, F., Oquab, M., Jose, C., Khalidov, V., et al.: Dinov3. arXiv preprint arXiv:2508.10104 (2025) 29. Singh, A., Fry, A., Perelman, A., Tart, A., Ganesh, A., El-Kishky, A., McLaughlin, A., et al.: Openai gpt-5 system card. arXiv preprint arXiv:2601.03267 (2025) 30. Soni, S., Dudhane, A., Debary, H., Fiaz, M., Munir, M.A., Danish, M.S., Frac-caro, P., et al.: Earthdial: Turning multi-sensory earth observations to interactive dialogues. In: IEEE Conference on Computer Vision and Pattern Recognition. pp. 14303–14313 (2025) 31. Sumbul, G., Charfuelan, M., Demir, B., Markl, V.: Bigearthnet: A large-scale benchmark archive for remote sensing image understanding. In: IEEE Interna-tional Geoscience and Remote Sensing Symposium. pp. 5901–5904. IEEE (2019) BigEarthNet.txt 17 32. Sumbul, G., Nayak, S., Demir, B.: Sd-rsic: Summarization-driven deep remote sensing image captioning. IEEE Transactions on Geoscience and Remote Sensing 
+
+59 (8), 6922–6934 (2020) 33. Sumbul, G., de Wall, A., Kreuziger, T., Marcelino, F., Costa, H., Benevides, P., Caetano, M., Demir, B., Markl, V.: Bigearthnet-mm: A large-scale, multimodal, multilabel benchmark archive for remote sensing image classification and retrieval. IEEE Geoscience and Remote Sensing Magazine 9(3), 174–180 (2021) 34. Sumbul, G., Xu, C., Dalsasso, E., Tuia, D.: SMARTIES: Spectrum-aware multi-sensor auto-encoder for remote sensing images. In: International Conference on Computer Vision. pp. 5569–5578 (2025) 35. Team V, Hong, W., Yu, W., Gu, X., Wang, G., Gan, G., et al.: Glm-4.5v and glm-4.1v-thinking: Towards versatile multimodal reasoning with scalable reinforcement learning. arXiv preprint arXiv:2507.01006 (2026) 36. Touvron, H., Lavril, T., Izacard, G., Martinet, X., Lachaux, M.A., Lacroix, T., Rozière, B., et al.: Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971 (2023) 37. Wang, Y., Braham, N.A.A., Xiong, Z., Liu, C., Albrecht, C.M., Zhu, X.X.: Ssl4eo-s12: A large-scale multimodal, multitemporal dataset for self-supervised learning in earth observation. IEEE Geoscience and Remote Sensing Magazine 11 (3), 98–106 (2023) 38. Yuan, Z., Xiong, Z., Mou, L., Zhu, X.X.: ChatEarthNet: A global-scale image-text dataset empowering vision-language geo-foundation models. Earth System Science Data 17 (3), 1245–1263 (2025) 39. Yuan, Z., Zhang, W., Fu, K., Li, X., Deng, C., Wang, H., Sun, X.: Exploring a fine-grained multiscale method for cross-modal remote sensing image retrieval. IEEE Transactions on Geoscience and Remote Sensing 60 , 1–19 (2022) 40. Zanaga, D., Van De Kerchove, R., Daems, D., De Keersmaecker, W., Brockmann, C., Kirches, G., Wevers, J., Cartus, O., Santoro, M., Fritz, S., et al.: Esa worldcover 10 m 2021 v200. Zenodo (2022) 41. Zavras, A., Michail, D., Zhu, X.X., Demir, B., Papoutsis, I.: Gaia: A global, multi-modal, multiscale vision–language dataset for remote sensing image analysis. IEEE Geoscience and Remote Sensing Magazine pp. 2–30 (2026) 42. Zhan, Y., Xiong, Z., Yuan, Y.: Skyeyegpt: Unifying remote sensing vision-language tasks via instruction tuning with large language model. ISPRS Journal of Pho-togrammetry and Remote Sensing 221 , 64–77 (2025) 43. Zhang, T., Kishore, V., Wu, F., Weinberger, K.Q., Artzi, Y.: Bertscore: Evaluating text generation with bert. arXiv preprint arXiv:1904.09675 (2019) 44. Zhang, Z., Zhao, T., Guo, Y., Yin, J.: Rs5m and georsclip: A large-scale vision- lan-guage dataset and a large vision-language model for remote sensing. IEEE Trans-actions on Geoscience and Remote Sensing 62 , 1–23 (2024) 45. Zhu, J., Wang, W., Chen, Z., Liu, Z., Ye, S., et al.: Internvl3: Exploring advanced training and test-time recipes for open-source multimodal models. arXiv preprint arXiv:2504.10479 (2025)

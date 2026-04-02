@@ -1,0 +1,627 @@
+Title: Optimizing Coverage and Difficulty in Reinforcement Learning for Quiz Composition
+
+URL Source: https://arxiv.org/pdf/2603.27695v1
+
+Published Time: Tue, 31 Mar 2026 01:27:54 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Optimizing Coverage and Difficulty in Reinforcement Learning for Quiz Composition 
+
+## Ricardo Pedro Querido Andrade Silva 
+
+CNRS, Univ. Grenoble Alpes Grenoble, France 
+
+## Nassim Bouarour 
+
+CNRS, Univ. Grenoble Alpes Grenoble, France 
+
+## Dina Fettache 
+
+CNRS, Univ. Grenoble Alpes Grenoble, France 
+
+## Sarab Boussouar 
+
+CNRS, Univ. Grenoble Alpes Grenoble, France 
+
+## Noha Ibrahim 
+
+Université Grenoble Alpes Grenoble, France 
+
+## Sihem Amer-Yahia 
+
+CNRS, Univ. Grenoble Alpes Grenoble, France 
+
+Abstract 
+
+Quiz design is a tedious process that teachers undertake to evaluate the acquisition of knowledge by students. Our goal in this paper is to automate quiz composition from a set of multiple choice ques-tions (MCQs). We formalize a generic sequential decision-making problem with the goal of training an agent to compose a quiz that meets the desired topic coverage and difficulty levels. We inves-tigate DQN, SARSA and A2C/A3C, three reinforcement learning solutions to solve our problem. We run extensive experiments on synthetic and real datasets that study the ability of RL to land on the best quiz. Our results reveal subtle differences in agent behav-ior and in transfer learning with different data distributions and teacher goals. This was supported by our user study, paving the way for automating various teachers’ pedagogical goals. 
+
+1 Introduction 
+
+Teachers spend considerable time crafting quizzes to evaluate their students’ knowledge acquisition [ 11 , 12 , 18 ]. They usually follow a stepwise decision-making process starting from a mix of previ-ously used quizzes and newly designed Multiple-Choice Questions (MCQs). At each step, they seek to ensure that the MCQs forming a quiz cover desired topics and difficulty level distributions. In this paper, our aim is to help teachers automate quiz composition. 
+
+Context and motivating example. Quiz creation has recently moved from manual editing to smarter, learning-based systems. Teachers used to spend a lot of time adjusting questions one by one to create a good quiz. Key concerns like topic coverage, difficulty balance, and relevance to the material are still essential for build-ing high-quality quizzes. Consider the six Multi-Choice Questions provided in Figure 1 where the topic, difficulty level, and correct solution of each MCQ are highlighted in bold. A teacher seeking to build a 3-MCQ quiz to test students on two topics, e.g. Statistics and Probabilities, would choose MCQs with varying difficulties, e.g., MCQs 1, 5, and 6 (this answer is not unique). A teacher who aims to vary topics and maintain the same difficulties would choose MCQs 1, 4 and 5, that constitute the only solution in this case. In practice, teachers proceed either by creating MCQs from scratch, or by replacing some MCQs by others until they reach a satisfactory quiz. To reduce human effort in composing quizzes from large MCQ pools, early systems used rule-based methods with predefined tem-plates and constraints (e.g., “include two geometry questions”), offering limited flexibility and generalization [ 1 , 6]. Later work au-tomated quiz generation using difficulty prediction via lexical and syntactic features [ 4], or clustering and topic modeling to group or diversify questions [ 9]. However, these methods target single objectives—such as topic relevance or redundancy reduction—and do not balance multiple pedagogical criteria. 
+
+Challenges. Selecting 𝑘 MCQs from a large pool is difficult be-cause the system must incrementally choose questions that best meet target topic coverage and difficulty. As demonstrated in recent work [ 20 ], this sequential decision process naturally suits RL. How-ever, how different RL methods handle varying data distributions and teacher goals remains unclear. Key challenges include design-ing the MDP—especially rewards that reflect teacher objectives and actions that mimic quiz-design operations—and determining how to train agents for reusable performance across future quiz-design tasks. 
+
+Contributions. We define QuizComp , a constrained bi-objective optimization problem that takes MCQs and target topic and dif-ficulty distributions and outputs a satisfying quiz. We design an MDP where each state is a quiz, transitions replace it with one that improves topic or difficulty (reflected in the reward), and actions operate via similarity or dissimilarity on each objective. We im-plement three RL solutions: DQN, SARSA, and A2C/A3C. DQN serves as the benchmark and has prior use in quiz composition. SARSA enables comparison within temporal difference methods and has shown multitask potential. A2C/A3C provide a structurally different RL approach, combining policy and value networks with potential GPU efficiency benefits. 
+
+Empirical validation. Our experiments evaluate multiple RL algo-rithms across varied input samples and topic/difficulty distributions using synthetic data and the real Med and Math datasets. Results confirm that agents can mimic teacher behavior using only MCQ similarity and dissimilarity. All algorithms use all actions, converge quickly, and tend to favor small gains, showing a bias toward topic and difficulty similarity. This leads to local exploration of MCQ neighborhoods, with larger jumps taken only when similar op-tions are exhausted, mirroring human quiz design. On real datasets, all methods find quizzes highly aligned with targets, with DQN performing best. We further test transferability across target types, uniform and biased, and datasets, finding strong cross-domain and cross-target transfer. Agents trained on one dataset transfer well to the other, and those trained on biased targets transfer effectively other targets.                          
+
+> 1
+> arXiv:2603.27695v1 [cs.LG] 29 Mar 2026 MCQ4 [Topic Linear Algebra - Difficulty Easy]
+> Compute the determinant of
+> A=( [ 1 -3 1 2; -2 1 2 1; 0 0 -1 0; 2 4 2 1 ])
+> a. 11
+> b. -1
+> c. 35
+> d. impossible, the determinant is undefined
+> MCQ2 [Topic Linear Algebra - Difficulty Hard]
+> Solve the linear system
+> x+y+z=1
+> 3x -y-z=4
+> x+5y +5z =-1
+> a. The system has (x, x, -2x+1) as solution for every
+> x∈ℝ .
+> b. The system has no solution.
+> c. The system has (5/4, y, z) as solution for every y,z ∈ℝ .
+> d. The system has (0, 0, 1) as its unique solution.
+> MCQ1 [Topic Statistics - Difficulty Easy]
+> A sample of 8 medical institutions in the country, found
+> these monthly expenses for stationery (in euros): 69, 48,
+> 99, 87, 93, 84, 80, and 98. The expenses of the Red Cross
+> hospital, which was not in the sample, were 1.5 standard
+> deviation below the sample mean. What were the expenses
+> of the Red Cross hospital?
+> a. 56.75
+> b. 58.40
+> c. 106.10
+> d. 107.75
+> MCQ3 [Topic Statistics - Difficulty Hard]
+> For the summary of a sample given below, identify
+> the possible outliers using the interquartile range.
+> [ MIN Q_1 Median Q_3
+> MAX; 10 17 18 23 78; ]
+> a. The outlier is 30.
+> b. The outliers are 17, 18 and 23.
+> c. The outliers are 10 and 78.
+> d. The outlier is 78.
+> MCQ5 [Topic Probabilities - Difficulty Easy]
+> In how many different ways can you arrange 8 guests
+> around a circular table?
+> a. 720
+> b. 120
+> c. 1024
+> d. 5040
+> MCQ6 [Topic Probabilities - Difficulty Hard]
+> A team of 4 people is to be formed from a group
+> of 7 women and 5 men. How many different
+> teams might be formed?
+> a. 495
+> b. 11880
+> c. 24
+> d. 479001600
+
+Figure 1: MCQs used to generate quizzes. 
+
+Our user study with 28 qualified participants resulted in higher satisfaction and lower effort, confirming the need for automating quiz generation. 
+
+2 Problem and Solutions 
+
+We consider a set of knowledge topics 𝑇 and a set 𝑀 of MCQs. We associate to each MCQ 𝑚𝑐𝑞 ∈ 𝑀 a topic 𝑡 ∈ 𝑇 and a categorical value 𝑙 that reflects its difficulty level. Following common practice, we consider the difficulty levels in the Bloom taxonomy [ 7, 11 , 16 ]. Our framework accommodates a variable number of difficulty levels, which depend on the dataset. We define a quiz as a subset 𝑍 ⊆ 𝑀 of MCQs of a fixed size 𝑘 . We associate with each quiz 𝑍 , a topic vector of a fixed size, where each entry 𝑖 is computed as the proportion of MCQs in 𝑍 with topic 𝑡 𝑖 ∈ 𝑇 (recall that each MCQ has a single topic). We also associate to 𝑍 a difficulty vector of fixed size, where each entry is computed as the proportion of MCQs in 𝑍 that are associated with a given difficulty level in the taxonomy. A teacher wishing to compose a quiz has in mind topics and difficulty levels to cover. Those are expressed as two target vectors: 
+
+𝑇 𝐶 , a distribution of proportions of MCQs in the quiz with desired topics, and 𝑇 𝐷 , a distribution of proportions of MCQs in the quiz of desired difficulty levels. For example, < 0, 0, 0, 0, 0, 0.5, 0, 0, 0.5, 0 >
+
+is a biased topic vector where half the MCQs cover one topic and the other half another, and < 0.2, 0.2, 0.2, 0.2, 0.2 > represents a uniform vector of difficulties. We define topicMatch (Z, TC ) and diffMatch (Z, TD ), two func-tions that reflect to what extent a quiz 𝑍 reflects the desired distri-butions. Our formalization is agnostic to how these functions are defined. In our implementation, we use Cosine similarity. 
+
+Problem 1 (The QuizComp Problem). Given a set 𝑀 of MCQs, two target vectors 𝑇 𝐶 and 𝑇 𝐷 , and an integer 𝑘 , our goal is to compose a quiz 𝑍 ⊆ 𝑀 of 𝑘 MCQs s.t.: 
+
+argmax 𝑍 ⊆𝑀 topicMatch (𝑍,𝑇 𝐶 )
+
+argmax 𝑍 ⊆𝑀 diffMatch (𝑍,𝑇 𝐷 ) (1) 
+
+2.1 Markov Decision Process Formalization 
+
+We assume a Discrete Markov Decision Process (MDP) defined by a triplet {S , A, R} : State space S is a set of states of the environment; Action space A is a set of actions from which the agent selects an action at each step; A reward function R that computes the reward of an action 𝑎 𝑖 from state 𝑠 𝑖 to 𝑠 ′ 
+
+> 𝑖
+
+, 𝑅 𝑖 = 𝑟 (𝑠 𝑖 , 𝑎 𝑖 , 𝑠 ′ 
+
+> 𝑖
+
+).
+
+States and actions. We define an exploratory agent’s environment as a set of distinct quizzes, each containing 𝑘 MCQs. Although our model is not restricted to pre-existing quizzes, in our implemen-tation, we materialize the space of all possible quizzes to achieve efficiency. The state space represents a quiz 𝑍 as a set of 𝑘 MCQs, and each state is the concatenation of its quiz-level topic and dif-ficulty distribution vectors. When an agent visits a state 𝑠 (i.e., a quiz 𝑍 ), it seeks a better state 𝑠 ′ (a quiz 𝑍 ′) by applying one of four actions: SimTopic, SimLevel, DissTopic, or DissLevel . Each action transforms a quiz 𝑍 into a new quiz 𝑍 ′ that is either similar or different with respect to topics or difficulty. Section 3.1 details how each action is efficiently implemented. 
+
+Reward design. As QuizComp is a multi-objective problem, we propose to define our reward using scalarization, a common ap-proach that transforms the problem into a single objective via a weighted linear sum. Given a quiz 𝑍 , we can compute how close it is to the target coverage and difficulty: 
+
+targetMatch (𝑍,𝑇 𝐶 ,𝑇 𝐷 ) = 𝛼 · topicMatch (𝑍,𝑇 𝐶 )+ (1 − 𝛼 ) · diffMatch (𝑍,𝑇 𝐷 )
+
+,where 𝛼 ∈ [ 0, 1].We define the reward of taking an action 𝑎 at a state 𝑠 :
+
+R ← targetMatch (𝑠 ′ .𝑍,𝑇 𝐶 ,𝑇 𝐷 )− 
+
+targetMatch (𝑠.𝑍,𝑇 𝐶 ,𝑇 𝐷 )
+
+.
+
+2A state 𝑠 ∈ S contains a quiz 𝑍 , and applying action (a) yields a new state (s’) with quiz 𝑍 ′. The reward captures the agent’s pro-gression: if 𝑠 ′ .𝑍 is farther from the target than 𝑠.𝑍 , the reward is negative, penalizing the action and discouraging its future use in similar situations. If 𝑠 ′ .𝑍 is closer to the target, the agent receives a positive reward and is encouraged to reuse action 𝑎 .
+
+Exploration session. An agent learns to navigate in the environ-ment. In each step 𝑖 , a new quiz 𝑍 𝑖 +1 is composed based on the previous one 𝑍 𝑖 by taking an action 𝑎 𝑖 . An exploration session 𝑆 ,starting at state 𝑠 1 (i.e., defines a quiz 𝑍 1), of length 𝑛 , is a sequence of exploration states and actions: 𝑆 = [( 𝑠 1, 𝑎 1), . . . , (𝑠 𝑛 , 𝑎 𝑛 )] .
+
+Reinforcement Learning. Model-free RL [ 21 ] addresses sequen-tial optimization by having an agent interact with an environment and maximize cumulative reward. We use this framework for Quiz-Comp , where the agent composes the best quiz (Z) (the best state (s)) by maximizing search progression. RL includes four elements: policy, reward, value function, and environment. A policy maps perceived states (quizzes) to actions, sometimes via simple functions and sometimes via search, as in QuizComp .The reward function defines the task objective. Maximizing total reward drives policy updates. While rewards capture immediate benefit, the value function reflects long-term desirability. Here, the agent starts from a random quiz 𝑍 1 and moves closer to target topics and difficulties 𝑇 𝐶 and 𝑇 𝐷 at each step. Although RL can include a model predicting next states and rewards, we focus on model-free methods. 
+
+Policy 𝜋 . A policy 𝜋 : S × A → [ 0, 1] of an RL agent maps the probability of taking action 𝑎 ∈ A in state 𝑠 ∈ S , that is, 
+
+𝜋 (𝑠, 𝑎 ) = 𝑃𝑟 (𝑎 𝑡 = 𝑎 |𝑠 𝑡 = 𝑠 ).We can rewrite the definition of a session as 𝑆 𝜋 = [( 𝑠 1, 𝜋 (𝑠 1)) ,. . . , (𝑠 𝑛 , 𝜋 (𝑠 𝑛 ))] . By replacing each state by its respective quiz, we rewrite the session 𝑆 as 𝑆 𝜋 = [( 𝑍 1, 𝜋 (𝑍 1)) , . . . , (𝑍 𝑛 , 𝜋 (𝑍 𝑛 ))] .
+
+Optimal Policy 𝜋 ∗. A policy 𝜋 ∗ is optimal if its expected cu-mulative reward is greater than or equal to the expected cumu-lative reward of all other policies 𝜋 . The optimal policy has an associated optimal state-value function and optimal Q-function: 
+
+𝑄 ∗ (𝑠, 𝑎 ) ← max 𝜋 𝑄 𝜋 (𝑠, 𝑎 ).
+
+Problem 2 (Revisited QuizComp Problem). Given a session 
+
+𝑆 , we define sessionMatch (.) to measure the agent’s progress toward finding a quiz that matches the target distributions, discounted by 
+
+𝛾 ∈ [ 0, 1]:
+
+sessionMatch (𝑆,𝑇 𝐶 ,𝑇 𝐷 ) = (2) ∑︁   
+
+> (𝑠 𝑖 ,𝑎 𝑖 ) ∈ 𝑆
+
+𝛾 𝑖 targetMatch (𝑠 𝑖 +1.𝑍,𝑇 𝐶 ,𝑇 𝐷 )− (3) 
+
+targetMatch (𝑠 𝑖 .𝑍,𝑇 𝐶 ,𝑇 𝐷 ) (4) 
+
+Hence, the problem is to find an optimal policy 
+
+𝜋 ∗ = 𝑎𝑟𝑔𝑚𝑎𝑥 𝜋 sessionMatch (𝑆 𝜋 ,𝑇 𝐶 ,𝑇 𝐷 ).
+
+2.2 Reinforcement Learning Solutions 
+
+We explore three RL solutions to solve QuizComp .
+
+Deep Q-Network (DQN) [ 21 ] extends Q-learning using deep net-works to approximate Q-values, estimating expected cumulative reward for each ⟨𝑠, 𝑎 ⟩ pair. It iteratively updates Q-values to bal-ance exploration and exploitation with learning rate 𝛼 and discount factor 𝛾 :
+
+𝑄 (𝑠, 𝑎 ) ← 𝑄 (𝑠, 𝑎 ) + 𝛼 
+
+
+
+𝑅 + 𝛾 max   
+
+> 𝑎 ′∈𝐴
+
+𝑄 (𝑠 ′, 𝑎 ′) − 𝑄 (𝑠, 𝑎 )
+
+
+
+. (5) We adopt PER [19] to enrich training experience. 
+
+SARSA [ 21 ] is an on-policy variant of Q-learning, SARSA updates Q-values using the action the agent actually takes: 
+
+𝑄 (𝑠, 𝑎 ) ← 𝑄 (𝑠, 𝑎 ) + 𝛼 [𝑅 + 𝛾𝑄 (𝑠 ′, 𝑎 ′) − 𝑄 (𝑠, 𝑎 )] . (6) 
+
+A2C/A3C [ 13 ] are actor–critic methods that combine policy gra-dients with value estimation. The actor updates action probabilities while the critic estimates advantages: 
+
+Advantage (𝑠, 𝑎 ) ≈ 𝑅 (𝑠, 𝑎, 𝑠 ′) + 𝛾𝑉 (𝑠 ′) − 𝑉 (𝑠 ). (7) A3C extends A2C with parallel asynchronous workers, each interacting with its own environment copy to stabilize learning and update shared actor–critic networks. 
+
+3 Experiments 3.1 Setup 
+
+Datasets. We use three Synthetic and two real datasets ( MeD 
+
+and Math , Table 1). While Math has human-crafted MCQs, we generate MCQs for MeD using MedGemma 9B, performing com-parably to GPT-4o. Synthetic datasets control data distributions (uniform or biased) to study agent behavior (Table 2), sampling topic and difficulty vectors via a multivariate Dirichlet (parame-ters 1 for uniform, 0.5 for biased). Our real datasets have median similarity 0.67 ( Math ) and 0.69 ( MeD ), indicating generally similar quizzes. High-similarity quizzes ( > 0.80 ) are far fewer for biased targets; e.g., in MeD , 3860 quizzes match 𝑇 uniform vs. 86 for 𝑇 bias .
+
+Teacher targets. We consider two types of target distributions. 
+
+𝑇 uniform represents uniform coverage of all topics and difficulty levels, while 𝑇 bias and 𝑇 ′ 
+
+> bias
+
+represent biased targets, focusing on specific topics and difficulty levels. 
+
+Agents. We instantiate five different agents for each RL algo-rithm described in Section 2.2 by varying the weight of the reward 
+
+𝛼 in {0, 0.25, 0.5, 0.75, 1 }. Each instance of an algorithm focuses on giving more or less importance to optimizing one of the objec-tives based on its specific value of 𝛼 (e.g., an instance with 𝛼 = 0
+
+optimizes only for the difficulty level and ignores topic distribution). 
+
+Implementation of environment and actions. We build the environment from MCQs by filtering those covering a random subset of 𝑘 = 10 topics yielding a universe to 10 4 quizzes. MDP actions use Cosine similarity to modify a quiz 𝑍 into 𝑍 ′, sampling the 25 most similar or dissimilar quizzes from the pre-sampled quizzes, while avoiding similarity greater than 0.95 .
+
+Training setup. We set the number of episodes to 5000 and the maximum number of iterations per episode to 100. We set the reward target threshold 𝛽 to 0.85 . This means that if the agent finds a quiz 𝑍 with a similarity to the target that is equal to or higher than 
+
+0.85 , it considers it as a good result and stops the navigation. We used a 𝜖 -greedy decay strategy for exploitation/exploration with 
+
+𝜖 _𝑑𝑒𝑐𝑎𝑦 = 0.995 , 𝜖 _𝑚𝑖𝑛 = 0.05 . We set the value of 𝛾 to 0.95 , the learning rate to 0.005 , and the batch size to 128 .              
+
+> 3Dataset Description #MCQs #Topics #Diff. levels
+> MeD generated using MedGemma 9B 1
+> based on medical documents from the UNESS https://entrainement-ecn.uness.fr/ platform for training medical professionals. 1500+ 111 topics from which we sampled 10 topics, e.g., Car-diology, Rhumatology. The difficulty level of each MCQ has a numerical scale within [1,5], 1 being the easiest.
+> Math [2] collected from MathE https://mathe. ipb.pt/ an e-learning platform for enhancing mathematical skills in higher education and supporting au-tonomous MCQ-based learning. 1900+ 15 topics from which we sampled 10 topics, e.g., Lin-ear Algebra, Probabilities. The difficulty level of each MCQ on a increasing scale within [1,6].
+
+Table 1: Description of real datasets.               
+
+> Dataset Description Example quiz representation
+> Uniform Uniformly drawn MCQs 𝑇 𝐶 = <0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1>
+> 𝑇 𝐷 = <0.2, 0.2, 0.2, 0.2, 0.2>
+> BiasedTopic Biased topics and uniform difficulties 𝑇 𝐶 = <0, 0, 0, 0, 0, 0.5, 0, 0, 0.5, 0>
+> 𝑇 𝐷 = <0.2, 0.2, 0.2, 0.2, 0.2>
+> BiasedLevel Biased difficulties and uniform topics 𝑇 𝐶 = <0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1>
+> 𝑇 𝐷 = <0.5, 0, 0, 0, 0.5>
+
+Table 2: Description of Synthetic datasets. Oracle. We assume access to an oracle that always finds the closest quiz to the target, used to assess our agents’ ability to reach the ground truth. The oracle scans all 10,000 quizzes, but in real scenarios, the full quiz set may be unavailable, as quizzes are gen-erated by the agent. Thus, the oracle serves only as an accuracy baseline. 
+
+Measures. We report measures for training: (1) evolution of Q-values across episodes to verify convergence, (2) action distribution, and for inference: (3) similarity to the best quiz, (4) #iterations to reach it, and (5) avg time. All results are an aggregation over 10 
+
+runs. 
+
+3.2 Summary of results 
+
+Our results show that agents converge regardless of 𝛼 values or dataset bias. The learned action distribution depends on 𝛼 and the target but not the dataset: for 𝑇 uniform , agents favor similarity actions (SimTopic , SimLevel ) and avoid dissimilarity actions, staying risk-averse, while for 𝑇 bias , they explore more using dissimilarity actions. In synthetic inference, RL agents find good quizzes independently of 
+
+𝛼 or data bias, though matching topics is harder than difficulties due to their larger number. Real-world results confirm these findings: agents achieve good quizzes 100 × faster than Oracle and reach high quiz similarity ( .925 ) when increasing the reward threshold, likely due to replay buffers. Transfer learning is effective across datasets and from 𝑇 bias to 𝑇 uniform , and between biased targets ( 𝑇 bias and 𝑇 ′
+
+> bias
+
+), though the reverse transfer is harder. 
+
+3.3 Synthetic environments 
+
+We report the DQN evaluation results with different values of 𝛼 and different datasets. The other RL algorithms exhibit similar trends. The training is performed on 𝑇 uniform as it reflects real settings. In the following, we report empirical results on both the training and inference phases. 
+
+Training Phase. Figure 2 shows that all DQN agents converge around 
+
+∼ 30 k steps across datasets and 𝛼 values, despite early instability for 
+
+𝛼 = 0.5 and biases like those in BiasedTopic . Maximum Q-values vary with data bias and 𝛼 , but convergence remains consistent, highlighting agent stability without theoretical guarantees [14]. Figure 3 shows that for target 𝑇 uniform , agents primarily select sim-ilarity actions ( SimTopic , SimLevel ) and avoid dissimilarity actions (DissTopic , DissLevel ) due to negative rewards, a pattern consistent across datasets and driven by 𝛼 rather than data bias. For biased targets 𝑇 bias (Figure 4), agents use more dissimilarity actions, re-flecting exploratory behavior. Overall, learned policies depend on both the target type and the optimized objectives.                                   
+
+> Algos 𝛼 Uniform BiasedTopic BiasedLevel
+> DQN 00.896 0.903 0.888 0.25 0.877 0.880 0.885 0.5 0.870 0.870 0.862 0.75 0.868 0.860 0.860 10.877 0.851 0.869 Oracle 00.998 0.997 1.000 0.25 0.957 0.995 0.983 0.5 0.944 0.994 0.975 0.75 0.944 0.994 0.967 10.973 0.999 0.974
+
+Table 3: Average similarity with target 𝑇 uniform for all Syn-thetic datasets. 
+
+> 4
+
+0k 50k 100k 150k 200k 250k 300k 
+
+Iterations 
+
+0.1 
+
+0.0 
+
+0.1 
+
+0.2 
+
+0.3 
+
+> Q-values
+
+10k 20k 30k 
+
+0.1 
+
+0.0 
+
+0.1 
+
+0.2 
+
+BIASEDTOPIC - =0 
+
+BIASEDTOPIC - =0.5 
+
+BIASEDTOPIC - =1 
+
+BIASEDLEVEL - =0 
+
+BIASEDLEVEL - =0.5 
+
+BIASEDLEVEL - =1 
+
+UNIFORM - =0 
+
+UNIFORM - =0.5 
+
+UNIFORM - =1 Figure 2: Evolution of max 𝑄 -function across training iterations of DQN on target 𝑇 uniform for different datasets and 𝛼 values. 0k 1k 2k 3k 4k 5k 
+
+0% 
+
+50% 
+
+100% = 0 
+
+0k 1k 2k 3k 4k 5k 
+
+0% 
+
+50% 
+
+100% 
+
+> Action Distribution
+
+= 0.5 
+
+0k 1k 2k 3k 4k 5k 
+
+Episodes 
+
+0% 
+
+50% 
+
+100% = 1 
+
+SimTopic SimLevel DissTopic DissLevel 
+
+Figure 3: Evolution of learned actions per episode during DQN training on target 𝑇 uniform for Uniform dataset. 0k 1k 2k 3k 4k 5k Episodes 0% 50% 100% Action  Dist.    
+
+> α  
+> SimT opic SimLevel DissT opic DissLevel
+
+Figure 4: Evolution of learned actions per episode during DQN training on target 𝑇 bias for Uniform dataset. 
+
+5= 0.25 = 0.75 
+
+> Trajectory
+> Start
+> End
+> Oracle
+> 0.6
+> 0.8
+> Similarity
+
+Figure 5: Examples of agent trajectories in Uniform dataset using UMAP 2D projection. 
+
+Inference Phase. Table 3 shows the average similarity of the found quizzes to the target 𝑇 uniform using different 𝛼 values on all Syn-thetic datasets. Overall, the trained agents succeed in finding good quizzes close to the target 𝑇 uniform as they reach the 0.85 similarity threshold. The agents seem to find it more challenging to optimize for topics than for difficulty levels, as the similarity with 𝑇 uniform 
+
+slightly decreases when 𝛼 increases (i.e., the increase observed with 
+
+𝛼 = 1 is due to the fact that the agent optimizes only topic cover-age). This can also be seen in Figure 5, which depicts the inference trajectory that an agent takes to find 𝑇 uniform . The agent tends to use more actions with 𝛼 = 0.75 than with 𝛼 = 0.25 . We explain this by the fact that there are more topics than difficulties, which makes it more challenging to match the desired topic distribution. 
+
+3.4 Real environments                                                         
+
+> Data Algos 𝛼
+> 00.25 0.5 0.75 1
+> MeD
+> DQN 0.918 0.878 0.871 0.860 0.893 SARSA 0.911 0.880 0.876 0.870 0.852 A2C 0.907 0.877 0.869 0.861 0.886 A3C 0.910 0.880 0.869 0.866 0.899
+> Oracle 1.000 0.978 0.977 0.988 1.000
+> Math
+> DQN 0.875 0.859 0.860 0.858 0.886 SARSA 0.870 0.856 0.862 0.852 0.906 A2C 0.870 0.859 0.855 0.861 0.899 A3C 0.879 0.856 0.859 0.852 0.913
+> Oracle 0.913 0.913 0.913 0.936 1.000
+
+Table 4: Average similarity with target for all agents in real datasets when finding 𝑇 uniform .
+
+Table 4 shows all algorithms achieve quiz similarity above 0.85. Differences between RL methods are small, showing they locate the target region effectively. RL finds good quizzes (e.g., 𝛼 = 0.5,SARSA 0.876 vs. 0.977 best). Extreme 𝛼 values improve similarity by focusing on a single objective, and no algorithm consistently outperforms others across datasets and 𝛼 values.                         
+
+> Data Algos #Iterations Time (sec)
+> MeD
+> DQN 20 0.04 SARSA 29 0.07 A2C 25 0.05 A3C 17 0.04
+> Oracle 10000 5.22
+> Math
+> DQN 31 0.07 SARSA 30 0.06
+> A2C 33 0.06 A3C 33 0.08 Oracle 10000 4.99
+
+Table 5: Average #iterations and time to find target 𝑇 uniform .
+
+Table 5 shows avg iterations and inference times for 𝑇 uniform . On 
+
+Math , algorithms perform similarly, while DQN and A3C slightly outperform on MeD , likely due to DQN’s replay buffer [ 8 ] and A3C’s asynchronous exploration [ 13 ]. Oracle finds the most similar quiz but scales poorly; e.g., on MeD , DQN reaches 91.4% of Oracle’s similarity about 100x faster. Small performance differences in Tables 4 may stem from the 0.85 reward threshold used in training and inference. Figure 6 shows that for thresholds below 0.925, DQN, SARSA, and A3C achieve similar similarity, while above 0.925, DQN outperforms due to stable learning with experience replay [ 8]; SARSA is conservative and A3C requires careful tuning [ 3]. High-similarity quizzes ( > 0.90 )often satisfy at least one criterion, limiting gains, and iteration counts rise with thresholds, justifying the 0.85 threshold for faster convergence and generalization. 
+
+3.5 Transfer Learning 
+
+We evaluate the transfer capabilities of a trained RL model across different targets ( 𝑇 uniform , 𝑇 bias , and 𝑇 ′
+
+> bias
+
+) and across datasets ( MeD 
+
+> 6
+
+Figure 6: Evolution of number of iterations and similarity to target based on reward threshold for MeD dataset. 
+
+and Math ). We set the value of 𝛼 to 0.5 to have an equi-balanced bi-objective optimization and rely only on real-world datasets.                                      
+
+> Training target Inference target Algos Similarity w/target #Iter
+> 𝑇 uniform 𝑇 bias
+> DQN 0.756 100 SARSA 0.791 100 A2C 0.800 83 A3C 0.775 95 Oracle 0.888 10000
+> 𝑇 bias 𝑇 uniform
+> DQN 0.866 24 SARSA 0.855 62 A2C 0.852 67 A3C 0.833 97 Oracle 0.913 10000
+> 𝑇 bias 𝑇 ′
+> bias
+> DQN 0.856 48 SARSA 0.851 84 A2C 0.866 52 A3C 0.866 50 Oracle 0.927 10000
+
+Table 6: Average similarity and #Iter (iterations) for trans-ferring the learning of agents across targets on Math with 
+
+𝛼 = 0.5.
+
+Table 6 shows transfer results on Math . Transferring from a biased target to a uniform one works well, with agents reaching 0.85 similarity in few iterations. The reverse is harder: from 𝑇 uniform 
+
+to 𝑇 bias , agents either hit the iteration limit (DQN, SARSA) or need many iterations (A3C, 95). Biased targets require more exploration; agents trained on 𝑇 uniform favor similarity actions and local search, while those trained on 𝑇 bias use dissimilarity actions. Training on one biased target also transfers to another (e.g., 𝑇 ′
+
+> bias
+
+), with all agents reaching 0.85 similarity, showing a general policy for uniform or biased quizzes. Table 7 shows the results of transferring the learning of agents across datasets using 𝑇 uniform as a target. In both cases the similarity of the found quizzes is high even if the transfer is performed across two types of knowledge. This benefits from our formalization (Sec-tion 2.1), which makes our agents agnostic to the types of MCQs or quizzes.                          
+
+> Training data Inference data Algos Similarity w/target #Iter
+> MeD Math
+> DQN 0.877 12 SARSA 0.881 8A2C 0.865 16 A3C 0.864 11 Oracle 0.956 10000
+> Math MeD
+> DQN 0.868 20 SARSA 0.874 12 A2C 0.867 9A3C 0.874 12 Oracle 0.977 10000
+
+Table 7: Average similarity and #Iter (Iterations) for trans-ferring the learning of agents across datasets on 𝑇 uniform with 
+
+𝛼 = 0.5.
+
+3.6 Qualitative Study 
+
+We launched a pilot user study with 28 participants to assess per-ceived workload using the NASA Task Load Index (NASA-TLX). 2
+
+Participants were selected to have teaching experience at the uni-versity or secondary level and hold a Master’s or PhD degree in mathematics or a closely related quantitative field. After using our system to build quizzes, participants reported moderate mental demand and effort, low perceived controllability reflected in lower perceived performance and higher frustration, and low temporal demand, with moderate perceived accomplish-ment and slightly positive satisfaction. Finally, 57% of participants indicated they would use the system again, opening new opportu-nities for larger studies. 
+
+4 Related Work 
+
+Standard quiz generation. Early rule-based quiz generation used templates and simple rules, such as “include two geometry ques-tions,” offering automation but limited generalizability [ 1, 6]. Later, NLP and ML methods predicted question difficulty [ 4] and used clustering or topic modeling to group or diversify questions [ 9 ]. 
+
+These methods focus on single-objective optimization and do not sup-port balancing multiple pedagogical criteria. 
+
+Multi-objective quiz composition. With a high-quality MCQ bank, focus shifts from generation to composition. MOEPG [ 20 ]frames exam generation as multi-objective RL. In our work, we tar-get varied topic and difficulty distributions allowing us to train agents that capture different pedagogical goals. Additionally, we evaluate multiple RL algorithms. 
+
+LLMs for quiz generation. LLMs like GPT-4 generate MCQs text [ 11 , 12 ], using prompt engineering or chain-of-thought [ 22 ], and can generate and evaluate quizzes [ 12 , 15 ], though irrelevant con-tent may appear. Knowledge Tracing and RAG adapt quizzes to learners [ 10 ], while concept-based methods improve grounding [5 ]. We use LLMs to generate MCQs but rely on RL for quiz compo-sition to mimic a teacher balancing multiple objectives across data distributions. 
+
+> 2https://en.wikipedia.org/wiki/NASA-TLX 7
+
+5 Conclusion 
+
+We investigated RL-based approaches for quiz composition and pro-vided an extensive performance comparison of DQN, SARSA, and A2C/A3C. Our work investigated and demonstrated effectiveness of transfer learning across datasets and pedagogical targets. Our future work will broaden the action space and study trade-offs between on-the-fly MCQ generation with language models and meeting teacher objectives. We will compare the cost of prompt engineering and model calls to the cost of training an RL agent, including in transfer-learning settings, formalizing boundaries between training and reuse in line with recent work on ML reusability [17]. 
+
+Impact Statement 
+
+This paper advances Online RL by studying its application to teacher-facing services. Our work has notable societal implications, partic-ularly in empowering teachers to understand their materials and generate personalized tests. 
+
+References 
+
+[1] Tahani Alsubait, Bijan Parsia, and Ulrike Sattler. Ontology-based multiple choice question generation. KI - Künstliche Intelligenz , 30(2):183–188, 2016. [2] Beatriz Flamia Azevedo, Florbela P. Fernandes, Maria F. Pacheco, and Ana I. Pereira. Dataset for Assessing Mathematics Learning in Higher Education, 2024. [3] Neil De La Fuente and Daniel A Vidal Guerra. A comparative study of deep reinforcement learning models: Dqn vs ppo vs a2c. arXiv preprint arXiv:2407.14151 ,2024. [4] W. Feng, P. Tran, S. Sireci, and A. Lan. Reasoning and sampling-augmented mcq difficulty prediction via llms. arXiv preprint , arXiv:2503.08551, 2025. [5] Yicheng Fu, Zikui Wang, Liuxin Yang, Meiqing Huo, and Zhongdongming Dai. Conquer: A framework for concept-based quiz generation, 2025. [6] Michael Heilman and Noah A. Smith. Good question! statistical ranking for question generation. In Proceedings of the NAACL-HLT , 2010. [7] Kevin Hwang, Sai Challagundla, Maryan M. Alomair, and Lujie Karen Chen. Towards ai-assisted multiple choice question generation and quality evaluation at scale: Aligning with bloom’s taxonomy. In Generative AI for Education (GAIED): Advances, Opportunities, and Challenges. NeurIPS2023 , 2023. [8] Gonzalo Aguilar Jiménez, Arturo de la Escalera Hueso, and Maria J Gómez-Silva. Reinforcement learning algorithms for autonomous mission accomplishment by unmanned aerial vehicles: A comparative view with dqn, sarsa and a2c. Sensors ,23(21):9013, 2023. [9] Ghader Kurdi, Jared Leo, Bijan Parsia, Uli Sattler, and Salam Al-Emari. A system-atic review of automatic question generation for educational purposes. Interna-tional Journal of Artificial Intelligence in Education , 30(1):121–204, 2020. ERIC: EJ1247652. [10] Zhaoxing Li, Vahid Yazdanpanah, Jindi Wang, Wen Gu, Lei Shi, Alexandra I. Cristea, Sarah Kiden, and Sebastian Stein. Tutorllm: Customizing learning rec-ommendations with knowledge tracing and retrieval-augmented generation, 2025. [11] Subhankar Maity, Aniket Deroy, and Sudeshna Sarkar. Exploring the capabilities of prompted large language models in educational and assessment applications, 2024. [12] N. Meißner, S. Speth, J. Kieslinger, and S. Becker. Evalquiz — llm-based automated generation of self-assessment quizzes in se education. In SEUH 2024 , 2024. [13] Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timo-thy P. Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu. Asynchronous methods for deep reinforcement learning. CoRR , abs/1602.01783, 2016. [14] Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Alex Graves, Ioannis Antonoglou, Daan Wierstra, and Martin A. Riedmiller. Playing atari with deep reinforcement learning. CoRR , abs/1312.5602, 2013. [15] Sérgio Silva Mucciaccia, Thiago Meireles Paixão, Filipe Wall Mutz, Claudine Santos Badue, Alberto Ferreira de Souza, and Thiago Oliveira-Santos. Automatic multiple-choice question generation and evaluation systems based on LLM: A study case with university resolutions. In Proceedings of the 31st International Conference on Computational Linguistics , pages 2246–2260, Abu Dhabi, UAE, January 2025. [16] Deepak Subramani Nicy Scaria, Suma Dharani Chenna. Automated educational question generation at different bloom’s skill levels using large language models: Strategies and evaluation. In Artificial Intelligence in Education. AIED 2024 , 2024. [17] Sepideh Nikookar, Sohrab Namazi Nia, Senjuti Basu Roy, Sihem Amer-Yahia, and Behrooz Omidvar-Tehrani. Model reusability in reinforcement learning. VLDB J. , 34(2):283–304, 2025. [18] Andrew M. Olney. Generating multiple choice questions from a textbook: Llms match human performance on most metrics. In Proceedings of the Workshop on Empowering Education with LLMs, co-located with AIED 2023, Tokyo, Japan, July 7, 2023, volume 3487, pages 111–128. , 2023. [19] Tom Schaul, John Quan, Ioannis Antonoglou, and David Silver. Prioritized experience replay. In Yoshua Bengio and Yann LeCun, editors, 4th International Conference on Learning Representations, ICLR 2016, Puerto Rico, May 2-4, 2016 ,2016. [20] Y. Shang, X. Luo, L. Wang, H. Peng, X. Zhang, Y. Ren, and K. Liang. Reinforce-ment learning guided multi-objective exam paper generation. arXiv preprint ,arXiv:2303.01042, 2023. [21] R. S. Sutton and A. G. Barto. Reinforcement learning: An introduction . MIT Press, Cambridge, MA, 2018. [22] Z. Yao, C. Zhang, J. Gu, J. Yin, Z. Yin, and M. Tan. Mcqg-srefine: Multiple choice question generation with iterative self-critique and correction. arXiv preprint ,arXiv:2410.13191, 2024. 8U      asedT opic w/   asedL evel w/  
+
+> 
+> 
+> argetMatch
+
+Figure 7: Projection of high-dimensional states in 2D with UMAP: a) Uniform dataset with 𝛼 = 0.5; b) BiasedTopic dataset with 
+
+𝛼 = 1; c) BiasedLevel dataset with 𝛼 = 0.
+
+A Additional Synthetic Experiments and Qualitative Diagnostics 
+
+This appendix complements the main experimental section with additional material focused on the synthetic setting: (i) the distribution of the generated synthetic data, (ii) reward stabilization during training, and (iii) qualitative visualizations of the agent navigation in the quiz space. 
+
+A.1 Synthetic data generation and distributions 
+
+Synthetic environments. We generate three synthetic datasets ( Uniform , BiasedTopic , and BiasedLevel ) to study agent behavior under controlled data distributions. We sample topic and difficulty vectors from a Dirichlet distribution, with concentration parameters 𝜇 = 1 for 
+
+Uniform data and 𝜇 = 0.5 for biased data. Table 2 in the main paper reports the definition of the three synthetic datasets, while Figure 7 provides a qualitative visualization of their structure using a 2D UMAP projection. 
+
+Reward Definitions. We report results under two reward schemes. The first reward, denoted 𝑅 1, is a direct similarity reward baseline where the agent is rewarded according to the absolute similarity between the current quiz and the target distributions: 
+
+𝑅 1 (𝑠, 𝑎, 𝑠 ′) = targetMatch (𝑍 ′,𝑇 𝐶 ,𝑇 𝐷 ), (8) with targetMatch (𝑍,𝑇 𝐶 ,𝑇 𝐷 ) = 𝛼 · topicMatch (𝑍,𝑇 𝐶 ) + ( 1 − 𝛼 ) · diffMatch (𝑍,𝑇 𝐷 ), (9) where 𝛼 ∈ [ 0, 1] controls the relative importance of topic coverage versus difficulty alignment. The second reward, denoted 𝑅 2, is a progress-based reward that captures the agent’s improvement between consecutive quizzes: 
+
+𝑅 2 (𝑠, 𝑎, 𝑠 ′) = targetMatch (𝑍 ′,𝑇 𝐶 ,𝑇 𝐷 ) − targetMatch (𝑍,𝑇 𝐶 ,𝑇 𝐷 ). (10) Positive rewards indicate progress toward the target, while negative rewards penalize regressions. Unlike 𝑅 1, 𝑅 2 explicitly encourages exploratory trajectories by rewarding incremental improvements rather than absolute similarity. 
+
+A.2 Reward stabilization during training 
+
+Figure 8 shows the evolution of topicMatch and diffMatch across training episodes under the direct reward baseline R1, illustrating early stabilization and limited improvement. 
+
+A.3 Agent trajectories in the quiz space 
+
+We provide qualitative visualizations of agent navigation both in the state space (UMAP) and in the objective space ( topicMatch , diffMatch ). 
+
+UMAP trajectories. Figures 9 and 10 show example inference trajectories under R1 and R2, respectively. 
+
+Trajectories in objective space. Figures 11 and 12 show the same type of analysis projected in the 2D plane defined by ( topicMatch , diffMatch ). 
+
+> 9
+
+0 1k 2k 3k 4k 5k 
+
+Episodes 
+
+0.56 
+
+0.58 
+
+0.60 
+
+0.62 
+
+0.64 
+
+> topicMatch
+
+= 0 
+
+= 0.25 
+
+= 0.5 
+
+= 0.75 
+
+= 1 
+
+0 1k 2k 3k 4k 5k 
+
+Episodes 
+
+> diffMatch
+
+Figure 8: Evolution of topicMatch and diffMatch across training episodes of DQN on target 𝑇 uniform for Uniform dataset, with smoothing window of size 100. α   α   
+
+> Trajectory
+> Start
+> End
+> Oracle
+> 0.6
+> 0.8
+> targetMatch
+
+Figure 9: Examples of agent trajectories in Uniform dataset using UMAP 2D projection following reward R1 (direct similarity reward); the colors of the agent trajectory represent the inference timeline, where time shifts from lighter to darker colors. 
+
+10 = 0.25 = 0.75 
+
+Trajectory 
+
+Start 
+
+End 
+
+Oracle 
+
+0.6 
+
+0.8 
+
+Similarity Figure 10: Examples of agent trajectories in Uniform dataset using UMAP 2D projection following reward R2 (progress-based reward). 0.45 0.60 0.75 0.90    
+
+> topicMatch
+> 0.45
+> 0.60
+> 0.75
+> 0.90
+> diffMatch
+> α  
+> Trajectory
+> Start
+> End
+> Oracle
+> 0.45 0.60 0.75 0.90
+> α  
+> 0.6
+> 0.8
+> targetMatch
+
+Figure 11: Examples of agent trajectories in Uniform dataset using 2D projection with topicMatch and diffMatch following reward R1 (direct similarity reward). 
+
+11 0.45 0.60 0.75 0.90    
+
+> topicMatch
+> 0.45
+> 0.60
+> 0.75
+> 0.90
+> diffMatch
+> α  
+> Trajectory
+> Start
+> End
+> Oracle
+> 0.45 0.60 0.75 0.90
+> α  
+> 0.6
+> 0.8
+> targetMatch
+
+Figure 12: Examples of agent trajectories in Uniform dataset using 2D projection with topicMatch and diffMatch following reward R2 (progress-based reward). 
+
+12

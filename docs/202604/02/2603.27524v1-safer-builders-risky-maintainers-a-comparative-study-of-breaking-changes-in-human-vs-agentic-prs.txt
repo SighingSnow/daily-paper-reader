@@ -1,0 +1,167 @@
+Title: Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs
+
+URL Source: https://arxiv.org/pdf/2603.27524v1
+
+Published Time: Tue, 31 Mar 2026 01:12:03 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs 
+
+## K M Ferdous 
+
+kferdous@students.kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Dipayan Banik 
+
+dipayan5175@gmail.com Quanta Technology Raleigh, North Carolina, USA 
+
+## Kowshik Chowdhury 
+
+kchowdh1@students.kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Shazibul Islam Shamim 
+
+mshamim@kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Abstract 
+
+AI coding agents are increasingly integrated into modern software engineering workflows, actively collaborating with human devel-opers to create pull requests (PRs) in open-source repositories. Al-though coding agents improve developer productivity, they often generate code with more bugs and security issues than human-authored code. While human-authored PRs often break backward compatibility, leading to breaking changes, the potential for agentic PRs to introduce breaking changes remains underexplored. The goal of this paper is to help developers and researchers evaluate the reliability of AI-generated PRs by examining the frequency and task contexts in which AI agents introduce breaking changes. We conduct a comparative analysis of 7,191 agent-generated PRs with 1402 human-authored PRs from Python repositories in the AIDev dataset. We develop a tool that analyzes code changes in commits corresponding to the agentic PRs and leverages an ab-stract syntax tree (AST) based analysis to detect potential breaking changes. Our findings show that AI agents introduce fewer breaking changes overall than humans (3.45% vs. 7.40%) in code generation tasks. However, agents exhibit substantially higher risk during maintenance tasks, with refactoring and chore changes introducing breaking changes at rates of 6.72% and 9.35%, respectively. We also identify a “Confidence Trap” where highly confident agentic PRs still introduce breaking changes, indicating the need for stricter review during maintenance oriented changes regardless of reported confidence score. 
+
+## CCS Concepts 
+
+• Software and its engineering → Software development tech-niques ; Collaboration in software development ; Software cre-ation and management ; Artificial intelligence .
+
+## Keywords 
+
+Breaking Changes, AI Agents, Coding Agents, Software Mainte-nance, Software Security, Secure Software Engineering  
+
+> This work is licensed under a Creative Commons Attribution 4.0 International License.
+> MSR ’26, Rio de Janeiro, Brazil
+> ©2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2474-9/2026/04 https://doi.org/10.1145/3793302.3793610
+
+ACM Reference Format: 
+
+K M Ferdous, Dipayan Banik, Kowshik Chowdhury, and Shazibul Islam Shamim. 2026. Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs. In 23rd International Conference on Mining Software Repositories (MSR ’26), April 13–14, 2026, Rio de Janeiro, Brazil. ACM, New York, NY, USA, 5 pages. https://doi.org/10.1145/3793302. 3793610 
+
+## 1 Introduction 
+
+The AI coding agents, such as Devin, Claude Code, and GitHub Copilot, have brought about a paradigm shift in modern software development workflows [ 27 ] [ 11 ]. These AI agents enhance devel-oper productivity by performing coding tasks, generating test cases, and handling complex end-to-end development tasks, such as issue resolution and pull request (PR) creation [ 10 ] [ 28 ] [ 14 ] [ 4]. These agents have become active participants alongside human develop-ers in creating pull requests in open-source repositories [ 11 ] [ 12 ]. For instance, OpenAI Codex has created more than 400,000 PRs in open-source GitHub repositories within the first two months of its release [ 19 ]. Agentic PRs are increasingly common in real repositories, and datasets such as AIDev capture thousands of these contributions across diverse projects [19]. Despite improvements in developer productivity and active in-volvement in modern software engineering processes, AI-generated code remains susceptible to significant quality issues. The AI gen-erated code often contains more bugs and security vulnerabilities than human-authored code [ 3] [ 16 ] [ 22 ] [ 25 ]. According to a re-cent study by CodeRabbit of 470 open-source pull requests on GitHub, AI-generated code contains 1.7 times more issues than human-authored code [ 20 ]. Researchers also reported that devel-opers using AI assistance experienced higher rates of broken tests and integration failures during refactoring tasks [23]. While prior work has primarily focused on AI agent performance and bug analysis, comparatively little attention has been given to their impact on backward compatibility. AI agents may unintention-ally introduce breaking changes when generating patches and pull requests [ 30 ] [ 29 ], yet this risk remains underexplored compared to human-authored changes. In this research, we investigate whether AI agents can introduce breaking changes. To address this gap, we evaluate the reliability of agent-generated pull requests by analyzing the frequency of breaking changes and the development contexts in which they occur. We also include  
+
+> arXiv:2603.27524v1 [cs.SE] 29 Mar 2026 MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil K M Ferdous, Dipayan Banik, Kowshik Chowdhury, and Shazibul Islam Shamim
+
+our replication package to replicate our findings [ 7]. Our study addresses the following research questions: 
+
+• RQ1: How often do AI agents introduce breaking changes compared to human developers? 
+
+• RQ2: How does the breaking change rate of AI-generated pull requests differ between generative tasks and maintenance tasks? 
+
+• RQ3: To what extent are AI agent confidence scores associated with the occurrence of breaking changes? 
+
+## 2 Background 
+
+A breaking change is a code modification that violates backward compatibility and disrupts existing usage [ 21 ]. Such changes often result from structural alterations to a program’s public interface, such as renaming functions or classes, modifying parameters or re-turn types, changing class hierarchies, or removing public members [2 ] [ 6 ] [ 29 ]. These changes can break dependent code, as illustrated in Figure 1. 
+
+Figure 1: Git hunk and Breaking change 
+
+In Git-based version control systems, code changes are repre-sented as diffs that capture line-level differences between file revi-sions [ 26 ]. A diff is composed of one or more hunks, each repre-senting a contiguous block of added, removed, or modified lines [8]. Figure 1 illustrates a hunk within a Git diff. 
+
+## 3 Related works 
+
+Breaking changes are a well established concern in software evolu-tion. Xavier et al. [ 29 ] studied the frequency of breaking changes, while Zhang et al. [ 30 ] found that over 40% of API changes in Python packages are breaking. Du et al. [ 6 ] proposed AexPy, a Python specific tool for detecting breaking changes. However, prior work focuses on human-authored code, leaving AI-generated con-tributions largely unexplored. Prior studies on AI programming tools report improvements in productivity [ 10 ] and demonstrate the ability to generate complete pull requests [ 13 ] [ 19 ], but also reveal limitations in correctness and contextual understanding [ 28 ]. Li et al. [ 19 ], examining the transition to “Software Engineering 3.0” through the AIDev dataset, highlight a gap between benchmark performance and real-world effectiveness. They find that AI agents increase contribution volume but achieve lower acceptance rates than human developers. Pearce et al. [ 22 ] found that up to 40% of AI-generated code may contain security vulnerabilities, while Chen et al. [ 4] reported that only 28–48% of AI-generated solutions pass all tests, indicating frequent failures. Additionally, Horikawa et al. [13] observed that over 53% of agentic refactoring occurs implicitly within commits focused on other tasks. Although prior research benchmarks AI performance, there is limited research on detecting breaking changes in AI-generated contributions. Our work addresses this gap by comparing task-wise breaking change rates between AI agent-generated and human-authored pull requests and evaluating whether agent confidence scores predict breaking changes. 
+
+## 4 Methodology 
+
+To address our research questions, we use the AIDev dataset [ 18 ], which provides a comprehensive collection of both AI-agent and human-authored contributions. Our analysis focuses on the patches (Git diffs) included in the dataset. We restrict our study to pull requests from Python-based repositories, as Python is heavily rep-resented in LLM training corpora [ 4, 17 ], ensuring that our results accurately reflect the capabilities of AI coding agents. The repository table lists 2,807 GitHub repositories with at least 100 stars, including 530 Python projects. From these reposi-tories, the pull_request table contains 7,191 AI-generated pull requests and 1,402 human-authored pull requests. Since state of the art AexPy [ 6] and other tools like pidiff [ 24 ], Py-Compat [ 30 ] analyze differences between full source code versions rather than directly parsing Git diffs, making these tools unsuit-able for our study. Therefore, we develop a tool to detect potential breaking changes from Git diffs. Figure 2 illustrates the workflow of our breaking change detection process. 
+
+Figure 2: Workflow of potential Breaking change detection 
+
+In the first stage, we filter pull requests by selecting five task categories: feat, fix, perf, refactor, and chore, which directly im-pact program structure according to the commit convention [ 1, 5 ]. This step results in 4,798 AI-generated pull requests. Using tables 
+
+pr_commits and pr_commit_details , we extract commit-level metadata, yielding 75,467 file-level patches. Applying the same criteria to human-authored pull requests, we identify 1,026 relevant PRs. Although the dataset includes ta-bles human_pull_request and human_pr_task_type , it does not provide commit-level data and file patches. To address this lim-itation, we used a GitHub API–based mining script to retrieve the missing commit data, collecting 5,788 commits and 93,044 file-level patches for analysis. We then applied a heuristic path-based filter to keep only core Python source files and exclude non-essential directories (e.g. tests, examples, etc). This process results in 23,333 agentic and 36,991 human-authored patches (60,324 total) and removing approximately 66% of the original patches. Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil 
+
+Since AST parser cannot process a patch (git diff) directly, in this step, we reconstruct the pre-commit and post-commit versions of code for each diff hunk using the git diff processor. These recon-structed codes contain valid syntax suitable for AST parsing. Finally, we parse the pre-commit and post-commit code of all 60,324 patches using Python’s AST parser, categorizing changes by scope like class-level, function-level, etc. The breaking change detector then applies 17 patterns from Du et al. [ 6 ] to identify po-tential breaking changes, organized into three categories: Removals, Modifications, and Additions. We measure the Potential Breaking Change Rate, defined as the percentage of commit files (patches) that contain at least one detected breaking change.  
+
+> Potential Breaking Change (PBC) Rate =
+> Number of patches contain Potential Breaking Change Total Number of patches (1)
+
+We ran our potential breaking change detector on 60,324 patches and detected 3,538 potential breaking changes. To validate the re-liability of our tool, we randomly selected 94 patches from 3,538 detected potential breaking changes using a 95% confidence level and a 10% margin of error. Two authors independently reviewed the sample, confirming 90/94 (95.7%) and 88/94 (93.6%) true positive matches, respectively. This yielded substantial inter-rater agree-ment (Cohen’s Kappa = 0.79), and any disagreements were resolved through discussion. 
+
+## 5 Analysis and Findings 5.1 Frequency of Potential Breaking Changes (AI vs. Humans) 
+
+Our analysis shows that AI agents introduced potential breaking changes in 805 of 23,333 patches (3.45%), affecting 11.3% of agent-generated pull requests. In comparison, human developers intro-duced potential breaking changes in 2,733 of 36,991 patches (7.40%), impacting 21.18% of human-authored pull requests. Figure 3 sum-marizes these results, indicating that AI-generated commits exhibit a lower rate of potential breaking changes than human-authored commits. 
+
+Figure 3: Breaking Change Rates (%) in AI Agents vs Humans 
+
+Figure 4 demonstrates the distribution of potential breaking changes across AI agents. Claude Code exhibits 74 breaking changes across 1,450 patches (ratio 5.10), while Copilot, Cursor, Devin, and OpenAI Codex have ratios of 3.04, 4.20, 4.09, and 2.62, respectively. These results indicate that although all agents introduce some po-tential breaking changes, their frequency remains lower than that observed in human-authored patches. 
+
+Figure 4: Agent wise potential breaking change rate (%) 
+
+Answer of RQ1 
+
+Our analysis shows that AI agents introduce potential breaking changes at a lower rate (3.45%) compare to human developers (7.40%). While all agents produce some potential breaking changes, their frequency remains lower than that of human-authored com-mits. 
+
+## 5.2 Task-Specific Breaking Change (Generative vs. Maintenance) 
+
+To address RQ2, we categorize tasks into generative activities (feat, fix, perf) and maintenance activities (refactor, chore). Figure 5 shows that AI agents exhibit relatively low breaking change rates in gen-erative tasks: 2.89% for feature additions, 2.69% for bug fixes, and 4.12% for performance improvements. In contrast, maintenance tasks carry higher risks, with refactoring at 6.72% and chore-related tasks at 9.35%. 
+
+Figure 5: Task-Specific breaking change rate comparison. 
+
+For human-authored patches, we notice the opposite trend. Gen-erative tasks have higher breaking change rates, with feat at 7.74%, fix at 5.32%, and perf at 0.90%, whereas maintenance tasks show relatively lower rates, with refactor at 4.36% and chore at 4.95%. Overall, AI agents demonstrate more reliability for code gener-ation but are more risky in maintenance tasks, whereas humans show the opposite trend. This comparison suggests that AI agents MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil K M Ferdous, Dipayan Banik, Kowshik Chowdhury, and Shazibul Islam Shamim 
+
+need more understanding for maintenance related patches and the changes should undergo careful review. 
+
+Answer of RQ2 
+
+AI agents are more prone to breaking changes in maintenance tasks (chore: 9.35%, refactor: 6.72%) than in generative tasks (feat: 2.89%, fix: 2.69%), indicating that AI agents require deeper under-standing for structural modifications. 
+
+## 5.3 The Confidence Trap 
+
+We notice that the confidence scores are strongly right-skewed, with 99.9% of AI-generated pull requests between 8 and 10. Therefore, we focus on confidence scores 8, 9, and 10 to assess the relationship between confidence and breaking changes. 
+
+Figure 6: The relationship between AI agent confidence scores and potential breaking changes. 
+
+In Figure 6, our findings highlight that breaking change rates are relatively similar for levels 8 and 9, at 3.94% (33 of 837 patches) and 3.96% (311 of 7,854 patches), respectively. Interestingly, confidence level 10 also exhibits potential breaking changes, but at a slightly lower rate of 3.16% (458 breaks out of 14,509 commits). These results indicate that high confidence does not reliably guarantee safe code generation. Therefore, confidence scores alone are insufficient for prioritizing review or deployment, and should be supplemented with additional verification mechanisms when using agent-generated code in production. 
+
+Answer of RQ3 
+
+Breaking changes occur across all high-confidence levels (8–10), ranging from 3.16% to 3.96%, indicating that AI agents’ confidence scores alone do not guarantee safe code. 
+
+## 6 Discussion 6.1 Interpretation of Findings 
+
+6.1.1 Maintenance Task Risk : Our results indicate that AI agents introduce substantially higher rates of potential breaking changes in maintenance oriented tasks, such as refactoring (6.72%) and chore (9.35%) related updates (figure 5). This highlights the need for further research to improve AI agent performance and reliability specifically in maintenance tasks. 
+
+6.1.2 Unreliable Confidence Score : Figure 6 highlights that AI-generated PRs introduce potential breaking changes even at high confidence levels (8–10), indicating that confidence scores do not reliably reflect breaking change risk. This suggests the need to align confidence with structural risk. 
+
+## 6.2 Implications for Practitioners 
+
+6.2.1 Task-Specific Review Policy : In figure 5, we observe that agent-generated maintenance tasks introduce more potential break-ing changes than generative tasks. So, we recommend practition-ers apply enhanced, task-specific review policies regardless of the agent’s reported confidence. 
+
+## 6.3 Implications for Researchers 
+
+6.3.1 Assessing Breaking Changes in Benchmarks : Current AI cod-ing benchmarks (e.g., HumanEval, SWE-bench) focus on functional correctness, but agents can introduce breaking changes (Figure 4). So future research should incorporate breaking-change analysis into these benchmarks. 
+
+## 7 Threats to Validity 7.1 Internal Validity 
+
+Our analysis focuses on five task categories and their PRs that di-rectly affect program structure. This selection may have overlooked “tangled commits”, combining code and documentation but labeled as document type tasks. Additionally, our static analysis may over-estimate breaking changes due to challenges in handling nested functions, which are not publicly accessible and difficult to identify from patches [9]. 
+
+## 7.2 External Validity 
+
+For task-based pull request filtering, we relied exclusively on the classification schema provided by the AIDev dataset. Any misclassi-fications in the dataset’s tagging logic could affect the transferability of our task-specific findings. 
+
+## 7.3 Construct Validity 
+
+We measure ’Potential Breaking Changes’ based on syntactic-level modifications, even though some changes may affect functions with no downstream users. However, in API evolution, any syntactic-level change is considered a breaking change, irrespective of its usage. [ 15 ]. Additionally, our findings are limited to the Python ecosystem, and statically typed languages need further investiga-tion. 
+
+## 8 Conclusion 
+
+AI coding agents are increasingly used in software development but may introduce breaking changes through unintended structural modifications. In this study, we conduct a comparative analysis of agent-generated and human-authored Python pull requests and find that although agents introduce fewer breaking changes overall, they are significantly more prone to breaking changes during main-tenance tasks, especially refactoring and chore-related changes. We also show that agent confidence scores poorly predict breaking change risk. These findings highlight the need for task-aware review processes and new benchmarks that explicitly evaluate breaking change risks in AI-generated code. Safer Builders, Risky Maintainers: A Comparative Study of Breaking Changes in Human vs Agentic PRs MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil 
+
+## References 
+
+[1] Angular Team. 2025. Angular Commit Message Guidelines (from CONTRIBUT-ING.md). GitHub repository documentation. https://github.com/angular/ angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines [Ac-cessed: Dec. 02, 2025]. [2] A. Brito, L. Xavier, A. Hora, and M. T. Valente. 2018. Why and how Java developers break APIs. In 2018 IEEE 25th International Conference on Software Analysis, Evolution and Reengineering (SANER) . 255–265. doi:10.1109/SANER.2018.8330214 [3] Tuan-Dung Bui, Thanh Trong Vu, Thu-Trang Nguyen, Son Nguyen, and Hieu Dinh Vo. 2025. Correctness Assessment of Code Generated by Large Language Models Using Internal Representations. arXiv:2501.12934 [cs.SE] https://arxiv.org/abs/2501.12934 [4] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Jared Kaplan, et al . 2021. Evaluating Large Language Models Trained on Code. arXiv:2107.03374 [cs.LG] https://arxiv.org/abs/2107.03374 [5] Conventional Commits. 2023. Conventional Commits Specification. Online. https://www.conventionalcommits.org/ [Accessed: Dec. 02, 2025]. [6] Xingliang Du and Jun Ma. 2022. AexPy: Detecting API Breaking Changes in Python Packages. In 2022 IEEE 33rd International Symposium on Software Relia-bility Engineering (ISSRE) . 470–481. doi:10.1109/ISSRE55969.2022.00052 [7] K M Ferdous, D. Banik, K. Chowdhury, and S.I. Shamim. 2026. AIDev Breaking Change Analysis. figshare. doi:10.6084/m9.figshare.30978262.v1 [8] Free Software Foundation. 2025. Hunks — GNU diffutils Manual. Online. https: //www.gnu.org/software/diffutils/manual/html_node/Hunks.html [Accessed: Dec. 02, 2025]. [9] GeeksforGeeks. 2025. Python Inner Functions. Online. https://www. geeksforgeeks.org/python/python-inner-functions/ [Accessed: Dec. 2, 2025]. [10] GitHub. 2022. Does GitHub Copilot Improve Code Quality? Here’s What the Data Says. GitHub Blog (2022). Accessed: 2025. [11] Ahmed E. Hassan, Hao Li, Dayi Lin, Bram Adams, Tse-Hsun Chen, Yutaro Kashiwa, and Dong Qiu. 2025. Agentic Software Engineering: Foundational Pillars and a Research Roadmap. arXiv:2509.06216 [cs.SE] https://arxiv.org/abs/ 2509.06216 [12] Ahmed E. Hassan, Gustavo A. Oliva, Dayi Lin, Boyuan Chen, Zhen Ming, and Jiang. 2024. Towards AI-Native Software Engineering (SE 3.0): A Vision and a Challenge Roadmap. arXiv:2410.06107 [cs.SE] https://arxiv.org/abs/2410.06107 [13] Kosei Horikawa, Hao Li, Yutaro Kashiwa, Bram Adams, Hajimu Iida, and Ahmed E. Hassan. 2025. Agentic Refactoring: An Empirical Study of AI Coding Agents. 
+
+arXiv preprint (2025). Vol. 1, No. 1. [14] Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan. 2024. SWE-bench: Can Language Models Resolve Real-World GitHub Issues? arXiv:2310.06770 [cs.CL] https://arxiv.org/abs/2310.06770 [15] M. Keshani, S. Vos, and S. Proksch. 2023. On the relation of method popularity to breaking changes in the Maven ecosystem. Journal of Systems and Software 
+
+203 (2023), 111738. doi:10.1016/j.jss.2023.111738 [16] Raphaël Khoury, Anderson R. Avila, Jacob Brunelle, and Baba Mamadou Camara. 2023. How Secure is Code Generated by ChatGPT? arXiv:2304.09655 [cs.CR] https://arxiv.org/abs/2304.09655 [17] Denis Kocetkov, Raymond Li, Loubna Ben Allal, Jia Li, Chenghao Mou, Car-los Muñoz Ferrandis, Yacine Jernite, Margaret Mitchell, Sean Hughes, Thomas Wolf, Dzmitry Bahdanau, Leandro von Werra, and Harm de Vries. 2022. The Stack: 3 TB of permissively licensed source code. arXiv:2211.15533 [cs.CL] https://arxiv.org/abs/2211.15533 [18] Hao Li and Contributors. 2024. AIDev: Dataset for AI Development Analytics. Hugging Face Dataset. https://huggingface.co/datasets/hao-li/AIDev [Online; accessed: Dec. 02, 2025]. [19] Hao Li, Haoxiang Zhang, and Ahmed E. Hassan. 2025. The Rise of AI Teammates in Software Engineering (SE) 3.0: How Autonomous Coding Agents Are Reshap-ing Software Engineering. arXiv:2507.15003 [cs.SE] https://arxiv.org/abs/2507. 15003 [20] David Loker. 2025. State of AI vs Human Code Generation Report. CodeRabbit Blog. https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report [Accessed: Dec. 02, 2025]. [21] L. Ochoa, T. Degueule, J.-R. Falleri, and J. Vinju. 2022. Breaking bad? Semantic versioning and impact of breaking changes in Maven Central: An external and differentiated replication study. In Empirical Software Engineering , Vol. 27. 61. [22] Hammond Pearce, Baleegh Ahmad, Benjamin Tan, Brendan Dolan-Gavitt, and Ramesh Karri. 2021. Asleep at the Keyboard? Assessing the Security of GitHub Copilot’s Code Contributions. arXiv:2108.09293 [cs.CR] https://arxiv.org/abs/ 2108.09293 [23] Neil Perry, Megha Srivastava, Deepak Kumar, and Dan Boneh. 2023. Do Users Write More Insecure Code with AI Assistants?. In Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS ’23) . ACM, 2785–2799. doi:10.1145/3576915.3623157 [24] R. Rohan. [n. d.]. pidiff: The Python interface diff tool. GitHub. https://github. com/rohanpm/pidiff [Accessed: Sep. 7, 2025]. [25] Gustavo Sandoval, Hammond Pearce, Teo Nys, Ramesh Karri, Siddharth Garg, and Brendan Dolan-Gavitt. 2023. Lost at C: A User Study on the Security Implications of Large Language Model Code Assistants. arXiv:2208.09727 [cs.CR] https: //arxiv.org/abs/2208.09727 [26] Software Freedom Conservancy. 2025. git -diff Documentation. Online. https: //git-scm.com/docs/git-diff [Accessed: Dec. 2, 2025]. [27] Christoph Treude and Margaret-Anne Storey. 2025. Generative AI and Empirical Software Engineering: A Paradigm Shift. arXiv:2502.08108 [cs.SE] https://arxiv. org/abs/2502.08108 [28] Priyan Vaithilingam, Tianyi Zhang, and Elena L. Glassman. 2022. Expectation vs. Experience: Evaluating the Usability of Code Generation Tools Powered by Large Language Models (CHI EA ’22) . Association for Computing Machinery, New York, NY, USA, Article 332, 7 pages. doi:10.1145/3491101.3519665 [29] L. Xavier, A. Brito, A. Hora, and M. T. Valente. 2017. Historical and impact analysis of API breaking changes: A large-scale study. In 2017 IEEE 24th International Conference on Software Analysis, Evolution and Reengineering (SANER) . 138–147. doi:10.1109/SANER.2017.7884616 [30] Z. Zhang, H. Zhu, M. Wen, Y. Tao, Y. Liu, and Y. Xiong. 2020. How do Python framework APIs evolve? An exploratory study. In 2020 IEEE 27th International Conference on Software Analysis, Evolution and Reengineering (SANER) . 81–92. doi:10.1109/SANER48275.2020.9054800

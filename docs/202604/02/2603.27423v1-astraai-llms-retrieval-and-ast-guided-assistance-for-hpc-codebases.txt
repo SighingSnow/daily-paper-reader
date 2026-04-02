@@ -1,0 +1,166 @@
+Title: AstraAI: LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases
+
+URL Source: https://arxiv.org/pdf/2603.27423v1
+
+Published Time: Tue, 31 Mar 2026 01:02:38 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# AstraAI : LLM S, R ETRIEVAL , AND AST-G UIDED ASSISTANCE FOR HPC C ODEBASES 
+
+A P REPRINT 
+
+Mahesh Natarajan ∗
+
+, Xiaoye Li, and  Weiqun Zhang 
+
+Applied Mathematics and Computational Research Division Lawrence Berkeley National Laboratory, Berkeley, CA 94720, USA 
+
+{MaheshNatarajan, xsli, WeiqunZhang}@lbl.gov 
+
+March 31, 2026 
+
+# ABSTRACT 
+
+We present AstraAI , a command-line interface (CLI) coding framework for high-performance com-puting (HPC) software development. AstraAI operates directly within a Linux terminal and integrates large language models (LLMs) with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)-based structural analysis to enable context-aware code generation for complex scien-tific codebases. The central idea is to construct a high-fidelity prompt that is passed to the LLM for inference. This prompt augments the user request with relevant code snippets retrieved from the underlying framework codebase via RAG and structural context extracted from AST analysis, providing the model with precise information about relevant functions, data structures, and overall code organization. The framework is designed to perform scoped modifications to source code while preserving structural consistency with the surrounding code. AstraAI supports both locally hosted models from Hugging Face [ 1 ] and API-based frontier models accessible via the American Science Cloud [ 2], enabling flexible deployment across HPC environments. The system generates code that aligns with existing project structures and programming patterns. We demonstrate AstraAI on representative HPC code generation tasks within AMReX [ 3 , 4], a DOE-supported HPC software infrastructure for exascale applications. 
+
+Keywords HPC · LLM-assisted programming · Retrieval-Augmented Generation (RAG) · Abstract Syntax Tree (AST) ·
+
+AMReX 
+
+# 1 Introduction 
+
+High-performance computing (HPC) software plays a critical role in enabling large-scale scientific and engineering simulations. Developing and maintaining HPC code is challenging: large codebases, complex dependencies, low-level parallelism, and strict performance constraints make even minor edits error-prone. Existing AI coding tools provide general suggestions but lack the semantic understanding and correctness guarantees required for safe HPC modifications. This motivates frameworks that combine context-aware retrieval, structured analysis, and controlled code transformations to produce reliable, high-performance scientific software. High-performance computing (HPC) software development is increasingly leveraging large language models (LLMs) to assist developers in generating, understanding, and optimizing parallel code. Early frameworks such as chatHPC [ 5, 6]introduced fine-tuned AI agents that provide guidance and code suggestions tailored to parallel systems. Retrieval-Augmented Generation (RAG) approaches further improve code generation by incorporating domain-specific HPC knowledge into the prompting process [7, 8]. Recent systems such as HPC-GPT [9] and HPC-Coder [10 ] demonstrate that fine-tuning LLMs on HPC-specific code and knowledge can significantly improve performance on HPC programming and analysis tasks. 
+
+> ∗
+
+Corresponding author: MaheshNatarajan@lbl.gov 
+
+> arXiv:2603.27423v1 [cs.AI] 28 Mar 2026
+
+AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+Benchmarking studies provide insight into LLM performance on HPC workloads. Comparisons of models such as GPT-3, Llama-2, and OpenAI Codex highlight differences in code accuracy, parallelization support, and adherence to HPC programming practices [ 11 , 12 ]. Broader evaluations examine how language models support HPC software development, assessing capabilities such as correctness, performance, reliability, and trustworthiness across real-world HPC workflows [13, 14, 15, 16, 17]. Specialized datasets also play an important role in improving LLM effectiveness; for example, curated examples bridging OpenMP Fortran and C++ enable models to learn code equivalence and translation strategies relevant to high-performance applications [ 18 ]. Overall, integrating AI into HPC workflows raises challenges related to productivity, reliability, and trust, motivating continued research on frameworks, benchmarks, and best practices for safe and effective LLM-assisted HPC development [19, 20, 5]. The key novelty of our approach lies in integrating large language models (LLMs) with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST)-based structural analysis to enable context-aware, controlled code generation for HPC applications. Unlike generic AI-assisted tools, AstraAI uses retrieved code examples and AST-derived structural information to guide scoped modifications, ensuring that the generated C ++ code follows project-specific patterns and maintains structural correctness. This combination supports automated code generation and editing without compromising safety or maintainability, enhancing developer productivity while meeting the strict correctness requirements of HPC workflows. 
+
+# 2 AstraAI architecture 
+
+Figure 1: End-to-end AstraAI workflow: User prompts are interpreted to extract intent, and intent-specific pipelines combine retrieval-augmented context, AST-guided constraints, and controlled code generation or editing. Tools used at each stage are highlighted in red, and the workflow is orchestrated via Python scripts. Figure 1 illustrates the end-to-end workflow for LLM-assisted code generation and editing in HPC applications. The pipeline integrates semantic retrieval and structural program analysis to provide the language model with both contextual and syntactic grounding. The process begins with a user prompt describing the desired functionality or modification. An initial intent extraction stage interprets the user’s goal, followed by two key analysis stages: (i) Retrieval-Augmented Generation (RAG), which retrieves relevant code snippets from a pre-indexed database to provide examples of framework-specific patterns and API usage, and (ii) Abstract Syntax Tree (AST) analysis, which captures the structural organization of the codebase, including classes, member variables, and function signatures. Outputs from the RAG and AST stages are combined with the original prompt to form the final high-fidelity prompt. This composite prompt provides semantic context and syntactic constraints, improving the determinism and correctness of the generated code. The language model then performs code generation, and the output is formatted using AST-safe editing with GitHub conflict-style markers, allowing developers to review and integrate changes while preserving build stability and traceability. 2AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+# 3 Implementation 
+
+The AstraAI framework is organized into two main stages: pre-inference preparation and the inference pipeline. The pre-inference stage consists of one-time or infrequently repeated setup tasks that prepare the model and codebase for efficient downstream processing. These tasks are implemented as standalone Python utilities, each handling a specific preparation step, such as acquiring models from Hugging Face or generating retrieval-ready code chunks for the RAG workflow. The inference pipeline performs the end-to-end analysis and code generation workflow. It is orchestrated by a central Python driver script that coordinates multiple modular components. The driver sequentially invokes scripts for retrieving relevant code chunks (RAG), performing Abstract Syntax Tree (AST) analysis, constructing prompts, and executing model inference. This modular design improves reproducibility, enables independent testing of pipeline components, and simplifies substitution or extension of individual stages. 
+
+3.1 Pre-inference steps 3.1.1 Model access and deployment 
+
+The foundation of the pipeline is the use of LLMs, which can be deployed either locally or accessed via APIs. Local deployment – using open-source models from ecosystems such as Hugging Face [ 1 ] – provides checkpoints containing network weights, tokenizers, and configuration files, enabling offline operation, reproducibility, and compliance with HPC constraints. For local inference, downloaded models can be converted to formats such as GGUF (GPT-Generated Unified Format) using llama.cpp [ 21 ] and executed through the lightweight runtime engine – Ollama [ 22 ], allowing efficient on-node inference within the AstraAI toolchain. Alternatively, AstraAI can interact with API-based models, enabling access to frontier-scale LLMs without requiring local installation. In particular, AstraAI can connect to models served through the American Science Cloud [ 2], providing a flexible interface for leveraging large remote models while maintaining the same command-line workflow. 
+
+3.1.2 Creation of code chunks for RAG 
+
+A central component of the workflow is Retrieval-Augmented Generation (RAG), which injects domain-specific knowledge into the prompt at inference time. To support effective retrieval, a repository of code examples was constructed with fine-grained chunking of source files, metadata annotations covering task type, user-intent descriptions, API/function keywords, and input/output information, and coverage of diverse features and programming idioms. This structure enables semantic search over the codebase, ensuring that retrieved snippets meaningfully complement the user prompt. Efficient retrieval requires transforming both queries and code chunks into vector embeddings using a dedicated embedding model; for this work, the embedding model all-MiniLM was used due to its favorable trade-off between embedding quality and computational cost. Figure 2 illustrates the general structure of the code chunks, including an example of a snippet from the AMReX framework with metadata, serialized into JSON format. In this work, only the user_intent portion of the metadata (see Fig. 2) is encoded into embeddings, ensuring that retrieved chunks are semantically aligned with the user’s query rather than other contextual fields. 
+
+3.2 Inference pipeline 
+
+The inference workflow is fully automated through Python scripting. Users interact with the system minimally by providing a prompt in a text file and executing a single driver script. This script orchestrates retrieval, structural analysis, prompt construction, and model inference, streaming the generated response directly to the terminal. Users can then choose whether to apply the suggested edits to the code. This design ensures reproducibility and allows seamless integration with both batch and interactive HPC workflows. 
+
+3.2.1 Retrieval of relevant code chunks for RAG 
+
+The first stage of inference performs retrieval-augmented context selection. The user prompt is converted into a vector embedding using the same embedding model (all-MiniLM) used during indexing. Cosine similarity is then computed between the query embedding and the database of code chunk embeddings. Top-ranked chunks are selected and appended to the prompt, providing the language model with semantically relevant examples and implementation patterns. This ensures framework-specific grounding and reduces the likelihood of hallucinating APIs or implementation details. 3AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+General structure of code chunk with metadata 
+
+—– Code —– —– Metadata —– —– Embedding —– 
+
+AMReX code snippet 
+
+// AI_METADATA // task_type: MULTIFAB_FILL_PARALLELFOR // user_intent: // 1) Fill the field data structure for amrex using a // AMReX-style ParallelFor loop // 2) Fill a multifab using ParallelFor // 3) Populate the multifab with a parallelfor loop // 4) For loop in amrex-style GPU-enabled way // keywords: MFIter, ParallelFor, Array4, GPU, validbox // inputs: MultiFab mf, dx // outputs: mf data initialized 
+
+for(amrex::MFIter mfi(mf); mfi.isValid(); ++mfi){ const amrex::Box& bx = mfi.validbox(); const amrex::Array4<amrex::Real>& mf_array = mf.array(mfi); amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k){ amrex::Real x = (i+0.5) * dx[0]; amrex::Real y = (j+0.5) * dx[1]; amrex::Real z = (k+0.5) * dx[2]; amrex::Real r_squared = ((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+ (z-0.5)*(z-0.5))/0.01; mf_array(i,j,k) = 1.0 + std::exp(-r_squared); }); }
+
+AMReX code chunk in .json format 
+
+{"text": // the code chunk 
+
+"metadata": { "example": "MultiFab", "task_type": "MULTIFAB_FILL_PARALLEL", "keywords": "MFIter, ParallelFor, Array4, GPU, validbox", .... "user_intent": ... }, "embedding": [ -0.05731915682554245, 0.014803881756961346, .... ]}
+
+Figure 2: General structure of the chunks for retrieval (top), an example code snippet in AMReX with the metadata (middle), and the code chunk in .json format (bottom). 4AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+3.2.2 Structure extraction using AST analysis 
+
+In addition to retrieval, the workflow incorporates static program analysis through Abstract Syntax Tree (AST) extraction. An AST is a tree-structured representation of source code, where each node corresponds to a syntactic construct such as declarations, statements, expressions, or type definitions. Unlike raw text, the AST captures the structural semantics of the program, enabling precise extraction of relationships between program elements. To obtain this representation, the codebase is first compiled using intercept-build (see Fig. 3), which generates a compile_commands.json 
+
+database containing compiler invocations and flags. Clang tooling reproduces the compilation environment, and the 
+
+clang-query utility can be used to traverse the AST and extract relevant program information, including class member variables, access specifiers (public, private, protected), function signatures, and function source ranges (start/end lines) (see Fig. 3). These structural details are appended to the prompt context, providing the language model with an explicit view of the program interface and reducing ambiguity during code generation or modification tasks. The source range information, in particular, allows precise identification of function locations in the file, enabling automated code modifications and edits. Build 
+
+> intercept-build make
+
+Get the data types of class variables 
+
+> clang-query <filename> -p <path-to-compile_commands.json> set output print match fieldDecl(hasAncestor(cxxRecordDecl(hasName("class-name")))).bind("f")
+
+Get the signature of a function in a class 
+
+> clang-query <filename> -p <path-to-compile_commands.json> set output print match cxxMethodDecl(hasName("<function-name>"),hasAncestor(cxxRecordDecl(hasName("<class-name>" )))).bind("fn")
+
+Retrieve function start/end lines 
+
+> clang-query <filename> --set output dump match cxxMethodDecl(hasName("<function-name>"), ofClass(hasName("<class-name>"))).bind("fn")
+
+Figure 3: clang-query command examples to extract structure information of the code. 
+
+3.2.3 Prompt construction 
+
+Following retrieval and AST extraction, the final prompt is assembled by concatenating multiple sources of context. It typically includes general system-level instructions specifying coding style and constraints, retrieved code chunks from the RAG stage, structural information extracted from AST analysis, and the original user query. This layered construction ensures that the LLM simultaneously receives high-level guidance, relevant examples, and precise program structure, improving the determinism and correctness of the generated output. Figure 4 illustrates the structure of a full prompt provided to the model. By combining these components – system instructions, reference snippets, AST-derived structural details, and the user request – the prompt provides sufficient context to generate code that is both accurate and consistent with the project’s existing structure. Figure 5 illustrates a typical user prompt for porting sequential C++ code to an AMReX-based framework. The prompt includes a simple array-filling loop in standard C++ and specifies that it should be rewritten using MFIter and ParallelFor to enable both MPI and GPU parallelism. Additional metadata, such as the relevant class and file location, provides contextual information that guides the language model in generating code consistent with the AMReX programming model. 
+
+3.2.4 Model inference 
+
+The constructed prompt is passed to the language model using the Ollama [ 22 ] runtime for locally hosted Hugging Face models [ 1 ], or via the American Science Cloud [ 2 ] API for frontier models. For the local inference, all experiments reported in this work were executed on a single NVIDIA A100 GPU on the Perlmutter system at NERSC (Berkeley Lab). 5AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+General structure of the high-fidelity prompt 
+
+—– General instructions —– —– Context derived from Retrieval Augmented Generation (RAG) —– —– Information derived from Abstract Syntax Tree (AST) analysis —– —– User prompt —– 
+
+Figure 4: General structure of the high-fidelity prompt. This setup allows AstraAI to flexibly leverage either locally hosted models or remote API-based models depending on computational and deployment constraints. 
+
+# 4 Evaluation 
+
+We evaluate the performance of AstraAI in generating correct and usable code snippets within the AMReX framework, considering several large language models (LLMs), including Hugging Face models [ 1] – CodeLlama-13b-Instruct-hf and CodeLlama-34b-Instruct-hf, and frontier models available via the American Science Cloud API [ 2] – claude-sonnet-4-6-high and gpt-oss-120b. Two evaluation strategies are employed. First, in the baseline evaluation, each model receives only the user prompt and general instructions – where the prompt requests the implementation of a single function to perform a specific task– without additional guidance, to measure the effectiveness of the pre-trained model in isolation. Second, in the AstraAI evaluation, the user prompt is augmented with RAG and AST guidance to improve the quality and correctness of the generated code. For quantitative comparison, we compute the cosine similarity between the generated code and benchmark verified code. This metric indicates how closely a model’s output matches the expected solution, providing a measure of improvements achieved by AstraAI over the baseline. To reduce the impact of superficial differences in variable naming, local identifiers are normalized in both generated and benchmark code using an AST derived from the tree-sitter C ++ 
+
+parser [ 23 ]. This procedure identifies variables declared within the function scope while preserving function parameters and framework-specific types, replacing local identifiers with canonical placeholders (e.g., VAR1 , VAR2 ). This ensures that similarity metrics focus on structural and semantic correctness rather than arbitrary naming differences. The evaluation results are summarized in Table 1 (baseline) and Table 2 ( AstraAI ). Smaller models like CodeLlama-13B and CodeLlama-34B appear to have some pre-training on AMReX or related repositories, but this is insufficient, as reflected by lower baseline cosine similarity scores (Table 1). With AstraAI ’s RAG +AST augmentation, these models achieve higher similarity across most benchmarks (Table 2). The frontier models – claude-sonnet-4-6-high and gpt-oss-120b – already show strong baseline performance, indicating substantial prior exposure to AMReX; AstraAI 
+
+improves them in several cases, though not uniformly across all tasks. Variability is expected because multiple valid implementations can satisfy the same specification, so cosine similarity can differ even when outputs are functionally correct. Table 1: Baseline performance across models showing the cosine similarity metric. Task Baseline (user prompt only) CodeLlama 13B CodeLlama 34B GPT-OSS-120B Claude-Sonnet-4.6-High 1. 3D nested for loop to AMReX kernel conversion 0.32 0.99 0.92 0.94 2. Creating a copy of a 
+
+MultiFab from another 0.60 0.65 0.82 0.87 3. MultiFab linear combination 0.77 0.83 0.90 0.85 4. 7-point finite-difference Laplacian kernel 0.88 0.85 0.87 0.97 5. Neumann boundary ghost cell fill 0.70 0.71 0.72 0.79 6. Multigrid Poisson solver using AMReX MLMG 0.47 0.82 0.81 0.89 6AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+Figure 5: An example user prompt that attempts to port a nested for loop in C++ into AMReX (top), the full prompt to the LLM (middle), and the result of the inference (bottom). 7AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+Table 2: Performance of AstraAI across models showing the cosine similarity metric. Task AstraAI (user prompt +RAG chunks +AST info) CodeLlama 13B CodeLlama 34B GPT-OSS-120B Claude-Sonnet-4.6-High 1. 3D nested for loop to AMReX kernel conversion 0.78 0.92 0.91 0.92 2. Creating a copy of a 
+
+MultiFab from another 0.87 0.89 0.96 0.95 3. MultiFab linear combination 0.88 0.98 0.94 0.93 4. 7-point finite-difference Laplacian kernel 0.80 1.00 0.96 0.96 5. Neumann boundary ghost cell fill 0.99 0.99 0.92 0.90 6. Multigrid Poisson solver using AMReX MLMG 0.37 1.00 1.00 1.00 
+
+# 5 Conclusions and future work 
+
+We have presented AstraAI , a command-line framework that integrates large language models with Retrieval-Augmented Generation (RAG) and Abstract Syntax Tree (AST) analysis to enable context-aware code generation for HPC software. Our evaluation on AMReX shows that AstraAI improves code correctness and structural consistency compared to baseline LLM outputs, particularly for smaller models such as CodeLlama-13B and CodeLlama-34B. By augmenting prompts with repository context and structural information, AstraAI enables these models to generate code that closely matches verified benchmark implementations. While large frontier models perform well on AMReX due to its open-source availability, they cannot be expected to generalize reliably to proprietary codebases. AstraAI addresses this limitation by enabling context-aware code generation for software without publicly available training data. For future work, we plan to extend AstraAI to support large open-source models using DeepSpeed [ 24 ], enabling efficient inference through model parallelism. We also plan to add multi-file editing and automated code refactoring while preserving program semantics, allowing AstraAI to support larger code modifications. Finally, we will perform more comprehensive evaluations, including compilation success and correctness of numerical results, to better assess 
+
+AstraAI ’s ability to generate fully functional scientific code. The code associated with this work is available at https://github.com/AIForHPC/AstraAI, and will be publicly released after necessary approvals. 
+
+# Acknowledgments 
+
+This work was supported in part by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific Computing Research’s ModCon under Contract No. AC02-05CH11231. Access to frontier model APIs was facilitated by the American Science Cloud. This research used resources of the National Energy Research Scientific Computing Center (NERSC), a Department of Energy User Facility. We gratefully acknowledge helpful discussions with Bhargav Sriram Siddani and Yingheng Tang (CCSE, LBNL), and thank Akash Vijaykumar Dhruv (Argonne National Laboratory) for his assistance. 
+
+# Competing Interests 
+
+The authors have no competing interests to declare that are relevant to the content of this article. 
+
+# References 
+
+[1] Hugging Face. https://huggingface.co/ , 2023. Accessed: 2026-03-12. [2] American Science Cloud. American science cloud — accelerating innovation with ai and advanced computing. 
+
+https://amsc.energy.gov/ , 2026. Accessed: 2026-03-12. 8AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+[3] Weiqun Zhang, Ann Almgren, Vince Beckner, John Bell, Johannes Blaschke, Cy Chan, Marcus Day, Brian Friesen, Kevin Gott, Daniel Graves, Max Katz, Andrew Myers, Tan Nguyen, Andrew Nonaka, Michele Rosso, Samuel Williams, and Michael Zingale. AMReX: a framework for block-structured adaptive mesh refinement. Journal of Open Source Software , 4(37):1370, May 2019. doi:10.21105/joss.01370. URL https://doi.org/10.21105/ joss.01370 .[4] W. Zhang, A. Myers, K. Gott, A. Almgren, and J. Bell. AMReX: Block-structured adaptive mesh refinement for multiphysics applications. The International Journal of High Performance Computing Applications , 35(6): 508–526, 2021. doi:10.1177/10943420211022811. [5] Pedro Valero Lara, Aaron Young, Jeffrey S Vetter, Zheming Jin, Swaroop Pophale, Mohammad Alaul Haque Monil, Keita Teranishi, and William F Godoy. Chathpc: Building the foundations for a productive and trustworthy ai-assisted hpc ecosystem. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis , pages 458–474, 2025. [6] Junqi Yin, Jesse Hines, Emily Herron, Tirthankar Ghosal, Hong Liu, Suzanne Prentice, Vanessa Lama, and Feiyi Wang. chathpc: Empowering hpc users with large language models. Journal of Supercomputing , 81(1), 2024. [7] Ozan Gokdemir, Carlo Siebenschuh, Alexander Brace, Azton Wells, Brian Hsu, Kyle Hippe, Priyanka Setty, Aswathy Ajith, J Gregory Pauloski, Varuni Sastry, et al. Hiperrag: High-performance retrieval augmented generation for scientific insights. In Proceedings of the Platform for Advanced Scientific Computing Conference ,pages 1–13, 2025. [8] Yusuke Miyashita, Patrick Kin Man Tung, and Johan Barthélemy. Llm as hpc expert: Extending rag architecture for hpc data. arXiv preprint arXiv:2501.14733 , 2024. [9] Xianzhong Ding, Le Chen, Murali Emani, Chunhua Liao, Pei-Hung Lin, Tristan Vanderbruggen, Zhen Xie, Alberto Cerpa, and Wan Du. Hpc-gpt: Integrating large language model for high-performance computing. In 
+
+Proceedings of the SC’23 Workshops of The International Conference on High Performance Computing, Network, Storage, and Analysis , pages 951–960, 2023. [10] Daniel Nichols, Aniruddha Marathe, Harshitha Menon, Todd Gamblin, and Abhinav Bhatele. Hpc-coder: Modeling parallel programs using large language models. In ISC High Performance 2024 Research Paper Proceedings (39th International Conference) , pages 1–12. Prometeus GmbH, 2024. [11] Pedro Valero-Lara, Alexis Huante, Mustafa Al Lail, William F Godoy, Keita Teranishi, Prasanna Balaprakash, and Jeffrey S Vetter. Comparing llama-2 and gpt-3 llms for hpc kernels generation. In International Workshop on Languages and Compilers for Parallel Computing , pages 20–32. Springer, 2023. [12] William Godoy, Pedro Valero-Lara, Keita Teranishi, Prasanna Balaprakash, and Jeffrey Vetter. Evaluation of openai codex for hpc parallel programming models kernel generation. In Proceedings of the 52nd International Conference on Parallel Processing Workshops , pages 136–144, 2023. [13] Caetano Melone, Daniel Nichols, Konstantinos Parasyris, Todd Gamblin, and Harshitha Menon. Llms as packagers of hpc software. arXiv preprint arXiv:2511.05626 , 2025. [14] William F Godoy, Pedro Valero-Lara, Keita Teranishi, Prasanna Balaprakash, and Jeffrey S Vetter. Large language model evaluation for high-performance computing software development. Concurrency and Computation: Practice and Experience , 36(26):e8269, 2024. [15] Le Chen, Pei-Hung Lin, Tristan Vanderbruggen, Chunhua Liao, Murali Emani, and Bronis De Supinski. Lm4hpc: Towards effective language model application in high-performance computing. In International Workshop on OpenMP , pages 18–33. Springer, 2023. [16] Tal Kadosh, Niranjan Hasabnis, Vy A Vo, Nadav Schneider, Neva Krien, Abdul Wasay, Nesreen Ahmed, Ted Willke, Guy Tamir, Yuval Pinter, et al. Scope is all you need: Transforming llms for hpc code. arXiv preprint arXiv:2308.09440 , 2023. [17] Le Chen, Nesreen K Ahmed, Akash Dutta, Arijit Bhattacharjee, Sixing Yu, Quazi Ishtiaque Mahmud, Waqwoya Abebe, Hung Phan, Aishwarya Sarkar, Branden Butler, et al. The landscape and challenges of hpc research and llms. arXiv preprint arXiv:2402.02018 , 2024. [18] Bin Lei, Caiwen Ding, Le Chen, Pei-Hung Lin, and Chunhua Liao. Creating a dataset for high-performance computing code translation using llms: a bridge between openmp fortran and c++. In 2023 IEEE High Performance Extreme Computing Conference (HPEC) , pages 1–7. IEEE, 2023. [19] Keita Teranishi, Harshitha Menon, William F Godoy, Prasanna Balaprakash, David Bau, Tal Ben-Nun, Abhinav Bhatele, Franz Franchetti, Michael Franusich, Todd Gamblin, et al. Leveraging ai for productive and trustworthy hpc software: Challenges and research directions. In International Conference on High Performance Computing ,pages 615–625. Springer, 2025. 9AstraAI : LLMs, Retrieval, and AST-Guided Assistance for HPC Codebases A P REPRINT 
+
+[20] Noujoud Nader, Patrick Diehl, Steve Brandt, and Hartmut Kaiser. Llm & hpc: Benchmarking deepseek’s performance in high-performance computing tasks. In International Conference on High Performance Computing ,pages 626–638. Springer, 2025. [21] Georgi Gerganov and contributors. llama.cpp: High-performance llm inference in c/c++, 2023. URL https: //github.com/ggml-org/llama.cpp . Software, accessed 2026. [22] Ollama contributors. Ollama: Local large language model runtime. https://github.com/ollama/ollama ,2025. GitHub repository, accessed 2026-03-13. [23] Max Brunsfeld and contributors. Tree-sitter. https://github.com/tree-sitter/tree-sitter , 2018. Parser generator and incremental parsing library. [24] Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He. Deepspeed: System optimizations enable training deep learning models with over 100 billion parameters. In Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining , 2020. 10
