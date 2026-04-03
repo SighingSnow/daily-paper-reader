@@ -1,0 +1,976 @@
+Title: Jagle: Building a Large-Scale Japanese Multimodal Post-Training Dataset for Vision-Language Models
+
+URL Source: https://arxiv.org/pdf/2604.02048v1
+
+Published Time: Fri, 03 Apr 2026 00:58:35 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+Preprint. Under review. 
+
+# Jagle: Building a Large-Scale Japanese Multimodal Post-Training Dataset for Vision-Language Models 
+
+Issa Sugiura 1,2 Keito Sasagawa 3,2 Keisuke Nakao 3,2 Koki Maeda 4,2 
+
+Ziqi Yin 2 Zhishen Yang 2 Shuhei Kurita 5,2 Yusuke Oda 2
+
+Ryoko Tokuhisa 6,7 Daisuke Kawahara 3,2 Naoaki Okazaki 4,2 1Kyoto University 2NII LLMC 3Waseda University 4Institute of Science Tokyo 
+
+> 5
+
+NII 6Aichi Institute of Technology 7Institute of Physical and Chemical Research 
+
+Abstract 
+
+Developing vision-language models (VLMs) that generalize across diverse tasks requires large-scale training datasets with diverse content. In English, such datasets are typically constructed by aggregating and curating numer-ous existing visual question answering (VQA) resources. However, this strategy does not readily extend to other languages, where VQA datasets remain limited in both scale and domain coverage, posing a major obstacle to building high-quality multilingual and non-English VLMs. In this work, we introduce Jagle , the largest Japanese multimodal post-training dataset to date, comprising approximately 9.2 million instances across diverse tasks. Rather than relying on existing VQA datasets, we collect heterogeneous source data, including images, image-text pairs, and PDF documents, and generate VQA pairs through multiple strategies such as VLM-based QA generation, translation, and text rendering. Experiments demonstrate that a 2.2B model trained with Jagle achieves strong performance on Japanese tasks, surpassing InternVL3.5-2B in average score across ten Japanese eval-uation tasks and approaching within five points of Qwen3-VL-2B-Instruct. Furthermore, combining Jagle with FineVision does not degrade English performance; instead, it improves English performance compared to train-ing with FineVision alone. To facilitate reproducibility and future research, we release the dataset, trained models, and code. 1
+
+1 Introduction 
+
+Vision-Language Models (VLMs), which extend large language models (LLMs) with visual understanding capabilities, have recently achieved rapid progress (Liu et al., 2023; OpenAI, 2024; Qwen Team, 2025a). Both proprietary models (OpenAI, 2025a; Google DeepMind, 2025) and open-weight models (InternVL Team, 2025b; Qwen Team, 2025a; Kimi Team, 2026) have demonstrated strong multimodal reasoning abilities across a wide range of tasks. A key factor driving these advances is the availability of large-scale, high-quality training datasets (Wiedmann et al., 2025; Li et al., 2025b; Tong et al., 2024). In the research commu-nity, the development of large-scale English multimodal post-training datasets has been particularly active (Tong et al., 2024; NVIDIA, 2025b). A common approach for constructing such large-scale datasets is to collect, curate, balance, and unify the format of a large number of existing VQA datasets (Tong et al., 2024; Li et al., 2025b). For example, FineVision (Wiedmann et al., 2025) built a dataset of approximately 24 million instances by aggregating over 100 existing English datasets. However, this approach is difficult to apply to other languages, where existing VQA datasets are far less abundant. To address this limitation, we propose an alternative pipeline that collects diverse source data, including images, image-text pairs, and PDFs, and generates VQA pairs through a 
+
+> 1
+
+https://speed1313.github.io/Jagle/ 
+
+1
+
+> arXiv:2604.02048v1 [cs.CV] 2 Apr 2026
+
+Preprint. Under review. 
+
+Dataset Language Categories Subsets Examples 
+
+Cambrian-7B (Tong et al., 2024) English 9 70 7.1M FineVision (Wiedmann et al., 2025) English 9 185 24.2M DEJIMA (Katsube et al., 2025) Japanese 2 2 3.9M LLM-jp-3 VILA (Sasagawa et al., 2025b) Japanese 3 4 0.4M 
+
+Jagle (Ours) Japanese 5 17 9.2M 
+
+Table 1: Comparison of open multimodal post-training datasets. Task categories follow the taxonomy of Eagle2 (Li et al., 2025b). Jagle is the largest Japanese multimodal post-training dataset to date. combination of strategies such as VLM-based QA generation, translation, and text rendering. Focusing specifically on Japanese, we construct Jagle 2, a large-scale Japanese multimodal post-training dataset consisting of approximately 9.2 million instances spanning 5 task categories and 17 subsets. Unlike prior approaches that rely on curating and aggregat-ing existing datasets, our pipeline builds the dataset from scratch. This design makes our methodology readily transferable to other low-resource languages where large-scale multimodal resources are limited, as is the case for most non-English languages. As shown in Table 1, Jagle substantially expands both the scale and task diversity compared to existing Japanese multimodal post-training datasets, such as DEJIMA (Katsube et al., 2025) and LLM-jp-3 VILA (Sasagawa et al., 2025b). Experiments show that a 2.2B model trained on Jagle outperforms InternVL3.5-2B on the average score across 10 Japanese benchmarks and comes within 5 points of Qwen3-VL-2B-Instruct. Furthermore, when training on a mixture of Jagle and FineVision, the average score across 10 English benchmarks exceeds that of a FineVision-only baseline, confirming that Jagle does not degrade English task performance. To facilitate reproducibility and foster future research in VLMs, we will publicly release our dataset, model, and code. 
+
+2 Related Work 
+
+Post-training Datasets for VLMs. To develop VLMs with broad knowledge and the ability to handle diverse tasks, the construction of large-scale multimodal post-training datasets has been actively pursued (Tong et al., 2024; Li et al., 2025a;b; Wiedmann et al., 2025). Early VLM research primarily focused on image captioning, with models typically trained on relatively small-scale datasets with limited task coverage (Liu et al., 2023). As VLM capabilities have advanced, research has expanded beyond captioning to more diverse tasks, including chart and document comprehension (Masry et al., 2022; Mathew et al., 2021), as well as computer-use tasks involving interaction with graphical user interfaces (Xie et al., 2024). Accordingly, post-training datasets have grown substantially in both task diversity and scale, enabling broader multimodal reasoning abilities (Tong et al., 2024; Li et al., 2025a; Deitke et al., 2025). In early VLM research, a prominent approach was to synthesize captioning data using strong models such as GPT-4o (Liu et al., 2023; Chen et al., 2024; OpenAI, 2024). Another line of work leverages the coding capabilities of LLMs to generate scripts for producing chart images, enabling the creation of VQA data in the chart domain (Yang et al., 2025). More recently, large-scale English dataset construction has shifted toward collecting, curating, balancing, and unifying the format of the many existing English VQA datasets that have accumulated over the years, yielding large-scale, diverse, and high-quality resources (Tong et al., 2024; Li et al., 2025a;b; Wiedmann et al., 2025). 
+
+Japanese multimodal post-training datasets. The development of Japanese post-training datasets for VLMs remains limited, and existing datasets are typically small in scale and lack sufficient task coverage. For example, LLM-jp-3 VILA (Sasagawa et al., 2025b) does not cover  
+
+> 2Jagle is named after Ja panese and Ea gle 2 (Li et al., 2025b).
+
+2Preprint. Under review. OCR QA             
+
+> (3.5M)
+> caption:
+> 群馬県警察本部
+> (Gunma Prefectural
+> Police Headquarters)
+> ⛁Wiki-JA
+> ⛁WAON
+> ⛁japanese-photos
+> ⛁llava-instruct
+> ⛁FinePDFs-Edu
+> ⛁NDL-WARP-PDF
+> Image, Image-Text Pair,
+> PDF caption:
+> 図表３：「不動産取引サイ
+> クル」 (Figure 3: Real
+> Estate Transaction
+> Cycle)
+> user: この画像に写っている建物は
+> どのような用途の施設ですか？
+> (What type of facility is the
+> building shown in this image?)
+> assistant: この建物は警察本部と
+> して使用されている施設です。 (This
+> building is used as a police
+> headquarters.)
+> General VQA (3.1M)
+> user: 図表 3はどのような内容
+> を表していますか？ (What does
+> Figure 3 illustrate?)
+> assistant: 図表 3は「不動産
+> [...] (Figure 3 illustrates the
+> ‘real estate [...])
+> Chart & Table (0.3M)
+> Captioning & Knowledge
+> (2.0M)
+> Naive OCR
+> (0.3M)
+
+Jagle (9.2M examples)          
+
+> ⛁PlotQA
+> ⛁TAT-QA Translation
+> Text rendering
+> ⛁JSQuAD
+> ⛁JSSODa-train
+> VLM-based QA generation
+> ⛁e-Gov OCR-based
+> text extraction
+> ⛁ja-vg-vqa
+> ⛁Nemotron-VLM-
+> Dataset-v2 (wiki-ja)
+> Direct use
+
+Figure 1: Construction pipeline of Jagle. Our pipeline leverages diverse data sources, including images, image-text pairs, and PDF corpora, and integrates multiple QA generation strategies such as VLM-based QA generation, translation, OCR-based text extraction, text rendering, and direct utilization of existing data to produce VQA samples. practically important domains such as document understanding and chart comprehension. As a result, the model trained on the dataset exhibits relatively weak performance on document and chart understanding benchmarks (Maeda et al., 2025b). Furthermore, the dataset construction pipeline relies on proprietary models such as GPT-4o (OpenAI, 2024), which introduces licensing constraints that limit practical usage. 
+
+3 Construction of Jagle 
+
+The construction pipeline of Jagle is shown in Figure 1. We build Jagle through three steps: (1) category definition, (2) source data collection, and (3) QA generation. 
+
+3.1 Category definition 
+
+To construct a post-training dataset that covers diverse tasks, we define five categories based on the taxonomy used in Eagle2 (Li et al., 2025b). Eagle2 defines nine categories: General VQA, Chart & Table, Captioning & Knowledge, OCR QA, Naive OCR, Grounding & Counting, Math, Science, and Text-only. From these, we select the following five categories as our target: General VQA, Chart & Table, Captioning & Knowledge, OCR QA, and Naive OCR. We exclude categories such as Math and Science, which are relatively less language-dependent. The remaining categories are left for future exploration. 
+
+3.2 Source data collection 
+
+To construct a dataset that comprehensively covers the five target categories, it is necessary to collect appropriate source data for each category. For example, OCR QA benefits from text-rich sources such as PDF documents or natural images containing text, whereas General VQA relies on diverse natural images obtained from web-based resources. Below, we describe the data sources used for each category. 
+
+General VQA. General VQA involves answering questions about images from diverse domains (e.g., people, objects, and scenes). To cover a wide range of visual content, we utilize six data sources. These include japanese-photos (ThePioneer, 2024), a small-scale 3Preprint. Under review. image corpus consisting of photos taken in Japan; Wiki-ja (Wikipedia, 2026), a 1M image-text pair dataset derived from Japanese Wikipedia articles; and WAON (Sugiura et al., 2025), a 155M Japanese image-text pair dataset collected from Common Crawl. 
+
+Chart & Table. Chart & Table is a task that requires extracting and interpreting information from charts and tables, including reading values and performing calculations when neces-sary. Constructing this category requires a large collection of such visual data. We utilize existing English datasets such as PlotQA and TAT-QA, as well as WAON. To extract chart and table images from WAON, we retrieve image-text pairs whose captions begin with keywords such as “ 図” (chart) or “ 表” (table). The effectiveness of this heuristic is verified through manual inspection of the retrieved samples. 
+
+Captioning & Knowledge. This category involves generating descriptions of given images and capturing associated knowledge. We collect both natural and document images from Wikipedia and PDF files crawled from URLs provided by the National Diet Library’s Web Archiving Project (NDL WARP) (LLM-jp, 2026). 
+
+OCR QA. OCR QA is a question-answering task focused on textual information contained within images. Constructing a dataset for this category requires images that are rich in text content. For this purpose, we use the Japanese subsets of PDF corpora such as NDL WARP and FinePDFs-Edu (Kydl ´ı ˇcek et al., 2025). Additionally, to cover text present in natural images, we also utilize the WAON dataset. 
+
+Naive OCR. Naive OCR is a task that involves directly extracting text from images in reading order. For this purpose, we use PDFs from Japanese government agencies, collected via the e-Gov portal site, and convert them into images (Japanese Digital Agency, 2026). In addition, we incorporate the Wiki-JA subset of Nemotron-VLM-Dataset-v2, which constructs OCR tasks by rendering Japanese Wikipedia articles as images (NVIDIA, 2025b). 
+
+3.3 QA generation 
+
+We construct QA pairs using several approaches: (1) VLM-based QA generation, (2) OCR-based text extraction, (3) text rendering, and (4) translation. To ensure the quality of the generated data, we manually inspect and analyze a subset of the synthesized VQA pairs and iteratively refine the generation process. To enhance dataset diversity, we minimize the inclusion of similar images. Specifically, when using PDF data, we randomly select only one page per PDF. Additionally, for data sources containing visually similar images, we perform deduplication before generating QA pairs. 
+
+VLM-based QA generation. While human annotation is ideal for constructing VQA datasets, scaling it to the volume required for VLM training is impractical. Traditional approaches rely on template-based generation (Masry et al., 2022); however, such methods tend to produce rigid question formats, which can lead to overfitting to specific patterns. Recent studies have demonstrated that leveraging existing VLMs to generate QA pairs enables large-scale synthesis without constraining question formats (Chen et al., 2024; Liu et al., 2023). Specifically, we use Qwen3-VL, a high-performing open-weight model with a permissive license and strong performance in both Japanese and English (Sugiura et al., 2026). In most cases, we employ Qwen3-VL-235B-A22B-Instruct, the strongest instruct model in the Qwen3-VL series. To generate QA pairs using the model, we design task-specific instruction prompts for each dataset, and iteratively refine them through manual inspection of the generated QA pairs. 3 When available (e.g., in image-text pairs), captions are included in the prompt to provide knowledge not contained in the VLM used for QA generation, such as associations between faces and person names, enabling the construction of a dataset that does not overly rely on the model’s implicit knowledge. We leverage vLLM (Kwon et al., 2023) for inference, enabling efficient generation of QA pairs. 
+
+OCR-based text extraction. For OCR-related tasks that require accurate extraction of text from images, obtaining precise textual information is essential. We employ PaddleOCR-VL (Cui et al., 2025), an OCR-specialized model, to extract text and generate QA pairs. 
+
+> 3Detailed prompts used for QA generation are provided in Appendix B.
+
+4Preprint. Under review. 
+
+Category Subset Name Samples Data Source Method 
+
+General VQA japanese-photos-VQA 1,163 japanese-photos (ThePioneer, 2024) VLM-based JSQuAD-Vision-filterd-15k 14,790 JSQuAD (Kurihara et al., 2022) Text rendering ja-vg-vqa 99,202 ja-vg-vqa (Shimizu et al., 2018) Direct use llava-instruct-ja-qwen3vl 155,657 llava-instruct (Liu et al., 2023) VLM-based WIKI-JA-VQA 936,871 Wiki-JA (Wikipedia, 2026) VLM-based WAON-VQA 1,912,226 WAON (Sugiura et al., 2025) VLM-based Chart & Table tat-qa-ja-translated-2k 2,180 TAT-QA (Zhu et al., 2021) Translation WAON-Chart-VQA 98,791 WAON (Sugiura et al., 2025) VLM-based plotqa-ja-translated-153k 152,912 Plot-QA (Methani et al., 2020) Translation Captioning WIKI-JA-Captioning 993,006 Wiki-JA (Wikipedia, 2026) VLM-based & Knowledge NDL-PDF-detail 1,000,000 NDL WARP PDF (LLM-jp, 2026) VLM-based OCR QA WAON-OCR-VQA 871,847 WAON (Sugiura et al., 2025) VLM-based NDL-PDF-simple 1,000,000 NDL WARP PDF (LLM-jp, 2026) VLM-based FinePDFs-Edu-JA-VQA 1,666,699 FinePDFs-Edu (Kydl ´ı ˇcek et al., 2025) VLM-based Naive OCR JSSODa-train-18k-v2 17,991 JSSODa (Sasagawa et al., 2025a) Text rendering e-Gov-OCR 31,190 e-Gov (Japanese Digital Agency, 2026) OCR-based Nemotron-Wiki-Ja-OCR 199,999 Nemotron-VLM-Dataset-v2 (wiki-ja) (NVIDIA, 2025b) 
+
+Direct use Total 9,154,524 
+
+Table 2: Statistics of each subset in Jagle, including the number of samples, data source, and QA construction method. 
+
+Dataset Samples Unique Images Turns Answer Tokens 
+
+FineVision (Wiedmann et al., 2025) 24,210,611 15,606,828 88,356,316 10,146,129,067 Jagle (Ours) 9,154,524 9,051,232 58,906,972 3,510,910,782 
+
+Table 3: Comparison of dataset sizes between Jagle and FineVision (Wiedmann et al., 2025) in terms of samples, unique images, turns, and answer tokens. 
+
+Text rendering. Text rendering, which involves converting prepared text into images and automatically generating QA pairs using templates, is a common approach for constructing Naive OCR VQA datasets (NVIDIA, 2025b). This method allows precise control over the textual content. We generate VQA instances by rendering text into JPG images using text-based QA datasets such as JSQuAD (Kurihara et al., 2022) and synthetic QA datasets such as JSSODa (Sasagawa et al., 2025a). 
+
+Translation. Translating English datasets into other languages is a common approach for leveraging large-scale English resources in multilingual settings (Sugiura et al., 2025; Penedo et al., 2026). However, when translating multimodal data, special care is required to maintain consistency between the language of the text in the image and that of the QA pairs. In this work, we construct VQA datasets by translating English datasets such as Plot-QA (Methani et al., 2020) and TAT-QA (Zhu et al., 2021), which generate chart and table images via Python scripts, using llm-jp-3-13b-instruct (LLM-jp, 2024). By translating the Python scripts used for rendering the images, the text within the images is also converted into Japanese, ensuring consistency between the images and the corresponding QA pairs. 
+
+4 Exploring Jagle 
+
+In this section, we analyze the Jagle dataset through statistics, image embeddings, and qualitative case studies. 5Preprint. Under review. 34.1%     
+
+> 2.8%
+> 21.8%
+> 38.7%
+> 2.7%
+> Samples
+> Total: 9,154,524
+> 33.6%
+> 2.8%
+> 21.9%
+> 38.9%
+> 2.7%
+> Unique Images
+> Total: 9,051,232
+> 26.2%
+> 34.1%
+> 5.1%
+> 34.2%
+> 0.4%
+> Turns
+> Total: 58,906,972
+> 15.9%
+> 12.2%
+> 46.7%
+> 20.7%
+> 4.5%
+> Answer Tokens
+> Total: 3,510,910,782
+> General VQA Chart & Table Captioning & Knowledge OCR QA Naive OCR
+
+Figure 2: Category distribution of Jagle across four metrics: number of samples, unique images, turns, and answer tokens. 
+
+4.1 Statistics of Jagle 
+
+Table 2 presents the number of samples, data sources, and QA construction methods for each subset of Jagle. 4 Jagle consists of approximately 9.2 million instances spanning five categories and 17 subsets. Table 3 compares statistics such as the number of samples, unique images, turns, and answer tokens between FineVision and Jagle. Jagle is approximately 2.6 times smaller than FineVision, the largest English dataset in terms of scale; given that the English-to-Japanese ratio in Common Crawl is roughly 9:1, this suggests that Jagle is sufficiently large in scale. 
+
+4.2 Category distribution 
+
+Figure 2 shows the category distribution, weighted by the number of samples, answer tokens, turns, and images. We use the Qwen3 (Qwen Team, 2025b) tokenizer to compute the number of answer tokens. In terms of sample count, General VQA, OCR QA, and Captioning & Knowledge each account for more than 20% of the dataset. When weighted by the number of answer tokens, the Captioning & Knowledge category occupies a large proportion, primarily due to detailed captioning data such as NDL-PDF-Detail, which contains long-form descriptions. For the distribution over the number of turns, Chart & Table accounts for a large proportion. This is because datasets such as PlotQA and TAT-QA associate multiple question-answer pairs with a single image; aggregating them into a multi-turn format results in a higher number of turns per instance. 
+
+4.3 Image embedding analysis 
+
+To analyze the visual diversity of images in Jagle, we randomly sampled 5,000 images from the dataset and computed their image embeddings, which were subsequently visualized using t-SNE. The embeddings were extracted using SigLIP2-so400M-Patch16-512 (Tschannen et al., 2025) and projected into two dimensions via t-SNE (van der Maaten & Hinton, 2008). The results are shown in Figure 3. Samples from the General VQA, Captioning, and OCR QA categories are largely intermingled, whereas Chart & Table and Naive OCR images form relatively compact clusters. This pattern likely arises because Chart & Table and Naive OCR images, which primarily consist of charts, tables, and document-style content, exhibit visual characteristics that differ substantially from the natural images that dominate categories such as General VQA and Captioning & Knowledge categories. 
+
+> 4
+
+Appendix A provides detailed statistics for each subset, including the number of samples, unique images, turns, and answer tokens. 
+
+6Preprint. Under review. 60 40 20 0 20 40 60 
+
+> t-SNE 1
+> 60
+> 40
+> 20
+> 0
+> 20
+> 40
+> 60
+> t-SNE 2
+> Captioning
+> Chart & Table
+> General
+> Naive OCR
+> OCR QA
+
+Figure 3: t-SNE visualization of SigLIP2 image embeddings for 5,000 images randomly sampled from Jagle. Chart & Table and Native OCR images form distinct clusters, while General VQA, Captioning, and OCR QA images are largely intermingled. Question 
+
+この画像に写っている人物は誰ですか？ 
+
+(Who is the person shown in this image?) 
+
+Wiki-JA-VQA 
+
+Answer 
+
+この画像には、万延元年遣米使節に同行 
+
+した咸臨丸の乗員が写っています。右から 
+
+福沢諭吉、 [...] (This image shows crew 
+
+members of the Kanrin [...]. From right to 
+
+left: Yukichi Fukuzawa, [...]) 
+
+General VQA 
+
+Question 
+
+この図表はどのような内容を比較しています 
+
+か？ (What does this figure compare?) 
+
+WAON-Chart-VQA 
+
+Answer 
+
+この図表は、大卒の場合のミンサー型賃金関 
+
+数モデルを用いて、 3社（モデル A社、モデル B
+
+社、モデル C社）の経験年数と [...] (This figure 
+
+compares the relationship between years of 
+
+experience and [...]) 
+
+Chart & Table 
+
+Question 
+
+この画像には何が写っています 
+
+か？簡潔に答えてください。 (What 
+
+is shown in this image? Please 
+
+answer briefly.) 
+
+WIKI-JA-Captioning 
+
+Answer 
+
+群馬県庁昭和庁舎。 (Gunma 
+
+Prefectural Government Showa 
+
+Building.) 
+
+Captioning & Knowledge 
+
+Question 
+
+画像の内容をマークダウンとして出力してくださ 
+
+い。表は HTML で表現してください。 [...] (Please 
+
+output the content of the image in Markdown 
+
+format. [...]) 
+
+e-Gov-OCR 
+
+Answer 
+
+# 第2節 海外における日本人への支援 \n\n## 
+
+【総論】 [...] (# Section 2: Support for Japanese 
+
+Nationals Overseas\n\n## [General 
+
+Overview] […]) Naive OCR 
+
+Question 
+
+アプリの名称は何と記載されて 
+
+いますか？ (What is the name 
+
+of the app shown?) 
+
+WAON-OCR-VQA 
+
+Answer 
+
+“au カブコム証券アプリ -au 
+
+Kabucom Securities app-” 
+
+OCR-QA 
+
+OCR QA 
+
+General VQA Chart & Table 
+
+Captioning & Knowledge 
+
+Naive OCR 
+
+Jagle (9.2M examples) 
+
+Figure 4: Representative VQA examples from each category in Jagle. The dataset covers a wide variety of visual content, including natural images, charts and tables, document images, and presentation slides. 
+
+4.4 Qualitative case studies 
+
+As a qualitative examination of VQA examples in Jagle, we present representative examples randomly selected from each category in Figure 4. Jagle includes a diverse set of VQA instances covering not only captioning and general question answering on natural images, but also question answering on charts and tables, document images, and slide-based visuals. Training on such diverse visual representations is expected to enable models to generalize across a wide range of image types. 7Preprint. Under review. 
+
+5 Experiments 
+
+To evaluate the effectiveness of Jagle, we train a small-scale VLM on three data settings: Jagle only, FineVision only, and a mixture of Jagle and FineVision. 
+
+5.1 Training setup Model Architecture. We use Qwen3-1.7B-Instruct (Qwen Team, 2025b) as the LLM and SigLIP2-so400m-patch16-512 (Tschannen et al., 2025) as the image encoder. For the multi-modal projector, we employ a two-layer MLP. The resulting model contains approximately 2.2B parameters. We adopt the OpenAI Harmony format (OpenAI, 2025b) as the chat tem-plate. To support high-resolution images, we employ dynamic tiling (Li et al., 2025a), which splits an image into multiple tiles, extracts visual tokens from each tile, and concatenates them before feeding them into the LLM. 
+
+Hyperparameters. We adopt a single-stage training strategy to simplify the training pipeline, following Wiedmann et al. (2025). The LLM and vision encoder are initialized from pre-trained weights, while the multimodal projector is randomly initialized. We update all model parameters throughout training. We train for 60,000 steps with a batch size of 1,024 and a maximum sequence length of 4,096 tokens. For the learning rate schedule, we adopt a Warmup–Stable–Decay scheme (Wen et al., 2025). The peak learning rates are set to 2 × 10 −5 for the LLM and vision encoder and 1 × 10 −4 for the multimodal projector. The learning rates are linearly warmed up to their respective peak values over the first 2,000 steps, held constant during the stable phase, and then linearly decayed from 80% of the total training steps to 0.1 × their peak values. A full training run takes approximately 72 hours on 128 H200 GPUs. For the Jagle + FineVision setting, 60,000 training steps correspond to approximately two epochs. 
+
+5.2 Evaluation setup Evaluation Datasets. We evaluate models on a diverse set of English and Japanese bench-marks covering a wide range of tasks. For English evaluation, we use 10 benchmarks: AI2D (Kembhavi et al., 2016), ChartQA (Masry et al., 2022), DocVQA (Mathew et al., 2021), InfoVQA, OK-VQA (Marino et al., 2019), RealWorldQA (xAI, 2024), ScienceQA (Lu et al., 2022), TextVQA, BLINK (Fu et al., 2024), and MMMU (Yue et al., 2024). For Japanese evaluation, we use 10 benchmarks: Heron-Bench (Inoue et al., 2024), JA-VLM-Bench-In-the-Wild (Akiba et al., 2025), JA-Multi-Image-VQA (Yuichi et al., 2024), JGraphQA (Kinoshita, 2025), CC-OCR-JA (Yang et al., 2024), CVQA-JA (Mogrovejo et al., 2024), JDocQA (Onami et al., 2024), MECHA-JA (Maeda et al., 2025a), BusinessSlideVQA (Stockmark, 2025), and JMMMU (Onohara et al., 2025). For the first seven Japanese benchmarks, we use the re-fined versions provided by JAMMEval (Sugiura et al., 2026), which correct issues such as ambiguity and incorrect answers in the original datasets. 
+
+Baselines. We compare our models with two strong open-weight multilingual vision-language baselines of comparable scale: Qwen3-VL-2B-Instruct (Qwen Team, 2025a) and InternVL3.5-2B (InternVL Team, 2025a). 
+
+Evaluation Protocol. For all evaluated models, we set the decoding temperature to 0, and the maximum number of generated tokens is set sufficiently large for each task. For short answer format tasks, we use GPT-5.1 ( gpt-5.1-2025-11-13 ) (OpenAI, 2025a) as the judge model. Each evaluation is run three times, and we report the mean. 
+
+5.3 Results 
+
+Figure 5 shows training dynamics across dataset settings measured by the macro-averaged score over all 20 tasks (Avg), together with averages over the 10 Japanese tasks (JA Avg) and 10 English tasks (EN Avg). Baseline scores of existing models are also shown as horizontal lines for reference. More detailed per-task training dynamics are provided in Appendix C. 8Preprint. Under review. 5k 20k 40k 60k           
+
+> Steps
+> 35
+> 40
+> 45
+> 50
+> 55
+> 60
+> Accuracy (%)
+> Average of 20 tasks
+> Avg
+> 5k 20k 40k 60k
+> Steps
+> 25
+> 30
+> 35
+> 40
+> 45
+> 50
+> 55
+> Average of 10 tasks
+> JA Avg
+> 5k 20k 40k 60k
+> Steps
+> 45
+> 50
+> 55
+> 60
+> 65
+> Average of 10 tasks
+> EN Avg
+> Qwen3-VL-2B-Instruct InternVL3.5-2B Jagle FineVision Jagle + FineVision
+
+Figure 5: Training dynamics under each data setting for the macro-averaged score over all 21 tasks (Avg), 10 Japanese tasks (JA Avg), and 10 English tasks (EN Avg). The model trained on Jagle outperforms the model trained on FineVision by over 20 points on JA Avg. 
+
+Jagle is effective for Japanese tasks. The model trained on Jagle achieves an average score on Japanese tasks more than 20 points higher than the model trained on FineVision alone. Compared to baseline models, the Jagle-trained model surpasses InternVL3.5-2B on the Japanese task average and comes within 5 points of Qwen3-VL-2B-Instruct. At 60,000 training steps, the Jagle-trained model has consumed approximately 150B tokens in total, which is less than one-tenth of the roughly 2T tokens used by Qwen3-VL during multimodal post-training (Qwen Team, 2025a). Notably, performance continues to improve through the final training step with no sign of saturation, suggesting that further training could bring the model to a level comparable to or exceeding Qwen3-VL-2B-Instruct. These results demonstrate that Jagle is a practically useful dataset for improving Japanese performance. 
+
+Impact on English tasks. When Jagle is combined with FineVision, the average score on English tasks is higher than that of the FineVision-only setting, demonstrating that Jagle not only avoids degrading but improves English task performance. This result runs counter to the curse of multilinguality (Shen et al., 2024). A similar finding was reported in FineVi-sion (Wiedmann et al., 2025), where adding Chinese data to English data improved English performance, which the authors attribute to increased data diversity. We hypothesize that incorporating Jagle similarly increases diversity and thereby has a positive effect on English task performance. On the other hand, the Japanese task average is higher for Jagle alone than for Jagle combined with FineVision. The reason for this discrepancy between JA Avg and EN Avg is not entirely clear, though it may partly stem from the smaller data size of Jagle relative to FineVision; we leave a deeper investigation to future work. 
+
+6 Conclusion 
+
+In this work, we introduced Jagle, the largest Japanese multimodal post-training dataset, comprising 9.2M instances. To enable dataset construction in languages where diverse domain-specific VQA resources are less available than in English, we proposed a scalable pipeline that collects heterogeneous data sources and generates large-scale and diverse QA data through multiple strategies. Through extensive experiments, we demonstrated that Jagle effectively improves Japanese task performance and, when combined with English FineVision data, does not degrade English task performance. We hope this work contributes to the advancement of multilingual VLM research. 
+
+Limitations 
+
+Optimal Dataset Mixture. Jagle is constructed from diverse data sources to cover all five categories; however, we do not explicitly control or optimize the proportion of each category. Prior works suggest that dataset mixture plays a crucial role in model performance (Tong 9Preprint. Under review. et al., 2024; Chen et al., 2026). Exploring optimal mixtures across categories is an important direction for future work and may further improve model capabilities. 
+
+Data Filtering. We employ Qwen3-VL to generate question-answer pairs, but model-based generation methods are known to suffer from issues such as hallucination and limited diversity (Niklaus et al., 2026). Addressing these challenges could further improve dataset quality. For large-scale datasets, both rule-based and model-based filtering strategies are promising approaches (NVIDIA, 2025a). 
+
+Omitted Categories. In this work, we exclude several categories such as Grounding & Counting, Math, Science, and Text-only tasks. To develop general-purpose VLMs, future work should incorporate these categories. 
+
+Acknowledgements 
+
+In this research work, we used the “mdx: a platform for building data-empowered society”. We used ABCI 3.0 provided by AIST and AIST Solutions with support from “ABCI 3.0 Development Acceleration Use”. We used a list of website URLs provided by the National Diet Library, which had been collected through its Web Archiving Project (WARP). 
+
+References 
+
+Takuya Akiba, Makoto Shing, Yujin Tang, Qi Sun, and David Ha. Evolutionary optimization of model merging recipes. Nature Machine Intelligence , 2025. URL https://doi.org/10. 1038/s42256-024-00975-8 .Lin Chen, Jinsong Li, Xiaoyi Dong, Pan Zhang, Conghui He, Jiaqi Wang, Feng Zhao, and Dahua Lin. ShareGPT4V: Improving large multi-modal models with better captions. In 
+
+ECCV , 2024. URL https://doi.org/10.1007/978-3-031-72643-9 22 .Mayee F. Chen, Tyler Murray, David Heineman, Matt Jordan, Hannaneh Hajishirzi, Christopher R ´e, Luca Soldaini, and Kyle Lo. Olmix: A framework for data mix-ing throughout lm development. arXiv preprint arXiv:2602.12237, 2026. URL https: //arxiv.org/abs/2602.12237 .Cheng Cui, Ting Sun, Suyin Liang, Tingquan Gao, Zelun Zhang, Jiaxuan Liu, Xueqing Wang, Changda Zhou, Hongen Liu, Manhui Lin, Yue Zhang, Yubo Zhang, Handong Zheng, Jing Zhang, Jun Zhang, Yi Liu, Dianhai Yu, and Yanjun Ma. PaddleOCR-VL: Boosting multilingual document parsing via a 0.9b ultra-compact vision-language model. arXiv preprint arXiv:2510.14528, 2025. URL https://arxiv.org/abs/2510.14528 .Matt Deitke, Christopher Clark, Sangho Lee, Rohun Tripathi, Yue Yang, Jae Sung Park, et al. Molmo and PixMo: Open weights and open data for state-of-the-art vision-language models. In CVPR , 2025. Xingyu Fu, Yushi Hu, Bangzheng Li, Yu Feng, Haoyu Wang, Xudong Lin, Dan Roth, Noah A. Smith, Wei-Chiu Ma, and Ranjay Krishna. Blink: Multimodal large language models can see but not perceive. In ECCV , 2024. URL https://doi.org/10.1007/ 978-3-031-73337-6 9 .Google DeepMind. Gemini 3 Pro model card. https://storage.googleapis.com/ deepmind-media/Model-Cards/Gemini-3-Pro-Model-Card.pdf , 2025. Accessed: 2026-02-19. Yuichi Inoue, Kento Sasaki, Yuma Ochi, Kazuki Fujii, Kotaro Tanahashi, and Yu Yamaguchi. Heron-Bench: A benchmark for evaluating vision language models in japanese. arXiv preprint arXiv:2404.07824, 2024. URL https://arxiv.org/abs/2404.07824 .InternVL Team. InternVL3.5: Advancing open-source multimodal models in versatility, reasoning, and efficiency. arXiv preprint arXiv:2508.18265, 2025a. URL https://arxiv. org/abs/2508.18265 .10 Preprint. Under review. InternVL Team. InternVL3: Exploring advanced training and test-time recipes for open-source multimodal models. arXiv preprint arXiv:2504.10479, 2025b. URL https://arxiv. org/abs/2504.10479 .Japanese Digital Agency. e-Gov. https://www.e-gov.go.jp/ , 2026. Accessed: 2026-02-19. Toshiki Katsube, Taiga Fukuhara, Kenichiro Ando, Yusuke Mukuta, Kohei Uehara, and Tatsuya Harada. Dejima: A novel large-scale japanese dataset for image captioning and visual question answering. arXiv preprint arXiv:2512.00773, 2025. URL https: //arxiv.org/abs/2512.00773 .Aniruddha Kembhavi, Mike Salvato, Eric Kolve, Minjoon Seo, Hannaneh Hajishirzi, and Ali Farhadi. A diagram is worth a dozen images. arXiv preprint arXiv:1603.07396, 2016. URL https://arxiv.org/abs/1603.07396 .Kimi Team. Kimi K2.5: Visual agentic intelligence. arXiv preprint arXiv:2602.02276, 2026. URL https://arxiv.org/abs/2602.02276 .Akira Kinoshita. JGraphQA. https://huggingface.co/datasets/r-g2-2024/JGraphQA ,2025. Accessed: 2026-02-19. Kentaro Kurihara, Daisuke Kawahara, and Tomohide Shibata. JGLUE: Japanese general language understanding evaluation. In LREC , 2022. URL https://aclanthology.org/ 2022.lrec-1.317/ .Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model serving with pagedattention. In SOSP , 2023. URL https://doi.org/10. 1145/3600006.3613165 .Hynek Kydl ´ı ˇcek, Guilherme Penedo, and Leandro von Werra. FinePDFs. https:// huggingface.co/datasets/HuggingFaceFW/finepdfs edu , 2025. Accessed: 2026-02-19. Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Peiyuan Zhang, Yanwei Li, Ziwei Liu, and Chunyuan Li. LLaVA-OneVision: Easy visual task transfer. TMLR , 2025a. URL https://openreview.net/forum?id=zKv8qULV6n .Zhiqi Li, Guo Chen, Shilong Liu, Shihao Wang, Vibashan VS, Yishen Ji, et al. Eagle 2: Building post-training data strategies from scratch for frontier vision-language models. arXiv preprint arXiv:2501.14818, 2025b. URL https://arxiv.org/abs/2501.14818 .Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In 
+
+NeurIPS , 2023. URL https://proceedings.neurips.cc/paper files/paper/2023/file/ 6dcf277ea32ce3288914faf369fe6de0-Paper-Conference.pdf .LLM-jp. Llm-jp: A cross-organizational project for the research and development of fully open japanese llms. arXiv preprint arXiv:2407.03963, 2024. URL https://arxiv.org/abs/ 2407.03963 .LLM-jp. NDL-WARP-PDF. https://gitlab.llm-jp.nii.ac.jp/datasets/ndl-warp-pdf ,2026. Accessed: 2026-02-19. Pan Lu, Swaroop Mishra, Tanglin Xia, Liang Qiu, Kai-Wei Chang, Song-Chun Zhu, Oyvind Tafjord, Peter Clark, and Ashwin Kalyan. Learn to explain: Multimodal reasoning via thought chains for science question answering. In 
+
+NeurIPS , 2022. URL https://proceedings.neurips.cc/paper files/paper/2022/file/ 11332b6b6cf4485b84afadb1352d3a9a-Paper-Conference.pdf .Koki Maeda, Kihei Hasegawa, Shuhei Kurita, Yusuke Oda, Ryoko Tokuhisa, and Naoaki Okazaki. MECHA-Ja: Constructing a vision-language benchmark for understanding japanese cultural common sense and everyday knowledge. In IPSJ SIG Technical Report, Natural Language Processing (NL-263) , 2025a. in Japanese. 11 Preprint. Under review. Koki Maeda, Issa Sugiura, Yusuke Oda, Shuhei Kurita, and Naoaki Okazaki. llm-jp-eval-mm: An automatic evaluation framework for japanese vision-language models. In Proceedings of the 31st Annual Meeting of the Association for Natural Language Processing (NLP2025) ,2025b. in Japanese. Kenneth Marino, Mohammad Rastegari, Ali Farhadi, and Roozbeh Mottaghi. OK-VQA: A visual question answering benchmark requiring external knowledge. In CVPR , 2019. Ahmed Masry, Do Xuan Long, Jia Qing Tan, Shafiq Joty, and Enamul Hoque. ChartQA: A benchmark for question answering about charts with visual and logical reasoning. In 
+
+ACL (Findings) , 2022. URL https://aclanthology.org/2022.findings-acl.177/ .Minesh Mathew, Dimosthenis Karatzas, and C.V. Jawahar. DocVQA: A dataset for vqa on document images. In WACV , 2021. Nitesh Methani, Pritha Ganguly, Mitesh M. Khapra, and Pratyush Kumar. PlotQA: Reason-ing over scientific plots. In WACV , 2020. David Orlando Romero Mogrovejo, Chenyang Lyu, et al. CVQA: Culturally-diverse multi-lingual visual question answering benchmark. In NeurIPS (Datasets and Benchmarks Track) ,2024. URL https://openreview.net/forum?id=E18kRXTGmV .Joel Niklaus, Guilherme Penedo, Hynek Kydlicek, Elie Bakouch, Lewis Tunstall, Ed Beech-ing, Thibaud Frere, Colin Raffel, Leandro von Werra, and Thomas Wolf. The syn-thetic data playbook: Generating trillions of the finest tokens, 2026. URL https: //huggingface.co/spaces/HuggingFaceFW/finephrase . Accessed: 2026-02-19. NVIDIA. NVIDIA Nemotron 3: Efficient and open intelligence. arXiv preprint arXiv:2512.20856, 2025a. URL https://arxiv.org/abs/2512.20856 .NVIDIA. NVIDIA Nemotron Nano V2 VL. arXiv preprint arXiv:2511.03929, 2025b. URL 
+
+https://arxiv.org/abs/2511.03929 .Eri Onami, Shuhei Kurita, Taiki Miyanishi, and Taro Watanabe. JDocQA: Japanese document question answering dataset for generative language models. In LREC-COLING , 2024. URL https://aclanthology.org/2024.lrec-main.830/ .Shota Onohara, Atsuyuki Miyai, Yuki Imajuku, Kazuki Egashira, Jeonghun Baek, Xiang Yue, Graham Neubig, and Kiyoharu Aizawa. JMMMU: A Japanese massive multi-discipline multimodal understanding benchmark for culture-aware evaluation. In NAACL , 2025. URL https://aclanthology.org/2025.naacl-long.43/ .OpenAI. GPT-4o system card. arXiv preprint arXiv:2410.21276, 2024. URL https://arxiv. org/abs/2410.21276 .OpenAI. GPT-5.1: A smarter, more conversational chatgpt. https://openai.com/index/ gpt-5-1 , 2025a. Accessed: 2026-02-19. OpenAI. gpt-oss-120b & gpt-oss-20b model card. arXiv preprint arXiv:2508.10925, 2025b. URL https://arxiv.org/abs/2508.10925 .Guilherme Penedo, Hynek Kydl ´ı ˇcek, Amir Hossein Kargaran, and Leandro von Werra. Finetranslations. https://huggingface.co/datasets/HuggingFaceFW/finetranslations ,2026. Accessed: 2026-02-19. Qwen Team. Qwen3-VL technical report. arXiv preprint arXiv:2511.21631, 2025a. URL 
+
+https://arxiv.org/abs/2511.21631 .Qwen Team. Qwen3 technical report. arXiv preprint arXiv:2505.09388, 2025b. URL https: //arxiv.org/abs/2505.09388 .Keito Sasagawa, Shuhei Kurita, and Daisuke Kawahara. Evaluating multimodal large language models on vertically written japanese text. arXiv preprint arXiv:2511.15059, 2025a. URL https://arxiv.org/abs/2511.15059 .12 Preprint. Under review. Keito Sasagawa, Koki Maeda, Issa Sugiura, Shuhei Kurita, Naoaki Okazaki, and Daisuke Kawahara. Constructing multimodal datasets from scratch for rapid development of a Japanese visual language model. In NAACL (System Demonstrations) , 2025b. URL 
+
+https://aclanthology.org/2025.naacl-demo.38/ .Lingfeng Shen, Weiting Tan, Sihao Chen, Yunmo Chen, Jingyu Zhang, Haoran Xu, Boyuan Zheng, Philipp Koehn, and Daniel Khashabi. The language barrier: Dissecting safety challenges of LLMs in multilingual contexts. In ACL (Findings) , 2024. URL https: //aclanthology.org/2024.findings-acl.156/ .Nobuyuki Shimizu, Na Rong, and Takashi Miyazaki. Visual question answering dataset for bilingual image understanding: A study of cross-lingual transfer using attention maps. In COLING , 2018. URL https://aclanthology.org/C18-1163/ .Stockmark. BusinessSlideVQA. https://github.com/stockmarkteam/ business-slide-questions , 2025. Accessed: 2026-02-19. Issa Sugiura, Shuhei Kurita, Yusuke Oda, Daisuke Kawahara, Yasuo Okabe, and Naoaki Okazaki. WAON: Large-scale and high-quality japanese image-text pair dataset for vision-language models. arXiv preprint arXiv:2510.22276, 2025. URL https://arxiv.org/abs/ 2510.22276 .Issa Sugiura, Koki Maeda, Shuhei Kurita, Yusuke Oda, Daisuke Kawahara, and Naoaki Okazaki. JAMMEval: A refined collection of japanese benchmarks for reliable vlm evaluation. arXiv preprint arXiv:2604.00909, 2026. URL https://arxiv.org/abs/2604. 00909 .ThePioneer. japanese-photos. https://huggingface.co/datasets/ThePioneer/ japanese-photos , 2024. Accessed: 2026-02-19. Shengbang Tong, Ellis L Brown II, Penghao Wu, Sanghyun Woo, et al. Cambrian-1: A fully open, vision-centric exploration of multimodal LLMs. In NeurIPS , 2024. URL 
+
+https://openreview.net/forum?id=Vi8AepAXGy .Michael Tschannen, Alexey Gritsenko, Xiao Wang, Muhammad Ferjad Naeem, Ibrahim Alabdulmohsin, Nikhil Parthasarathy, et al. SigLIP 2: Multilingual vision-language encoders with improved semantic understanding, localization, and dense features. arXiv preprint arXiv:2502.14786, 2025. URL https://arxiv.org/abs/2502.14786 .Laurens van der Maaten and Geoffrey Hinton. Visualizing data using t-sne. JMLR , 9(86): 2579–2605, 2008. URL http://jmlr.org/papers/v9/vandermaaten08a.html .Kaiyue Wen, Zhiyuan Li, Jason S. Wang, et al. Understanding warmup-stable-decay learning rates: A river valley loss landscape view. In ICLR , 2025. URL https://openreview.net/ forum?id=m51BgoqvbP .Luis Wiedmann, Orr Zohar, Amir Mahla, Xiaohan Wang, Rui Li, Thibaud Frere, Leandro von Werra, Aritra Roy Gosthipaty, and Andr ´es Marafioti. FineVision: Open data is all you need. arXiv preprint arXiv:2510.17269, 2025. URL https://arxiv.org/abs/2510.17269 .Wikipedia. Wikipedia. https://ja.wikipedia.org/ , 2026. Accessed: 2026-03-19. xAI. RealWorldQA. https://huggingface.co/datasets/xai-org/RealworldQA , 2024. Ac-cessed: 2026-02-19. Tianbao Xie, Danyang Zhang, Jixuan Chen, Xiaochuan Li, Siheng Zhao, Ruisheng Cao, Toh Jing Hua, Zhoujun Cheng, Dongchan Shin, Fangyu Lei, Yitao Liu, Yiheng Xu, Shuyan Zhou, Silvio Savarese, Caiming Xiong, Victor Zhong, and Tao Yu. OSWorld: Bench-marking multimodal agents for open-ended tasks in real computer environments. In 
+
+NeurIPS (Datasets and Benchmarks Track) , 2024. URL https://openreview.net/forum?id= tN61DTr4Ed .13 Preprint. Under review. Table 4: Detailed statistics of each subset in Jagle, including the number of samples, unique images, turns, and answer tokens.                                                                             
+
+> Category Subset Name Samples Unique Images Turns Answer Tokens
+> General VQA japanese-photos-VQA 1,163 1,163 5,775 227,515 JSQuAD Vision filterd 15k 14,790 14,790 39,319 833,581 ja-vg-vqa 99,202 99,199 793,616 15,247,119 llava-instruct-ja-qwen3vl 155,657 80,958 386,229 60,802,343 WIKI-JA-VQA 936,871 936,871 4,679,651 178,987,472 WAON-VQA 1,912,226 1,912,213 9,541,389 302,272,463 Chart & Table tat-qa-ja-translated-2k 2,180 2,180 13,089 444,245 WAON-Chart-VQA 98,791 98,703 481,076 27,205,736 plotqa-ja-translated-153k 152,912 152,911 19,597,685 401,888,887 Captioning WIKI-JA-Captioning 993,006 993,006 1,986,012 198,679,655 & Knowledge NDL-PDF-detail 1,000,000 986,031 1,000,000 1,440,399,034 OCR QA WAON-OCR-VQA 871,847 871,617 3,399,288 72,444,578 NDL-PDF-simple 1,000,000 987,042 8,824,404 311,860,431 Finepdfs-edu-ja-vqa 1,666,699 1,666,424 7,910,259 341,396,954 Naive OCR JSSODa-train-18k-v2 17,991 17,991 17,991 8,472,460 e-Gov-OCR 31,190 30,134 31,190 32,292,822 Nemotron-Wiki-Ja-OCR 199,999 199,999 199,999 117,455,487 Total 9,154,524 9,051,232 58,906,972 3,510,910,782
+
+Yue Yang, Ajay Patel, Matt Deitke, Tanmay Gupta, Luca Weihs, Andrew Head, Mark Yatskar, Chris Callison-Burch, Ranjay Krishna, Aniruddha Kembhavi, and Christopher Clark. Scaling text-rich image understanding via code-guided synthetic multimodal data generation. In ACL , 2025. URL https://aclanthology.org/2025.acl-long.855/ .Zhibo Yang, Jun Tang, Zhaohai Li, Pengfei Wang, Jianqiang Wan, Humen Zhong, et al. CC-OCR: A comprehensive and challenging ocr benchmark for evaluating large multimodal models in literacy. arXiv preprint arXiv:2412.02210, 2024. URL https://arxiv.org/abs/ 2412.02210 .Xiang Yue, Yuansheng Ni, Kai Zhang, Tianyu Zheng, Ruoqi Liu, Ge Zhang, et al. MMMU: A massive multi-discipline multimodal understanding and reasoning benchmark for expert agi. In CVPR , 2024. Inoue Yuichi, Akiba Takuya, and Makoto Shing. Llama-3-EvoVLM-JP-v2. https:// huggingface.co/datasets/SakanaAI/JA-Multi-Image-VQA , 2024. Accessed: 2026-02-19. Fengbin Zhu, Wenqiang Lei, Youcheng Huang, Chao Wang, Shuo Zhang, Jiancheng Lv, Fuli Feng, and Tat-Seng Chua. TAT-QA: A question answering benchmark on a hybrid of tabular and textual content in finance. In ACL , 2021. 
+
+A Detailed Statistics of Jagle Dataset Subsets 
+
+Table 4 provides detailed statistics for each subset of the Jagle dataset. 
+
+B Prompts for QA Generation 
+
+Below we present the prompts used in the VLM-based QA generation method for each dataset. 14 Preprint. Under review. 
+
+QA Generation Prompt (WIKI-JA-Captioning) 
+
+あなたは 画像理解に優れた AI アシスタントです . 以下 の情報が与えられます :- 画像(Wikipedia 記事に掲載されたもの )- 画像のキャプション 
+
+- 記事のタイトル 
+
+- 記事の本文
+
+これらの 情報をヒントとして 利用しながら , ** 画像の内容を説明させるための 質問と答
+
+え(QA ペア )** を2組作成してください . 1 組は「 簡潔な説明」を 引き出す質問, もう 1組は「 詳
+
+細な説明」を 引き出す質問にしてください .
+
+条件：
+
+1. キャプションやタイトル、 記事本文を与えられていない 第三者が画像および 一般知識だけで 答えられる 内容にしてください . ただし , キャプションおよびタイトルの 情報は直接含
+
+めても 構いません .- 例：「この 画像には 何が写っていますか ？簡潔に答えてください。 」,「この 画像に写って いるものを 詳しく 説明してください。 」
+
+2. 質問と答えは 自然な日本語にしてください .3. 推測や意見を含めないでください .
+
+出力形式 はJSON 構造:
+
+{{ ”conversations”: [ {{ ”from”: ”human”, ”value”: ” 質問(簡潔説明用)” }} , {{ ”from”: ”gpt”, ”value”: ” 答え(簡潔説明)” }} {{ ”from”: ”human”, ”value”: ” 質問(詳細説明用)” }} , {{ ”from”: ”gpt”, ”value”: ” 答え(詳細説明)” }} , ] }} 
+
+入力情報:- 画像のキャプション ：caption - 記事タイトル ：title - 記事本文：text 
+
+出力:
+
+QA Generation Prompt (WAON-Chart-VQA) 
+
+あなたのタスクは、 与えられた 画像に基づいて、 適切な質問とその 答えを 生成することで す.
+
+以下 の情報が与えられます :- 画像
+
+もし 画像に棒グラフや 折れ線グラフ、 表、 ダイアグラムなどの 図表が含まれていない 場
+
+合や画質が悪すぎる 画像、 日本語ではない 画像については、 空のjson を返してください。 
+
+画像が図表画像であれば、 ** 画像の内容と一般知識で正しく 答えられる 質問と答え(QA ペア)** を3〜5組作成してください .
+
+質問の条件:1. 第三者が画像および 一般知識だけで 答えられる 内容にしてください .2. 以下 のタイプの 質問をバランスよく 含めてください ：
+
+- 図表が何を表しているかに 関する 質問
+
+- 図表中の数値やテキストを 抜き出す質問
+
+- 色や形、構造、関係などが 必要な質問
+
+- 図表のデータを 解釈・分析する 質問
+
+3. 質問と答えは 自然な日本語にしてください .4. 推測や意見を含めないでください .
+
+出力形式 はJSON 構造:
+
+{{ ”conversations”: [ {{ ”from”:”human”,”value”:” 質問1” }} , {{ ”from”:”gpt”,”value”:” 答
+
+え1” }} , ... ] }} 
+
+出力:
+
+QA Generation Prompt (Finepdfs-edu-ja-vqa) 
+
+あなたのタスクは、 与えられた 画像に基づいて、 適切な質問とその 答えを 生成することで す.
+
+以下 の情報が与えられます :- 画像
+
+15 Preprint. Under review. 
+
+もし 日本語ではない 画像や画質が悪い画像の場合、 空のjson を返してください。 そうでな ければ、 ** 画像の内容と一般知識で正しく 答えられる 質問と答え(QA ペア )** を3〜5組作成
+
+してください .
+
+質問の条件:1. 第三者が画像および 一般知識だけで 答えられる 内容にしてください .2. 以下 のタイプの 質問をバランスよく 含めてください ：
+
+- ドキュメントの 内容を読み取る質問
+
+- ドキュメント 中の図表や画像に関する 質問
+
+- テキストや 数値を読み取る質問
+
+3. 質問と答えは 自然な日本語にしてください .4. 推測や意見を含めないでください .
+
+出力形式 はJSON 構造:
+
+{{ ”conversations”: [ {{ ”from”:”human”,”value”:” 質問1” }} , {{ ”from”:”gpt”,”value”:” 答
+
+え1” }} , ... ] }} 
+
+出力:
+
+QA Generation Prompt (japanese-photos-VQA) 
+
+あなたは 画像理解に優れた AI アシスタントです .
+
+以下 の情報が与えられます :- 画像
+
+これらの 情報をヒントとして 利用しながら , ** 画像の内容と一般知識で正しく 答えられる 質
+
+問と答え(QA ペア )** を3〜5組作成してください .
+
+質問の条件:1. 第三者が画像および 一般知識だけで 答えられる 内容にしてください .2. 以下 のタイプの 質問をバランスよく 含めてください ：
+
+- 画像の主題を問う
+
+- 画像中の物体・人物・建造物などを 問う
+
+- 色・形・構造・数・位置・関係などの 特徴を問う
+
+- 文字や記号が含まれていれば , それを 読み取る質問
+
+3. 質問と答えは 自然な日本語にしてください .4. 推測や意見を含めないでください .
+
+出力形式 はJSON 構造:
+
+{{ ”conversations”: [ {{ ”from”:”human”,”value”:” 質問1” }} , {{ ”from”:”gpt”,”value”:” 答
+
+え1” }} , ... ] }} 
+
+出力:
+
+C Training Dynamics on Each Task 
+
+Figures 6 and 7 show the training dynamics for each of the 10 Japanese and 10 English tasks under the three data settings (Jagle, FineVision, and Jagle + FineVision), respectively. 16 Preprint. Under review. 15 
+
+20 
+
+25 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+> Accuracy (%)
+
+Japanese OCR 
+
+CC-OCR-Ja-Refined 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+Japanese cultural knowledge 
+
+JA-VLM-Bench-Refined 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+Japanese cultural knowledge 
+
+Heron-Bench-Refined 
+
+40 
+
+45 
+
+50 
+
+Japanese cultural knowledge 
+
+CVQA-JA-Refined 
+
+45 
+
+> Accuracy (%)
+
+Japanese cultural knowledge 
+
+MECHA-ja 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+Japanese multi-image 
+
+JA-Multi-Image-VQA-Refined 
+
+5k 20k 40k 60k 
+
+Steps 
+
+35 
+
+40 
+
+Japanese MMMU 
+
+JMMMU 
+
+5k 20k 40k 60k 
+
+Steps 
+
+5
+
+10 
+
+15 
+
+20 
+
+25 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+70 
+
+Japanese document 
+
+JDocQA-Refined 
+
+5k 20k 40k 60k 
+
+Steps 
+
+5
+
+10 
+
+15 
+
+20 
+
+25 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+> Accuracy (%)
+
+Business slide QA 
+
+BusinessSlideVQA 
+
+5k 20k 40k 60k 
+
+Steps 
+
+15 
+
+20 
+
+25 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+70 
+
+75 
+
+80 
+
+Japanese chart & table 
+
+JGraphQA-Refined 
+
+Qwen3-VL-2B-Instruct InternVL3.5-2B Jagle FineVision Jagle + FineVision 
+
+Figure 6: Training dynamics under each data setting on each of the 10 Japanese benchmarks. 17 Preprint. Under review. 55 
+
+60 
+
+65 
+
+70 
+
+75 
+
+80 
+
+> Accuracy (%)
+
+Text reading in images 
+
+TextVQA 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 Outside knowledge VQA 
+
+OK-VQA 
+
+40 
+
+45 
+
+50 
+
+Multimodal understanding 
+
+MMMU 
+
+70 
+
+75 
+
+80 
+
+85 
+
+90 
+
+Science reasoning 
+
+ScienceQA 
+
+65 
+
+70 
+
+75 
+
+80 
+
+85 
+
+90 
+
+95 
+
+> Accuracy (%)
+
+Document understanding 
+
+DocVQA 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+70 
+
+Infographic understanding 
+
+InfoVQA 
+
+5k 20k 40k 60k 
+
+Steps 
+
+60 
+
+65 
+
+70 
+
+75 
+
+80 
+
+Diagram understanding 
+
+AI2D 
+
+5k 20k 40k 60k 
+
+Steps 
+
+30 
+
+35 
+
+40 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+Chart understanding 
+
+ChartQA 
+
+5k 20k 40k 60k 
+
+Steps 
+
+40 
+
+45 
+
+> Accuracy (%)
+
+Visual perception 
+
+BLINK 
+
+5k 20k 40k 60k 
+
+Steps 
+
+45 
+
+50 
+
+55 
+
+60 
+
+65 
+
+Real-world perception 
+
+RealWorldQA 
+
+Qwen3-VL-2B-Instruct InternVL3.5-2B Jagle FineVision Jagle + FineVision 
+
+Figure 7: Training dynamics under each data setting on each of the 10 English benchmarks. 18

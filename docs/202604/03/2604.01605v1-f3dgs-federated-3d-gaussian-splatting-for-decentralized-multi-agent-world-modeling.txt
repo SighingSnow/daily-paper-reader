@@ -1,0 +1,263 @@
+Title: F3DGS: Federated 3D Gaussian Splatting for Decentralized Multi-Agent World Modeling
+
+URL Source: https://arxiv.org/pdf/2604.01605v1
+
+Published Time: Fri, 03 Apr 2026 00:28:31 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# F3DGS: Federated 3D Gaussian Splatting for Decentralized Multi-Agent World Modeling 
+
+## Morui Zhu 1* Mohammad Dehghani Tezerjani 1*
+
+## M´ aty´ as Sz´ ant´ o2 M´ arton Vaitkus 2 Song Fu 1 Qing Yang 11University of North Texas 
+
+> 2
+
+## Budapest University of Technology and Economics     
+
+> {morui.zhu, mike.degany, song.fu, qing.yang }@unt.edu
+> {szanto.matyas, vaitkus.marton }@vik.bme.hu
+
+## Abstract 
+
+We present F3DGS, a federated 3D Gaussian Splatting framework for decentralized multi-agent 3D reconstruction. Existing 3DGS pipelines assume centralized access to all observations, which limits their applicability in distributed robotic settings where agents operate independently, and centralized data aggregation may be restricted. Directly extending centralized training to multi-agent systems in-troduces communication overhead and geometric inconsis-tency. F3DGS first constructs a shared geometric scaffold by registering locally merged LiDAR point clouds from mul-tiple clients to initialize a global 3DGS model. During fed-erated optimization, Gaussian positions are fixed to pre-serve geometric alignment, while each client updates only appearance-related attributes, including covariance, opac-ity, and spherical harmonic coefficients. The server ag-gregates these updates using visibility-aware aggregation, weighting each client’s contribution by how frequently it observed each Gaussian, resolving the partial-observability challenge inherent to multi-agent exploration. To evaluate decentralized reconstruction, we collect a multi-sequence indoor dataset with synchronized LiDAR, RGB, and IMU measurements. Experiments show that F3DGS achieves reconstruction quality comparable to centralized training while enabling distributed optimization across agents. The dataset, development kit, and source code will be publicly released. 
+
+## 1. Introduction 
+
+3D Gaussian Splatting (3DGS) [11] represents scenes as collections of anisotropic 3D Gaussian primitives rendered via tile-based differentiable rasterization, achieving state-
+
+> *Equal contribution.
+
+of-the-art novel-view synthesis at interactive frame rates. This combination of quality and efficiency has driven adop-tion across robotics [15], autonomous driving [26], and em-bodied AI [24]. All current 3DGS methods, however, share a restrictive assumption: centralized access to the complete set of train-ing observations . That is, every image from every view-point must reside on a single machine for joint optimiza-tion. This assumption holds in controlled single-agent cap-ture but collapses in distributed robotic settings where mul-tiple agents independently collect observations and central-ized data aggregation is impractical or prohibited. Realizing 3DGS in multi-agent systems requires recon-ciling three constraints that centralized pipelines fundamen-tally cannot satisfy. (1) Communication cost: aggregating high-resolution images from multiple agents at a central-ized server incurs bandwidth and storage costs that scale linearly with the number of agents, rapidly exceeding the practical limits of field-deployable infrastructure. (2) Data privacy: in multi-operator or multi-organization settings, each agent’s sensor data is private and cannot be directly shared or combined unless data-sharing policies are satis-fied, which is complex to enforce in distributed systems. 
+
+(3) Scalability: joint optimization over the union of all agent observations couples memory and compute require-ments to the total fleet size, creating a centralized bottleneck that grows with deployment scale. Federated learning [16] offers a promising direction, wherein agents keep data local and share only model up-dates with a coordinating server. However, applying stan-dard federated averaging to 3DGS introduces two domain-specific challenges. Geometric drift. Unlike neural net-work weights that occupy a smooth parameter space, Gaus-sian primitives encode explicit 3D positions. Independent optimization across clients causes positions to drift into ge-ometrically inconsistent configurations. Averaging drifted 
+
+> arXiv:2604.01605v1 [cs.CV] 2 Apr 2026
+
+positions yields an incoherent reconstruction. Partial ob-servability. Each client observes only a contiguous tem-poral segment. Many Gaussians are visible to some clients but not others. Uniform averaging dilutes well-observed ap-pearance estimates with values from non-observing clients. To tackle these challenges, we present F3DGS , a fed-erated 3DGS framework that addresses both challenges through geometry-appearance decoupling. The approach proceeds in three stages. First, a shared geometric scaf-fold is constructed by fusing LiDAR point clouds from all clients into a common world frame via metric-scale pose stitching. This scaffold initializes Gaussian primitives at fixed positions. Second, during federated optimization, all positions are frozen; each client optimizes only appearance attributes: scale, rotation, opacity, and spherical harmonic coefficients, on its local observations. This eliminates ge-ometric drift by construction. Third, the server aggregates updates via visibility-aware weighting : each client’s influ-ence on a given Gaussian is proportional to how frequently that Gaussian was rendered during local training. For glob-ally consistent agent trajectories, we align agent-level cam-era poses to a global pointcloud map with smooth bound-ary interpolation, producing metric-scale global trajectories without centralized bundle adjustment. The contributions of our paper are summarized as fol-lows: • A federated 3DGS framework that decouples a shared frozen geometric scaffold from locally optimized, visibility-weighted appearance attributes, enabling dis-tributed reconstruction without raw data exchange. • A trajectory stitching pipeline aligning agent-level monocular trajectories to a LiDAR SLAM anchor with boundary smoothing for globally consistent metric-scale poses. • Empirical validation on nine indoor sequences showing that federated aggregation preserves reconstruction qual-ity within 2 dB of locally trained models. 
+
+## 2. Related Work 
+
+2.1. 3D Gaussian Splatting 
+
+Kerbl et al . [11] introduced 3DGS, optimizing anisotropic Gaussian primitives through differentiable rasterization with adaptive density control. Extensions include 2DGS [7] for surface-aligned primitives, Mip-Splatting [29] for multi-scale anti-aliasing, and several SLAM integrations: GS-SLAM [25] for real-time dense mapping, SplaTAM [10] for silhouette-guided densification, and Photo-SLAM [8] for feature-based tracking with Gaussian mapping, ReLoc-3DGS [28] replacing SfM with LiDAR odometry for initial-ization. All above methods require centralized access to the full observation set. To our knowledge, exisiting 3DGS meth-ods do not address settings where observations are dis-tributed across agents that cannot share raw data. F3DGS formulates 3DGS under an explicit federated constraint. 
+
+2.2. Federated Learning 
+
+FedAvg [16] established the broadcast-train-aggregate paradigm for distributed model optimization. Subsequent work addresses client heterogeneity through variance reduc-tion [9], personalization layers [1], and proximal regular-ization [14]. Applications in vision span classification [16], detection [2], and segmentation [4]. FedNeRF [19] applied federated averaging to neural radiance fields by aggregating MLP weights. However, NeRF’s implicit representation entangles geometry and ap-pearance in shared network parameters, precluding se-lective freezing. 3DGS stores positions, covariances, and colors as explicit, separable tensors, a structure we exploit by federating appearance while fixing geometry. Fed3DGS [18] extends federated learning to 3DGS via distillation-based server-side model updates with appear-ance modeling, but does not prevent geometric drift across clients and incurs additional rendering cost at each aggrega-tion step. 
+
+2.3. Multi-Agent 3D Reconstruction 
+
+Collaborative SLAM methods exchange submaps [13], keyframes [17], learned descriptors [21], or localized scans [3] to build shared geometric maps. These produce point clouds or occupancy grids but not photorealistic ren-derable representations. Block-NeRF [20] partitions large scenes into independently trained NeRFs merged through appearance alignment, but operates under centralized data access per block. CoSurfGS [5] enables distributed Gaus-sian surface reconstruction through a device-edge-cloud hi-erarchy with self-distillation-based merging, but assumes cooperative model sharing rather than enforcing a federated data constraint. F3DGS differs on two axes: it enforces the federated constraint (zero raw image exchange), and it produces a single unified Gaussian model through iterative aggregation rather than post-hoc merging of independent submaps. 
+
+2.4. LiDAR-Visual Pose Estimation 
+
+Accurate metric-scale pose estimation is a prerequisite for any multi-agent reconstruction pipeline, and a wide range of LiDAR and visual odometry methods exist for this pur-pose. KISS-ICP [23] and KISS-SLAM [6] provide ro-bust LiDAR odometry and SLAM with loop closure, while Depth Anything [27] predicts dense metric-scale depth from monocular images, enabling camera pose estimation with-out LiDAR. Our pose construction is backend-agnostic; we demonstrate both KISS-SLAM and Depth Anything inte-gration, using Umeyama [22] alignment to stitch agent-level trajectories into globally consistent metric-scale poses. 
+
+## 3. Method 
+
+3.1. Overview 
+
+We study the learning of 3D Gaussian scene representa-tions from a federated learning perspective. In many real-world scenarios, visual data are naturally distributed across multiple devices or agents. Instead of centralizing raw im-ages for training, federated learning supports collaborative model optimization while keeping data local to each client. In this work, we formulate 3D Gaussian Splatting (3DGS) training under a federated framework where each client optimizes a local subset of observations while con-tributing to a shared global Gaussian representation through iterative aggregation. The framework, as illustrated in Fig. 1, consists of three main components: (1) metric-scale camera pose construction using modern pose estimation pipelines, (2) federated optimization of Gaussian attributes with frozen geometry for stable distributed training, and (3) visibility-aware aggregation that integrates updates from multiple clients. 
+
+3.2. Problem Formulation 
+
+A scene is observed through N images (RGB) with cam-era poses D = {(It, T t)}Nt=1 , where It denotes the image captured at time t and Tt ∈ SE (3) is the camera-to-world transformation. The scene is represented by M Gaussian primitives: 
+
+G = {gi}Mi=1 , gi = ( μi, s i, q i, α i, ci), (1) where μi ∈ R3 is the center, si ∈ R3 the log-scale, qi ∈ R4
+
+the orientation quaternion, αi ∈ R the logit-opacity, and ci
+
+the spherical harmonic (SH) color coefficients. To enable federated training, the full sequence is parti-tioned into K clients. Each client k contains a subset of frames of size C,
+
+Dk = {(It, T t) | t ∈ I k}, (2) where Ik = [ kC, min(( k+1) C−1, N −1)] . The objective is to learn a shared Gaussian representation by minimizing 
+
+min 
+
+> G
+> K
+
+X
+
+> k=1
+
+Lk(G), (3) where Lk (defined in 6) denotes the rendering loss evalu-ated on client k.
+
+3.3. Metric-Scale Pose Construction 
+
+Camera trajectories are estimated using modern monocular pose estimation methods that provide metric-scale recon-struction. It is important to note that our framework does not rely on a specific pose estimation algorithm; instead, any pose estimation pipeline that produces metric-scale tra-jectories can be used. Geometric consistency across clients requires globally aligned metric-scale poses. Let T (k) 
+
+> t
+
+denote poses predicted within client k. We align each client trajectory to a global anchor, achieved by a global LiDAR-based trajectory esti-mation, via Umeyama Sim (3) estimation [22], computing scale sk, rotation Rk, and translation tk:
+
+sk, R k, tk = arg min 
+
+> s,R, t
+
+X
+
+> j
+
+∥panchor  
+
+> j
+
+− (sR pclient  
+
+> j
+
++ t)∥2. (4) To prevent boundary discontinuities, we apply exponen-tially decayed SE(3) corrections over a smoothing window of τ frames: 
+
+T smooth  
+
+> t
+
+= Exp (β(t) · Log (∆ T )) · T aligned  
+
+> t
+
+, (5) where β(t) = 1 − t/τ linearly decays the boundary cor-rection ∆T to identity. This procedure produces a globally consistent pose sequence that is used for Gaussian optimiza-tion. 
+
+3.4. Global Gaussian Initialization 
+
+Before federated optimization, we initialize a global 3D Gaussian representation of the scene. We first project depth observations into 3D space to obtain dense point samples, which are accumulated across frames to form an initial point cloud. Each point is then converted into a Gaussian primi-tive with its mean centered at the point location. Color at-tributes are initialized from the corresponding RGB obser-vations, while scales are set from KNN distance to 3 nearest neighbors, and opacities as small positive values. In our implementation, we initialize approximately 6 ×
+
+10 5 Gaussian primitives to ensure sufficient coverage of the scene geometry. 
+
+3.5. Local Federated Optimization 
+
+Federated training proceeds in multiple communication rounds. Each round, the server broadcasts global parame-ters to all clients. Each client performs local optimization using only its local image subset. The rendering loss for client k combines L1 and SSIM: 
+
+Lk = X
+
+> t∈I k
+
+h
+
+(1 −λ) ∥It − ˆIt∥1 + λ (1 − SSIM (It, ˆIt)) 
+
+i
+
+,
+
+(6) with λ = 0 .2, where ˆIt denotes the rendered image gener-ated from the Gaussian representation. 
+
+Frozen geometry. Gaussian positions are fixed through-out local training: 
+
+μ(k) 
+
+> i
+
+= μi ∀ k, ∀ steps . (7) Federated Client Optimization  Global Reconstruction             
+
+> Client 1Client 2Client K
+> Visual Geometry Reconstruction
+> Client 1:
+> Client 2:
+> LiDAR Pose Estimation
+> Gaussian Initialization Client Pose Alignment Visibility -Aware
+> Aggregation
+
+𝛼 , Σ, 𝑆𝐻              
+
+> Aggregated Global Gaussians
+> Updated Gaussians
+> Client 1Client 2Client K
+> Client 1Client 2Client K
+> Iterative Federated Updates (N Rounds)
+
+Metric -Scale Pose Construction     
+
+> Unposed images and LiDAR points
+> 𝑆𝐼𝑀 (3)
+> …
+> …
+
+Figure 1. Overview of our federated 3D Gaussian splatting (F3DGS) framework for learning consistent global scene representations. Each client first constructs metric-scale poses from unposed images and LiDAR via visual geometry reconstruction and LiDAR odometry. Based on these poses, clients perform local optimization, including pose alignment and Gaussian initialization, to obtain per-client 3D Gaussian representations. Through iterative federated updates, client models are progressively aggregated. Finally, a visibility-aware fusion strategy integrates Gaussian attributes (e.g., opacity, scale, and spherical harmonics) to produce a unified and consistent global reconstruction. 
+
+Only appearance parameters θapp = {si, q i, α i, ci}Mi=1 re-ceive gradient updates. This design prevents geometric drift across clients and improves the stability of federated opti-mization. 
+
+Visibility tracking. A per-Gaussian counter vk,i accumu-lates the number of rasterization passes in which Gaussian 
+
+i had positive projected radius during client k’s training. 
+
+3.6. Visibility-Aware Federated Aggregation 
+
+Each client transmits updated appearance attributes θ(k) 
+
+> app
+
+and visibility counts {vk,i } to the server. 
+
+Aggregation weights. For Gaussian i, client k’s weight is: 
+
+αk,i = vk,i 
+
+PKj=1 vj,i + ϵ , ϵ = 10 −8. (8) The global attribute is the weighted combination: 
+
+ai =
+
+> K
+
+X
+
+> k=1
+
+αk,i ak,i . (9) Gaussians with zero total visibility retain their previous global values. Quaternion parameters require special handling due to sign ambiguity. We align quaternion signs before averag-ing and normalize the resulting quaternion to ensure valid rotations. 
+
+## 4. Experiments 
+
+4.1. Setup 
+
+Experiments are conducted on the MeanGreen dataset, which consists of long indoor sequences collected by a mo-bile robot with a monocular camera and a Velodyne Li-DAR. Each sequence is treated as a distributed observation stream and partitioned into temporally contiguous clients with chunk size C=400 . We evaluate on sequences 03–11, resulting in varying numbers of clients per sequence. A single global Gaussian representation is initialized per sequence using fused observations and shared across all clients. The number of primitives is fixed at 6 × 10 5. Fed-erated training is performed for R=7 rounds with T =1000 
+
+local optimization steps per round. Gaussian centers are kept fixed throughout training, and only appearance param-eters are updated. Adaptive density control and any form of post-aggregation alignment are disabled. Seq Frames Clients Split Val Local Global                                                                                                              
+
+> NKPSNR ↑SSIM ↑LPIPS ↓PSNR ↑SSIM ↑LPIPS ↓
+> 03 1840 5400/400/400/400/240 230 22.36 0.7826 0.4284 18.82 0.7111 0.5234 04 1407 4400/400/400/207 176 22.96 0.7889 0.4016 20.50 0.7431 0.4684 05 543 2400/143 68 23.71 0.8182 0.3910 22.65 0.8076 0.4154 06 1042 3400/400/242 131 25.66 0.8310 0.3613 22.66 0.8027 0.4104 07 763 2400/363 96 23.64 0.8113 0.4049 22.74 0.8005 0.4227 08 718 2400/318 90 24.52 0.8530 0.3741 23.94 0.8315 0.3882 09 1018 3400/400/218 128 25.03 0.8548 0.3418 21.85 0.8260 0.3931 10 856 3400/400/56 107 25.07 0.8449 0.3525 22.87 0.8118 0.3920 11 552 2400/152 69 24.01 0.8274 0.3664 22.77 0.8078 0.3853 Table 1. Sequence-level quantitative results on meangreen dataset sequences 03–11. Local metrics evaluate each client model on its own validation split, while global metrics evaluate the final aggregated server model on the union of all validation splits. All sequence-level values are weighted by the number of validation images. Sensor Details 1×Camera RGB (OAK-D-Pro), 1280 ×720 , 63° FOV 1×LiDAR Velodyne VLP-16, 16 channels, 10 Hz rotation, 100 m range, −15 ◦to 15 ◦vertical FOV Table 2. Sensor specifications of the MeanGreen dataset.
+
+4.2. MeanGreen Dataset 
+
+We evaluate our work on part of the MeanGreen dataset, which contains 9 indoor corridor sequences (03–11) with a total of 8,739 frames. The data are collected using a mobile platform equipped with an RGB camera and a Li-DAR sensor (Table 2). The camera intrinsics are calibrated, and camera–LiDAR extrinsics are obtained using a stan-dard LiDAR–camera calibration tool [12]. These calibra-tions are used for pose construction and local federated op-timization. The sequences are recorded in indoor corridor environments, including straight paths and turning motions. The scenes exhibit sparse texture, repeated structures, and a forward-facing camera with limited field of view, which restricts viewpoint diversity. The MeanGreen dataset is currently a work in progress. A more comprehensive version, including both indoor and outdoor sequences, will be introduced in a forthcoming publication. 
+
+4.3. Evaluation Protocol 
+
+We report Peak Signal-to-Noise Ratio (PSNR) ( ↑), Struc-tural Similarity Index Measure (SSIM) ( ↑), and Learned Perceptual Image Patch Similarity (LPIPS) ( ↓) for all ex-periments. Two evaluation protocols are used. Local eval-uation measures reconstruction quality on each client’s val-idation frames (every 8th frame), reflecting within-client fitting. Global evaluation measures the aggregated model on the union of all validation frames, reflecting cross-client consistency after federated aggregation. Sequence-level metrics are computed as weighted averages with respect to the number of validation images. 
+
+4.4. Quantitative Results 
+
+Table 1 reports sequence-level results on sequences 03–11. Local reconstruction quality is consistently high across all sequences, with PSNR exceeding 22 in all cases. After ag-gregation, global performance remains close to local per-formance on most sequences. The gap between local and global metrics is small for sequences such as 08, 10, and 11, indicating that the shared representation can be maintained under distributed optimization. The main degradation oc-curs on sequence 03, where global PSNR drops to 18.82. This indicates that aggregation remains sensitive to incon-sistencies introduced across temporal partitions. Sequence 09 exhibits a similar but less severe trend. Overall, the results show that the performance drop from local to global models is not uniform across sequences, and depends on how well observations from different clients are aligned in the shared representation. 
+
+4.5. Client-Level Analysis 
+
+To localize the source of global degradation, we further ex-amine reconstruction quality at the client level, as shown in Table 4. Performance drop is concentrated in a small subset of clients rather than distributed across all partitions. For example, in sequence 03, client1 drops from 19.97 lo-cal PSNR to 15.44 after aggregation, and in sequence 09, client2 drops from 29.28 to 19.53. These clients dominate the sequence-level degradation observed in Table 1. In contrast, many clients show minimal discrepancy be-tween local and global performance. Examples include se-quence 08 client0 (25.66 vs. 25.61) and sequence 10 client0 (26.98 vs. 26.89), where aggregation preserves local recon-struction quality. Seq R T Local Global PSNR ↑ SSIM ↑ LPIPS ↓ PSNR ↑ SSIM ↑ LPIPS ↓
+
+07 1 7000 23.899 0.8137 0.3988 21.952 0.7918 0.4456 07 2 3500 23.839 0.8126 0.4003 22.349 0.7962 0.4304 07 5 1400 23.710 0.8116 0.4031 22.628 0.7993 0.4235 07 7 1000 23.644 0.8113 0.4049 22.740 0.8005 0.4227 07 14 500 23.568 0.8103 0.4056 22.837 0.8021 0.4194 08 1 7000 25.176 0.8589 0.3648 23.689 0.8324 0.3931 08 2 3500 24.801 0.8558 0.3701 23.951 0.8355 0.3871 08 5 1400 24.654 0.8545 0.3717 23.982 0.8361 0.3868 08 7 1000 24.520 0.8530 0.3741 23.940 0.8315 0.3882 08 14 500 24.382 0.8515 0.3791 24.009 0.8374 0.3876                                                                                                                                                                    
+
+> Table 3. Effect of communication frequency under a fixed training budget of 7000 steps. Client Local Global PSNR ↑SSIM ↑LPIPS ↓PSNR ↑SSIM ↑LPIPS ↓
+> 03-0 24.11 0.8143 0.3811 21.10 0.7758 0.4235 03-1 19.97 0.7438 0.5035 15.44 0.6213 0.6383 03-2 22.97 0.7922 0.4052 19.05 0.7145 0.5300 03-3 22.26 0.7759 0.4333 19.28 0.7146 0.5201 03-4 22.56 0.7896 0.4123 19.47 0.7416 0.4927 04-0 24.34 0.8350 0.3740 23.28 0.8164 0.3950 04-1 22.18 0.7732 0.4085 18.83 0.7019 0.5159 04-2 23.29 0.7908 0.4072 19.82 0.7308 0.4948 04-3 21.17 0.7265 0.4307 19.70 0.7052 0.4676 05-0 23.18 0.7995 0.3946 23.02 0.7969 0.3973 05-1 25.19 0.8703 0.3812 21.61 0.8374 0.4658 06-0 23.71 0.7879 0.3992 20.40 0.7552 0.4318 06-1 25.32 0.8240 0.3770 23.11 0.7938 0.4423 06-2 29.34 0.9116 0.2750 25.59 0.8936 0.3243 07-0 25.30 0.8281 0.3736 24.36 0.8188 0.3842 07-1 21.84 0.7930 0.4388 20.98 0.7806 0.4646 08-0 25.66 0.8457 0.3637 25.61 0.8450 0.3641 08-1 23.10 0.8623 0.3870 21.85 0.8145 0.4183 09-0 22.70 0.8164 0.3681 21.45 0.7954 0.3971 09-1 24.98 0.8662 0.3624 23.54 0.8558 0.3853 09-2 29.28 0.9030 0.2583 19.53 0.8272 0.4001 10-0 26.98 0.8818 0.3184 26.89 0.8809 0.3193 10-1 23.36 0.8200 0.3897 19.23 0.7622 0.4636 10-2 23.77 0.7595 0.3301 20.17 0.6721 0.3997 11-0 24.93 0.8642 0.3444 24.23 0.8522 0.3528 11-1 21.59 0.7308 0.4240 18.92 0.6910 0.4706 Table 4. Per-client local and global reconstruction metrics across sequences 03–11.
+
+These results indicate that global performance is primar-ily limited by a small number of difficult temporal seg-ments, rather than a systematic failure across all clients. 
+
+4.6. Effect of Communication Frequency 
+
+We vary the number of communication rounds R and lo-cal steps T under a fixed total budget of 7000 optimization steps. Local reconstruction remains stable across all config-urations. On both sequences, local PSNR changes by less than 0.4 dB as R increases. In contrast, global performance improves steadily with more frequent aggregation. On sequence 07, global PSNR increases from 21.95 at R=1 to 22.74 at R=7 , with a smaller gain thereafter (22.84 at R=14 ). A similar pattern appears on sequence 08. The improvement is most pro-nounced in the low-round regime, while additional rounds yield progressively smaller gains. Beyond R=7 , the in-crease becomes marginal relative to the added communi-cation cost. We therefore adopt R=7 and T =1000 in all experiments as a balanced configuration. 
+
+4.7. Discussion and Limitations 
+
+Two consistent observations emerge from the experiments. First, local optimization is stable across all sequences, in-dicating that fixing Gaussian geometry does not hinder within-client reconstruction. Second, global degradation is concentrated near difficult temporal boundaries and short segments, rather than being uniformly distributed. The current formulation has two main limitations. Since Gaussian centers are fixed, the model cannot correct resid-ual pose errors after initialization. In addition, performance remains sensitive to the choice of partitioning, especially in sequences with large appearance or motion changes across client boundaries. 
+
+## 5. Conclusions 
+
+We introduced F3DGS, a federated 3D Gaussian Splat-ting framework for decentralized multi-agent 3D recon-struction. Our key idea is to decouple geometry from ap-pearance: a shared geometric scaffold is initialized from registered LiDAR point clouds, while federated training updates only appearance-related Gaussian parameters on each client. Combined with visibility-aware aggregation, this design addresses two central challenges in distributed 3DGS: geometric drift and partial observability. Experi-ments on the MeanGreen dataset demonstrate that F3DGS achieves strong local reconstruction quality and, in most cases, maintains competitive global performance after ag-gregation, supporting the feasibility of federated scene re-construction without raw data sharing. Several directions remain for future work. Improving ro-bustness under difficult temporal partitioning and at client boundaries is an important next step, as these cases cur-rently account for most of the observed global degrada-tion. Further evaluation against related baselines will also help position the method more clearly within the broader literature on decentralized reconstruction. In addition, we plan to extend the study to more challenging indoor and outdoor datasets and to release the MeanGreen dataset, code, and development tools to facilitate future work in this area. 
+
+## References 
+
+[1] Manoj Ghuhan Arivazhagan, Vinay Aggarwal, Aaditya Ku-mar Singh, and Sunav Choudhary. Federated learning with personalization layers. arXiv preprint arXiv:1912.00818 ,2019. 2 [2] Hong-You Chen and Wei-Lun Chao. Fedbe: Making bayesian model ensemble applicable to federated learning. 
+
+arXiv preprint arXiv:2009.01974 , 2020. 2 [3] Mohammad Dehghani Tezerjani, Haining Liu, Qing Yang, Xinrong Li, and Yan Huang. Networking in collaborative multi-robot systems for enhanced mapping and navigation. In International Symposium on Intelligent Computing and Networking , pages 3–14. Springer, 2025. 2 [4] Lidia Fantauzzo, Debora Caldarola, Barbara Caputo, and Marco Ciccone. FedDrive: Generalizing federated learn-ing to semantic segmentation in autonomous driving. In 
+
+IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2022. 2 [5] Yuanyuan Gao, Yalun Dai, Hao Li, Weicai Ye, Junyi Chen, Danpeng Chen, Dingwen Zhang, Tong He, Guofeng Zhang, and Junwei Han. Cosurfgs: Collaborative 3d surface gaus-sian splatting with distributed learning for large scene recon-struction. arXiv preprint arXiv:2412.17612 , 2024. 2 [6] Tiziano Guadagnino, Benedikt Mersch, Saurabh Gupta, Ig-nacio Vizzo, Giorgio Grisetti, and Cyrill Stachniss. Kiss-slam: A simple, robust, and accurate 3d lidar slam system with enhanced generalization capabilities. In 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 5363–5370. IEEE, 2025. 2 [7] Binbin Huang, Zehao Yu, Anpei Chen, Andreas Geiger, and Shenghua Gao. 2d gaussian splatting for geometrically ac-curate radiance fields. In ACM SIGGRAPH Conference Pro-ceedings , 2024. 2 [8] Huajian Huang, Longwei Li, Hui Cheng, and Sai-Kit Ye-ung. Photo-SLAM: Real-time simultaneous localization and photorealistic mapping for monocular, stereo, and RGB-D cameras. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 2 [9] Sai Praneeth Karimireddy, Satyen Kale, Mehryar Mohri, Sashank Reddi, Sebastian Stich, and Ananda Theertha Suresh. SCAFFOLD: Stochastic controlled averaging for federated learning. In International Conference on Machine Learning (ICML) , pages 5132–5143, 2020. 2 [10] Nikhil Keetha, Jay Karhade, Krishna Murthy Jatavallab-hula, Gengshan Yang, Sebastian Scherer, Deva Ramanan, and Jonathon Luiten. SplaTAM: Splat track & map 3d gaus-sians for dense rgb-d slam. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 2 [11] Bernhard Kerbl, Georgios Kopanas, Thomas Leimk¨ uhler, and George Drettakis. 3d gaussian splatting for real-time radiance field rendering. In ACM Transactions on Graphics (TOG) , pages 1–14. ACM, 2023. 1, 2 [12] Kenji Koide, Shuji Oishi, Masashi Yokozuka, and Atsuhiko Banno. General, single-shot, target-less, and automatic lidar-camera extrinsic calibration toolbox. In 2023 IEEE Inter-national Conference on Robotics and Automation (ICRA) ,pages 11301–11307, 2023. 5 [13] Pierre-Yves Lajoie, Sagar Bhatt, Kshitij Bhatt, Aaditya Bhavnani, Param Bhatt, Akansel Bose, and Nikhil Bhat. Swarm-SLAM: Sparse decentralized collaborative simulta-neous localization and mapping framework for multi-robot systems. IEEE Robotics and Automation Letters , 9(1):583– 590, 2024. 2 [14] Tian Li, Anit Kumar Sahu, Manzil Zaheer, Maziar Sanjabi, Ameet Talwalkar, and Virginia Smith. Federated optimiza-tion in heterogeneous networks. In Proceedings of Machine Learning and Systems (MLSys) , pages 429–450, 2020. 2 [15] Hidenobu Matsuki, Riku Murai, Paul HJ Kelly, and An-drew J Sherrod. Gaussian splatting SLAM. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 1 [16] Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Ag¨ uera y Arcas. Communication-efficient learning of deep networks from decentralized data. In Proceedings of the 20th International Conference on Ar-tificial Intelligence and Statistics (AISTATS) , pages 1273– 1282, 2017. 1, 2 [17] Patrik Schmuck and Margarita Chli. CCM-SLAM: Robust and efficient centralized collaborative monocular simultane-ous localization and mapping for robotic teams. In Journal of Field Robotics , pages 763–781, 2019. 2 [18] Teppei Suzuki. Fed3dgs: Scalable 3d gaussian splatting with federated learning. arXiv preprint arXiv:2403.11460 , 2024. 2[19] Teppei Suzuki, Yue Chen, and Ko Nishino. FedNeRF: Scal-able 3d reconstruction for federated learning. arXiv preprint arXiv:2406.02306 , 2024. 2 [20] Matthew Tancik, Vincent Casser, Xinchen Yan, Sabeek Prad-han, Ben Mildenhall, Pratul P Srinivasan, Jonathan T Barron, and Henrik Kretzschmar. Block-NeRF: Scalable large scene neural view synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 8248–8258, 2022. 2 [21] Yulun Tian, Yun Chang, Fernando Herrera Arias, Carlos Nieto-Granda, Jonathan P How, and Luca Carlone. Kimera-multi: Robust, distributed, dense metric-semantic slam for multi-robot systems. IEEE transactions on robotics , 38(4), 2022. 2 [22] Shinji Umeyama. Least-squares estimation of transformation parameters between two point patterns. IEEE Transactions on Pattern Analysis and Machine Intelligence , 13(4):376– 380, 1991. 2, 3 [23] Ignacio Vizzo, Tiziano Guadagnino, Benedikt Mersch, Louis Wiesmann, Jens Behley, and Cyrill Stachniss. Kiss-icp: In defense of point-to-point icp–simple, accurate, and robust registration if done the right way. IEEE Robotics and Au-tomation Letters , 8(2):1029–1036, 2023. 2 [24] Tong Wu, Yu-Jie Yuan, Ling-Xiao Zhang, Jie Yang, Yan-Pei Cao, Ling-Qi Yan, and Lin Gao. Recent advances in 3d gaussian splatting. Computational Visual Media , 2024. 1 [25] Chi Yan, Delin Qu, Dan Xu, Bin Zhao, Zhigang Wang, Dong Wang, and Xuelong Li. GS-SLAM: Dense visual slam with 3d gaussian splatting. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 2 [26] Yunzhi Yan, Haotong Lin, Chenxu Zhou, Weijie Wang, Haiyang Sun, Kun Zhu, Ye Xie, Lingxi Liu, and Xiaopeng Chen. Street gaussians for modeling dynamic urban scenes. In European Conference on Computer Vision (ECCV) , 2024. 1[27] Lihe Yang, Bingyi Kang, Zilong Huang, Zhen Zhao, Xiao-gang Xu, Jiashi Feng, and Hengshuang Zhao. Depth any-thing v2. Advances in Neural Information Processing Sys-tems (NeurIPS) , 2024. 2 [28] Yiru Ye, Feng-Li Lian, Hung-Hsin Chen, and Hong-Ming Chen. Reloc-3dgs: A lidar and vision-based relocation framework using 3d gaussian splatting for seamless indoor-outdoor environments. In 2025 IEEE/ASME International Conference on Advanced Intelligent Mechatronics (AIM) ,pages 1–6. IEEE, 2025. 2 [29] Zehao Yu, Anpei Chen, Binbin Huang, Torsten Sattler, and Andreas Geiger. Mip-splatting: Alias-free 3d gaussian splat-ting. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition (CVPR) , 2024. 2

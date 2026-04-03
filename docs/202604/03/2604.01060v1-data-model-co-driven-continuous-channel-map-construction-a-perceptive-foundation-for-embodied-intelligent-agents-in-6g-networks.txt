@@ -1,0 +1,1102 @@
+Title: Data-Model Co-Driven Continuous Channel Map Construction: A Perceptive Foundation for Embodied Intelligent Agents in 6G Networks
+
+URL Source: https://arxiv.org/pdf/2604.01060v1
+
+Published Time: Thu, 02 Apr 2026 01:17:14 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> 1
+
+# Data-Model Co-Driven Continuous Channel Map Construction: A Perceptive Foundation for Embodied Intelligent Agents in 6G Networks 
+
+Tianrun Qi, Student Member, IEEE , Cheng-Xiang Wang, Fellow, IEEE , Chen Huang, Member, IEEE ,Junling Li, Member, IEEE , and John S Thompson, Fellow, IEEE .
+
+Abstract —Future 6G networks will host massive numbers of embodied intelligent agents, which require real-time channel awareness over continuous-space for autonomous decision-making. By pre-obtaining location-specific channel state information (CSI), channel map can be served as a foundational world model for embodied intelligence to achieve wireless channel perception. However, acquiring CSI via measurements is costly, so in practice only sparse observations are available, leaving agents “blind” to channel conditions at unvisited locations. Meanwhile, purely model-driven channel maps can provide dense CSI but often yields unsatisfactory accuracy and robustness, while purely data-driven interpolation from sparse measurements is computationally prohibitive for real-time updates. To address these challenges, this paper proposes a data–model co-driven (DMcD) framework that performs a two-stage interpolation toward a space-time continuous channel map, First, a hybrid ray tracing and geometry-based channel model (H-RT/GBSM) is developed to capture dynamic scatterers, providing dense, time-variant channel properties that match measurement statistics as a physically consistent prior. Then, an inductive edge-conditioned graph neural network (InductE-GNN) fuses the prior with sparse measurements to perform real-time spatial interpolation, enabling rapid online adaptation without retraining, ensuring the synchronization with the dynamic physical reality. Evaluations with measured datasets show that the proposed DMcD framework significantly outperforms data-only and model-only baselines, providing accurate and queryable channel information for embodied intelligent agents. 
+
+Index Terms —6G, embodied intelligent agent, data–model co-driven framework, space-time continuous channel map construc-tion, online spatial interpolation. 
+
+This work was supported by the National Natural Science Foundation of China (NSFC) under Grants 62394290, 62394291,and 62394294, the Research Fund of National Mobile Communications Research Laboratory, Southeast University, under Grant 2026A05, the Natural Science Foundation of Jiangsu Province under Grant BK20243059, the China Scholarship Council (CSC) under Grant 202506090282, and the UK Engineering and Physical Sciences Research Council (EPSRC) under Grants EP/X04047X/2 and EP/Y037243/1 for the TITAN Telecoms Hub. ( Corresponding Authors: Cheng-Xiang Wang and Chen Huang )T. Qi is with the National Mobile Communications Research Laboratory, School of Information Science and Engineering, Southeast University, Nanjing 210096, China (email: {tr qi }@seu.edu.cn). C.-X. Wang and J. Li are with the National Mobile Communications Research Laboratory, School of Information Science and Engineering, Southeast University, Nanjing 211189, China, and also with the Pervasive Communication Research Center, Purple Mountain Laboratories, Nanjing 211111, China (e-mail: {chxwang, junlingli }@seu.edu.cn). C. Huang is with the Pervasive Communication Research Center, Purple Mountain Laboratories, Nanjing 211111, China, and also with the National Mobile Communications Research Laboratory, School of Information Science and Engineering, Southeast University, Nanjing 210096, China (e-mail: huangchen@pmlabs.com.cn). John S Thompson is with the Institute for Imaging, Data and Communica-tions, School of Engineering, University of Edinburgh, EH9 3BF Edinburgh, U.K. (e-mail: john.thompson@ed.ac.uk). 
+
+I. I NTRODUCTION 
+
+In recent years, the sixth-generation (6G) communication sys-tem has been widely discussed as an artificial intelligence(AI)-native communication network [1], [2]. Instead of only carrying traffic, the network is expected to host distributed intelligence and to support autonomous decision making in real time [3], [4]. On top of this AI-native infrastructure, networked agents will play an important role. In this paper, the agents can be autonomous unmanned aerial vehicles (UAVs), connected vehicles, service robots, and other smart devices with computa-tion and communication modules. These embodied intelligent agents move in the physical world, sense their environment, and interact with the wireless network. Obviously, they need to make many networking decisions by themselves, such as selecting access points and beams, planning trajectories, and processing integrated sensing and communication (ISAC) tasks [5], [6]. To provide such capabilities, the agent should not only react to the collected static channel state, but also require the real-time channel information in continuous space. This calls for some form of world model [7], [8] of the wireless environment that can be queried and updated at run time. However, most current wireless communication systems still rely on local instantaneous channel state information (CSI), which is obtained by pilot-based channel estimation or beam training at a single time and location, then used for link adaptation and beam management [9]. Such a system works well in static or slowly-varying scenarios but is not sufficient for agent decisions, since it requires dense measurements or estimation to track the time-variations of continuous-space channels, further leading to excessive pilot overhead and latency [10], [11]. Therefore, agents often have to make decisions based on discrete and out-of-date CSI, without a consistent model linking different locations and time instants together [4]. Channel maps have been proposed as a way to overcome this limitation. Channel maps describe location-specific channel characteristics over a geographic area [9]. Unlike conventional radio maps that only provide large scale CSI like path loss, received power [12], [13], channel maps can give both large-scale and small-scale channel information. Once constructed, it allows the network to infer channel quality at unmeasured locations and to support coverage planning, localization, and other environment-aware functions [9], [14]. Existing work on channel maps have shown clear benefits for resource management and environment-aware communications [15]– 
+
+> arXiv:2604.01060v1 [eess.SP] 1 Apr 2026 2
+
+[17]. Yet, most existing channel maps are either time-invariant or constructed in discrete-space. They rarely provide a truly spatio-temporal representation that follows the motion of scatterers. This gap becomes critical when serving embodied intelligent agents that move quickly and require continuous-space channel information along their trajectories. Channel maps have emerged as a critical enabler for environment-aware 6G networks, assisting embodied intelligent agents in making informed decisions for diverse tasks. For instance, a channel map-based angle domain multiple access scheme was introduced in [15], utilizing the constructed angle map to acquire angle-of-departure information for efficient user grouping and beamforming. Furthermore, channel maps was strategically applied to UAV networks in [17], designing a trajectory planning scheme that minimizes outage probability and propulsion energy consumption. Beyond trajectory design, channel maps were also utilized to compensate for positioning errors in dense urban scenarios [18], where map-assisted schemes improved the reliability of location-based services. These applications underscore the potential of channel maps as a perceptive foundation for embodied intelligent agents. Current advanced channel map construction methods can be broadly classified into two categories: Model-driven methods and data-driven methods. Model-driven methods leverage stochastic channel models to obtain continuous-space channel information based on physical propagation environments [14], [19]–[24]. Among these, the geometry-based stochastic model (GBSM) is widely adopted to capture the statistical behavior of wireless channels across various scenarios [19], [20]. To address the specific challenges of vehicle-to-vehicle communications, a map-based channel modeling method was proposed for UAV-to-vehicle links in [21], incorporating 3D environment reconstruc-tion to generate realistic channel realizations considering dense multipath components (DMCs). A hierarchical construction framework based on sparse Bayesian learning was introduced in [22], which mathematically decomposed the channel map into path loss, shadowing, and multipath components (MPCs) to enhance modeling precision. Recently, a channel gain map estimation method was developed based on a scatterer model in [23], where scatterer locations and reflection coefficients were identified to assist Kriging interpolation in constructing the gain map. In addition to stochastic approaches, electromagnetic (EM) field-based models were extensively studied [11], [24]. In [24], a 3D continuous-space EM channel model incorporating scatterers and spherical wavefronts was proposed and accurately calculated scattering fields using the method of moments. Data-driven methods construct channel maps by learning the underlying mapping relationships from collected discrete channel data. Early approaches typically utilized mathematical interpolation techniques [13], [25], such as Kriging [25], to estimate channels at unmeasured locations. With the advent of AI, deep learning offered a new paradigm for extracting non-linear spatial features from measurement data [26]–[34]. Neural networks like the gated recurrent unit (GRU) and long short-term memory networks were applied to capture spatial correlations [5]. In [34], a hybrid Conv-GRU algorithm that enables frequency-domain channel reconstruction by learning from angular power spectra was proposed. In [26], a comprehen- 
+
+> Fig. 1. Comparison of channel map construction paradigms.
+
+sive CKM dataset was constructed to facilitate the training of data-driven models for tasks like channel estimation and beam prediction. To further improve the resolution of constructed maps, a deep learning-based framework utilizing image super-resolution technology was proposed in [27]. Generative AI has also been explored to address data sparsity, including generative adversarial networks (GANs) and diffusion algorithms. a Con-ditional GAN (CGAN)-based framework was proposed in [12], [28], [29], where the generator adopted a U-Net structure to jointly construct THz radio maps and detect obstacles. In [12], the sampling-free radio map construction problem is modeled as a conditional generative task and a denoising diffusion method (RadioDiff) is proposed. Nevertheless, most existing AI-enabled channel map construction methods focus on interpolating asingle channel characteristic (e.g., pathloss or angle-related attributes) rather than recovering the complete high-dimensional channel matrix . As a result, the “fast prediction” claimed in related works typically provides only partial large-scale channel parameters, which remains insufficient to effectively support embodied intelligent agents in decision-making that requires fine-grained, full-CSI awareness. Recently, Graph Neural Networks (GNNs) and Transformer architectures have emerged as powerful tools for characterizing the topological structures of wireless networks [30], [31]. In [30], channel map prediction was formulated as a graph-based learning task and proposed a graph convolutional network (GCN) with filters to estimate power spectral density (PSD) at unmeasured locations using discrete measurement nodes as graph inputs. In [31], a two-stage method combining environment graph construction with GNN models was proposed. Summarizing the existing approaches mentioned above, data-driven channel maps usually achieve high accuracy in the continuous space, but they cannot follow fast channel variations because the AI algorithms need to be retrained once the environment significantly changes. In contrast, model-driven channel maps can adapt to real-time variations of environment, but their stochastic nature limits the location-specific accuracy. This gap motivates a joint approach for space-time continuous channel maps rather than relying on either data-driven or model-driven methods alone. To fill the gap of the joint approach, this paper proposes 3
+
+a Data-Model Co-Driven (DMcD) method for space-time continuous channel map construction. Fig. 1 illustrates the core motivation of this work. Our key viewpoint is to generate the dynamic channel information by a channel model, enabling more accurate learning and AI-enabled interpolation with a larger and more reasonable training set. To the best of authors’ knowledge, this is the first time that a data-model co-driven framework for channel map construction has been proposed.  
+
+> •
+
+The channel model and AI algorithm are integrated into a unified DMcD framework for space-time continuous channel map construction. The channel model provides dynamic channel information as priors, while the AI algorithm online interpolates the channel map from the priors and measurements.  
+
+> •
+
+A hybrid ray tracing and geometry-based channel model (H-RT/GBSM) is proposed to capture the impact of static scatterers, dynamic scatterers and DMCs. The hybrid channel model (HCM) describes the time evolution of scatterers and can generate real-time CSI that matches measurements in dynamic environments.  
+
+> •
+
+To achieve real-time construction, a novel inductive edge-conditioned graph neural network (InductE-GNN) is designed to interpolate the channel map in space. Unlike typical offline-trained AI algorithms whose performance degrades under distribution shift unless fine-tuned, the proposed inductE-GNN refreshes node representations at inference time, enabling re-training-free adaptation in dynamic channels.  
+
+> •
+
+The framework is evaluated on measured results against other AI algorithm baselines, and is shown to achieve higher accuracy and space-time continuous channel maps for embodied intelligent agents in 6G networks. The rest of this paper is organized as follows. The two-stage DMcD framwork are presented in Section II. Section III gives a detailed description of data-acquisition stage. In Section IV, the model-driven stage with the HCM are described. The data-driven stage and the InductE-GNN are given in Section V. Section VI gives a entire performance evaluation of HCM, InductE-GNN, and DMcD framework. Finally, conclusions are drawn in Section VII. II. D ATA -M ODEL CO-D RIVEN CHANNEL MAP 
+
+CONSTRUCTION FRAMEWORK 
+
+In this section, the overall data-model co-driven framework for space-time continuous channel map construction is intro-duced. The whole procedure is divided into three parts, as illustrated in Fig. 2, including data acquisition, a model-driven stage, and a data-driven stage. The Fig. 2 also shows the main input and output of each stage.  
+
+> Fig. 2. Two-stage data–model co-driven framework for space-time continuous channel map construction. 4
+
+1) Data acquisition and environment reconstruction: In the first stage, indoor and outdoor channel measurements are collected in the target environment by moving the receiver over a dense grid. The physical layout of the environment, including walls, furniture, and large objects, is then reconstructed from floor plans and on-site photos. A RT simulator is calibrated with this geometry and with the measured channel statistics. The RT simulation produces a discrete channel map on the measurement grid, which serves as the basis for the following model-driven stage. 2) Model-driven stage with hybrid channel model: In the second stage, a RT-based HCM is built on top of the reconstructed environment. The HCM uses calibrated cluster parameters and explicitly considers static scatterers, dynamic scatterers, and DMCs. Dynamic objects such as moving people or robots are identified and mapped to time-varying clusters in the HCM. In this way, the model describes the time evolution of clusters and scatterers and generates time-continuous CSI over the area of interest. The output of this stage is a dense, time-continuous channel map that already reflects the physical dynamics of the physical scenario. 3) Data-driven stage with InductE-GNN: In the third stage, the channel map is further refined in the spatial domain by a data-driven model. A graph is constructed on the channel map grid, where each node represents a location and carries channel features. The proposed InductE-GNN takes the model-driven map and a small set of new measurements as input, and performs online interpolation and correction on the graph. Thanks to its inductive design, the InductE-GNN can handle new nodes and updated measurements without retraining the whole algorithm. The final output is a space–time-continuous channel map that combines the physical consistency of the HCM with the accuracy of data-driven learning. In the next section, we discuss the datasets that this three stage DMCD approach is applied to. III. D ATA ACQUISITION STAGE OF THE CHANNEL MAP 
+
+CONSTRUCTION 
+
+A. Channel Measurements 
+
+To validate the proposed DMcD framework and calibrate the hybrid channel model, two channel measurement campaigns are conducted. One is a static indoor campaign at 28 GHz with rich DMCs, and the other is a dynamic outdoor campaign at 5.5 GHz with rich moving scatterers. Using both a mmWave band and a sub-6 GHz band helps to demonstrate the general applicability of the framework to different carrier frequencies and propagation conditions. In addition, the 28 GHz indoor scenario provides strong diffuse scattering, which is well suited for studying DMCs in this paper, while the 5.5 GHz outdoor scenario highlights the impact of dynamic objects on large-scale and small-scale channel properties. The detailed antenna array structures, calibration procedures, and full system parameters can be found in [14], [32]. 
+
+1) Indoor static measurements with rich DMCs (28 GHz): 
+
+The first campaign is an ultra-dense continuous-space channel measurement in a typical indoor office environment at 28 GHz. The scenario is a rectangular hall of about 40 m × 20 m × 3.5 m, with glass windows, metal walls, and a metal ceiling. Inside the hall, a 15 m × 10 m inner room and a metal pillar create several non-line-of-sight (NLoS) regions and strong scattering clusters. A moving-sounder platform with synchronized transmitter (Tx) and receiver (Rx) is used. The Tx employs a single omnidirectional antenna at a height of about 3.0–3.3 m. The Rx is a 4×4 dual-polarized uniform planar array with 32 elements. During measurements, the Rx array is placed on a trolley and moved along 68 routes that cover both line-of-sight (LoS) and NLoS regions. In total, 11,974 spatial locations are recorded, forming an ultra-dense grid that approximates a continuous-space channel. These indoor data provide high-resolution delay PSD measurements with pronounced diffuse components. They are mainly used to identify and calibrate the DMC component of the HCM, and to test the proposed channel map construction under rich DMC conditions. 
+
+2) Outdoor dynamic measurements with rich moving scat-terers (5.5 GHz): The second campaign is an outdoor urban measurement at sub-6 GHz. The sounder operates at 5.5 GHz with 320 MHz bandwidth. The Tx uses a single omnidirectional antenna mounted on the eighth floor of an office building at a height of about 30 m. The Rx employs an 8×8 dual-polarized cylindrical array with 64 elements, mounted on a trolley that moves at street level. Multiple LoS and NLoS routes are designed between the buildings. At each route, the Rx trolley moves along the planned path while the sounder records multiple snapshots at each location to capture small-scale fading and Doppler effects caused by moving vehicles and pedestrians. This outdoor dataset is mainly used to characterize dynamic scatterers and to calibrate the time-varying part of the HCM. Together with the indoor campaign, it enables the proposed DMcD framework to be evaluated under both rich-DMC static conditions and rich-scatterer dynamic conditions, across mmWave and sub-6 GHz bands. The processing of raw sounding data, including back-to-back calibration, extraction of channel impulse responses, and high-resolution estimation of MPCs using the space-alternating gen-eralized expectation-maximization (SAGE) algorithm, follows the procedures described in [35], which is modified from [36] for mm-wave channels. 
+
+B. Environment Reconstruction and Ray Tracing Simulation 
+
+RT is employed to reconstruct the static part of the propaga-tion environment for both the indoor and outdoor scenarios. As    
+
+> (a) (b) Fig. 3. Reconstruction of the (a) indoor and (b) outdoor measurement environments with RT simulations. 5
+> Fig. 4. Geometry map of the proposed RT-based hybrid channel model.
+
+shown in Fig. 3, the measurement environments are emulated in the commercial RT software Wireless InSite. For the indoor campaign, simulation points are placed on a dense grid with 1-meter spacing. Only static interaction objects, such as walls, pillars, and furniture, are included at this stage. The simulation frequency, bandwidth, and antenna configurations are kept consistent with the measurements. For the outdoor campaign, the China Network Valley scenario is also modeled in Wireless InSite following the layout of the real environment. The same carrier frequency of 5.5 GHz, bandwidth, and Tx/Rx antenna settings as in the measurements are adopted. LoS and reflected paths from buildings and trees are considered, while moving vehicles and pedestrians are not included in the RT scene and will be represented later by dynamic clusters in the HCM. The RT simulations provide delay, angle, and power pa-rameters of specular multipath components (SMCs) on the simulation locations. These ray parameters are then used as inputs to construct the static component of the proposed HCM in Section IV, and to determine the cluster centroids for DMCs. IV. MODEL -DRIVEN STAGE OF THE CHANNEL MAP 
+
+CONSTRUCTION 
+
+The geometry of the proposed RT-based hybrid channel model is illustrated in Fig. 4. The measurement scenario is reconstructed in 3D, where the Tx and Rx are placed according to the real deployment. The channel impulse response (CIR) consists with three components and can be calculated as 
+
+hqp,ℓ (t, τ ) = 
+
+s
+
+1
+
+K−1D + K−1DMC + 1 hRT 
+
+> qp,ℓ
+
+(τ )+
+
+s
+
+K−1D
+
+K−1D + K−1DMC + 1 hD
+
+> qp,ℓ
+
+(t, τ )+
+
+s
+
+K−1DMC 
+
+K−1D + K−1DMC + 1 hDMC  
+
+> qp,ℓ
+
+(τ )
+
+(1) where KD and KDMC are the power ratio of the RT paths to the dynamic multipaths and DMC, respectively. Additionally, 
+
+hRT 
+
+> qp,ℓ
+
+(τ ), hD
+
+> qp,ℓ
+
+(t, τ ), and hDMC  
+
+> qp,ℓ
+
+(τ ) are the CIRs of specular static component, dynamic component, and DMC component. 
+
+A. Static and Dynamic Components of Hybrid Channel Model 
+
+Static SMCs obtained from RT are drawn as blue rays between the Tx and Rx. Dynamic clusters, shown in red, are associated with moving interaction objects such as pedestrians and vehicles. DMC clusters, shown in purple, are located near walls and other obstacles and will be discussed in the next subsection. The numbers of antennas at the Tx and Rx sides are denoted as MT and MR, respectively. ATq and ARp
+
+denote the q-th ( q = 1 , . . . , M T ) Tx antenna element and the p-th ( p = 1 , . . . , M R) Rx antenna element. Only the k-th (k = 1 , . . . , K qp,ℓ ) RT ray between ATq and ARp at location ℓ
+
+is illustrated in Fig. 4. The static component of the HCM is represented by RT. For the link between ATq and ARp at location ℓ, the RT-based CIR is written as [14] 
+
+hRT 
+
+> qp,ℓ
+
+(τ ) = 
+
+> Kqp,ℓ
+
+X
+
+> k=1
+
+q
+
+P kqp,ℓ · ej2πf cτ kqp,ℓ · δ(τ − τ kqp,ℓ ) (2) where Kqp,ℓ is the number of RT rays, and P kqp,ℓ and τ kqp,ℓ 
+
+denote the power and delay of the k-th RT ray, respectively. These parameters are directly obtained from the RT simulations described in Section III-B. To capture the impact of moving interaction objects, a dy-namic component is added on top of the static RT part. Dynamic clusters are introduced to represent groups of MPCs generated by pedestrians and vehicles. Their parameters, including power, delay, angle, and Doppler shift, are extracted from the 5.5 GHz outdoor dynamic measurements by comparing the measured time-varying CIRs with the RT predictions. Then, a GBSM [20] is used to simulate the dynamic clusters along the receiver 60 0.5 1 1.5 2    
+
+> Power, p(W) 10 -7
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
+> CDF
+> Measurements
+> Ray tracing+DMC
+> Ray tracing
+> Fig. 5. CDFs of MPC power: measurements, pure RT, and RT with DMC.
+
+trajectories. The corresponding dynamic CIR between ATq and 
+
+ARp at location ℓ is given by [14]        
+
+> hD
+> qp,ℓ (t, τ ) =
+> Nqp,ℓ (t)
+> X
+> n=1
+> MnX
+> n′=1
+> q
+> Pn′
+> qp,ℓ (t)ej2πf cτn′
+> qp,ℓ (t)δ(τ−τn′
+> qp,ℓ (t))
+
+(3) where N (t) 
+
+> qp,ℓ
+
+is the number of active dynamic clusters at time t, and Mn is the number of rays within the n-th cluster. The scalar P n′
+
+> qp,ℓ
+
+(t) and τ n′
+
+> qp,ℓ
+
+(t) denote the time-varying power and delay of the n′-th ray within the n-th dynamic cluster. 
+
+The detailed extraction and modeling of dynamic clusters, as well as the validation against the outdoor measurements, have been presented in our previous work [14] . Here, the same dynamic component is incorporated into the HCM so that the resulting channels can follow the motion of scatterers in real world wireless scenarios. The complete HCM in this stage therefore consists of a static RT component hRT 
+
+> qp,ℓ
+
+(τ ), a dynamic component hD
+
+> qp,ℓ
+
+(t, τ ), and a DMC component hDMC  
+
+> qp,ℓ
+
+(τ ) that will be introduced next. 
+
+B. DMC Component of Hybrid Channel Model 
+
+From the indoor channel measurements, the DMCs can be extracted by the estimation algorithm proposed in [37]. DMC involves more scattered and complex propagation phenomena in wireless transmission, and is an essential part of the wireless propagation channel. It can significantly contribute to the received power across various environments and frequency bands [38]. Fig. 5 compares the cumulative distribution functions (CDFs) of MPC power from the RT simulation and processed measurement data. It is observed that RT simulation fails to fit the measurement results accurately. However, if DMC power is added to the simulated RT MPC power, the combined CDF matches the measurement data well. This result indicates that, in indoor scenarios, RT simulations cannot directly replace actual measurements. Meanwhile, the result provides guidance for characterizing the differences between RT and measurements by DMC, further generating more accurate channels. Conventional RT methods primarily focused on specular reflections. While these specular paths dominate propagation in many scenarios, they cannot fully explain the diffuse scattering processes that produce DMC [38]. The generation of DMC depends significantly on the physical properties of the environment and the operating frequency. Due to this complexity, accurately modeling DMC requires considering multiple scattering mechanisms, often employing statistical descriptions [39]. The observations in [40] indicated that the angular and delay power spectra of DMC are not simply random white noise. Instead, they show clear correlations with the SMCs in channel. In [37], it was suggested that scatterers causing DMC are typically smaller and located near those responsible for SMCs, usually within the same cluster. In the proposed HCM, DMC is therefore modeled by cluster pairs located around the obstacles along the RT propagation paths, including the first-bounce cluster CAk at Tx side and the last-bounce cluster CZk at Rx side. The resulting DMC component hDMC  
+
+> qp,ℓ
+
+(τ ) is added to (2) and (3) to form a more accurate static–dynamic channel representation. 
+
+hDMC  
+
+> qp,ℓ
+
+(τ ) = 
+
+> Kqp,ℓ
+
+X
+
+> k=1
+> Mk
+
+X
+
+> k′=1
+
+q
+
+P k′ 
+
+> qp,ℓ
+
+· ej2πf cτ k′ 
+
+> qp,ℓ
+
+· δ(τ − τ k′
+
+> qp,ℓ
+
+) (4) where P k′ 
+
+> qp,ℓ
+
+and τ k′ 
+
+> qp,ℓ
+
+are the power and delay of rays k′ within DMC cluster pairs. It is worth noting that only the hD
+
+> qp,ℓ
+
+(t, τ ) is related to time 
+
+t, while the RT and DMC components are only decided by the transceiver location ℓ. By introducing the DMC and dynamic clusters, the proposed RT-based HCM is capable to provide accurate, temporal channel information in response to changes in the physical environment. V. D ATA -DRIVEN STAGE OF THE CHANNEL MAP 
+
+CONSTRUCTION 
+
+Our methodology addresses the challenge of interpolating discrete and irregular channel data by formulating the problem on a graph. A comprehensive framework centered on ahybrid GNN architecture is proposed and designed to be inductive, scalable, and aware of both spatial geometry and channel-specific statistics. Specifically, the inductive capability enables the DMcD framework to handle dynamic channel variations without the latency of retraining. It allows for timely spatial interpolation whenever the environment changes, thereby maintaining a real-time and accurate perception foundation for agents. The framework is presented in three main steps: (A) the system formulation, feature engineering, and a novel graph construction process, (B) the hybrid inductive GNN architecture for message passing, and (C) the composite training objective and model implementation details. 
+
+A. System Formulation and Graph Construction 
+
+At first, a set of n spatial locations are defined on a 2D plane, denoted by their coordinates {(xk, y k)}ni=k. Each location k is modeled as a node in a graph V, and each node is associated with a complex-valued channel matrix hk ∈ CN ×L, where where N denotes the number of receiving antennas and L
+
+represents the number of subcarriers. In a practical deployment, 7 
+
+> Fig. 6. Diagram of the proposed induct-edge graph neural network.
+
+measurements are discrete, meaning the ground truth channel 
+
+hi for a small subset of nodes i ∈ V obs ⊂ V is observed. The central objective of our framework is to accurately predict the channel matrices ˆhj for all unobserved nodes j ∈ V unobs ,where Vunobs = V \ V obs .As GNNs operate on real-valued feature vectors, a crit-ical first step is the conversion of these complex quan-tities. The initial node feature x(0)  
+
+> k
+
+is defined using one of two representations: (i) Concatenation, where the real and imaginary parts are flattened and stacked, x(0)  
+
+> k
+
+=[vec (ℜ(hk)) , vec (ℑ(hk))] ∈ R2N L , or (ii) Polar Decompo-sition, x(0)  
+
+> k
+
+= [ vec (|hk|), vec (∠hk)] ∈ R2N L . The latter may involve sin / cos embeddings of the phase to handle wrapping discontinuities. For all observed nodes i ∈ V obs , these features are standardized to have zero mean and unit variance. A significant challenge arises for unobserved nodes j ∈Vunobs , which lack initial features. To address this and to provide the network with a strong, smooth baseline, we compute an initial estimate ˜hinit  
+
+> j
+
+for these nodes using Linear Pre-Interpolation. This estimate serves as a ”prior” for the GNN to refine. Inverse-distance weighted (IDW) [41] interpolation is employed, where the contribution of observed neighbors is weighted by the inverse of their Euclidean distance d(j, i ) [41] 
+
+αji = d(j, i )−p
+
+P 
+
+> k∈V obs
+
+d(j, k )−p (5) where p is a positive real number known as the power parameter. It controls how quickly the influence of a known data point declines as the distance increases. Therefore, the initial predicted channel ˜hinit  
+
+> j
+
+is calculated as 
+
+˜hinit  
+
+> j
+
+= X
+
+> i∈V obs
+
+αji hi. (6) This resulting prior (converted to its real-valued form) is then used as the initial feature x(0)  
+
+> j
+
+for all unobserved nodes. The graph topology G = ( V, E) is paramount. Relying on naive Euclidean distance to define edges is a flawed heuristic, as it fails to capture the underlying propagation physics. To overcome this, a K-Nearest Neighbors (KNN) graph is constructed based on the Wasserstein distance. This metric quantifies the similarity between the distributions of channel characteristics. For each node k, an empirical distribution μk
+
+is formed from the magnitudes of its N × L channel entries. The Wasserstein distance W (p, q ) between two nodes p and q
+
+measures the minimum “cost” to transform μp into μq [28] 
+
+W (p, q ) = inf  
+
+> γ∈Γ( μp,μ q)
+
+Z
+
+> R×R
+
+|u − v|dγ (u, v ). (7) Since the channel magnitudes form a univariate distribution, this calculation simplifies to the computationally efficient L1
+
+distance between the CDFs, W (p, q ) = R 
+
+> R
+
+|Fp(z) − Fq (z)|dz .This allows the graph to connect nodes that share similar MPC fading profiles, even if they are not geometrically adjacent. Finally, for each edge (u, v ) ∈ E in the resulting W-KNN graph, a rich, multi-dimensional edge feature vector euv is computed. This vector is crucial for the edge-aware refinement stage and is defined as 
+
+euv = [∆ xuv , ∆yuv , d Euc  
+
+> uv
+
+, W (u, v ), LoS /NLoS uv ] (8) where ∆xuv = xu − xv and ∆yuv = yu − yv denotes the relative displacement in the x-coordinate and y-coordinate, respectively. dEuc  
+
+> uv
+
+= p∆x2 
+
+> uv
+
++ ∆ y2 
+
+> uv
+
+, denoting the Euclidean distance between the nodes. LoS /NLoS uv is a binary or categorical indicator representing whether the path between u
+
+and v is likely LoS or NLoS. Edge weights wuv = exp( −W (u, v )/τ ) are also computed to form a symmetric adjacency matrix ˜A, which is used in the smoothness regularizer. 8
+
+Algorithm 1 Data-driven stage via Induct-Edge GNN 
+
+Input: Spatial locations P = {(xk , y k )}nk=1 ; Observed subset Vobs ,Unobserved subset Vunobs ; Discrete measurements hobs = {hi |
+
+i ∈ V obs }; Hyperparameters: layers S, smoothness weight λ,prior weight η, learning rate γ.
+
+Output: Predicted Channel Maps ˆh = {ˆhk | ∀ k ∈ V}  
+
+> 1:
+
+Phase 1: Graph Construction & Feature Engineering  
+
+> 2:
+
+{Construct W-KNN Graph based on distribution similarity } 
+
+> 3:
+
+Compute 1-Wasserstein distance W (u, v ) between channel distri-butions of node pairs;  
+
+> 4:
+
+Build graph G = ( V, E) connecting K-nearest neighbors via 
+
+W (u, v ); 
+
+> 5:
+
+Compute edge features euv =[∆ xuv , ∆yuv , d Euc  
+
+> uv
+
+, W (u, v ), LoS /NLoS uv ] ∈ RDe ; 
+
+> 6:
+
+Compute edge weights wuv = exp( −W (u, v )/τ ) for smoothness regularization;  
+
+> 7:
+
+Phase 2: Pre-Interpolation (Prior Generation)  
+
+> 8:
+
+for each j ∈ V unobs do  
+
+> 9:
+
+{Focus on Unobserved nodes } 
+
+> 10:
+
+Calculate weights αji = d(j, i )−p/ P 
+
+> m∈V obs
+
+d(j, m )−p
+
+(IDW);  
+
+> 11:
+
+Generate prior ˜hinit  
+
+> j
+
+← P 
+
+> i∈V obs
+
+αji hi; 
+
+> 12:
+
+end for  
+
+> 13:
+
+Initialize node features x(0)  
+
+> k
+
+for all k ∈ V using Concatenation;  
+
+> 14:
+
+Phase 3: Inductive Training (Hybrid Message Pass)  
+
+> 15:
+
+for epoch t = 1 to T do  
+
+> 16:
+
+for each mini-batch B ⊆ V do  
+
+> 17:
+
+Initialize hidden states z(0)  
+
+> k
+
+← x(0)  
+
+> k
+
+for all k ∈ B ∪ N (B); 
+
+> 18:
+
+for layer l = 1 to S do  
+
+> 19:
+
+for each node k ∈ B do  
+
+> 20:
+
+{Step A: GraphSAGE Generalized Aggregation } 
+
+> 21:
+
+Sample neighbors N (l)(k) from graph G; 
+
+> 22:
+
+m(l) 
+
+> k
+
+← MEAN ({z(l−1)  
+
+> u
+
+| ∀ u ∈ N (l)(k)}); 
+
+> 23:
+
+Intermediate: ˜z(l) 
+
+> k
+
+← σ(W(l)agg · [z(l−1)  
+
+> k
+
+∥m(l) 
+
+> k
+
+] + b(l)); 
+
+> 24:
+
+Apply LayerNorm and Dropout on ˜z(l) 
+
+> k
+
+; 
+
+> 25:
+
+{Step B: Edge-Aware Refinement (ECC) } 
+
+> 26:
+
+Generate dynamic filter: Θϕ(eku ) ← MLP ϕ(eku ); 
+
+> 27:
+
+Refine: z(l) 
+
+> k
+
+←
+
+σ
+
+P  
+
+> u∈N (l)(k)
+
+Θϕ(eku )˜ z(l) 
+
+> u
+
++ W(l)self ˜z(l)
+
+> k
+
+
+
+; 
+
+> 28:
+
+Residual Connection: z(l) 
+
+> k
+
+← z(l) 
+
+> k
+
++ z(l−1)  
+
+> k
+
+; 
+
+> 29:
+
+end for  
+
+> 30:
+
+end for  
+
+> 31:
+
+{Output & Composite Loss Calculation } 
+
+> 32:
+
+Prediction: yk ← MLP out (z(S) 
+
+> k
+
+), reconstructed to ˆhk ; 
+
+> 33:
+
+Lr ← 1
+
+> |V obs |
+
+P  
+
+> i∈V obs
+> ∥ˆhi−hi∥22
+> ∥hi∥2
+> F+ϵ
+
+{Reconstruction (Ob-served i)}; 
+
+> 34:
+
+Ls ← λ
+
+> |E|
+
+P 
+
+> (i,j )∈E
+
+wij ∥ˆhi − ˆhj ∥2 
+
+> F
+
+= 
+
+> λ
+> |E|
+
+tr  ˆh⊤Lˆh{Smoothness (Edges u, v )}; 
+
+> 35:
+
+Lp ← η
+
+> |V unobs |
+
+P 
+
+> i / ∈V obs
+
+∥ˆhj − ˜hinit  
+
+> j
+
+∥2 
+
+> F
+
+{Prior Consistency (Unobserved j)}; 
+
+> 36:
+
+Backpropagation: θ ← AdamW (∇(Lr + Ls + Lp)) ; 
+
+> 37:
+
+end for  
+
+> 38:
+
+end for  
+
+> 39:
+
+Phase 4: Inference  
+
+> 40:
+
+ˆh = ForwardPass (G, X(0) ) with trained weights θ∗.
+
+B. Inductive GNN Architecture and Message Passing 
+
+Our GNN architecture is designed to be both scalable and inductive, meaning it can generalize to new, unseen nodes and measurements without requiring complete retraining. To achieve this, we adopt the hierarchical neighbor sampling strategy from graph sample and aggregate (GraphSAGE) network [42]. Instead of processing the entire graph, training is performed on mini-batches. For B seed nodes, we perform S hops of message passing. At each layer l, each node samples a fixed size, kl, of neighbors from its 1-hop neighborhood N (l)(k).This approach ensures that the computational cost per iteration remains controlled and independent of the full graph size. The core of our model is a hybrid message-passing block that is iterated S times. Let z(l) 
+
+> k
+
+∈ RDl denote the hidden feature of node k at layer l. Each block is a two-step process: a general-purpose aggregation followed by an edge-aware refinement. 
+
+1) Generalized Aggregation: First, a standard GraphSAGE update is performed. This step learns a generalized, inductive aggregation function by computing the mean of the sampled neighbors’ features [42] 
+
+m(l) 
+
+> k
+
+= 1
+
+|N (l)(k)|
+
+X 
+
+> u∈N (l)(k)
+
+z(l) 
+
+> u
+
+. (9) This aggregated message m(l) 
+
+> k
+
+is concatenated with the node’s current self-representation z(l) 
+
+> k
+
+. The result [z(l) 
+
+> k
+
+∥m(l) 
+
+> k
+
+] is passed through a learnable offine transformation with a non-linearity (e.g., ReLU or modReLU) to produce an intermediate repre-sentation ˜z(l+1)  
+
+> k
+
+, which is calculated as [42] 
+
+˜z(l+1)  
+
+> k
+
+= σ W(l)agg · [z(l) 
+
+> k
+
+∥m(l) 
+
+> k
+
+] + b(l) (10) where W(l)agg ∈ RDl+1 ×2Dl and b(l) ∈ RDl+1 denote the learnable weight matrix and bias vector for layer l, respectively. This intermediate representation is then stabilized using Layer Normalization and dropout. 
+
+2) Edge-Aware Refinement: Second, this generalized feature 
+
+˜z(l+1)  
+
+> k
+
+is refined using Edge-Conditioned Convolution (ECC). This step is critical as it leverages the rich edge features eku 
+
+previously engineered. ECC employs a small filter-generating network (implemented as Multi-Layer Perceptron, MLP ϕ)that dynamically computes a specific transformation matrix 
+
+Θϕ(eku ) ∈ RDl+1 ×Dl+1 for each unique edge instance 
+
+Θϕ(eku ) = MLP ϕ(eku ). (11) The final hidden state z(l+1)  
+
+> k
+
+is then computed by applying these edge-specific filters to the messages from the neigh-borhood, allowing the model to learn complex, non-linear dependencies driven by physical channel correlations 
+
+z(l+1)  
+
+> k
+
+= σ
+
+ X 
+
+> u∈N (l)(k)
+
+Θϕ(eku )˜ z(l+1)  
+
+> u
+
++ W(l)self ˜z(l+1) 
+
+> k
+
+
+
+(12) where W(l)self ∈ RDl+1 ×Dl+1 represents the learnable weight matrix for the self-loop connection, ensuring the node retains its own contextual information during the refinement. This mechanism allows the network to, for instance, learn to weight messages from LoS neighbors or adapt its aggregation based on the Wasserstein similarity. A residual path ( z(l+1)  
+
+> k
+
+← z(l) 
+
+> k
+
++
+
+z(l+1)  
+
+> k
+
+) is added to facilitate the training of deeper GNNs. After S message-passing blocks, the final node embedding 
+
+z(S) 
+
+> k
+
+encapsulates rich contextual information from its S-hop neighborhood. This embedding is passed through a final 9
+
+prediction head MLP out to map to the target dimension R2N L 
+
+yk = MLP out (z(S) 
+
+> k
+
+). (13) The output vector yk ∈ R2N L is split into two halves. The first N L elements form the real part (or magnitude), and the remaining N L elements form the imaginary part (or phase). For the concatenation case, the reconstruction is 
+
+ˆhk = reshape( y[1: N L ] 
+
+> k
+
+) + j · reshape( y[N L +1:2 N L ] 
+
+> k
+
+). (14) 
+
+C. Composite Training Objective and Implementation 
+
+To ensure the model produces predictions that are not only accurate but also physically plausible and robust in sparse regions, we design a composite loss function L = Lr +Ls +Lp.This objective balances data fidelity with two powerful graph-aware regularization terms. The primary term is the reconstruction loss Lr . This loss is enforced only on the observed nodes i ∈ V obs where ground truth is available. We employ a Normalized Mean Squared Error (NMSE)-weighted MSE, which normalizes the error by the power of the ground truth channel. This prevents high-power (e.g., LoS) locations from dominating the loss signal 
+
+Lr = 1
+
+|V obs |
+
+X
+
+> i∈V obs
+
+∥ˆhi − hi∥22
+
+∥hi∥2 
+
+> F
+
++ ϵ (15) where ∥ · ∥ F denotes the Frobenius norm. The second term is an edge-aware smoothness loss Ls, which acts as a graph Laplacian regularizer. This term encourages the predictions ˆhi and ˆhj to be similar if their corresponding nodes (i, j ) are connected by a high-weight edge wij (i.e., they have high channel similarity). This promotes spatially coherent predictions that respect the W-distance manifold 
+
+Ls = λ
+
+|E| 
+
+X
+
+> (i,j )∈E
+
+wij ∥ˆhi − ˆhj ∥2 
+
+> F
+
+= λ
+
+|E| tr  ˆh⊤Lˆh (16) where L = D − ˜A is graph Laplacian. λ is a tuning parameter. Finally, we introduce a prior consistency loss Lp. This novel regularizer is enforced only on the unobserved nodes j ∈Vunobs . It penalizes the model’s prediction ˆhi for deviating from the smooth, pre-interpolated prior ˜hinit  
+
+> i
+
+. This is crucial for stabilizing the network’s behavior and preventing unrealistic artifacts in large regions with no measurement data 
+
+Lp = η
+
+|V unobs |
+
+X
+
+> i / ∈V obs
+
+∥ˆhj − ˜hinit  
+
+> j
+
+∥2 
+
+> F
+
+(17) where η is a tuning hyperparameter. The model is trained end-to-end using the AdamW optimizer with a cosine decay learning rate schedule and gradient clipping. The inductive nature of the framework is a key practical advantage: when new measurements arrive, updated map predictions can be generated via a single forward pass on the updated graph, further avoiding the retraining. VI. E XPERIMENT RESULTS AND EVALUATION 
+
+A. Evaluation Setup 
+
+This section evaluates the proposed DMcD framework from three levels: the model-driven stage (HCM), the data-driven                     
+
+> TABLE I HYPERPARAMETER SETTINGS OF THE INDUCT-EDGE GNN.
+> Parameters Value
+> SAGEConv layers of encoder 2Number of GNN layers 2Hidden channels 64 Dropout rate 0.1 Activation function ReLU Learning rate ( γ)10 −3
+> Optimizer AdamW (wd 10 −4)Batch size 1 (full graph) Maximum epochs ( T)500 Reconstruction loss ( Lr)NMSE on observed nodes Smoothness loss ( Ls)edge-weighted MSE on graph Prior consistency loss ( Lp)MSE on unobserved nodes Smoothness weight ( λ)0.1 Prior weight ( η)0.1 IDW power parameter 2
+> k-NN neighbors in graph 10
+
+stage (InductE-GNN), and the overall DMcD channel map construction framework. Measurements in the indoor scenario with ultra-dense sampling and rich DMCs and the outdoor scenario with moving objects are considered as baseline. 
+
+Data sources and usage: For the model-driven stage, the RT simulator provides specular static paths. The indoor measurements are mainly used to calibrate the DMC-related statistics in the HCM, while the outdoor measurements are used to extract and validate the parameters of dynamic clusters. For the data-driven stage, a 2D spatial grid is formed by uniformly sampled receiver locations. At each grid node, the channel is represented by the measured/simulated channel matrix. Only a subset of nodes are treated as observed, and the remaining nodes are regarded as unobserved targets for interpolation. The detailed hyperparameter setting is shown in Table. I. 
+
+Sampling protocol: Observed nodes are selected with approximately uniform spacing over the grid to emulate sparse probing. The sampling density is swept by changing the number of observed nodes, which enables an assessment of the practical measurement requirement for reliable interpolation. Unless otherwise stated, the same sampling rule is used for all learning-based baselines to ensure a consistent comparison. 
+
+Metrics: For HCM validation, the statistical dispersion characteristics are compared with measurements, including the CDFs of root-mean-square (RMS) delay spread (DS) τrms ,ℓ 
+
+and RMS angular spread (AS) σrms ,ℓ at each location ℓ, as well as representative delay PSD and angle-domain spectra. The calculation of these quantities follows the definitions in [43] 
+
+τ rms  
+
+> ℓ
+
+=
+
+vuutPK
+
+> k=1
+
+(τ kℓ (t) − τ mean  
+
+> ℓ
+
+(t)) 2|hkℓ (t)) |2
+
+PK 
+
+> k=1
+
+|hkℓ (t)) |2 (18) 
+
+σrms  
+
+> ℓ
+
+=
+
+vuutPK
+
+> k=1
+
+(ϕkℓ (t) − ϕmean  
+
+> ℓ
+
+(t)) 2|hkℓ (t)) |2
+
+PK 
+
+> k=1
+
+|hkℓ (t)) |2 (19) 10 65 70 75 80 85 90 95 100 105 110   
+
+> Angular spread, (°)
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+> CDF
+> Proposed HCM
+> Measurements
+
+(a) 0 20 40 60 80 100 120 140 160  
+
+> RMS delay spread (ns)
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+> CDF
+> Proposed HCM
+> Measurements
+
+(b) 0 10 20 30 40 50 60 70 80   
+
+> Angular spread, (o)
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+> CDF
+> Proposed HCM
+> Measurements
+
+(c) 0 20 40 60 80 100 120 140 160 180  
+
+> RMS delay spread (ns)
+> 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+> CDF
+> Proposed HCM
+> Measurements
+
+(d) Fig. 7. CDFs of (a) AS (indoor), (b) DS (indoor), (c) AS (outdoor), and (d) DS (outdoor), comparing the proposed HCM with measurements. 
+
+where τ mean  
+
+> ℓ
+
+and σmean  
+
+> ℓ
+
+denote the mean excess delay and angle at location ℓ, respectively. They can be calculated as 
+
+τ mean  
+
+> ℓ
+
+=
+
+PK 
+
+> k=1
+
+τ kℓ (t)|hkℓ (t)) |2
+
+PK 
+
+> k=1
+
+|hkℓ (t)) |2 (20) 
+
+σmean  
+
+> ℓ
+
+=
+
+PK 
+
+> k=1
+
+ϕkℓ (t)|hkℓ (t)) |2
+
+PK 
+
+> k=1
+
+|hkℓ (t)) |2 . (21) For InductE-GNN evaluation, the main metric is the NMSE on unobserved nodes, which can be calculated as 
+
+NMSE = 
+
+P 
+
+> i∈V unobs
+
+∥ˆhi − hi∥22
+
+P 
+
+> i∈V unobs
+
+∥hi∥22
+
+(22) where hi and ˆhi are the ground-truth and predicted feature vectors, respectively. For overall DMcD evaluation, spatial channel maps of received power, RMS delay spread, and RMS angular spread are compared against measurement-based references. In addition, the temporal consistency is evaluated in the outdoor dynamic scenario by comparing time-varying delay PSD patterns along a trajectory. 
+
+Baselines and training budget: For HCM, the proposed model is compared with RT-only results and measurement references. For data-driven interpolation, GRU, CGAN, and GCN are considered as learning baselines, and IDW is used as a conventional interpolation baseline. All learning models are tuned under the same training budget, and regularization techniques such as early stopping, dropout, and weight decay are applied when needed to reduce overfitting. 
+
+B. Validation of the Proposed Hybrid Channel Model 
+
+The accuracy of the proposed RT-based HCM is first evaluated by comparing its statistical characteristics with those obtained from measurements. Fig. 7 compares the CDFs of RMS angular spread and RMS delay spread between the proposed HCM and the measurements for both indoor and outdoor scenarios. Figs. 7(a) and (b) correspond to the indoor 28 GHz campaign, while Figs. 7(c) and (d) correspond to the outdoor 5.5 GHz campaign. In all cases, the CDFs generated by the proposed HCM agree well with the measured ones, which indicates that the large-scale dispersion characteristics in both delay and angle domains are properly captured. The agreement is especially good in the indoor scenario, where the proposed HCM benefits from the explicit modeling of DMCs. More detailed validation of the dynamic component has been reported in [14], and only representative results are shown here. To highlight the role of DMCs in indoor environments, Fig. 8 further compares the proposed HCM with pure RT. Fig. 8 shows the delay PSDs at a representative indoor location. The RT-only curve can reproduce the LoS path and a few dominant multipaths but clearly underestimates the received power at larger delays. After adding the DMC component, the HCM curve matches the measurements over the whole delay range, especially for delays greater than about 40 ns. 
+
+C. Evaluation of the Proposed InductE-GNN 
+
+This subsection evaluates the proposed InductE-GNN for channel map interpolation. The task is formulated as a spatial interpolation problem on a 5 × 800 grid, where each node is associated with a channel matrix and only a subset of nodes are observed. The prediction accuracy is measured by the NMSE on the unobserved nodes. 
+
+1) Comparison with existing data-driven methods: Fig. 9 shows the NMSE versus training duration for GRU, CGAN, GCN, and the proposed InductE-GNN. InductE-GNN converges to the lowest NMSE and keeps a clear margin over all baselines, demonstrating its stronger capability for channel map interpolation under sparse observations. To ensure a fair comparison, all models are carefully tuned under the same time budget. For GRU and CGAN, overfitting 0 20 40 60 80 100 120 140 160 180 
+
+> Delay Index
+> -115 -110 -105 -100 -95 -90 -85 -80 -75
+> Power,  p (dB)
+
+Measurements 
+
+RT only 
+
+Proposed HCM 
+
+Fig. 8. Delay PSDs of measurements, pure RT, and the proposed HCM. 11 10 20 30 40 50 60 70 80 90 100  
+
+> Training duration (s)
+> 10 -2
+> 10 -1
+> 10 0
+> NMSE
+> InductE (proposed)
+> GCN
+> GRU
+> CGAN
+> Fig. 9. NMSE along training duration for different data-driven methods.
+
+is mitigated by early stopping (validation NMSE), dropout, and weight decay. For CGAN, small instance noise is further injected into the discriminator inputs to stabilize adversarial training and improve generalization. In Fig. 9, GRU is designed for sequential dependency and thus cannot explicitly exploit the spatial topology, leading to a higher NMSE floor. GCN decreases NMSE steadily but saturates early due to isotropic neighborhood averaging: repeated convolutions smooth node features, which denoises the prior but also suppresses local variations needed for accurate recovery at specific locations. CGAN reaches a similar NMSE floor to GCN, while showing faster early improvement and mild fluctuations later. This is typical for adversarial training: the generator first learns coarse channel matrix structures via reconstruction loss, but later must balance distribution matching and pointwise NMSE minimization. Since these objectives are not perfectly aligned for deterministic interpolation, a performance floor and small oscillations appear. In contrast, InductE-GNN achieves a lower NMSE floor because it is designed for inductive spatial interpolation with edge awareness. Aggregation enables generalization to unseen nodes and efficient propagation from observed locations, while edge-conditioned message passing leverages informative edge attributes to avoid simple averaging. The designs jointly explain the convergence and the lowest NMSE of InductE-GNN. 
+
+2) Accuracy under different sampling densities and ablation study: Fig. 10 further evaluates InductE-GNN under different numbers of observed nodes. As the number of observed nodes increases, the NMSE decreases for all methods, showing that sparse probing is the main bottleneck. In particular, the proposed InductE-GNN consistently outperforms the IDW baseline, and the gain is more evident in the sparse regime, which indicates that InductE-GNN can better exploit spatial correlations to predict the channel at a previously unobserved location. Fig. 10 also reveals the sampling boundary required for reliable interpolation. Take NMSE < 0.03 as an acceptable threshold, a sampling interval of 1.2 m (100 observed nodes) is approximately sufficient for accurate channel map construction, and additional observations bring only marginal gains. 20 40 60 80 100 120 140 160 180  
+
+> Number of Observed Nodes
+> 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11
+> NMSE
+> Full InductE (proposed)
+> w/o Wasserstein
+> w/o Prior
+> IDW Baseline
+> Fig. 10. NMSE under different numbers of observed nodes (with ablations).
+
+Moreover, Fig. 10 provides an ablation study to quantify the contribution of key components. Removing the Wasserstein-based edge construction degrades the performance across densities, confirming that similarity-informed edges improve message passing beyond purely geometric neighbors. Removing the IDW prior leads to noticeably higher NMSE and less stable trends, suggesting that a smooth physical prior is important for training when observations are limited. Overall, the results verify that both the Wasserstein-informed edges and the IDW prior are effective components in the proposed InductE-GNN. 
+
+D. Performance Evaluation of the Data-Model Co-Driven Channel Map 
+
+This subsection evaluates the end-to-end performance of the proposed DMcD framework. The DMcD integrates the RT-based HCM for fast data augmentation and the proposed InductE-GNN for inductive interpolation, aiming to provide space–time-continuous channel maps with improved accuracy. 
+
+1) Accuracy under indoor continuous-space measurements: 
+
+The indoor measurement scenario is static, and thus the evaluation focuses on the spatial accuracy at a fixed time slice. Fig. 11 compares the channel maps of received power, RMS delay spread, and RMS angular spread obtained from the continuous-space measurements, a CGAN-based data-driven method, and the proposed DMcD framework. As shown in Fig. 11, the proposed DMcD produces power, DS, and AS maps that are visually consistent with the measurement-based reference over the whole area. In particular, in the NLoS regions behind the inner room and around the pillar, the CGAN-based results exhibit patchy artifacts and abrupt transitions, which are noticeable in both the power and DS maps. Such discontinuities are mitigated by the proposed DMcD, where smooth yet location-dependent variations are preserved, especially near the boundaries between LoS and NLoS zones. A similar trend is observed in the AS maps. The CGAN-based method tends to introduce locally inconsistent angular dispersion patterns, while the proposed DMcD better follows the gradual spatial evolution shown in the measurements. 12   
+
+> Fig. 11. Channel maps for received power, RMS DS, and RMS AS: measurements baseline, CGAN-based method, and the proposed DMcD.
+> Fig. 12. Time-varying delay PSD comparison between measurements and the proposed DMcD.
+
+This improvement can be attributed to the joint design of DMcD. The HCM provides a physically consistent prior that already reflects MPCs birth-death and the diffuse scattering effects captured by the DMC component. Based on the prior, InductE-GNN performs residual refinement via topology-aware message passing, which suppresses unstable textures that may arise in purely data-driven method under discrete data. 
+
+2) Accuracy under outdoor dynamic measurements: Fig. 12 further evaluates the spatio-temporal consistency of the DMcD by comparing the time-varying delay PSD between the DMcD prediction and the reference data. The predicted delay PSD follows the dominant components and the diffuse tail over time, and the overall pattern remains stable without noticeable drift. This result indicates that once the time evolution is captured by the model-driven stage, the proposed inductive interpolation can reliably maintain the accuracy of channel maps during online updates. 
+
+3) Update latency under online construction: In addition to accuracy, the refresh latency of the proposed DMcD framework is evaluated for online channel map updates. The refresh period is 0.6 s, consisting of 0.4 s for HCM-based channel generation (model-driven stage) and 0.2 s for InductE-GNN inference (data-driven stage). The runtime is measured on a system equipped with an Intel Core i9-14900 CPU and 32 GB RAM. Admittedly, this latency may not be advantageous compared with AI-enabled map construction methods that target only a single channel attribute [12], [27], [28], due to their much lower output dimensionality. Nevertheless, DMcD provides a complete channel representation, jointly covering large-scale and small-scale channel information, thereby offering richer and more actionable channel awareness for embodied intelligent agents. With an update rate of approximately 1.7 Hz, the DMcD framework is already sufficient to support timely channel queries for embodied intelligence agents. VII. C ONCLUSIONS 
+
+This paper has proposed a DMcD framework to construct a space-time continuous channel map, which can serve as a queryable wireless world model for embodied intelligent agents to achieve wireless channel perception. The DMcD framework propose a two-stage channel map interpolation. In the model-driven stage, a H-RT/GBSM has been developed to jointly capture static paths, dynamic scatterers, and DMCs, so that accurate time-varying CSI can be generated with measurement-consistent statistics. This stage acts to capture the impact of physical environmental changes on wireless channels while augmenting the dataset. In the data-driven stage, an InductE-GNN has been designed to further interpolate the channel map from dynamic priors and measurements. Through aggregation functions and message passing mechanism, the InductE-GNN overcomes the prediction performance degradation caused by node feature shift, further achieving online interpolation. Evaluations in an indoor continuous-space scenario and an outdoor dynamic scenario have validated the key components 13 
+
+of DMcD. The HCM matched the measured dispersion char-acteristics. The inductE-GNN achieved lower NMSE than baselines and showed stable interpolation performance under different sampling densities. Finally, the DMcD produced maps that better preserved continuity and location-specific channel structures, and tracked time-varying delay PSD of measurements well. REFERENCES [1] C.-X. Wang et al. , “On the road to 6G: Visions, requirements, key technologies and testbeds,” IEEE Commun. Surveys Tuts. , vol. 25, no. 2, pp. 905–974, 2nd Quart. 2023. [2] R. Zhang et al. , “Generative AI-enabled vehicular networks: Fundamen-tals, framework, and case study,” IEEE Network , vol. 38, no. 4, pp. 259–267, Jul. 2024. [3] K. B. Letaief, Y. Shi, J. Lu, and J. Lu, “Edge artificial intelligence for 6G: Vision, enabling technologies, and applications,” IEEE J. Sel. Areas Commun. , vol. 40, no. 1, pp. 5–36, Jan. 2022. [4] M. Li, J. Gao, L. Zhao, and X. Shen, “Deep reinforcement learning for collaborative edge computing in vehicular networks,” IEEE Trans. Cogn. Commun. Netw. , vol. 6, no. 4, pp. 1122–1135, Dec. 2020. [5] F. Liu et al. , “Integrated sensing and communications: Toward dual-functional wireless networks for 6G and beyond,” IEEE J. Sel. Areas Commun. , vol. 40, no. 6, pp. 1728–1767, June 2022. [6] Y. Heng and J. G. Andrews, “Machine learning-assisted beam alignment for mmWave systems,” IEEE Trans. Cogn. Commun. Netw. , vol. 7, no. 4, pp. 1142–1155, Dec. 2021. [7] R. Zhang et al. , “Toward agentic AI: Generative information retrieval inspired intelligent communications and networking,” IEEE Commun. Mag. , 2025, early access. [8] C. Zhao, G. Liu et al. , “Edge general intelligence through world models and agentic AI: Fundamentals, solutions, and challenges,” arXiv preprint arXiv:2508.09561 , 2025. [9] Y. Zeng et al. , “A tutorial on environment-aware communications via channel knowledge map for 6G,” IEEE Commun. Surveys Tuts. , vol. 26, no. 3, pp. 1478–1519, 3rd Quart. 2024. [10] C.-X. Wang et al. , “Modeling, capacity studies, antenna and system designs for 6G/B6G 3D continuous-space radio channels enabled by electromagnetic information theory,” IEEE Commun. Surveys Tuts. , 2025, early access. [11] C.-X. Wang, Y. Yang, J. Huang, X. Gao, T. J. Cui, and L. Hanzo, “Electromagnetic information theory: Fundamentals and applications for 6G wireless communication systems,” IEEE Wireless Commun. , vol. 31, no. 5, pp. 279–286, Oct. 2024. [12] X. Wang, K. Tao, N. Cheng, Z. Yin, Z. Li, Y. Zhang, and X. Shen, “Radiodiff: An effective generative diffusion model for sampling-free dynamic radio map construction,” IEEE Trans. Cogn. Commun. Netw. ,vol. 11, no. 2, pp. 738–750, Apr. 2025. [13] Y.-Q. Xu, B. Zhang, G. Ding et al. , “Radio environment map construction based on spatial statistics and bayesian hierarchical model,” IEEE Trans. Cogn. Commun. Netw. , vol. 7, no. 3, pp. 767–779, Sept. 2021. [14] T. Qi, C.-X. Wang, C. Huang, J. Shi, J. Li, S. Chen, and H. Aggoune, “A novel 6G dynamic channel map based on a hybrid channel model,” 
+
+IEEE Trans. Veh. Technol. , 2025, early access. [15] S. Chen et al. , “Channel map-based angle domain multiple access for cell-free massive MIMO communications,” IEEE J. Sel. Top. Signal Process. , vol. 19, no. 2, pp. 366–380, Mar. 2025. [16] Y. Zeng and X. Xu, “Toward environment-aware 6G communications via channel knowledge map,” IEEE Wireless Commun. , vol. 28, no. 3, pp. 84–91, June 2021. [17] H. Zhang, D. Wu, and Y. Zeng, “Strategic application of AIGC for UAV trajectory design: A channel knowledge map approach,” IEEE Wireless Commun. Lett. , vol. 14, no. 1, pp. 168–172, Jan. 2025. [18] H. Zhang, D. Wu, and Y. Zeng, “Positioning error compensation by channel knowledge map for location-based services,” IEEE Wireless Commun. Lett. , vol. 13, no. 3, pp. 706–710, Mar. 2024. [19] C.-X. Wang et al. , “An enhanced 6G pervasive channel model towards standardization,” Sci. China Inf. Sci , vol. 68, no. 6, pp. 162 301:1–162 301:22, June 2025. [20] C.-X. Wang, Z. Lv, X. Gao, X.-H. You, Y. Hao, and H. Haas, “Pervasive wireless channel modeling theory and applications to 6G GBSMs for all frequency bands and all scenarios,” IEEE Trans. Veh. Technol. , vol. 71, no. 9, pp. 9159–9173, Sep. 2022. [21] Q. Zhu, W. Zhong, K. Mao, F. Bai, and Z. Zhong, “Map-based channel modeling and generation for U2V mmwave communications,” IEEE Trans. Veh. Technol. , vol. 71, no. 5, pp. 5099–5109, May 2022. [22] Y. Wang, D. Wu, and Y. Zeng, “Sparse Bayesian learning-based hierarchical construction for channel knowledge map,” IEEE Commun. Lett. , vol. 28, no. 4, pp. 917–921, Apr. 2024. [23] Y. Sun, D. Wu, and Y. Zeng, “Channel gain map estimation for wireless networks based on scatterer model,” IEEE Commun. Lett. , vol. 29, no. 1, pp. 105–109, Jan. 2025. [24] Y. Yang, C.-X. Wang, J. Huang, J. Thompson, and H. V. Poor, “A 3D continuous-space electromagnetic channel model for 6G tri-polarized multi-user communications,” IEEE Trans. Wireless Commun. , vol. 23, no. 11, pp. 17 354–17 367, Nov. 2024. [25] K. Sato and T. Fujii, “Kriging-based interference power constraint: Integrated design of the radio environment map and transmission power,” 
+
+IEEE Trans. Cogn. Commun. Netw. , vol. 3, no. 1, pp. 13–25, Jan. 2017. [26] D. Wu, Y. Zeng, S. Jin, and R. Zhang, “CKMImageNet: A comprehensive dataset to enable channel knowledge map-based wireless communica-tions,” IEEE Wireless Commun. Lett. , vol. 13, no. 3, pp. 844–848, Mar. 2024. [27] Y. Wang, D. Wu, and Y. Zeng, “Deep learning-based CKM construction with image super-resolution,” IEEE Wireless Commun. Lett. , vol. 14, no. 2, pp. 466–470, Feb. 2025. [28] H. Xiao, W. Tian, W. Liu, and J. Shen, “ChannelGAN: Deep learning-based channel modeling and generating,” IEEE Wireless Commun. Lett. ,vol. 11, no. 3, pp. 650–654, Mar. 2022. [29] G. Liang et al. , “Data augmentation for predictive digital twin channel: Learning multi-domain correlations by convolutional TimeGAN,” IEEE J. Sel. Top. Signal Process. , vol. 18, no. 1, pp. 18–33, Jan. 2024. [30] K. Tonchev, A. Ivanov, N. Neshov, A. Manolova, and V. Poulkov, “Learn-ing graph convolutional neural networks to predict radio environment maps,” in Proc. WPMC’22 , Herning, Denmark, Oct. 2022, pp. 392–395. [31] Y. Sun, J. Zhang, Y. Zhang, L. Yu, Q. Wang, and G. Liu, “Environment information-based channel prediction method assisted by graph neural network,” China Commun. , vol. 19, no. 11, pp. 1–15, Nov. 2022. [32] T. Qi, C.-X. Wang, C. Huang, J. Li, X. Wu, and J. Thompson, “28 GHz indoor continuous-space channel measurements and AI-enabled 6G channel map construction,” IEEE Trans. Commun. , 2025, major revision. [33] C. Huang et al. , “Artificial intelligence enabled radio propagation for communications—part I: Channel characterization and antenna-channel optimization,” IEEE Trans. Antennas Propag. , vol. 70, no. 6, pp. 3939– 3954, June 2022. [34] C. Huang et al. , “Artificial intelligence enabled radio propagation for communications—part II: Scenario identification and channel modeling,” 
+
+IEEE Trans. Antennas Propag. , vol. 70, no. 6, pp. 3955–3969, June 2022. [35] J. Huang, C.-X. Wang, R. Feng, J. Sun, W. Zhang, and Y. Yang, “Multi-frequency mmWave massive MIMO channel measurements and characterization for 5G wireless communication systems,” IEEE J. Sel. Areas Commun. , vol. 35, no. 7, pp. 1591–1605, Jul. 2017. [36] B. H. Fleury, M. Tschudin, R. Heddergott, D. Dahlhaus, and K. I. Pedersen, “Channel parameter estimation in mobile radio environments using the SAGE algorithm,” IEEE J. Sel. Areas Commun. , vol. 17, no. 3, pp. 434–450, Mar. 1999. [37] L. Zhang et al. , “A novel geometry-based stochastic model for indoor scenarios incorporating dense multipath components towards standard-ization,” IEEE Trans. Veh. Technol. , vol. 74, no. 7, pp. 10 927–10 942, Jul. 2025. [38] V. Degli-Esposti, F. Fuschini, E. M. Vitucci, and G. Falciasecca, “Measurement and modelling of scattering from buildings,” IEEE Trans. Antennas Propag. , vol. 55, no. 1, pp. 143–153, Jan. 2007. [39] J. Poutanen, J. Salmi, K. Haneda, V.-M. Kolmonen, F. Tufvesson, and P. Vainikainen, “Propagation characteristics of dense multipath components,” IEEE Antennas Wireless Propag. Lett. , vol. 9, pp. 791–794, 2010. [40] Y. Li, C.-X. Wang, and Y. Liu, “A 3D non-stationary geometry-based stochastic model for industrial automation wireless communication systems,” in Proc. IEEE PIMRC’21 , Helsinki, Finland, 2021, pp. 916– 921. [41] D. Shepard, “A two-dimensional interpolation function for irregularly-spaced data,” in Proc. ACM’68 , New York, NY, USA, 1968, pp. 517–524. [42] W. L. Hamilton, R. Ying, and J. Leskovec, “Inductive representation learning on large graphs,” in Proc. NeurIPS’17 , Red Hook, NY, USA, 2017, pp. 1025–1035. [43] A. F. Molisch, Wireless Communications . Hoboken, NJ, USA: Wiley, Feb. 2012, vol. 34.
