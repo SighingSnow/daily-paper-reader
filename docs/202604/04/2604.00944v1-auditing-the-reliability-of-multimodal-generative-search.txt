@@ -1,0 +1,428 @@
+Title: Auditing the Reliability of Multimodal Generative Search
+
+URL Source: https://arxiv.org/pdf/2604.00944v1
+
+Published Time: Thu, 02 Apr 2026 01:21:49 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Auditing the Reliability of Multimodal Generative Search 
+
+# Erfan Samieyan Sahneh 1, 2 , Luca Maria Aiello 1
+
+> 1
+
+IT University of Copenhagen, Denmark 
+
+> 2
+
+University of Bologna, Italy erfan.samieyansahneh@studio.unibo.it, luai@itu.dk 
+
+Abstract 
+
+Multimodal Large Language Models (MLLMs) increasingly function as generative search systems that retrieve and syn-thesize answers from multimedia content, including YouTube videos. Although these systems project authority by citing specific videos as evidence, the extent to which these ci-tations genuinely substantiate the generated claims remains unexamined. We present a large-scale audit of the Gemini 2.5 Pro multimodal search system, analyzing 11,943 claim-video pairs generated across Medical, Economic, and Gen-eral domains. Through automated verification using three in-dependent LLM judges (87.7% inter-rater agreement), vali-dated against human annotations, we find that depending on the judge’s strictness, between 3.7% and 18.7% of video-grounded claims are not supported by their cited sources. The dominant failure modes are not outright contradictions but rather unverifiable specificities and overstated claims, sug-gesting the system injects precise but ungrounded details from parametric knowledge while citing videos as evidence. Exploratory post-hoc analysis via logistic regression reveals properties associated with these failures: claims departing from source vocabulary ( β = −1.6 to −3.1, p < 0.01 )and claims with low semantic similarity to the video tran-script ( β = −2.1 to −11 .6, p < 0.01 ) are significantly more likely to be unsupported. These findings characterize the current trustworthiness of video-based generative search and highlight the gap between the confidence these systems project and the fidelity of their outputs. 
+
+Keywords: Multimodal LLMs, Multimodal Search, Algo-rithmic Auditing 
+
+# Introduction 
+
+Multimodal Large Language Models (MLLMs) increasingly function as generative search systems that autonomously retrieve multimedia content and synthesize answers (Jiang et al. 2025; Zhang et al. 2025). These systems can process user queries, access the content of online videos, and re-turn factual claims that cite specific videos as supporting evidence. The impact of this type of multimodal search on online information-seeking outcomes is bound to grow, as users increasingly turn to multimedia-rich social platforms for critical information needs such as medical guidance, fi-nancial decisions, and other high-stakes queries (Newman 
+
+Copyright © 2025, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+et al. 2025; Pew Research Center 2025). A recent audit of over 50,000 health-related queries found that Google’s AI Overviews already cite YouTube more than any hospital, government health portal, or medical association (SE Rank-ing 2026), making video content from open platforms a core source of sensitive information at scale. Yet, when these systems generate factual claims and cite specific videos as evidence, the faithfulness of those claims to the source material is not guaranteed, raising fundamen-tal questions about the epistemic reliability of video-based generative search. This is of particular concern given that most users confidently rely on the answers these systems provide (Passi, Dhanorkar, and Vorvoreanu 2025; Møller et al. 2026). Unlike text-based retrieval-augmented gener-ation (RAG), where sources can be readily inspected, video presents unique challenges: transcripts may contain errors originating from Automated Speech Recognition (ASR), vi-sual content may contradict spoken words, and video length makes manual verification impractical. Verifying a video-grounded claim requires identifying a specific detail within a long video, a cost that virtually no user will pay for claims that already sound authoritative. In this sense, the ci-tation functions less as a verifiable reference and more as a trust signal, projecting accountability without necessar-ily providing it. While prior work has studied hallucination in text-based LLMs (Ji et al. 2023) and visual hallucina-tion in videos (Lu et al. 2025; Gao et al. 2025), no study has systematically examined whether video-grounded fac-tual claims produced by generative search systems are actu-ally supported by their cited sources. To address this gap, we present a large-scale audit of video-grounded claims, in the tradition of black-box algo-rithmic auditing (Buolamwini and Gebru 2018; Raji et al. 2020). We use the term video-grounded to refer to claims generated from video content via multimodal processing, without presupposing that the cited videos actually support those claims. Evaluating the faithfulness of this ground-ing is precisely the object of our audit. We do not assume knowledge of the system’s internal retrieval or generation mechanisms; instead, we evaluate its end-to-end function-ality. We analyze 11,943 claim–video pairs across Medi-cal (7,084), Economic (779), and General (4,080) domains. We focus on the Gemini 2.5 Pro model, currently the only MLLM operating as a generative search system with in-
+
+> arXiv:2604.00944v1 [cs.CY] 1 Apr 2026
+
+tegrated video retrieval capabilities. The Gemini models power Google Search, which dominates the global search engine market (Hu et al. 2024). Our audit reveals that a non-trivial fraction of claims lack support from their cited video sources, with rates vary-ing substantially by domain and evaluation stringency. Cru-cially, the dominant failure modes are not outright contra-dictions but rather unverifiable specificities and overstated claims, a pattern consistent with the injection of precise but ungrounded details from parametric knowledge (Xu et al. 2024). These are precisely the failure modes least detectable by users; a claim that adds an exact percentage or a spe-cific entity name not mentioned in the video may in fact sound more authoritative. Exploratory post-hoc analysis fur-ther reveals that claims departing from source vocabulary and claims with low semantic alignment to video transcripts are significantly more likely to be unsupported, suggesting that lexical fidelity and meaning preservation independently contribute to source grounding quality. 
+
+Contributions: We present the first systematic, large-scale audit of video-grounded claim verifiability in a de-ployed MLLM generative search system, quantifying the trustworthiness of the user experience across three domains. Through this extensive evaluation, we introduce an error tax-onomy with estimates of the frequency of different error cat-egories. Finally, we provide an exploratory regression anal-ysis identifying lexical overlap and transcript semantic simi-larity as two distinct, complementary properties that charac-terize when generated claims lack source support. Our con-tribution is not a comparative claim about video versus text grounding, but a characterization of trustworthiness within a modality where verification is uniquely costly for users. 
+
+# Related Work 
+
+Hallucination in LLMs. Prior work categorizes hallucina-tions as intrinsic (contradicting sources) or extrinsic (unver-ifiable) (Ji et al. 2023). Benchmarks like TruthfulQA (Lin, Hilton, and Evans 2022) evaluate text-only settings, while FActScore (Min et al. 2023) introduced atomic-level fac-tuality evaluation by decomposing generations into verifi-able claims. Our work examines whether both failure modes manifest when claims are grounded in autonomously re-trieved video sources. 
+
+From RAG to Generative Search. While RAG faith-fulness has been benchmarked in text-based settings (Tam-ber et al. 2025; Jacovi et al. 2025), recent audits of de-ployed generative search engines reveal substantial gaps. Only 51.5% of generated statements are fully supported by their citations (Liu, Zhang, and Liang 2023), and statement-level audits of deep research agents find citation accu-racy ranging from 40–80% across systems (Venkit et al. 2025), with answer engines frequently producing halluci-nated or misattributed claims despite appearing authorita-tive (Narayanan Venkit et al. 2025). However, these au-dits exclusively evaluate text-grounded systems. Video in-troduces additional complexity through multimodal synthe-sis and temporal alignment, and no prior work has empiri-cally audited the verifiability of claims produced by video-based generative search systems. 
+
+Video Hallucination in Multimodal LLMs. Recent benchmarks have assessed hallucinations in video-based MLLMs across temporal reasoning (Li, Im, and Fazli 2025), semantic aggregation in long videos (Lu et al. 2025), and hallucination causes and formats across multiple mod-els (Gao et al. 2025). While these benchmarks measure how well MLLMs perceive video content, they do not address whether factual claims generated and cited by a genera-tive search system are supported by their cited sources. Our work audits this end-to-end verifiability in a deployed sys-tem rather than assessing perceptual accuracy in controlled QA settings. 
+
+Algorithmic Auditing. Black-box algorithmic auditing evaluates system outputs without access to internal mecha-nisms (Sandvig et al. 2014). Influential audits have exposed biases in facial recognition (Buolamwini and Gebru 2018) and language model toxicity (Gehman et al. 2020). We extend this tradition to the verifiability of video-grounded claims in multimodal generative search. 
+
+# Methodology 
+
+Study Design 
+
+Our audit follows the black-box algorithmic auditing tra-dition (Buolamwini and Gebru 2018), evaluating only the end-to-end user-facing output of the system without as-suming knowledge of its internal retrieval or generation mechanisms. We proceed in three stages. First, we submit queries to Gemini 2.5 Pro, which autonomously retrieves YouTube videos and returns responses containing factual claims linked to specific videos. Second, we extract these claim–video pairs and independently retrieve each video’s textual evidence (transcript, title, description, upload date). Third, we submit each claim and its corresponding evidence to a panel of three LLM judges, who independently assess whether the cited video supports the claim. Figure 1 illus-trates this pipeline. This yields a dataset of 11,943 verified claim–video pairs across three domains: Medical (7,084), Economic (779), and General (4,080). In a subsequent exploratory stage, we com-pute structural, lexical, and semantic features of the same pairs and use logistic regression to characterize which ob-servable properties are associated with verification failure. The verification and feature analysis stages are causally in-dependent: judges have no access to engineered features, and features do not inform the judges’ decisions. The following subsections detail each element of this pipeline: the query sources and domain selection (Data Col-lection), the multi-judge verification protocol, human vali-dation of judge reliability, the feature engineering process, and the statistical analysis framework. 
+
+Multimodal search model 
+
+We audit Gemini 2.5 Pro, currently the only MLLM operat-ing as a generative search system with integrated video re-trieval capabilities. For each query, we prompted the system with a zero-shot instruction requesting claims supported by YouTube videos. The system autonomously searches for and Veri fi cation stage (independent per judge) Claim + source text per pair 
+
+> Queries
+> Medical, Economic, General
+> Multimodal LLM
+> (Gemini 2.5 Pro)
+> Claim-video pairs
+> N = 11,943
+> Claims
+> Factual statements + context
+> Textual extraction
+> Transcript + metadata
+> Gemini 3 Flash
+> 7 verdict categories
+> Grok 4.1 Fast
+> 7 verdict categories
+> GPT-5.2
+> 7 verdict categories
+> Per-claim verdicts
+> Supported vs. Unsupported
+> Error rates and taxonomy
+> RQ1: How often does the system fail?
+> Exploratory regression analysis
+> RQ2: What properties signal failure?
+
+Figure 1: Overview of the auditing pipeline. Queries from three domains are submitted to a multimodal LLM (Gemini 2.5 Pro), which returns claims citing YouTube videos. Each claim–video pair is split into its factual claim and independently extracted textual content: transcript (generated via Whisper ASR), title, description, and upload date. The combined claim and source text are then submitted to three independent LLM judges for verification, yielding per-claim verdicts that inform error-rate analysis and exploratory regression. retrieves relevant videos, then generates a response contain-ing factual claims with citations to specific YouTube URLs. We parsed the returned grounding metadata to extract individual factual claims and their corresponding YouTube URLs, capturing the surrounding context for co-reference resolution (e.g., resolving “it” to “the treatment”). Each extracted claim–video pair constitutes one unit of anal-ysis in our audit. We make no assumptions about the sys-tem’s internal retrieval mechanism, the modalities it pro-cesses, or how it selects which videos to cite. 
+
+Data Collection 
+
+Query Sources. We gathered queries from three domains to evaluate domain-specific failure modes: • Medical (1,000 queries): Health and wellness ques-tions sampled from the Comprehensive Medical Q&A Dataset (TheDevastator 2023). • Economic (109 queries): Financial and market-related questions drawn from the hard web-question subset of FinGPT Search Agents (Tian et al. 2024). • General (1,000 queries): Broad knowledge questions sampled from Google’s Natural Questions (Kwiatkowski et al. 2019). 
+
+Filtering. To ensure a rigorous evaluation of standalone facts, we removed claims shorter than 60 characters, retained only single-video citations to isolate source attribution, and excluded failed metadata retrievals, yielding 11,943 dis-tinct claim–video pairs (Medical: 7,084; Economic: 779; General: 4,080). Figure 2 summarizes the resulting dataset across the three domains, showing the distributions of claim length, video duration, and upload dates of cited videos. 
+
+Textual Extraction. For each cited video, we indepen-dently extracted the textual metadata serving as verifica-tion evidence: transcript (generated via the Whisper Auto-mated Speech Recognition model), title, description, video duration, and upload date. We emphasize that these are ex-tracted independently by our auditing pipeline. We make no assumptions about what information the generating system internally accessed or how it processed the cited videos. Our audit does rest on one deliberate assumption: that when the system cites a video as evidence for a claim, a user would reasonably expect that video to support the claim. This re-flects the user-facing contract implied by the citation, and it is precisely this contract that we evaluate. 100 200 300 400      
+
+> (a) Claim Length (chars)
+> 0.000
+> 0.002
+> 0.004
+> 0.006
+> 0.008
+> 0.010
+> Density
+> 050 100
+> (b) Video Duration (min)
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> 2010 2020
+> (c) Upload Year
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> Economic (N=779) General (N=4,080) Medical (N=7,084)
+
+Figure 2: Dataset overview across three domains. (a) Claim length distributions are right-skewed but similar in shape across domains. (b) Video duration distributions. (c) Upload date distributions of cited videos. 
+
+Multi-Judge Verification Protocol 
+
+For each claim–video pair, we assess whether the claim is supported by the cited video’s textual evidence. We employ three independent LLM judges from different model fami-lies: Gemini 3 Flash, Grok 4.1 Fast, and gpt-5.2. Using mul-tiple judges from different families accounts for the inher-ent ambiguity in verification, where the boundary between a faithful summary and an unsupported extrapolation is often unclear. Each judge receives a claim, its surrounding context from the generated response (used solely for coreference resolu-tion, e.g., resolving “it” to “the treatment”), and the video’s textual evidence: transcript, title, description, and upload date. Based on this evidence, the judge classifies the claim into one of seven mutually exclusive categories. A claim is labeled SUPPORTED if it is a valid summary or extraction of the evidence, else it is labeled as UNSUPPORTED . Unsup-ported claims are further specified into sub-categories, in-cluding: i) CONTRADICTED if it explicitly conflicts with the evidence, ii) OVERSTATED if it exaggerates the certainty or scope of what the evidence conveys, iii) UNDERSTATED 
+
+for claims that significantly downplay the evidence, iv) 
+
+UNVERIFIABLE for claims that assert specific details ab-sent from all sources, v) TEMPORAL MISMATCH for claims referencing events after the video’s upload date, and vi) 
+
+EMOTION DISTORTION for claims that misinterpret sar-casm or tonal cues. All judges use the same highly constrained, zero-shot sys-tem prompt (temperature = 0), designed to enforce consis-tent evaluation. The prompt anchors temporal claims to the video’s upload date and instructs judges to use the surround-ing context only for disambiguation, never as evidence. The full prompt and design variants are discussed in Appendix . 
+
+Inter-Rater Agreement: The binary agreement across all three judges was Medical 88.9%, Economic 91.1%, General 85.0%, yielding an Overall 87.7% . Figure 3 shows pairwise agreement rates: Gemini-3 and Grok-4.1 exhibit high con-cordance ( >96%), while pairs involving gpt-5.2 show lower agreement, reflecting its stricter evaluation criteria, a pattern Economic General Medical       
+
+> Gemini-3
+> vs Grok-4.1
+> Gemini-3
+> vs GPT-5.2
+> Grok-4.1
+> vs GPT-5.2
+> 97.3% 96.5% 97.7%
+> 92.6% 86.3% 90.1%
+> 92.4% 87.1% 90.0%
+> 85
+> 90
+> 95
+> 100
+> Agreement (%)
+
+Figure 3: Pairwise agreement rates between LLM judges across domains. Circle size and color encode agreement per-centage. Gemini-3 and Grok-4.1 show high concordance (>96%), while pairs involving gpt-5.2 show lower agree-ment, reflecting its stricter evaluation criteria. we examine further in the Results. 
+
+Human Validation 
+
+To validate the reliability of unsupported verdicts, which drive our main findings, two annotators independently re-viewed a stratified sample of 49 claims flagged as unsup-ported by Gemini 3 Flash across all three domains. Anno-tators used the same codebook and evidence hierarchy pro-vided to the LLM judges, classifying each claim as either SUPPORTED or U NSUPPORTED based on the video’s textual evidence. Inter-annotator agreement was 87.8%. Under a conserva-tive consensus rule (a claim is considered supported only if 
+
+both annotators independently agree), 47 of 49 claims were judged unsupported. We then computed each judge’s agree-ment with the human consensus on these 49 claims (Ta-Judge Flagged Not Flagged Agreement          
+
+> Gemini 3 Flash 49 095.9% gpt-5.2 46 393.9% Grok 4.1 Fast 39 10 75.5%
+
+Table 1: LLM vs. human consensus on 49 claims sampled from Gemini 3 Flash’s unsupported verdicts. Flagged =judge classified claim as unsupported; Not Flagged = judge classified claim as supported. Human consensus follows a conservative rule: a claim is considered supported only if both annotators independently agree. ble 1). Gemini 3 Flash and gpt-5.2 show strong alignment with human consensus (95.9% and 93.9%), confirming that their unsupported verdicts are highly reliable. Grok 4.1 Fast shows lower agreement (75.5%), driven by 10 claims it clas-sified as supported that humans judged unsupported, sug-gesting a more lenient verification threshold relative to hu-man annotators. Notably, false alarms (claims flagged by the judge but deemed supported by humans) were rare across all three judges ( ≤2 cases each), indicating that the judges are unlikely to spuriously inflate unsupported claim rates. 
+
+Feature Engineering (Post-Hoc Analysis) 
+
+After the verification stage, we conduct an exploratory anal-ysis to understand what observable properties of claims are associated with verification failure. We design features around three hypotheses about how unsupported claims might differ from supported ones. First, if the generating system fabricates details not present in the source, we would expect unsupported claims to share less vocabulary with the cited video. We capture this through lexical features that measure exact overlap be-tween claim terms and source text. Second, even when vo-cabulary overlaps, a claim may distort the overall meaning of the source. We capture this through semantic features that measure embedding-level similarity between the claim and different components of the video’s evidence. Third, longer claims contain more surface area for ungrounded details, and longer videos may make faithful grounding harder. We cap-ture this through structural features measuring claim length and video duration. These features are computed independently of the veri-fication stage; the LLM judges have no access to any of them. For lexical features, we employ a deliberately con-servative exact-match approach to measure verbatim vocab-ulary preservation rather than semantic equivalence. 
+
+Lexical Features. For each claim, we parse the claim text using spaCy’s en core web trf transformer-based pipeline to extract noun chunks, named entities, and numeric entities. We then measure lexical overlap against the con-catenated source text (transcript + title + description) via exact substring matching. This concatenation ensures that lexical features capture overlap with any part of the video’s textual evidence, whereas semantic features (below) mea-sure similarity to each source independently. • Noun Overlap : Proportion of noun chunks in the claim found in the source text. A match is counted if either the original surface form or the lemmatized form appears as an exact substring in the source, providing a conserva-tive test that accommodates only morphological variation (e.g., “treatments” matching “treatment”) while rejecting semantic variations. • Entity Precision : Proportion of named entities (e.g., per-sons, organizations, locations) in the claim found in the source via exact substring matching. • Numeric Precision : Proportion of numeric enti-ties (CARDINAL , MONEY , PERCENT , QUANTITY ,
+
+ORDINAL ) in the claim found in the source via exact substring matching. For all three lexical features, when a claim contains no instances of the relevant category (e.g., no named entities), precision is undefined. We assign a default value of 1.0, treating the absence of verifiable elements as satisfied. This strict criterion measures verbatim vocabulary preservation rather than semantic equivalence, providing a conservative test of extractive behavior. Importantly, only the claim text is parsed with spaCy; source texts are used as raw lowercase strings, ensuring that the matching direction is from claim to source. 
+
+Semantic Features (BGE-M3 embeddings). Unlike the lexical features above, semantic features measure similarity to each source component independently using cosine simi-larity between BGE-M3 normalized embeddings. For longer texts (descriptions and transcripts), we chunk the source into 300-word windows with 50-word overlap and report the maximum similarity between the claim and any chunk. • Claim-Title Similarity : Cosine similarity between the claim and the video title. • Claim-Description Similarity : Maximum chunk-level similarity with the video description. • Claim-Transcript Similarity : Maximum chunk-level sim-ilarity with the video transcript. We additionally compute a composite feature, Maximum Source Similarity (the maximum of the three individual sim-ilarities), for a combined regression model reported in Ap-pendix . 
+
+Structural Features: Claim word count, log-transformed video duration ( log(1 + duration )). 
+
+Regression Analysis of Verification Failure 
+
+We model error probability via multivariate logistic regres-sion: 
+
+log 
+
+ P (error )1 − P (error )
+
+
+
+= β0 + X
+
+> i
+
+βiXi
+
+We estimate separate logistic regression models for each domain × judge combination. All 9 models converged suc-cessfully within 6–8 iterations. We report log-odds coeffi-cients ( β), standard errors, p-values, and pseudo R2. Vari-ance Inflation Factors (VIF) are < 2 for all features across all models, indicating no problematic multicollinearity. Note Economic  
+
+> (N=779)
+> General
+> (N=4,080)
+> Medical
+> (N=7,084)
+> 0
+> 5
+> 10
+> 15
+> 20
+> Unsupported Claims (%)
+> 5.5 6.0
+> 3.8
+> 5.1
+> 6.5
+> 3.7
+> 12.2
+> 18.7
+> 13.3
+> Gemini-3 Flash
+> Grok-4.1 Fast
+> GPT-5.2
+
+Figure 4: Unsupported Claims (%) by Domain and Judge. gpt-5.2 shows significantly higher error detection rates, re-flecting its stricter threshold for OVERSTATED claims. that we compare domain-specific effects by examining co-efficient patterns across separate regressions rather than for-mally testing cross-domain differences via interaction terms. We emphasize that the logistic regression serves as an exploratory tool for characterizing which observable claim properties co-occur with verification failure. It is not in-tended as a predictive classifier or a deployable diagnos-tic; the pseudo R2 values reflect the expected reality that much of the variance in verification outcomes is driven by claim-specific content that structural features cannot cap-ture. The primary contribution of this audit is the verification itself, quantifying how often and how the system fails users, with the regression providing supplementary insight into the structure of those failures. 
+
+# Results 
+
+Error Rates and Taxonomy 
+
+Figure 4 details the baseline error rates by domain and judge. We observe a significant divergence in strictness: gpt-5.2 identifies roughly 2–3 × more unsupported claims (12.2% – 18.7%) than Gemini-3 Flash (3.8% – 6.0%) and Grok-4.1 Fast (3.7% – 6.5%). This divergence is rooted in how different models cat-egorize verification failures, detailed in Table 2. For gpt-5.2, errors are overwhelmingly classified as OVERSTATED 
+
+(60.3% to 66.2% of all detected unsupported claims, across domains), indicating the model frequently flags claims that exaggerate the scope or certainty of the video’s content. Conversely, Gemini-3 and Grok-4.1 predominantly flag er-rors as UNVERIFIABLE (58.1% to 82.0%). This represents a “specificity hallucination” pattern, where the generating system injects precise details (e.g., exact dates, unmentioned entity names) that cannot be traced to the cited source. Ex-plicit CONTRADICTED errors represent a smaller minority of failures across all judges. From the user’s perspective, these error rates define the trustworthiness of the system. Even under the most lenient judges (Gemini-3 and Grok-4.1), roughly 1 in 20 to 1 in 15 claims citing a YouTube video is not supported by that video. Under the strictest judge (gpt-5.2), this rises to roughly 1 in 5 for the General domain. Moreover, the nature of these fail-ures, predominantly unverifiable specificities and overstated claims rather than obvious contradictions, makes them par-ticularly difficult for users to detect without consulting the original source. We note that the base error rates for Gemini-3 and Grok-4.1 in the Medical domain are relatively low (3.8% and 3.7%, corresponding to 272 and 262 errors out of 7,084 claims). 
+
+Regression Results 
+
+Figure 5 presents the logistic regression coefficients identi-fying properties associated with verification failure across all three domains. Two features stand out as consistently strong protective predictors. Noun overlap is significant across all 9 models ( β = −1.646 to −3.066 , all p < 0.01 ), while transcript similarity emerges as the strongest protec-tive factor overall, with coefficients substantially larger in magnitude than those for any other feature. Figure 6 con-firms this, showing error rates declining as transcript simi-larity increases. This indicates that claims aligned with the spoken content of cited videos are far more likely to be veri-fied as supported; superficial alignment with video metadata alone is insufficient. Although noun overlap and transcript similarity are con-ceptually related, they capture distinct dimensions of source fidelity: transcript similarity measures semantic alignment via dense embeddings, whereas noun overlap measures ver-batim vocabulary preservation via exact matching. A claim can be semantically similar to the transcript while using en-tirely different words, or reuse key noun phrases while dis-torting overall meaning. The low multicollinearity between these features (VIF < 2.0 across all models) confirms their empirical independence, and both are independently signifi-cant in the regression. Figure 7 shows this complementarity descriptively: error rates increase monotonically as claims move away from the source on either dimension. Title similarity, by contrast, shows weak and inconsis-tent effects, with occasionally positive (risk-increasing) co-efficients, suggesting that the primary correlate of verifica-tion failure is insufficient alignment with transcript content rather than over-reliance on titles. Claim word count consis-tently predicts verification failure, with longer claims pro-viding more surface area for ungrounded details. Entity pre-cision shows significant protective effects in the Economic and General domains but not in Medical, where 79.2% of claims contain no named entities, leaving too sparse data for the regression to detect an effect. 
+
+# Discussion 
+
+How Trustworthy Is the User Experience? 
+
+Our audit shows that the system produces claims supported by the cited video in the large majority of cases. Yet, a non-Economic General Medical Label Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 CONTRADICTED 16.3% 15.0% 10.5% 18.9% 13.6% 9.0% 7.7% 7.3% 4.1% OVERSTATED 7.0% 17.5% 65.3% 6.2% 11.4% 60.3% 8.8% 11.1% 66.2% TEMPORAL MISMATCH 14.0% 0.0% 0.0% 3.7% 0.0% 0.3% 0.4% 0.0% 0.0% UNDERSTATED 4.7% 0.0% 0.0% 0.4% 0.0% 0.1% 1.1% 0.0% 1.5% UNVERIFIABLE 58.1% 67.5% 24.2% 70.8% 75.0% 30.3% 82.0% 81.7% 28.2% 
+
+Table 2: Error Type Distribution (%) by Domain and Judge. gpt-5.2 categorizes the majority of errors as OVERSTATED, while Gemini and Grok primarily flag UNVERIFIABLE specificities. −10 −5 0 5       
+
+> Coefficient
+> Transcript Sim.
+> Noun Overlap
+> Desc. Similarity
+> Entity Precision
+> Numeric Precision
+> Word Count
+> Title Similarity
+> ***
+> ***
+> *
+> ***
+> *
+> ***
+> *
+> Economic
+> −4 −3 −2 −1 0
+> Coefficient
+> Transcript Sim.
+> Noun Overlap
+> Desc. Similarity
+> Entity Precision
+> Word Count
+> ***
+> ***
+> *
+> ***
+> ***
+> General
+> −5.0 −2.5 0.0 2.5
+> Coefficient
+> Transcript Sim.
+> Noun Overlap
+> Word Count
+> Desc. Similarity
+> Title Similarity
+> ***
+> ***
+> ***
+> *
+> **
+> Medical
+
+Figure 5: Significant logistic regression coefficients by domain. Each point shows the mean coefficient across three judges; error bars show the averaged 95% confidence intervals. Only features with at least one significant coefficient ( p < 0.1) across judges are shown. Significance levels: ∗p < 0.1, ∗∗ p < 0.05 , ∗∗∗ p < 0.01 . Transcript similarity and noun overlap are consistently the strongest protective predictors across all domains, while word count is the only consistent risk factor. trivial fraction (from 1 in 25 to 1 in 5 depending on domain and evaluation stringency), are not supported by the video they cite. From the user’s perspective, these unsupported claims are indistinguishable from supported ones: they are presented with the same confidence, the same citation for-mat, and the same implicit guarantee that the source sub-stantiates the claim. The nature of these failures is particularly critical, given the trust that users have in the system’s responses. The sys-tem predominantly produces claims containing unverifiable specificities and overstated conclusions rather than outright contradictions. These are failure modes that are hardly de-tectable by users: a claim that adds an exact percentage, a specific date, or a named entity not mentioned in the video 
+
+sounds more authoritative, not less. This trust problem is compounded by the verification asymmetry inherent to video citations. When a generative search system cites a webpage, a user can verify the claim in seconds by searching the page for the relevant passage. When the system cites a YouTube video, the same verifica-tion requires scrubbing through content that may be minutes or hours long, with no equivalent of a text search for spoken content. This means that even a modest error rate in video-grounded search is functionally more harmful than a com-parable rate in text-grounded search, because the practical cost of catching errors is orders of magnitude higher. The error rates we report should be interpreted in this context: the relevant question is not whether they are higher or lower than text-based benchmarks, but whether they are acceptable given that users have essentially no realistic opportunity to verify them. 
+
+Characterizing Where Failures Concentrate 
+
+Our exploratory analysis reveals a consistent pattern across all nine domains–judge models: claims whose observable properties indicate closeness to the source, both lexically and semantically, are substantially less likely to be judged unsupported. Noun overlap and transcript similarity emerge as the two strongest associated features, operating indepen-dently along complementary dimensions: vocabulary preser-0.0 0.2 0.4 0.6 0.8 1.0 
+
+(a) Gemini-3 Flash      
+
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> Error Rate (%)
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+(b) Grok-4.1 Fast      
+
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+(c) GPT-5.2 
+
+> 0
+> 5
+> 10
+> 15
+> Economic
+> General
+> Medical
+> Minimum Claim–Transcript Similarity
+
+Figure 6: Error rate as a function of claim–transcript similarity. Each point shows the error rate among claims with similarity at or above the given value. The declining trend across all three judges confirms that stronger semantic alignment with transcript content is associated with substantially lower error rates. vation and meaning alignment. Title similarity shows weak and inconsistent effects instead, and claim verbosity consis-tently increases error risk. These associations are consistent with a specific failure mechanism: when the system departs from what the video actually says, whether by paraphrasing too liberally, in-jecting details from parametric knowledge, or overstating the source’s claims, the resulting output is more likely to be unsupported. We emphasize that this characterization is correlational; we cannot determine whether lexical depar-ture causes verification failure or merely co-occurs with it. Nonetheless, the consistency across all nine models, includ-ing gpt-5.2 which applies the strictest evaluation criteria, suggests a robust empirical regularity. 
+
+Social Implications 
+
+Beyond algorithmic benchmarking, our findings carry sig-nificance for computational social science more broadly. As MLLMs are deployed as generative search systems that autonomously retrieve and synthesize from multime-dia sources, their propensity to inject unverifiable specifici-ties poses a novel vector for misinformation. The generative search paradigm is particularly concerning because it com-pounds two trust signals: the authority of a search engine with the fluency of a language model. Users who trust an AI search agent’s summary of a lengthy video are highly un-likely to manually verify the video transcript, underscoring the importance of systematic auditing such as the one pre-sented here. 
+
+Visual Grounding as Complementary Evidence 
+
+A limitation of our main analysis is that verification relies on textual evidence (transcripts, titles, descriptions). Some claims may be supported by information present only in vi-sual form (e.g., on-screen graphics, demonstrations) that is not captured in transcripts, and such claims would be clas-sified as UNVERIFIABLE under our text-only protocol. To assess this limitation, we conducted a supplementary anal-ysis on a stratified subsample of 1,028 claim–video pairs, balanced between supported and unsupported claims, pro-viding Gemini-3 Flash with direct access to video content via video tokens alongside transcripts and metadata. Of the 997 pairs remaining after API errors, 624 (62.6%) were classified as supported under the video-token condi-tion, compared to the designed 50% baseline. This indicates that approximately 125 claims shifted from unsupported to supported when visual evidence was available, while the majority of unsupported claims remained unsupported even with full video access. Visual modalities were cited in 16.0% of decisions, suggesting that these modalities provide sup-plementary verification evidence in a subset of cases. Be-cause this subsample was stratified rather than randomly drawn, these rates should not be interpreted as population-level estimates. 
+
+Judge Disagreement 
+
+gpt-5.2 identified substantially more errors than Gemini-3 Flash and Grok-4.1 Fast, driven by stricter OVERSTATED 
+
+criteria. This reflects some level of ambiguity in verification: a claim may be directionally correct but exaggerate the cer-tainty or scope of the source. Our multi-judge approach sur-faces rather than hides this ambiguity, and the consistency of our key findings across all three judges strengthens our conclusions. 
+
+Limitations 
+
+Our audit has several limitations that should be considered when interpreting the results. We audit the end-to-end output of Gemini 2.5 Pro without knowledge of its internal retrieval or generation mechanisms, following established algorith-mic auditing methodology (Buolamwini and Gebru 2018). This means we cannot determine why certain claims depart from source content, nor disentangle retrieval failures (cit-ing an irrelevant video) from generation failures (produc-ing an unfaithful claim from a relevant video). Furthermore, High Overlap 
+
+> High Similarity
+> High Overlap
+> Low Similarity
+> Low Overlap
+> High Similarity
+> Low Overlap
+> Low Similarity
+
+0
+
+5
+
+10 
+
+15 
+
+20  
+
+> Unsupported Claims (%)
+> 1.97
+> 3.24
+> 9.22
+> 15.73
+> 5.84
+> 8.26
+> 12.2
+> 17.75
+> 4.26 4.4
+> 6.86
+> 14.47
+> Economic (N=779)
+> General (N=4,080)
+> Medical (N=7,084)
+
+Figure 7: Unsupported claim rates (%) by lexical overlap and transcript similarity. Claims are split at the domain-specific median on each dimension. Error rates increase monotonically as claims depart from the source on either dimension, with the highest rates consistently observed among claims with low values on both. because Gemini 2.5 Pro is currently the only MLLM op-erating as a generative search system with integrated video retrieval, our findings characterize this specific system’s be-havior; other systems may exhibit different patterns as they gain similar capabilities. Our main analysis verifies claims against textual meta-data only, and as our supplementary analysis shows, vi-sual modalities provide additional evidence in approxi-mately 16% of cases. Our lexical features use exact sub-string matching, which does not capture semantic equiva-lence (e.g., “heart attack” vs. “cardiac arrest”), potentially underestimating the protective association of semantic fi-delity. While our three judges show high binary agreement, they may share systematic biases. One judge (Gemini 3 Flash) belongs to the same model family as the generating system; however, the consistency across all three judges, including gpt-5.2 with the strictest criteria, mitigates this concern. Hu-man validation on 49 flagged claims confirmed strong align-ment with human consensus for Gemini 3 Flash and gpt-5.2, with false alarms limited to two or fewer cases per judge. Finally, our regression identifies associations, not causal mechanisms, and the modest pseudo R2 values confirm that the engineered features capture only a portion of the vari-ance in verification outcomes. 
+
+# Conclusion 
+
+We present the first large-scale forensic audit of video-grounded claims produced by an MLLM generative search system, analyzing 11,943 claims across medical, economic, and general domains. Treating the system as a black box and evaluating the end-to-end user experience, our audit reveals that between 3.7% and 18.7% of claims are not supported by their cited video sources. The dominant failure modes are not outright contradictions but unverifiable specificities and overstated claims, failures that are particularly insidious be-cause they are difficult for users to detect without consulting the original source. Exploratory post-hoc analysis identifies two complemen-tary properties associated with verification failure: claims that depart from source vocabulary and claims with low se-mantic similarity to video transcripts are both significantly more likely to be unsupported. These two factors oper-ate independently, suggesting that vocabulary fidelity and semantic alignment capture complementary dimensions of source grounding quality. Supplementary analysis with vi-sual grounding confirms that the dominant verification dy-namics remain transcript-driven, while recovering a subset of claims supported by on-screen content not captured in transcripts. As MLLMs increasingly mediate access to video con-tent through autonomous search and retrieval, the trust rela-tionship between users and these systems becomes uniquely opaque: unlike text citations that can be verified in seconds, video citations impose a verification cost that virtually no user will pay. Systematic auditing of the kind presented here is essential for maintaining epistemic integrity in this emerg-ing modality. Our findings do not claim that video ground-ing is more or less faithful than text grounding, but rather that video-grounded search creates a distinct trust problem that warrants dedicated scrutiny. 
+
+# References 
+
+Buolamwini, J.; and Gebru, T. 2018. Gender Shades: Inter-sectional Accuracy Disparities in Commercial Gender Clas-sification. In Proceedings of the 1st Conference on Fairness, Accountability and Transparency , Proceedings of Machine Learning Research. PMLR. Gao, H.; Qu, J.; Tang, J.; Bi, B.; Liu, Y.; Chen, H.; Liang, L.; Su, L.; and Huang, Q. 2025. Exploring Hallucina-tion of Large Multimodal Models in Video Understand-ing: Benchmark, Analysis and Mitigation. arXiv preprint arXiv:2503.19622 .Gehman, S.; Gururangan, S.; Sap, M.; Choi, Y.; and Smith, N. A. 2020. RealToxicityPrompts: Evaluating Neural Toxic Degeneration in Language Models. In Findings of the Asso-ciation for Computational Linguistics: EMNLP 2020 .Hu, D.; Gleason, J.; Aziz, M. A. B.; Koeninger, A.; Guggen-berger, N.; Robertson, R. E.; and Wilson, C. 2024. Market or Markets? Investigating Google Search’s Market Shares under Vertical Segmentation. In Proceedings of the Interna-tional AAAI Conference on Web and Social Media .Jacovi, A.; et al. 2025. The FACTS Grounding Leader-board: Benchmarking LLMs’ Ability to Ground Responses to Long-Form Input. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics .Ji, Z.; Lee, N.; Frieske, R.; Yu, T.; Su, D.; Xu, Y.; Ishii, E.; Bang, Y.; Dai, W.; Madotto, A.; and Fung, P. 2023. Sur-vey of Hallucination in Natural Language Generation. ACM Computing Surveys , 55(12): 1–38. Jiang, D.; Zhang, R.; Guo, Z.; Wu, Y.; lei, j.; Qiu, P.; Lu, P.; Chen, Z.; Song, G.; Peng, G.; Liu, Y.; Li, C.; and Li, H. 2025. MMSearch: Unveiling the Potential of Large Models as Multi-modal Search Engines. In International Confer-ence on Learning Representations .Kwiatkowski, T.; et al. 2019. Natural Questions: A Bench-mark for Question Answering Research. Transactions of the Association for Computational Linguistics .Li, C.; Im, E. W.; and Fazli, P. 2025. VidHalluc: Eval-uating Temporal Hallucinations in Multimodal Large Lan-guage Models for Video Understanding. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .Lin, S.; Hilton, J.; and Evans, O. 2022. TruthfulQA: Measur-ing How Models Mimic Human Falsehoods. In Proceedings of the 60th Annual Meeting of the Association for Computa-tional Linguistics .Liu, N. F.; Zhang, T.; and Liang, P. 2023. Evaluating Ver-ifiability in Generative Search Engines. In Findings of the Association for Computational Linguistics: EMNLP 2023 .Lu, C.; et al. 2025. ELV-Halluc: Benchmarking Semantic Aggregation Hallucinations in Long Video Understanding. 
+
+arXiv preprint arXiv:2508.21496 .Min, S.; Krishna, K.; Lyu, X.; Lewis, M.; Yih, W.-t.; Koh, P. W.; Iyyer, M.; Zettlemoyer, L.; and Hajishirzi, H. 2023. FActScore: Fine-grained Atomic Evaluation of Factual Pre-cision in Long Form Text Generation. In Proceedings of the 2023 Conference on Empirical Methods in Natural Lan-guage Processing .Møller, A. G.; Bassignana, E.; Pierri, F.; and Aiello, L. M. 2026. Overreliance on AI in Information-seeking from Video Content. arXiv preprint arXiv:2603.19843 .Narayanan Venkit, P.; Laban, P.; Zhou, Y.; Mao, Y.; and Wu, C.-S. 2025. Search Engines in the AI Era: A Qualitative Un-derstanding to the False Promise of Factual and Verifiable Source-Cited Responses in LLM-based Search. In Proceed-ings of the 2025 ACM Conference on Fairness, Accountabil-ity, and Transparency , FAccT ’25, 1325–1340. New York, NY, USA: Association for Computing Machinery. ISBN 9798400714825. Newman, N.; Fletcher, R.; Robertson, C. T.; Eddy, K.; and Nielsen, R. K. 2025. Reuters Institute Digital News Report 2025. Technical report, Reuters Institute for the Study of Journalism, University of Oxford. Passi, S.; Dhanorkar, S.; and Vorvoreanu, M. 2025. Address-ing Overreliance on AI. Handbook of Human-Centered Ar-tificial Intelligence .Pew Research Center. 2025. Americans’ Social Media Use 2025. Technical report, Pew Research Center. Raji, I. D.; Smart, A.; White, R. N.; Mitchell, M.; Gebru, T.; Hutchinson, B.; Smith-Loud, J.; Theron, D.; and Barnes, P. 2020. Closing the AI Accountability Gap: Defining an End-to-End Framework for Internal Algorithmic Auditing. In 
+
+Proceedings of the 2020 Conference on Fairness, Account-ability, and Transparency . ACM. Sandvig, C.; Hamilton, K.; Karahalios, K.; and Langbort, C. 2014. Auditing Algorithms: Research Methods for Detect-ing Discrimination on Internet Platforms. In 64th Annual Meeting of the International Communication Association .Seattle, WA. SE Ranking. 2026. Health AI Overviews Trust YouTube Over Medical Platforms. Technical report. Tamber, M. S.; Bao, F. S.; Xu, C.; Luo, G.; Kazi, S.; Bae, M.; Li, M.; Mendelevitch, O.; Qu, R.; and Lin, J. 2025. Bench-marking LLM Faithfulness in RAG with Evolving Leader-boards. In Proceedings of the Conference on Empirical Methods in Natural Language Processing . ACL. TheDevastator. 2023. Comprehensive Medical Q&A Dataset. https://www.kaggle.com/datasets/thedevastator/ comprehensive-medical-q-a-dataset. Kaggle. Tian, F.; Byadgi, A.; Kim, D. S.; Zha, D.; White, M.; Xiao, K.; and Liu, X.-Y. 2024. Customized FinGPT Search Agents Using Foundation Models. In Proceedings of the 5th ACM International Conference on AI in Finance , ICAIF ’24. As-sociation for Computing Machinery. Venkit, P. N.; Laban, P.; Zhou, Y.; Huang, K.-H.; Mao, Y.; and Wu, C.-S. 2025. DeepTRACE: Auditing Deep Research AI Systems for Tracking Reliability Across Citations and Evidence. arXiv:2509.04499. Xu, R.; Qi, Z.; Guo, Z.; Wang, C.; Wang, H.; Zhang, Y.; and Xu, W. 2024. Knowledge Conflicts for LLMs: A Survey. In 
+
+Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing . Association for Computa-tional Linguistics. Zhang, W.; Li, Y.; Bei, Y.; Luo, J.; Wan, G.; Yang, L.; et al. 2025. From Web Search towards Agentic Deep Research: Incentivizing Search with Reasoning Agents. arXiv preprint arXiv:2506.18959 .Appendix 
+
+Verification Prompt 
+
+The following prompt was used for all three LLM judges. It enforces a strict evidence hierarchy prioritizing the tran-script, followed by the description, and finally the title. We also tested a variant without this hierarchy and found con-sistent results, supporting the robustness of the protocol. 
+
+You are an expert scientific fact-checker. Your task is to verify whether aspecific TARGET_CLAIM is textually, proportionally, and temporally supported by a YouTube video’s metadata. You must act as a "Reasonable Textual Auditor." You cannot see the visuals, but you should use logic to infer the context from the text. ### 1. CONTEXTUAL DISAMBIGUATION PROTOCOL (Crucial) You are provided with ‘GENERATED_CONTEXT_FOR_DISAMBIGUATION‘ (the full text response) and a specific ‘TARGET_CLAIM‘ (SPECIFIC part from the full text response). * The Problem: The ‘TARGET_CLAIM‘ may contain pronouns ("This," "It," "The method") whose definitions are in the surrounding text. * The Rule: Use the ‘GENERATED_CONTEXT‘ ONLY to identify what the subject refers to. * Example: Context says "Use Python for data." Claim says "It is slow." -> You must interpret Claim as "Python is slow." * The Constraint: The ‘GENERATED_CONTEXT‘ is NOT evidence. Never use it to support the claim. You must verify the interpreted claim ONLY against the provided VIDEO_METADATA (Transcript, Description, Title, Upload Date). ### 2. SOURCE ANALYSIS RULES 1. HIERARCHY: TRANSCRIPT > DESCRIPTION >TITLE. * If Title contradicts Transcript (clickbait), trust Transcript. * If Transcript is silent/ambiguous, you MAY use Title/Description to confirm the general topic. 2. DATE ANCHORING: Use UPLOAD_DATE as the absolute anchor. 3. DE-NOISING: The claim may contain conversational artifacts like "In another video," "He mentions," or "Conversely." IGNORE these phrases. Focus on the atomic fact. ### 3. LOGIC GATES (Judgement Rules) * The "Pronoun" Check: After defining the subject using the Context (Protocol 1), check if the METADATA attributes the claimed property to that subject. * Match: Metadata supports the fact (explicitly or via logical implication) -> SUPPORTED. * Conflict: Metadata contradicts the fact -> CONTRADICTED. * Silence: Metadata neither mentions nor implies the subject/fact -> UNVERIFIABLE. * The "Gist" Rule: If the claim accurately summarizes the specific topic, action, or prediction of the video, mark SUPPORTED. * The "Inference" Limit: Logical consequences (Walking + Woods = Hiking) are SUPPORTED. Specific missing data (Colors, Numbers) are UNVERIFIABLE. * The "Retrospective" Exception: Past-tense descriptions of predictions made in the video (e.g., "It narrowed to April") are SUPPORTED if the prediction exists in the text. ### 4. CLASSIFICATION LABELS (Select Exactly One) SUPPORTED The claim (as resolved by context) is a valid summary, inference, or extraction of the video evidence. OVERSTATED The claim is rooted in the video text but exaggerates certainty or scope. * Criteria: Changing "some" to "all," removing caveats (e.g., changing "might" to "is"), or stating ahypothesis as a proven fact. UNDERSTATED The claim significantly downplays or minimizes the impact, urgency, or certainty found in the video text. CONTRADICTED The claim explicitly conflicts with the video text. * Criteria: The text states X is False, but the Claim states X is True (or vice versa). UNVERIFIABLE The claim asserts SPECIFIC missing details (Numbers, Colors, Proper Nouns) absent from all video sources. * Note: If the context defines "This" as "iPhone 15", but the Metadata only says "Phone" (no model number), this is UNVERIFIABLE. EMOTION_DISTORTION The claim misinterprets the source meaning due to a failure to detect sarcasm, irony, or tonal negation in the transcript. TEMPORAL_MISMATCH The claim places the video content in atime period that did not exist when the video was uploaded. * Criteria: Discussing events that happened after the UPLOAD_DATE (e.g., a 2021 video discussing 2024 election results). ### 5. ATTRIBUTION LOGIC (How to cite Primary Source) You must cite the Single Most Determinant Source that drove your decision: * If SUPPORTED/CONTRADICTED/OVERSTATED: Cite the source containing the evidence (usually TRANSCRIPT). * If TEMPORAL_MISMATCH: You MUST cite UPLOAD_DATE. * If UNVERIFIABLE: You MUST cite NONE (since the info is absent). * If relying on Title vs Transcript conflict: Cite TRANSCRIPT. * If relying on Description for aname/entity: Cite DESCRIPTION. * If relying on Title because Transcript is silent: Cite TITLE. ### 6. OUTPUT FORMAT Provide the output as four distinct lines of text. Do not use JSON. Answer: YES / NO - [LABEL] Primary Source: [TRANSCRIPT / DESCRIPTION /TITLE / UPLOAD_DATE / NONE] Reason: [One concise sentence explaining the logical derivation.] Detail: [Comparison snippet: "Source: quote (or date)" vs "Claim: quote (or date)"] 
+
+Regression Tables 
+
+This appendix reports the full regression results underlying Figure 5 in the main text. Table 3 presents coefficients for all individual similarity measures (title, description, transcript) alongside lexical and structural features. Table 4 replicates this analysis as a robustness check, replacing the three indi-vidual similarity measures with a single composite feature: the maximum cosine similarity across all three sources. Table 3: Logistic Regression Results: Individual Similarity Measures Across Domains. Features are computed independently of and after the verification stage; judges have no access to these features. 
+
+Economic (N=779) General (N=4,080) Medical (N=7,084) 
+
+Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 Entity Precision −1.076 ∗∗ −1.088 ∗∗ −1.101 ∗∗∗ −0.765 ∗∗∗ −0.682 ∗∗∗ −0.469 ∗∗∗ 0.021 −0.218 0.135 (0.484) (0.498) (0.377) (0.214) (0.209) (0.150) (0.403) (0.381) (0.249) Numeric Precision −0.874 −1.150 ∗ 0.055 0.261 −0.199 −0.089 −0.690 −0.190 −0.284 (0.607) (0.620) (0.544) (0.302) (0.262) (0.200) (0.471) (0.480) (0.312) Noun Overlap −3.066 ∗∗∗ −2.879 ∗∗∗ −2.961 ∗∗∗ −1.928 ∗∗∗ −2.196 ∗∗∗ −1.646 ∗∗∗ −2.590 ∗∗∗ −2.659 ∗∗∗ −1.750 ∗∗∗ 
+
+(0.800) (0.812) (0.558) (0.296) (0.287) (0.179) (0.260) (0.266) (0.143) Title Similarity 3.244 2.067 2.690 ∗ 0.040 0.031 −0.194 1.060 1.810 ∗∗ 0.538 (1.974) (2.119) (1.428) (0.736) (0.707) (0.459) (0.835) (0.852) (0.473) Desc. Similarity −3.275 −2.683 −2.764 ∗ −1.060 −0.731 −0.866 ∗ 0.761 0.458 0.843 ∗
+
+(2.174) (2.371) (1.539) (0.710) (0.699) (0.444) (0.768) (0.787) (0.431) Transcript Sim. −8.080 ∗∗∗ −11.555 ∗∗∗ −6.655 ∗∗∗ −2.108 ∗∗∗ −3.040 ∗∗∗ −3.487 ∗∗∗ −5.461 ∗∗∗ −6.638 ∗∗∗ −3.612 ∗∗∗ 
+
+(2.833) (3.013) (2.000) (0.741) (0.691) (0.466) (0.903) (0.917) (0.535) Word Count 0.073 ∗∗∗ 0.066 ∗∗∗ 0.082 ∗∗∗ 0.040 ∗∗∗ 0.028 ∗∗∗ 0.047 ∗∗∗ 0.040 ∗∗∗ 0.035 ∗∗∗ 0.031 ∗∗∗ 
+
+(0.024) (0.025) (0.018) (0.009) (0.009) (0.006) (0.010) (0.010) (0.006) Log(Duration) −0.058 0.167 0.029 0.024 −0.079 −0.037 −0.101 −0.102 −0.049 (0.172) (0.176) (0.119) (0.066) (0.065) (0.042) (0.067) (0.068) (0.037) Pseudo R2 0.177 0.203 0.162 0.068 0.089 0.079 0.091 0.103 0.050 
+
+Standard errors in parentheses. ∗p < 0.1; ∗∗ p < 0.05 ; ∗∗∗ p < 0.01 
+
+Table 4: Logistic Regression Results: Combined Maximum Source Similarity (Robustness Check). This table replicates the analysis in Table 3 but replaces the three individual similarity measures (title, description, transcript) with a single composite feature: the maximum cosine similarity across all three sources. 
+
+Economic (N=779) General (N=4,080) Medical (N=7,084) 
+
+Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 Gemini-3 Grok-4.1 GPT-5.2 Entity Precision −1.068 ∗∗ −1.094 ∗∗ −1.131 ∗∗∗ −0.753 ∗∗∗ −0.673 ∗∗∗ −0.484 ∗∗∗ −0.045 −0.302 0.107 (0.481) (0.497) (0.374) (0.213) (0.208) (0.150) (0.399) (0.377) (0.248) Numeric Precision −0.880 −1.106 ∗ 0.066 0.208 −0.276 −0.157 −0.614 −0.106 −0.242 (0.592) (0.607) (0.532) (0.304) (0.265) (0.200) (0.467) (0.477) (0.310) Noun Overlap −3.165 ∗∗∗ −2.933 ∗∗∗ −3.053 ∗∗∗ −1.898 ∗∗∗ −2.170 ∗∗∗ −1.683 ∗∗∗ −2.551 ∗∗∗ −2.579 ∗∗∗ −1.717 ∗∗∗ 
+
+(0.803) (0.819) (0.558) (0.291) (0.282) (0.176) (0.259) (0.263) (0.142) Max Source Sim. −7.292 ∗∗∗ −11.617 ∗∗∗ −5.506 ∗∗∗ −3.973 ∗∗∗ −4.858 ∗∗∗ −4.883 ∗∗∗ −4.382 ∗∗∗ −5.770 ∗∗∗ −2.854 ∗∗∗ 
+
+(2.433) (2.649) (1.750) (0.896) (0.867) (0.563) (0.841) (0.871) (0.473) Word Count 0.067 ∗∗∗ 0.063 ∗∗ 0.074 ∗∗∗ 0.045 ∗∗∗ 0.034 ∗∗∗ 0.051 ∗∗∗ 0.041 ∗∗∗ 0.038 ∗∗∗ 0.032 ∗∗∗ 
+
+(0.024) (0.025) (0.018) (0.009) (0.010) (0.006) (0.010) (0.011) (0.006) Log(Duration) −0.101 0.142 −0.009 0.009 −0.117 ∗ −0.069 ∗ −0.164 ∗∗ −0.173 ∗∗∗ −0.094 ∗∗∗ 
+
+(0.172) (0.177) (0.118) (0.066) (0.065) (0.042) (0.064) (0.066) (0.035) Pseudo R2 0.169 0.204 0.151 0.072 0.094 0.080 0.086 0.099 0.048 
+
+Standard errors in parentheses. ∗p < 0.1; ∗∗ p < 0.05 ; ∗∗∗ p < 0.01

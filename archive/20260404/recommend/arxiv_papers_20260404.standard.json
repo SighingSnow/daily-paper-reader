@@ -1,0 +1,761 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-04T19:43:34.090060+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 8,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 20,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2604.01359v1",
+      "title": "Semantic Modeling for World-Centered Architectures",
+      "abstract": "We introduce world-centered multi-agent systems (WMAS) as an alternative to traditional agent-centered architectures, arguing that structured domains such as enterprises and institutional systems require a shared, explicit world representation to ensure semantic consistency, explainability, and long-term stability. We classify worlds along dimensions including ontological explicitness, normativity, etc. In WMAS, learning and coordination operate over a shared world model rather than isolated agent-local representations, enabling global consistency and verifiable system behavior. We propose semantic models as a mathematical formalism for representing such worlds. Finally, we present the Ontobox platform as a realization of WMAS.",
+      "authors": [
+        "Andrei Mantsivoda",
+        "Darya Gavrilina"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-01T20:14:56+00:00",
+      "link": "https://arxiv.org/pdf/2604.01359v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "introduces world-centered multi-agent systems with shared world model",
+      "llm_evidence_cn": "引入以世界为中心的多智能体系统与共享世界模型",
+      "llm_evidence": "引入以世界为中心的多智能体系统与共享世界模型",
+      "canonical_evidence": "引入以世界为中心的多智能体系统与共享世界模型",
+      "llm_tldr_en": "Proposes world-centered multi-agent architecture with shared world representation for semantic consistency.",
+      "llm_tldr_cn": "提出以世界为中心的多智能体架构，通过共享世界表示实现语义一致性。",
+      "llm_tldr": "提出以世界为中心的多智能体架构，通过共享世界表示实现语义一致性。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29353v2",
+      "title": "Nomad: Autonomous Exploration and Discovery",
+      "abstract": "We introduce Nomad, a system for autonomous data exploration and insight discovery. Given a corpus of documents, databases, or other data sources, users rarely know the full set of questions, hypotheses, or connections that could be explored. As a result, query-driven question answering and prompt-driven deep-research systems remain limited by human framing and often fail to cover the broader insight space. Nomad addresses this problem with an exploration-first architecture. It constructs an explicit Exploration Map over the domain and systematically traverses it to balance breadth and depth. It generates and selects hypotheses and investigates them with an explorer agent that can use document search, web search, and database tools. Candidate insights are then checked by an independent verifier before entering a reporting pipeline that produces cited reports and higher-level meta-reports. We also present a comprehensive evaluation framework for autonomous discovery systems that measures trustworthiness, report quality, and diversity. Using a corpus of selected UN and WHO reports, we show that Nomad produces more trustworthy and higher-quality reports than baselines, while also producing more diverse insights over several runs. Nomad is a step toward autonomous systems that not only answer user questions or conduct directed research, but also discover which questions, research directions, and insights are worth surfacing in the first place.",
+      "authors": [
+        "Bokang Jia",
+        "Samta Kamboj",
+        "Satheesh Katipomu",
+        "Seung Hun Han",
+        "Neha Sengupta",
+        "Andrew Jackson"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-31T07:26:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.29353v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Explorer agent with document search, web search, and database tools",
+      "llm_evidence_cn": "探索智能体具备文档搜索、网页搜索和数据库工具能力",
+      "llm_evidence": "探索智能体具备文档搜索、网页搜索和数据库工具能力",
+      "canonical_evidence": "探索智能体具备文档搜索、网页搜索和数据库工具能力",
+      "llm_tldr_en": "Nomad is an autonomous exploration agent system that uses search tools to discover insights from data corpora.",
+      "llm_tldr_cn": "Nomad是自主探索智能体系统，利用搜索工具从数据语料库中发现洞察。",
+      "llm_tldr": "Nomad是自主探索智能体系统，利用搜索工具从数据语料库中发现洞察。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.26091v1",
+      "title": "Search-Induced Issues in Web-Augmented LLM Code Generation: Detecting and Repairing Error-Inducing Pages",
+      "abstract": "Web-augmented large language models (LLMs) offer promising capabilities for automatic code generation. However, integrating live web search exposes models to unreliable or malicious content, leading to Search-Induced Issues (SII), a novel failure mode in which external pages mislead LLMs into producing incorrect code. This paper presents a comprehensive empirical study of the prevalence and impact of SII across three commercial search APIs and six advanced LLMs. Our analysis reveals that all evaluated web-augmented LLMs are vulnerable to SII, with root causes arising from either misaligned specifications or flawed code implementations in the searched Error-Inducing Pages (EIPs).   To address this challenge, we propose Sherlock, an automated framework that enables LLM service providers to proactively safeguard web-augmented generation systems at scale. Sherlock operates as a continuous pipeline that first detects potential SII instances, then debugs them to identify the responsible EIPs and pinpoint their root causes, and finally repairs them by either annotating misaligned content or replacing erroneous code snippets with evaluated solutions from trusted sources. Experiments show that Sherlock identifies EIPs with an F1 score of up to 95% and repairs 71% to 100% of affected generations across the evaluated models, with modest computational overhead. Our findings and framework provide practical guidance for improving the reliability of web-augmented LLM-based code generation systems in real-world software engineering scenarios.",
+      "authors": [
+        "Guoqing Wang",
+        "Zeyu Sun",
+        "Xiaofei Xie",
+        "Yizhou Chen",
+        "Yanchao Tan",
+        "Yifan Zhao",
+        "Dan Hao"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-27T05:42:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.26091v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Web search augmented code generation agents",
+      "llm_evidence_cn": "网络搜索增强的代码生成智能体",
+      "llm_evidence": "网络搜索增强的代码生成智能体",
+      "canonical_evidence": "网络搜索增强的代码生成智能体",
+      "llm_tldr_en": "Analyzes search-induced issues in web-augmented LLM code generation and proposes repair methods.",
+      "llm_tldr_cn": "分析网络增强LLM代码生成中的搜索诱导问题并提出修复方法。",
+      "llm_tldr": "分析网络增强LLM代码生成中的搜索诱导问题并提出修复方法。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.01001v1",
+      "title": "EgoSim: Egocentric World Simulator for Embodied Interaction Generation",
+      "abstract": "We introduce EgoSim, a closed-loop egocentric world simulator that generates spatially consistent interaction videos and persistently updates the underlying 3D scene state for continuous simulation. Existing egocentric simulators either lack explicit 3D grounding, causing structural drift under viewpoint changes, or treat the scene as static, failing to update world states across multi-stage interactions. EgoSim addresses both limitations by modeling 3D scenes as updatable world states. We generate embodiment interactions via a Geometry-action-aware Observation Simulation model, with spatial consistency from an Interaction-aware State Updating module. To overcome the critical data bottleneck posed by the difficulty in acquiring densely aligned scene-interaction training pairs, we design a scalable pipeline that extracts static point clouds, camera trajectories, and embodiment actions from in-the-wild large-scale monocular egocentric videos. We further introduce EgoCap, a capture system that enables low-cost real-world data collection with uncalibrated smartphones. Extensive experiments demonstrate that EgoSim significantly outperforms existing methods in terms of visual quality, spatial consistency, and generalization to complex scenes and in-the-wild dexterous interactions, while supporting cross-embodiment transfer to robotic manipulation. Codes and datasets will be open soon. The project page is at egosimulator.github.io.",
+      "authors": [
+        "Jinkun Hao",
+        "Mingda Jia",
+        "Ruiyan Wang",
+        "Xihui Liu",
+        "Ran Yi",
+        "Lizhuang Ma",
+        "Jiangmiao Pang",
+        "Xudong Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-04-01T15:00:46+00:00",
+      "link": "https://arxiv.org/pdf/2604.01001v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "closed-loop egocentric world simulator with updatable 3D scene states",
+      "llm_evidence_cn": "具有可更新3D场景状态的闭环自我中心世界模拟器",
+      "llm_evidence": "具有可更新3D场景状态的闭环自我中心世界模拟器",
+      "canonical_evidence": "具有可更新3D场景状态的闭环自我中心世界模拟器",
+      "llm_tldr_en": "Introduces egocentric world simulator that maintains spatially consistent 3D scene states for embodied interaction.",
+      "llm_tldr_cn": "引入自我中心世界模拟器，为具身交互维护空间一致的3D场景状态。",
+      "llm_tldr": "引入自我中心世界模拟器，为具身交互维护空间一致的3D场景状态。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00865v1",
+      "title": "Doctor-RAG: Failure-Aware Repair for Agentic Retrieval-Augmented Generation",
+      "abstract": "Agentic Retrieval-Augmented Generation (Agentic RAG) has become a widely adopted paradigm for multi-hop question answering and complex knowledge reasoning, where retrieval and reasoning are interleaved at inference time. As reasoning trajectories grow longer, failures become increasingly common. Existing approaches typically address such failures by either stopping at diagnostic analysis or rerunning the entire retrieval-reasoning pipeline, which leads to substantial computational overhead and redundant reasoning. In this paper, we propose Doctor-RAG (DR-RAG), a unified diagnose-and-repair framework that corrects failures in Agentic RAG through explicit error localization and prefix reuse, enabling minimal-cost intervention. DR-RAG decomposes failure handling into two consecutive stages: (i) trajectory-level failure diagnosis and localization, which attributes errors to a coverage-gated taxonomy and identifies the earliest failure point in the reasoning trajectory; and (ii) tool-conditioned local repair, which intervenes only at the diagnosed failure point while maximally reusing validated reasoning prefixes and retrieved evidence. By explicitly separating error attribution from correction, DR-RAG enables precise error localization, thereby avoiding expensive full-pipeline reruns and enabling targeted, efficient repair. We evaluate DR-RAG across three multi-hop question answering benchmarks, multiple agentic RAG baselines, and different backbone models. Experimental results demonstrate that DR-RAG substantially improves answer accuracy while significantly reducing reasoning token consumption compared to rerun-based repair strategies.",
+      "authors": [
+        "Shuguang Jiao",
+        "Chengkai Huang",
+        "Shuhan Qi",
+        "Xuan Wang",
+        "Yifan Li",
+        "Lina Yao"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-01T13:13:27+00:00",
+      "link": "https://arxiv.org/pdf/2604.00865v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Agentic RAG framework for multi-hop QA with failure repair",
+      "llm_evidence_cn": "智能体RAG框架用于多跳问答与故障修复",
+      "llm_evidence": "智能体RAG框架用于多跳问答与故障修复",
+      "canonical_evidence": "智能体RAG框架用于多跳问答与故障修复",
+      "llm_tldr_en": "Proposes Doctor-RAG framework that diagnoses and repairs failures in agentic retrieval-augmented generation systems.",
+      "llm_tldr_cn": "提出Doctor-RAG框架，用于诊断和修复智能体检索增强生成系统中的故障。",
+      "llm_tldr": "提出Doctor-RAG框架，用于诊断和修复智能体检索增强生成系统中的故障。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.27584v1",
+      "title": "Sci-Mind: Cognitively-Inspired Adversarial Debate for Autonomous Mathematical Modeling",
+      "abstract": "Real-world mathematical modeling is inherently an experiential and collaborative endeavor. Domain experts rarely solve complex problems from scratch; instead, they draw upon analogies from historical cases and subject their hypotheses to rigorous peer scrutiny. However, autonomous agents powered by Large Language Models predominantly rely on isolated reasoning paradigms, frequently generating plausible but fundamentally flawed models due to a lack of domain grounding and adversarial verification. To address these limitations, we propose Sci-Mind, a novel framework that mirrors the human scientific discovery process. Sci-Mind integrates Experiential Memory Recall to retrieve executable code snippets and modeling paradigm descriptors, grounding abstract reasoning in historical solutions. Subsequently, it employs an Adversarial Cognitive Dialectic where a Theorist optimizing mathematical coherence and a Pragmatist enforcing data feasibility debate through competing objectives to prune elegant but infeasible formulations. A Self-Validating Execution Strategy further ensures blueprint consistency through formal predicates before code generation, achieving fully autonomous execution. Extensive experiments on the MM-Bench and EngiBench benchmarks demonstrate that Sci-Mind significantly outperforms leading autonomous agents in both modeling rigorousness and code executability.",
+      "authors": [
+        "Ruiying Sun",
+        "Wenjing Wang",
+        "Qinhan Chen",
+        "Yanhui Song",
+        "Huangwei Chen",
+        "Haotong Luan",
+        "Junhao Jia"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-03-29T08:58:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.27584v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Framework with autonomous agents for mathematical modeling and code retrieval",
+      "llm_evidence_cn": "自主智能体框架用于数学建模和代码检索",
+      "llm_evidence": "自主智能体框架用于数学建模和代码检索",
+      "canonical_evidence": "自主智能体框架用于数学建模和代码检索",
+      "llm_tldr_en": "Proposes Sci-Mind framework using adversarial debate and experiential memory for autonomous mathematical modeling with code.",
+      "llm_tldr_cn": "提出Sci-Mind框架，通过对抗辩论和经验记忆实现自主数学建模与代码生成。",
+      "llm_tldr": "提出Sci-Mind框架，通过对抗辩论和经验记忆实现自主数学建模与代码生成。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.02330v1",
+      "title": "ActionParty: Multi-Subject Action Binding in Generative Video Games",
+      "abstract": "Recent advances in video diffusion have enabled the development of \"world models\" capable of simulating interactive environments. However, these models are largely restricted to single-agent settings, failing to control multiple agents simultaneously in a scene. In this work, we tackle a fundamental issue of action binding in existing video diffusion models, which struggle to associate specific actions with their corresponding subjects. For this purpose, we propose ActionParty, an action controllable multi-subject world model for generative video games. It introduces subject state tokens, i.e. latent variables that persistently capture the state of each subject in the scene. By jointly modeling state tokens and video latents with a spatial biasing mechanism, we disentangle global video frame rendering from individual action-controlled subject updates. We evaluate ActionParty on the Melting Pot benchmark, demonstrating the first video world model capable of controlling up to seven players simultaneously across 46 diverse environments. Our results show significant improvements in action-following accuracy and identity consistency, while enabling robust autoregressive tracking of subjects through complex interactions.",
+      "authors": [
+        "Alexander Pondaven",
+        "Ziyi Wu",
+        "Igor Gilitschenski",
+        "Philip Torr",
+        "Sergey Tulyakov",
+        "Fabio Pizzati",
+        "Aliaksandr Siarohin"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-02T17:59:58+00:00",
+      "link": "https://arxiv.org/pdf/2604.02330v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-subject world model for generative video games with action binding",
+      "llm_evidence_cn": "用于生成式视频游戏的多主体世界模型",
+      "llm_evidence": "用于生成式视频游戏的多主体世界模型",
+      "canonical_evidence": "用于生成式视频游戏的多主体世界模型",
+      "llm_tldr_en": "Proposes ActionParty, a world model for controlling multiple agents in generative video games via action binding.",
+      "llm_tldr_cn": "提出ActionParty世界模型，通过动作绑定实现生成式视频游戏中的多智能体控制。",
+      "llm_tldr": "提出ActionParty世界模型，通过动作绑定实现生成式视频游戏中的多智能体控制。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.00944v1",
+      "title": "Auditing the Reliability of Multimodal Generative Search",
+      "abstract": "Multimodal Large Language Models (MLLMs) increasingly function as generative search systems that retrieve and synthesize answers from multimedia content, including YouTube videos. Although these systems project authority by citing specific videos as evidence, the extent to which these citations genuinely substantiate the generated claims remains unexamined. We present a large-scale audit of the Gemini 2.5 Pro multimodal search system, analyzing 11,943 claim-video pairs generated across Medical, Economic, and General domains. Through automated verification using three independent LLM judges (87.7% inter-rater agreement), validated against human annotations, we find that depending on the judge's strictness, between 3.7% and 18.7% of video-grounded claims are not supported by their cited sources. The dominant failure modes are not outright contradictions but rather unverifiable specificities and overstated claims, suggesting the system injects precise but ungrounded details from parametric knowledge while citing videos as evidence. Exploratory post-hoc analysis via logistic regression reveals properties associated with these failures: claims departing from source vocabulary ($β= -1.6$ to $-3.1$, $p < 0.01$) and claims with low semantic similarity to the video transcript ($β= -2.1$ to $-11.6$, $p < 0.01$) are significantly more likely to be unsupported. These findings characterize the current trustworthiness of video-based generative search and highlight the gap between the confidence these systems project and the fidelity of their outputs.",
+      "authors": [
+        "Erfan Samieyan Sahneh",
+        "Luca Maria Aiello"
+      ],
+      "primary_category": "cs.CY",
+      "categories": [
+        "cs.CY"
+      ],
+      "published": "2026-04-01T14:15:41+00:00",
+      "link": "https://arxiv.org/pdf/2604.00944v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "MLLMs as generative search systems auditing retrieval and synthesis",
+      "llm_evidence_cn": "多模态大模型作为生成式搜索系统进行检索审计",
+      "llm_evidence": "多模态大模型作为生成式搜索系统进行检索审计",
+      "canonical_evidence": "多模态大模型作为生成式搜索系统进行检索审计",
+      "llm_tldr_en": "Audits reliability of multimodal LLMs functioning as generative search systems by verifying video-grounded claims.",
+      "llm_tldr_cn": "审计多模态大模型作为生成式搜索系统的可靠性，验证视频引用的准确性。",
+      "llm_tldr": "审计多模态大模型作为生成式搜索系统的可靠性，验证视频引用的准确性。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.27254v1",
+      "title": "Amalgam: Hybrid LLM-PGM Synthesis Algorithm for Accuracy and Realism",
+      "abstract": "To generate synthetic datasets, e.g., in domains such as healthcare, the literature proposes approaches of two main types: Probabilistic Graphical Models (PGMs) and Deep Learning models, such as LLMs. While PGMs produce synthetic data that can be used for advanced analytics, they do not support complex schemas and datasets. LLMs on the other hand, support complex schemas but produce skewed dataset distributions, which are less useful for advanced analytics. In this paper, we therefore present Amalgam, a hybrid LLM-PGM data synthesis algorithm supporting both advanced analytics, realism, and tangible privacy properties. We show that Amalgam synthesizes data with an average 91 % $χ^2 P$ value and scores 3.8/5 for realism using our proposed metric, where state-of-the-art is 3.3 and real data is 4.7.",
+      "authors": [
+        "Antheas Kapenekakis",
+        "Bent Thomsen",
+        "Katja Hose",
+        "Michele Albano"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-03-28T12:10:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.27254v1",
+      "tags": [
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Hybrid LLM-PGM algorithm for synthetic dataset generation",
+      "llm_evidence_cn": "混合LLM-PGM数据集合成算法",
+      "llm_evidence": "混合LLM-PGM数据集合成算法",
+      "canonical_evidence": "混合LLM-PGM数据集合成算法",
+      "llm_tldr_en": "Proposes Amalgam, a hybrid algorithm combining LLMs and PGMs for accurate and realistic synthetic dataset generation.",
+      "llm_tldr_cn": "提出Amalgam混合算法，结合LLM和PGM生成准确且真实的合成数据集。",
+      "llm_tldr": "提出Amalgam混合算法，结合LLM和PGM生成准确且真实的合成数据集。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.26285v1",
+      "title": "PhysVid: Physics Aware Local Conditioning for Generative Video Models",
+      "abstract": "Generative video models achieve high visual fidelity but often violate basic physical principles, limiting reliability in real-world settings. Prior attempts to inject physics rely on conditioning: frame-level signals are domain-specific and short-horizon, while global text prompts are coarse and noisy, missing fine-grained dynamics. We present PhysVid, a physics-aware local conditioning scheme that operates over temporally contiguous chunks of frames. Each chunk is annotated with physics-grounded descriptions of states, interactions, and constraints, which are fused with the global prompt via chunk-aware cross-attention during training. At inference, we introduce negative physics prompts (descriptions of locally relevant law violations) to steer generation away from implausible trajectories. On VideoPhy, PhysVid improves physical commonsense scores by $\\approx 33\\%$ over baseline video generators, and by up to $\\approx 8\\%$ on VideoPhy2. These results show that local, physics-aware guidance substantially increases physical plausibility in generative video and marks a step toward physics-grounded video models.",
+      "authors": [
+        "Saurabh",
+        "Pathak",
+        "Elahe Arani",
+        "Mykola Pechenizkiy",
+        "Bahram Zonooz"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-27T10:51:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.26285v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Physics-aware conditioning for generative video models",
+      "llm_evidence_cn": "生成式视频模型的物理感知条件化",
+      "llm_evidence": "生成式视频模型的物理感知条件化",
+      "canonical_evidence": "生成式视频模型的物理感知条件化",
+      "llm_tldr_en": "Presents PhysVid, a physics-aware local conditioning scheme for generative video models to respect physical laws.",
+      "llm_tldr_cn": "提出PhysVid物理感知条件化方案，使生成视频符合物理规律。",
+      "llm_tldr": "提出PhysVid物理感知条件化方案，使生成视频符合物理规律。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.27584v2",
+      "title": "Sci-Mind: Cognitively-Inspired Adversarial Debate for Autonomous Mathematical Modeling",
+      "abstract": "Real-world mathematical modeling is inherently an experiential and collaborative endeavor. Domain experts rarely solve complex problems from scratch; instead, they draw upon analogies from historical cases and subject their hypotheses to rigorous peer scrutiny. However, autonomous agents powered by Large Language Models predominantly rely on isolated reasoning paradigms, frequently generating plausible but fundamentally flawed models due to a lack of domain grounding and adversarial verification. To address these limitations, we propose Sci-Mind, a novel framework that mirrors the human scientific discovery process. Sci-Mind integrates Experiential Memory Recall to retrieve executable code snippets and modeling paradigm descriptors, grounding abstract reasoning in historical solutions. Subsequently, it employs an Adversarial Cognitive Dialectic where a Theorist optimizing mathematical coherence and a Pragmatist enforcing data feasibility debate through competing objectives to prune elegant but infeasible formulations. A Self-Validating Execution Strategy further ensures blueprint consistency through formal predicates before code generation, achieving fully autonomous execution. Extensive experiments on the MM-Bench and EngiBench demonstrate that Sci-Mind significantly outperforms leading autonomous agents in both modeling rigorousness and code executability.",
+      "authors": [
+        "Junhao Jia",
+        "Huangwei Chen",
+        "Ruiying Sun",
+        "Yanhui Song",
+        "Haishuai Wang",
+        "Jiajun Bu",
+        "Lei Wu"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-03-29T08:58:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.27584v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "autonomous agent framework for mathematical modeling",
+      "llm_evidence_cn": "用于数学建模的自主智能体框架",
+      "llm_evidence": "用于数学建模的自主智能体框架",
+      "canonical_evidence": "用于数学建模的自主智能体框架",
+      "llm_tldr_en": "A framework for autonomous mathematical modeling using adversarial debate agents.",
+      "llm_tldr_cn": "使用对抗辩论智能体的自主数学建模框架。",
+      "llm_tldr": "使用对抗辩论智能体的自主数学建模框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.26557v1",
+      "title": "MemBoost: A Memory-Boosted Framework for Cost-Aware LLM Inference",
+      "abstract": "Large Language Models (LLMs) deliver strong performance but incur high inference cost in real-world services, especially under workloads with repeated or near-duplicate queries across users and sessions. In this work, we propose MemBoost, a memory-boosted LLM serving framework that enables a lightweight model to reuse previously generated answers and retrieve relevant supporting information for cheap inference, while selectively escalating difficult or uncertain queries to a stronger model. Unlike standard retrieval-augmented generation, which primarily grounds a single response, MemBoost is designed for interactive settings by supporting answer reuse, continual memory growth, and cost-aware routing. Experiments across multiple models under simulated workloads show that MemBoost substantially reduces expensive large-model invocations and overall inference cost, while maintaining high answer quality comparable to the strong model baseline.",
+      "authors": [
+        "Joris Köster",
+        "Zixuan Liu",
+        "Siavash Khajavi",
+        "Zizhan Zheng"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-27T16:16:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.26557v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM serving framework with memory, retrieval and routing",
+      "llm_evidence_cn": "具有记忆、检索和路由功能的LLM服务框架",
+      "llm_evidence": "具有记忆、检索和路由功能的LLM服务框架",
+      "canonical_evidence": "具有记忆、检索和路由功能的LLM服务框架",
+      "llm_tldr_en": "MemBoost is a memory-boosted LLM framework enabling answer reuse and cost-aware routing for efficient inference.",
+      "llm_tldr_cn": "MemBoost是支持答案复用和成本感知路由的LLM推理框架。",
+      "llm_tldr": "MemBoost是支持答案复用和成本感知路由的LLM推理框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.27670v1",
+      "title": "ProgressVLA: Progress-Guided Diffusion Policy for Vision-Language Robotic Manipulation",
+      "abstract": "Most existing vision-language-action (VLA) models for robotic manipulation lack progress awareness, typically relying on hand-crafted heuristics for task termination. This limitation is particularly severe in long-horizon tasks involving cascaded sub-goals. In this work, we investigate the estimation and integration of task progress, proposing a novel model named {\\textbf \\vla}. Our technical contributions are twofold: (1) \\emph{robust progress estimation}: We pre-train a progress estimator on large-scale, unsupervised video-text robotic datasets. This estimator achieves a low prediction residual (0.07 on a scale of $[0, 1]$) in simulation and demonstrates zero-shot generalization to unseen real-world samples, and (2) \\emph{differentiable progress guidance}: We introduce an inverse dynamics world model that maps predicted action tokens into future latent visual states. These latents are then processed by the progress estimator; by applying a maximal progress regularization, we establish a differentiable pipeline that provides progress-piloted guidance to refine action tokens. Extensive experiments on the CALVIN and LIBERO benchmarks, alongside real-world robot deployment, consistently demonstrate substantial improvements in success rates and generalization over strong baselines.",
+      "authors": [
+        "Hongyu Yan",
+        "Qiwei Li",
+        "Jiaolong Yang",
+        "Yadong Mu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-29T12:38:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.27670v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Vision-Language-Action model for robotic manipulation agent",
+      "llm_evidence_cn": "机器人操作智能体的视觉-语言-动作模型",
+      "llm_evidence": "机器人操作智能体的视觉-语言-动作模型",
+      "canonical_evidence": "机器人操作智能体的视觉-语言-动作模型",
+      "llm_tldr_en": "ProgressVLA is a robotic manipulation agent with progress-aware diffusion policy for long-horizon tasks.",
+      "llm_tldr_cn": "ProgressVLA是具有进度感知扩散策略的机器人操作智能体。",
+      "llm_tldr": "ProgressVLA是具有进度感知扩散策略的机器人操作智能体。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28735v1",
+      "title": "RAD-AI: Rethinking Architecture Documentation for AI-Augmented Ecosystems",
+      "abstract": "AI-augmented ecosystems (interconnected systems where multiple AI components interact through shared data and infrastructure) are becoming the architectural norm for smart cities, autonomous fleets, and intelligent platforms. Yet the architecture documentation frameworks practitioners rely on, arc42 and the C4 model, were designed for deterministic software and cannot capture probabilistic behavior, data-dependent evolution, or dual ML/software lifecycles. This gap carries regulatory consequence: the EU AI Act (Regulation 2024/1689) mandates technical documentation through Annex IV that no existing framework provides structured support for, with enforcement for high-risk systems beginning August 2, 2026. We present RAD-AI, a backward-compatible extension framework that augments arc42 with eight AI-specific sections and C4 with three diagram extensions, complemented by a systematic EU AI Act Annex IV compliance mapping. A regulatory coverage assessment with six experienced software-architecture practitioners provides preliminary evidence that RAD-AI increases Annex IV addressability from approximately 36% to 93% (mean rating) and demonstrates substantial improvement over existing frameworks. Comparative analysis on two production AI platforms (Uber Michelangelo, Netflix Metaflow) captures eight additional AI-specific concerns missed by standard frameworks and demonstrates that documentation deficiencies are structural rather than domain-specific. An illustrative smart mobility ecosystem case study reveals ecosystem-level concerns, including cascading drift and differentiated compliance obligations, that are invisible under standard notation.",
+      "authors": [
+        "Oliver Aleksander Larsen",
+        "Mahyar T. Moghaddam"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-03-30T17:48:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.28735v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Architecture documentation framework for AI-augmented ecosystems",
+      "llm_evidence_cn": "AI增强生态系统的架构文档框架",
+      "llm_evidence": "AI增强生态系统的架构文档框架",
+      "canonical_evidence": "AI增强生态系统的架构文档框架",
+      "llm_tldr_en": "Presents RAD-AI, a backward-compatible framework for documenting AI-augmented ecosystems meeting EU AI Act requirements.",
+      "llm_tldr_cn": "提出RAD-AI框架，用于AI增强生态系统的架构文档与合规。",
+      "llm_tldr": "提出RAD-AI框架，用于AI增强生态系统的架构文档与合规。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.28052v1",
+      "title": "Meta-Harness: End-to-End Optimization of Model Harnesses",
+      "abstract": "The performance of large language model (LLM) systems depends not only on model weights, but also on their harness: the code that determines what information to store, retrieve, and present to the model. Yet harnesses are still designed largely by hand, and existing text optimizers are poorly matched to this setting because they compress feedback too aggressively. We introduce Meta-Harness, an outer-loop system that searches over harness code for LLM applications. It uses an agentic proposer that accesses the source code, scores, and execution traces of all prior candidates through a filesystem. On online text classification, Meta-Harness improves over a state-of-the-art context management system by 7.7 points while using 4x fewer context tokens. On retrieval-augmented math reasoning, a single discovered harness improves accuracy on 200 IMO-level problems by 4.7 points on average across five held-out models. On agentic coding, discovered harnesses surpass the best hand-engineered baselines on TerminalBench-2. Together, these results show that richer access to prior experience can enable automated harness engineering.",
+      "authors": [
+        "Yoonho Lee",
+        "Roshen Nair",
+        "Qizheng Zhang",
+        "Kangwook Lee",
+        "Omar Khattab",
+        "Chelsea Finn"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-30T05:33:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.28052v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agentic proposer searches over harness code for LLM applications",
+      "llm_evidence_cn": "智能提议器搜索LLM应用的线束代码",
+      "llm_evidence": "智能提议器搜索LLM应用的线束代码",
+      "canonical_evidence": "智能提议器搜索LLM应用的线束代码",
+      "llm_tldr_en": "Introduces Meta-Harness with agentic proposer to optimize LLM harness code end-to-end.",
+      "llm_tldr_cn": "引入Meta-Harness系统，用智能提议器端到端优化LLM线束代码。",
+      "llm_tldr": "引入Meta-Harness系统，用智能提议器端到端优化LLM线束代码。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.29247v2",
+      "title": "MemRerank: Preference Memory for Personalized Product Reranking",
+      "abstract": "LLM-based shopping agents increasingly rely on long purchase histories and multi-turn interactions for personalization, yet naively appending raw history to prompts is often ineffective due to noise, length, and relevance mismatch. We propose MemRerank, a preference memory framework that distills user purchase history into concise, query-independent signals for personalized product reranking. To study this problem, we build an end-to-end benchmark and evaluation framework centered on an LLM-based \\textbf{1-in-5} selection task, which measures both memory quality and downstream reranking utility. We further train the memory extractor with reinforcement learning (RL), using downstream reranking performance as supervision. Experiments with two LLM-based rerankers show that MemRerank consistently outperforms no-memory, raw-history, and off-the-shelf memory baselines, yielding up to \\textbf{+10.61} absolute points in 1-in-5 accuracy. These results suggest that explicit preference memory is a practical and effective building block for personalization in agentic e-commerce systems.",
+      "authors": [
+        "Zhiyuan Peng",
+        "Xuyang Wu",
+        "Huaixiao Tou",
+        "Yi Fang",
+        "Yu Gong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-31T04:16:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.29247v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-based shopping agents with preference memory for personalization",
+      "llm_evidence_cn": "基于LLM的购物智能体偏好记忆框架",
+      "llm_evidence": "基于LLM的购物智能体偏好记忆框架",
+      "canonical_evidence": "基于LLM的购物智能体偏好记忆框架",
+      "llm_tldr_en": "MemRerank distills user history into preference memory for personalized product reranking by shopping agents.",
+      "llm_tldr_cn": "MemRerank将用户历史提炼为偏好记忆用于购物智能体的个性化重排序。",
+      "llm_tldr": "MemRerank将用户历史提炼为偏好记忆用于购物智能体的个性化重排序。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.29085v1",
+      "title": "PAR$^2$-RAG: Planned Active Retrieval and Reasoning for Multi-Hop Question Answering",
+      "abstract": "Large language models (LLMs) remain brittle on multi-hop question answering (MHQA), where answering requires combining evidence across documents through retrieval and reasoning. Iterative retrieval systems can fail by locking onto an early low-recall trajectory and amplifying downstream errors, while planning-only approaches may produce static query sets that cannot adapt when intermediate evidence changes. We propose \\textbf{Planned Active Retrieval and Reasoning RAG (PAR$^2$-RAG)}, a two-stage framework that separates \\emph{coverage} from \\emph{commitment}. PAR$^2$-RAG first performs breadth-first anchoring to build a high-recall evidence frontier, then applies depth-first refinement with evidence sufficiency control in an iterative loop. Across four MHQA benchmarks, PAR$^2$-RAG consistently outperforms existing state-of-the-art baselines, compared with IRCoT, PAR$^2$-RAG achieves up to \\textbf{23.5\\%} higher accuracy, with retrieval gains of up to \\textbf{10.5\\%} in NDCG.",
+      "authors": [
+        "Xingyu Li",
+        "Rongguang Wang",
+        "Yuying Wang",
+        "Mengqing Guo",
+        "Chenyang Li",
+        "Tao Sheng",
+        "Sujith Ravi",
+        "Dan Roth"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-30T23:52:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.29085v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "RAG framework for multi-hop retrieval and reasoning",
+      "llm_evidence_cn": "多跳检索与推理的RAG框架",
+      "llm_evidence": "多跳检索与推理的RAG框架",
+      "canonical_evidence": "多跳检索与推理的RAG框架",
+      "llm_tldr_en": "Proposes PAR2-RAG, a two-stage framework separating coverage and commitment for improved multi-hop question answering.",
+      "llm_tldr_cn": "提出PAR2-RAG两阶段框架，分离覆盖与提交以改进多跳问答。",
+      "llm_tldr": "提出PAR2-RAG两阶段框架，分离覆盖与提交以改进多跳问答。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.29247v1",
+      "title": "MemRerank: Preference Memory for Personalized Product Reranking",
+      "abstract": "LLM-based shopping agents increasingly rely on long purchase histories and multi-turn interactions for personalization, yet naively appending raw history to prompts is often ineffective due to noise, length, and relevance mismatch. We propose MemRerank, a preference memory framework that distills user purchase history into concise, query-independent signals for personalized product reranking. To study this problem, we build an end-to-end benchmark and evaluation framework centered on an LLM-based \\textbf{1-in-5} selection task, which measures both memory quality and downstream reranking utility. We further train the memory extractor with reinforcement learning (RL), using downstream reranking performance as supervision. Experiments with two LLM-based rerankers show that MemRerank consistently outperforms no-memory, raw-history, and off-the-shelf memory baselines, yielding up to \\textbf{+10.61} absolute points in 1-in-5 accuracy. These results suggest that explicit preference memory is a practical and effective building block for personalization in agentic e-commerce systems.",
+      "authors": [
+        "Zhiyuan Peng",
+        "Xuyang Wu",
+        "Huaixiao Tou",
+        "Yi Fang",
+        "Yi Gong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-31T04:16:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.29247v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM-based shopping agents with preference memory",
+      "llm_evidence_cn": "基于LLM的购物智能体与偏好记忆",
+      "llm_evidence": "基于LLM的购物智能体与偏好记忆",
+      "canonical_evidence": "基于LLM的购物智能体与偏好记忆",
+      "llm_tldr_en": "MemRerank framework distills user history into preference memory for personalized product reranking by shopping agents.",
+      "llm_tldr_cn": "MemRerank框架将用户历史提炼为偏好记忆用于个性化重排序。",
+      "llm_tldr": "MemRerank框架将用户历史提炼为偏好记忆用于个性化重排序。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.29322v1",
+      "title": "VACP: Visual Analytics Context Protocol",
+      "abstract": "The rise of AI agents introduces a fundamental shift in Visual Analytics (VA), in which agents act as a new user group. Current agentic approaches - based on computer vision and raw DOM access - fail to perform VA tasks accurately and efficiently. This paper introduces the Visual Analytics Context Protocol (VACP), a framework designed to make VA applications \"agent-ready\" that extends generic protocols by explicitly exposing application state, available interactions, and mechanisms for direct execution. To support our context protocol, we contribute a formal specification of AI agent requirements and knowledge representations in VA interfaces. We instantiate VACP as a library compatible with major visualization grammars and web frameworks, enabling augmentation of existing systems and the development of new ones. Our evaluation across representative VA tasks demonstrates that VACP-enabled agents achieve higher success rates in interface interpretation and execution compared to current agentic approaches, while reducing token consumption and latency. VACP closes the gap between human-centric VA interfaces and machine perceivability, ensuring agents can reliably act as collaborative users in VA systems.",
+      "authors": [
+        "Tobias Stähle",
+        "Péter Ferenc Gyarmati",
+        "Thilo Spinner",
+        "Rita Sevastjanova",
+        "Dominik Moritz",
+        "Mennatallah El-Assady"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-31T06:45:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.29322v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Framework for agent-ready visual analytics applications",
+      "llm_evidence_cn": "面向智能体的可视化分析应用框架",
+      "llm_evidence": "面向智能体的可视化分析应用框架",
+      "canonical_evidence": "面向智能体的可视化分析应用框架",
+      "llm_tldr_en": "VACP is a framework making visual analytics applications agent-ready by exposing state and interaction mechanisms.",
+      "llm_tldr_cn": "VACP框架通过暴露状态和交互机制使可视化分析应用对智能体就绪。",
+      "llm_tldr": "VACP框架通过暴露状态和交互机制使可视化分析应用对智能体就绪。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

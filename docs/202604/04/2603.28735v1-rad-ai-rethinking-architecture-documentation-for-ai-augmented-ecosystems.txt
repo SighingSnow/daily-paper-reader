@@ -1,0 +1,248 @@
+Title: RAD-AI: Rethinking Architecture Documentation for AI-Augmented Ecosystems
+
+URL Source: https://arxiv.org/pdf/2603.28735v1
+
+Published Time: Tue, 31 Mar 2026 02:30:41 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# RAD-AI: Rethinking Architecture Documentation for AI-Augmented Ecosystems 
+
+Oliver Aleksander Larsen 
+
+SDU Software Engineering University of Southern Denmark Odense, Denmark olar@mmmi.sdu.dk 
+
+Mahyar T. Moghaddam 
+
+SDU Software Engineering University of Southern Denmark Odense, Denmark mtmo@mmmi.sdu.dk 
+
+Abstract —AI-augmented ecosystems (interconnected systems where multiple AI components interact through shared data and infrastructure) are becoming the architectural norm for smart cities, autonomous fleets, and intelligent platforms. Yet the architecture documentation frameworks practitioners rely on, arc42 and the C4 model, were designed for deterministic software and cannot capture probabilistic behavior, data-dependent evolu-tion, or dual ML/software lifecycles. This gap carries regulatory consequence: the EU AI Act (Regulation 2024/1689) mandates technical documentation through Annex IV that no existing framework provides structured support for, with enforcement for high-risk systems beginning August 2, 2026. We present RAD-AI, a backward-compatible extension framework that augments arc42 with eight AI-specific sections and C4 with three diagram extensions, complemented by a systematic EU AI Act Annex IV compliance mapping. A regulatory coverage assessment with six experienced software-architecture practitioners provides prelim-inary evidence that RAD-AI increases Annex IV addressability from approximately 36% to 93% (mean rating) and demonstrates substantial improvement over existing frameworks. Comparative analysis on two production AI platforms (Uber Michelangelo, Netflix Metaflow) captures eight additional AI-specific con-cerns missed by standard frameworks and demonstrates that documentation deficiencies are structural rather than domain-specific. An illustrative smart mobility ecosystem case study reveals ecosystem-level concerns, including cascading drift and differentiated compliance obligations, that are invisible under standard notation. 
+
+Index Terms —software architecture, architecture documen-tation, AI-augmented systems, arc42, C4 model, EU AI Act, machine learning, architecture decision records, ecosystems 
+
+I. I NTRODUCTION 
+
+The gap between architecture documentation and system reality costs organizations dearly. Industry surveys suggest that 93% of organizations experience negative business outcomes from architecture-implementation misalignment [26]. For AI-augmented ecosystems (interconnected systems where multi-ple AI components interact within shared infrastructure), this gap extends beyond an engineering concern into regulatory 
+
+> 0
+
+© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. Accepted at ANGE 2026, co-located with IEEE ICSA 2026. 
+
+liability. Software architecture documentation frameworks as-sume deterministic systems with stable interfaces: arc42 [1] structures documentation around twelve sections of code-centric building blocks, while the C4 model [2] provides hierarchical visualization treating all components as software containers. Neither offers notation for probabilistic outputs, data-dependent evolution, dual training/serving lifecycles, or emergent quality attributes such as fairness and explainability. The EU AI Act (Regulation (EU) 2024/1689) [17], in force since August 2024, introduces binding documentation requirements through its Annex IV, with the critical deadline for high-risk AI system documentation on August 2. Annex IV specifies nine sections of required technical documentation spanning system description, design specifications, data gov-ernance, training methodologies, risk management, lifecycle changes, performance metrics, human oversight, and post-market monitoring. Critically, Section 2(c) explicitly requires documentation of “the system architecture explaining how software components build on or feed into each other and integrate into the overall processing”; a direct mandate for architecture documentation that no current framework can produce. Section 2(d) demands data provenance and labelling procedures, Section 2(e) requires human oversight assess-ment, and Section 2(h) mandates cybersecurity measures. CEN-CENELEC JTC 21 is developing harmonized standards (prEN 18286 [21]), but these remain in public enquiry. No existing architecture documentation framework provides struc-tured guidance for producing the mandated documentation, leaving practitioners without a clear path from current arc42 or C4 practices to regulatory compliance. Prior work identifies challenges and best practices for archi-tecting ML-enabled systems [9]–[11] and proposes standalone documentation artifacts such as Model Cards [13] and Hazard-Aware System Cards [38], but none extends the established frameworks that practitioners actually use. This motivates our research question: 
+
+RQ: How can established software architecture documen-tation frameworks be systematically extended to address the unique concerns of AI-augmented ecosystems while maintain-ing backward compatibility and satisfying emerging regulatory requirements? 
+
+Following Design Science Research [34], we develop RAD-
+
+> arXiv:2603.28735v1 [cs.SE] 30 Mar 2026
+
+AI through a structured gap analysis and evaluate it using three complementary analytical methods. Our contributions are: 
+
+• RC1: RAD-AI, the first backward-compatible extension of arc42 (eight section extensions) and C4 (three diagram types) for documenting AI-augmented ecosystems. 
+
+• RC2: A systematic EU AI Act Annex IV compliance mapping with quantified coverage assessment, providing a concrete documentation path for the August 2026 deadline. 
+
+• RC3: Comparative analytical evidence on two produc-tion AI platforms (Uber Michelangelo, Netflix Metaflow) demonstrating that documentation gaps are structural prop-erties of current frameworks, not domain-specific over-sights. 
+
+• RC4: Identification of three ecosystem-level documenta-tion concerns (cascading drift, differentiated compliance, federated governance) visible only through RAD-AI’s ex-tended notation. A companion repository containing reusable templates for all extensions, reference documentation, an illustrative ex-ample (smart urban mobility ecosystem), and the complete comparative analysis artifacts for both production systems in Section IV-B is available online. 1
+
+II. B ACKGROUND AND RELATED WORK 
+
+A. Architecture Documentation Frameworks 
+
+Architecture documentation bridges stakeholder concerns and implementation reality [4]. Two frameworks dominate practice. arc42 [1] provides a pragmatic twelve-section tem-plate widely adopted in European industry: (1) Introduction & Goals, (2) Constraints, (3) Context & Scope, (4) Solution Strategy, (5) Building Block View, (6) Runtime View, (7) De-ployment View, (8) Cross-Cutting Concepts, (9) Architecture Decisions, (10) Quality Requirements, (11) Risks & Technical Debt, and (12) Glossary. RAD-AI extends sections 3, 5, 6, 8, 9, 10, and 11; the remaining sections are unchanged. The 
+
+C4 model [2] complements arc42 with four-level hierarchical visualization (System Context, Container, Component, and Code) plus supplementary Dynamic, Deployment, and System Landscape diagrams, commonly implemented through Struc-turizr DSL and PlantUML. Both frameworks align with ISO/IEC/IEEE 42010:2022 [3] viewpoint concepts but share a critical assumption: all building blocks and containers represent deterministic code modules with stable, well-defined interfaces. RAD-AI can be inter-preted as introducing new stakeholder concerns (e.g., proba-bilistic behavior, drift governance, regulatory traceability) and corresponding viewpoints within the ISO 42010 framework, thereby extending existing architectural description practices rather than replacing them. Recent work on Architecture-as-Code [43] advances the formalization of architecture descrip-tions but retains deterministic assumptions. This assumption breaks down for AI-augmented systems where components exhibit probabilistic behavior, evolve through data changes rather than code commits, and follow independent lifecycles. 
+
+> 1https://github.com/Oliver1703dk/RAD-AI
+
+B. AI-Specific Architectural Concerns 
+
+AI-augmented systems differ from traditional software in five ways that current documentation cannot capture: (1) non-deterministic behavior : model outputs are probabilistic with no notation for confidence intervals or degradation pro-files [7]; (2) data-dependent evolution : behavior changes through distribution shifts rather than code commits, creat-ing data dependency debt [6]; (3) dual lifecycle complexity :ML training/serving cycles run asynchronously with software releases [8], [33]; (4) emergent quality attributes : fairness, explainability, and drift resistance are first-class concerns [15], [18], [45] absent from documentation templates; and (5) reg-ulatory requirements : the EU AI Act Annex IV [17] man-dates documentation across nine sections spanning system description, data governance, risk management, human over-sight, and post-market monitoring, complemented by NIST AI RMF 1.0 [20] and ISO/IEC 42001 [19]. While recent work maps AI Act requirements to SE artifacts [22] or compliance templates [24], none addresses architecture documentation frameworks specifically. 
+
+C. Related Work and Research Gap 
+
+Table I positions RAD-AI relative to adjacent work span-ning AI architecture research, documentation artifacts, and regulatory compliance. Substantial progress has been made in identifying AI-specific architectural concerns [9]–[12], propos-ing documentation artifacts [13], [14], [38], mapping regu-latory requirements [22], [24], and surveying generative AI applications in software architecture [42]. Industry frame-works such as the AWS Well-Architected ML Lens [25] and documentation extensions including Model Card++ [39] and Meta’s system cards [40] provide valuable implementation guidance, but none extends arc42 or C4. Machine-readable AI documentation formats [23] advance transparency but remain standalone artifacts. The closest related work is HASC [38], proposing machine-readable AI system cards with safety hazard identifiers and ISO/IEC 42001 alignment; however, HASC operates as a stan-dalone governance artifact rather than extending arc42 or C4. Bucaioni et al. [41], [44] survey AI contributions to software architecture and propose an LLM reference architecture, while Autili et al. [16] propose ethical-aware reference architectures; none extends practitioner documentation frameworks. RAD-AI takes the complementary approach of embedding AI-specific concerns directly into the frameworks practitioners already use. From this analysis we identify five documentation gaps: 
+
+G1 No AI-specific arc42 sections for model lifecycle, data pipelines, or drift. 
+
+G2 No C4 diagram types for ML components or non-determinism boundaries. 
+
+G3 No mapping between EU AI Act Annex IV and arc42/C4 sections. 
+
+G4 No AI-specific Architecture Decision Record templates. 
+
+G5 No integration of Model/Data Cards into architecture documentation. III. T HE RAD-AI F RAMEWORK 
+
+RAD-AI follows three design principles: (1) backward com-patibility : E1–E7 augment existing arc42 sections, E8 adds one new arc42 section, and C4-E1–C4-E3 extend C4 diagrams; all existing documentation remains valid; (2) minimal disruption :practitioners can adopt extensions incrementally, starting with the most relevant; and (3) traceability : each extension maps to an identified gap (G1–G5). 
+
+A. Extended arc42 Sections 
+
+Table III summarizes seven section extensions (E1–E7) and one new section addition (E8). We describe each below. 
+
+E1: AI Boundary Delineation extends Context &Scope (§3) by requiring explicit marking of deterministic versus non-deterministic system boundaries. Each boundary crossing is annotated with a four-part contract: output type 
+
+(categorical, continuous, or generative), confidence specifica-tion (e.g., “precision ≥ 0.92 at P95 latency < 50 ms”), update frequency (how often the underlying model is refreshed), and fallback behavior (rule-based default, cached last-known-good, or human escalation). The resulting annotated context diagram gives stakeholders an immediate visual indication of where probabilistic behavior enters the system and what guarantees each AI interface provides. 
+
+E2: Model Registry View extends Building Block View (§5) by elevating AI models to first-class building blocks. Each model entry in the registry table specifies: model ID and version, ML framework, training dataset hash with lin-eage reference, hyperparameter snapshot, primary evaluation metric with acceptance threshold, deployment status (shadow, canary, or production), owner, and last-retrained date. Model Cards [13] attach as linked sub-artifacts of each model building block, bridging the gap between ML documentation and architecture documentation. 
+
+E3: Data Pipeline View extends Runtime View (§6) with the complete ML data flow: collection, preprocessing, feature engineering, training, inference, and feedback loops. Each pipeline stage is annotated with quality gates specifying three properties: a check type (schema conformance, distribution test, or completeness check), a threshold (e.g., KS-statistic 
+
+< 0.1, null rate < 1%), and an action on failure (halt pipeline, alert and continue, or activate fallback). Data Cards [14] attach as sub-artifacts at data source nodes, connecting data governance documentation to the architectural data flow. 
+
+E4: Responsible AI Concepts extends Cross-Cutting Con-cepts (§8) with a structured concern matrix . Rows represent AI components; columns represent five concern categories: fair-ness, explainability, human oversight, privacy, and safety. Each cell documents the applicable metric or method (e.g., demo-graphic parity ratio, SHAP feature attributions), the acceptance threshold, the monitoring frequency, and the responsible party. This extension draws on responsible AI pattern catalogues [15] and documents the human oversight mechanisms required by the EU AI Act. 
+
+E5: AI Decision Records (AI-ADR) extends Architecture Decisions (§9) with an enhanced Markdown Any Decision Records (MADR) [36] template adding seven AI-specific fields. Table II illustrates a complete AI-ADR for the route optimization service from the case study (Section IV-C), showing how gradient-boosted trees were selected over LSTM for explainability in a public-service context. 
+
+E6: AI Quality Scenarios extends Quality Require-ments (§10) with AI-specific quality scenarios following the established source–stimulus–response format [5]. Each sce-nario specifies an AI-specific source (data drift, model stal-eness, adversarial input), a stimulus with quantitative trigger, an environment (training, serving, or monitoring), and a mea-surable response with deadline. For example, a cascading drift scenario specifies that when feature distribution shifts exceed 2σ on three or more features for over 12 hours, downstream components activate fallback behavior within 2 hours; a cross-component concern that standard quality scenarios cannot express. 
+
+E7: AI Debt Register extends Risks & Technical Debt (§11) with ML-specific debt categories from Sculley et al. [6] and Bogner et al. [37]. Each register entry records: debt category (boundary erosion, entanglement, hidden feedback loop, data dependency, or pipeline debt), affected compo-nent(s) , severity (low/medium/high based on blast radius), 
+
+estimated remediation effort , owner , and status . This structured format enables systematic tracking and prioritization of ML-specific technical debt alongside conventional architectural debt. 
+
+E8: Operational AI View adds a new arc42 section structured around four required subsections: (a) monitoring :metrics tracked per model, dashboard specifications, and alerting thresholds; (b) retraining policy : triggers (sched-uled, performance-based, or drift-based), automation level (manual/semi-auto/fully automated), and approval workflow; (c) deployment strategy : canary, blue-green, or shadow de-ployment with promotion criteria and traffic split ratios; and (d) rollback policy : rollback triggers, model version retention depth, and downstream data implications. This section has no equivalent in standard arc42. 
+
+B. Extended C4 Model 
+
+Table IV summarizes the three extensions to C4’s hierarchi-cal diagram system, all compatible with Structurizr DSL and PlantUML notation. We describe each extension below. 
+
+C4-E1: AI Component Stereotypes. Five new stereotypes (<<ML Model>> , <<Data Pipeline>> ,
+
+<<Feature Store>> , <<Monitor>> , and 
+
+<<Human-in-the-Loop>> ) enable C4 diagrams to visually distinguish AI components from traditional software containers. A <<Feature Store>> is immediately recognizable as architecturally distinct from a standard database, even though both store data. 
+
+C4-E2: Data Lineage Overlay. A supplementary diagram layer traces data provenance from source through transfor-mation to model consumption. Annotations capture schema expectations, data freshness constraints, and privacy classifi-cations. When applied to Container or Component diagrams, TABLE I POSITIONING OF RAD-AI RELATIVE TO ADJACENT WORK ON ARCHITECTURE DOCUMENTATION FOR AI SYSTEMS .                                                         
+
+> Work Contribution Limitation Type
+> Moin et al. [10] Expert survey (61); ISO 42010 lacks AI viewpoints No concrete framework extensions Survey Nazir et al. [9] 35 challenges, 42 best practices for ML arch. Decision catalogs, not doc. structures SLR Indykov et al. [11] 16 architectural tactics, 85 quality trade-offs Tactics not mapped to doc. templates SLR Amou Najafabadi et al. [12] 35 MLOps architecture components System mapping, not doc. framework SMS Mitchell et al. [13] Model Cards for model-level reporting Standalone; not integrated into arch. docs Artifact Sidhpurwala et al. [38] HASC: system cards with ASH IDs Standalone governance; no fwk. integration Artifact Sovrano et al. [22] AI for drafting Annex IV documentation Automates generation; no fwk. extensions Empirical Bucaioni et al. [41] 14 AI contributions to SA AI for architecture, not architecture for AI SLR
+> RAD-AI (this paper) 8 arc42 + 3 C4 ext., Annex IV mapping, eval. on production systems Small practitioner study (n = 6) Fwk. ext.
+> TABLE II ILLUSTRATIVE AI-ADR FOR THE ROUTE OPTIMIZATION SERVICE .STANDARD MADR FIELDS (TOP )ARE EXTENDED WITH SEVEN
+> AI-SPECIFIC FIELDS (BOTTOM ).
+> Field Value
+> Title Use GBT for route optimization
+> Status Accepted
+> Context Route optimization requires explainable pre-dictions for public-service accountability
+> Decision XGBoost (gradient-boosted trees)
+> Consequences +Explainability, +Fast inference; −Lower sequence modeling capacity
+> Model alternatives XGBoost, LSTM, linear regression
+> Dataset 18 months, 2.1M trips, GPS + weather
+> Fairness/bias Under-served districts monitored; max 15% prediction gap across districts
+> Model lifetime ∼12 months before full refit
+> Retraining trigger MAE >5.5 min for 3 consecutive days
+> Explainability SHAP values for per-route regulatory audits
+> Regulatory Not high-risk (outside Art. 6 scope); trans-parency per Art. 50
+
+this overlay reveals data dependencies invisible in standard C4. 
+
+C4-E3: Non-Determinism Boundary Diagram. A system-level overlay partitions the architecture into deterministic and non-deterministic regions. Each boundary is annotated with the same three-property contract used in E1 (confidence spec-ification, fallback strategy, degradation profile), applied here at the diagram level rather than per-interface. Fig. 1 illustrates this partition in the case study. 
+
+C. EU AI Act Compliance Mapping 
+
+Table V maps ten requirement categories derived from Annex IV’s nine sections [17] to RAD-AI sections, guiding practitioners to the documentation artifacts each regulatory re-quirement demands. Notably, Annex IV Section 2(c) explicitly mandates description of “how software components build on or feed into each other and integrate into the overall processing”; a direct mandate for architecture documentation that no cur-rent framework provides structured support for. Section IV-A quantifies the coverage improvement this mapping enables. IV. E VALUATION 
+
+Following Design Science Research [34], [35], we evaluate RAD-AI through three complementary methods: a compliance coverage assessment (Section IV-A), a comparative analysis on production systems (Section IV-B), and an ecosystem case study (Section IV-C). 
+
+A. EU AI Act Compliance Coverage Assessment 
+
+Method. We score each of the ten requirement categories (derived from Annex IV’s nine sections) for addressability under four configurations: standard arc42, standard C4, RAD-AI-extended arc42, and RAD-AI-extended C4. Annex IV’s nine sections were operationalized into ten scoring categories by separating system elements from architectural integration (Section 2(c)) to allow finer-grained assessment. Addressabil-ity uses a three-point scale: 0 (not addressable: no framework section covers this concern), 1 (partial: a section exists but lacks AI-specific detail), 2 (fully addressable: a dedicated section or artifact directly addresses the requirement). Ta-ble VI presents the results. Addressability reflects whether a framework provides structured documentation support for a requirement, not whether the resulting documentation would be legally sufficient without additional artifacts. 
+
+Results. We recruited six software-architecture practitioners (domain experts) to independently score each configuration using the ten Annex IV categories and three-point scale (0 = not addressable, 1 = partial, 2 = fully addressable). For each participant, scores across the ten categories were summed (maximum 20); reported totals represent the mean across par-ticipants. Table VI reports the modal score for each category and the aggregate mean totals. Standard arc42 averaged 7.3/20 (σ ≈ 0.5) and fully covers the general system description while only partially addressing five categories, including de-sign specifications, risk management, and lifecycle tracking. Standard C4 averaged 5.2/20 ( σ ≈ 0.4), providing limited architectural views with no coverage for data governance, risk management, or human oversight. RAD-AI-extended arc42 averaged 18.5/20 ( σ ≈ 0.5); the sole partial category is training methodologies, where supplementary artifacts beyond architecture documentation are required. RAD-AI-extended TABLE III RAD-AI ADDITIONS TO ARC 42’ S TWELVE -SECTION TEMPLATE : SEVEN SECTION EXTENSIONS (E1–E7) AND ONE NEW SECTION (E8).                                                                                 
+
+> Ext. Name Extends arc42 Section Key Artifact Gap
+> E1 AI Boundary Delineation §3 Context & Scope Annotated context diagram with AI boundaries G1, G2 E2 Model Registry View §5 Building Block View Model registry table + annotated di-agram G1, G5 E3 Data Pipeline View §6 Runtime View Data pipeline diagram with quality gates G1, G5 E4 Responsible AI Concepts §8 Cross-Cutting Concepts Responsible AI concern matrix G1 E5 AI Decision Records §9 Architecture Decisions AI-ADR template (7 AI-specific fields) G4 E6 AI Quality Scenarios §10 Quality Requirements AI quality scenario table G1 E7 AI Debt Register §11 Risks & Technical Debt AI debt register with remediation plan G1 E8 Operational AI View New section (no equivalent) Operational AI architecture diagram G1 TABLE IV RAD-AI EXTENSIONS TO THE C4 MODEL ’S HIERARCHICAL DIAGRAM SYSTEM .
+> Ext. Name Key Artifact Gap
+> C4-E1 AI Component Stereotypes 5 new C4 stereotypes G2 C4-E2 Data Lineage Overlay Provenance overlay dia-gram G2, G5 C4-E3 Non-Determinism Boundary Boundary partition dia-gram G2 TABLE V EU AI A CT ANNEX IV REQUIREMENTS MAPPED TO RAD-AI SECTIONS .
+> #Annex IV Cate-gory RAD-AI Section(s)
+> 1General descrip-tion arc42 §1, §3 + E1 (AI Bound-ary) 2System elements §5 + E2 (Model Registry) 3Design & archi-tecture §5–7 + C4-E1 (AI Stereotypes) 4Data governance E3 (Data Pipeline) +C4-E2 (Data Lineage) 5Training methods E5 (AI-ADR) + supplementary 6Risk management §11 + E7 (AI Debt Register) 7Lifecycle changes E2 (versions) + E8 (Ops View) 8Performance metrics E6 (AI Quality) + C4-E3 (Non-Determinism) 9Human oversight E4 (Responsible AI) + HitL 10 Post-market monitoring E8 (Operational AI View)
+
+C4 averaged 14.6/20 ( σ ≈ 0.6). Inter-rater reliability (Fleiss’ 
+
+κ ≈ 0.68 ) indicates substantial agreement among the six raters. 
+
+Analysis. Three Annex IV categories are completely un-addressable by either standard framework: data governance, training methodologies, and human oversight. These represent the most AI-specific documentation demands, and RAD-AI extensions map directly to each gap. The combined RAD-AI framework (arc42 + C4) addresses all but one Annex IV category in our practitioner-based evaluation, offering organi-zations a concrete documentation path toward the August 2, 2026 compliance deadline. This is, to our knowledge, the first systematic addressability assessment of architecture documen-tation frameworks against EU AI Act requirements. 
+
+B. Comparative Analysis on Production AI Systems 
+
+Method. We select two well-documented production AI platforms from different domains and attempt to document each using standard arc42/C4, identifying AI-specific concerns that remain undocumented. We then apply RAD-AI extensions and assess which additional concerns are captured through a ten-item concern coverage matrix (Table VII). 
+
+System 1: Uber Michelangelo [27] managed over 5,000 production models serving 10 million predictions per second at peak [30]. Under standard arc42/C4, three architectural concerns are invisible: (i) the Feature Store (20,000+ features) appears as a generic database container, indistinguishable from Cassandra; (ii) Gallery’s [28] four-stage model lifecy-cle (exploration, training, evaluation, production) with rule-based deployment automation (e.g., WHEN metrics[mae] <= 5) collapses into static building blocks; and (iii) D3 drift detection [29], which reduced time-to-detect from 45 days to 2 days, has no home in the Runtime View. RAD-AI addresses each gap: the <<Feature Store>> stereotype distinguishes it from regular databases, Model Registry View captures Gallery’s versioned lifecycle and rule engine, Operational AI View documents D3 monitoring, and the Non-Determinism Boundary separates deterministic serving from probabilistic inference. 
+
+System 2: Netflix Metaflow/Maestro [31] supports over 3,000 ML projects. Under standard frameworks, four con-cerns are undocumentable: (i) Metaflow’s Python-native DAGs with event-triggered chaining (@trigger_on_finish ) are invisible in the Runtime View; (ii) Maestro’s signal-based cross-workflow coordination has no documentation counter-part; (iii) the distinction between streaming (15,000+ Flink jobs [32]) and batch processing is lost; and (iv) A/B testing infrastructure (the ABlaze platform) has no documentation home. RAD-AI captures these through AI component stereo-types, Data Lineage Overlay tracing data from ingestion through Flink to models, AI-ADR for experiment tracking, TABLE VI EU AI A CT ANNEX IV ADDRESSABILITY SCORING (0 = NOT ADDRESSABLE , 1 = PARTIAL , 2 = FULLY ADDRESSABLE ). S CORES REPRESENT THE MODAL RATING ACROSS SIX PRACTITIONERS ; TOTAL SCORES REFLECT MEAN VALUES (STANDARD DEVIATION REPORTED IN TEXT ).                                                     
+
+> Annex IV Requirement Category arc42 C4 RAD-AI arc42 RAD-AI C4
+> 1. General system description 21222. System elements & development process 11223. Design specifications & architecture 11224. Data & data governance 00215. Training methodologies & techniques 00116. Risk assessment & management 10217. Lifecycle change description 11228. Performance metrics & accuracy 01229. Human oversight measures 002110. Post-market monitoring 1021
+> Total (out of 20) 7.3 5.2 18.5 14.6 Addressability 36% 26% 93% 73%
+
+and the Operational AI View documenting deployment gover-nance. 
+
+Results. The most notable finding in Table VII is the cross-domain consistency: despite serving fundamentally dif-ferent domains (marketplace versus content recommendation), both systems exhibit the identical gap pattern under standard frameworks (0 fully captured, 2 partially) and the identical improvement under RAD-AI (8 fully, 2 partially). Both orga-nizations have invested heavily in model management, drift detection, and deployment governance, yet standard arc42/C4 provides no place to record any of it. This suggests that the documentation deficiencies are structural properties of the frameworks rather than domain-specific oversights. 
+
+C. Illustrative Ecosystem Case Study 
+
+To demonstrate RAD-AI at the ecosystem level, we apply it to a smart urban mobility scenario integrating four AI components across multiple transit operators. 
+
+Ecosystem description. The scenario comprises: (1) a
+
+Route Optimization Service using ML-based continuous re-training on real-time traffic patterns; (2) a Demand Prediction Engine providing time-series forecasting across bus, tram, and bike-sharing operators; (3) an Anomaly Detection System 
+
+for real-time safety monitoring of the transport network, potentially classified as high-risk under the EU AI Act; and (4) a Cross-Operator Data Sharing Platform with a federated feature store enabling anonymized data exchange across op-erators. Demand predictions feed route optimization; anomaly detection can trigger route recomputation; all systems share the federated feature store. 
+
+Standard documentation gaps. Under standard arc42/C4, these components appear as generic containers: the federated feature store is indistinguishable from a shared database, EU AI Act risk classifications are invisible, cross-system data dependencies are undocumented, and model versioning across operators creates silent compatibility risks. The dual lifecycle challenge is amplified at ecosystem scale: each operator’s models retrain independently but all consume shared fea-tures [6]. 
+
+RAD-AI documentation reveals ecosystem-level con-cerns: 
+
+• Cascading drift: Anomaly detection drift causes false safety alerts, triggering unnecessary rerouting in route optimization, degrading user experience. The Data Lineage Overlay (C4-E2) visualizes this dependency chain across operator boundaries. 
+
+• Differentiated compliance: AI Boundary Delineation (E1) distinguishes high-risk from limited-risk components, en-abling targeted Annex IV documentation where legally required. 
+
+• Federated governance: Responsible AI Concepts (E4) documents shared feature store ownership, cross-operator data agreements, and accountability boundaries. 
+
+• Concrete AI-ADR: Route optimization uses gradient-boosted trees (selected over neural networks for explain-ability in a public service context) with retraining triggered when MAE exceeds 5.5 minutes for three consecutive days. Fig. 1 illustrates the ecosystem’s C4 Component diagram with RAD-AI stereotypes, visually distinguishing AI compo-nents, non-determinism boundaries, and cross-operator data flows. V. D ISCUSSION 
+
+Evaluation synthesis. The strongest finding is the structural consistency of documentation gaps: compliance assessment and comparative analysis independently converge on the same deficiency pattern. Both Uber and Netflix exhibit identical gaps (0 of 10 concerns fully captured) despite different domains, suggesting structural rather than incidental deficiencies. The case study reveals ecosystem-level concerns invisible in stan-dard documentation. Together, these provide converging ana-lytical evidence. The compliance assessment was conducted by six independent practitioners, yielding substantial inter-rater agreement ( κ ≈ 0.68 ) and mitigating author bias. 
+
+Practical implications. RAD-AI’s backward compatibility enables incremental adoption. We suggest three stages: (1) E1 (AI Boundary Delineation) and E2 (Model Registry View) for TABLE VII AI-SPECIFIC CONCERN COVERAGE ON PRODUCTION SYSTEMS (✓ = FULLY CAPTURED , ∼ = PARTIALLY , × = NOT CAPTURED ).                                                           
+
+> AI-Specific Architectural Concern Uber std. Uber RAD-AI Netflix std. Netflix RAD-AI
+> Model versioning & lifecycle management ×✓×✓
+> Feature store architecture & sharing ×✓×✓
+> Data pipeline with quality gates ∼✓∼✓
+> Drift detection & monitoring ×✓×✓
+> Retraining triggers & automation ×✓×✓
+> Non-deterministic behavior boundaries ×✓×✓
+> A/B testing / canary model deployment ×∼×✓
+> Data lineage & provenance ×✓∼✓
+> ML-specific technical debt tracking ∼✓×∼
+> Responsible AI / fairness concerns ×∼×∼
+> Fully + partially captured 0 + 2 8 + 2 0 + 2 8 + 2
+> ≪ML Model ≫
+> Demand Prediction
+> ≪ML Model ≫
+> Anomaly Detection
+> [high-risk]
+> ≪ML Model ≫
+> Route Optimization
+> ≪Monitor ≫
+> Drift Detection
+> ≪Feature Store ≫
+> Federated Feature Store
+> Non-deterministic region ↑
+> Deterministic region ↓
+> ≪Human-in-the-Loop ≫
+> Operator Dashboard
+> override
+> Fig. 1. C4 Component diagram of the smart urban mobility ecosystem with RAD-AI stereotypes. Dashed line separates non-deterministic from deterministic regions; dotted arrows trace data lineage.
+
+component visibility; (2) E5 (AI-ADR) and E6 (AI Quality Scenarios) for decision rationale and quality commitments; (3) E8 (Operational AI View) and E7 (AI Debt Register) for operational maturity. Organizations facing the Annex IV dead-line can prioritize extensions mapped to their risk classification using Table V. The C4 AI stereotypes bridge communication between data scientists and software architects [7] by making AI components visually distinct in shared diagrams. 
+
+Scope and next steps. This paper establishes RAD-AI’s design rationale and analytical foundations. What remains is larger-scale empirical validation: we are designing a con-trolled study with 10–15 software architects documenting real AI systems, measuring completeness, time-to-document, and perceived usefulness, scoped for a journal version. Comple-mentary directions include Structurizr DSL tooling extensions and automated compliance checking. RAD-AI’s current exten-sions target classical ML pipelines; extending them to LLM and foundation model concerns (prompt versioning, RAG pipelines, guardrails) is a priority for future work. 
+
+Threats to validity. Construct: The ten Annex IV categories and three-point scale reflect our interpretation; alternative decompositions could yield different scores. Internal: The gap analysis (G1–G5) informed both design and evalua-tion, creating circularity inherent to DSR. The comparative analysis on independently documented production systems partially mitigates this, and our practitioner evaluation with six architects ( κ ≈ 0.68 ) further reduces author bias. Nev-ertheless, the small sample size and limited domains call for broader replication. External: Two domains (marketplace, content recommendation) and one synthetic ecosystem limit generalizability. The comparative analysis relies on public documentation that may not reflect complete internal practices. 
+
+Regulatory: Harmonized standards (prEN 18286 [21]) under development may introduce additional requirements. VI. C ONCLUSION 
+
+Architecture documentation frameworks designed for de-terministic systems are inadequate for AI-augmented ecosys-tems. Our comparative analysis on two unrelated production domains demonstrates that these deficiencies are structural, with identical gap patterns across both systems. RAD-AI addresses this through backward-compatible extensions (eight arc42 sections, three C4 diagram types) with a systematic EU AI Act Annex IV compliance mapping. Preliminary evaluation with six software architects provides evidence that RAD-AI increases Annex IV addressability from approximately 36% to 93%, captures eight AI-specific concerns missed by standard frameworks, and surfaces ecosystem-level needs invisible in current practice. While inter-rater reliability indicates substan-tial agreement, larger empirical studies remain necessary. By extending widely adopted frameworks rather than proposing new ones, RAD-AI enables incremental adoption while pre-serving existing documentation investments. REFERENCES [1] G. Starke, “arc42: The pragmatic architecture documentation template,” 2023. [Online]. Available: https://arc42.org/. Accessed: Feb. 19, 2026. [2] S. Brown, The C4 Model for Visualising Software Architecture . Leanpub, 2018. [3] ISO/IEC/IEEE, “42010:2022, Software, systems and enterprise – Archi-tecture description,” International Standard, 2022. [Online]. Available: https://www.iso.org/standard/74393.html. Accessed: Feb. 19, 2026. [4] P. Clements, F. Bachmann, L. Bass, D. Garlan, J. Ivers, R. Little, P. Mer-son, R. Nord, and J. Stafford, Documenting Software Architectures: Views and Beyond , 2nd ed. Addison-Wesley, 2010. [5] L. Bass, P. Clements, and R. Kazman, Software Architecture in Practice ,4th ed. Addison-Wesley, 2021. [6] D. Sculley et al. , “Hidden technical debt in machine learning systems,” in Proc. NeurIPS , 2015, pp. 2503–2511. [7] S. Amershi et al. , “Software engineering for machine learning: A case study,” in Proc. ICSE-SEIP , 2019, pp. 291–300. [8] J. Bosch, H. H. Olsson, and I. Crnkovic, “Engineering AI systems: A research agenda,” in Artificial Intelligence Paradigms for Smart Cyber-Physical Systems , A. K. Luhach and A. Elci, Eds. IGI Global, 2021, pp. 1–19. [9] R. Nazir, A. Bucaioni, and P. Pelliccione, “Architecting ML-enabled systems: Challenges, best practices, and design decisions,” J. Syst. Softw. ,vol. 207, Art. no. 111860, 2024. [10] A. Moin, A. Badii, S. G¨ unnemann, and M. Challenger, “Enhancing architecture frameworks by including modern stakeholders and their views/viewpoints,” in Proc. ICICT , 2025, pp. 92–100. [11] V. Indykov, D. Str¨ uber, and R. Wohlrab, “Architectural tactics to achieve quality attributes of machine-learning-enabled systems: A systematic literature review,” J. Syst. Softw. , vol. 223, Art. no. 112373, 2025. [12] F. Amou Najafabadi, J. Bogner, I. Gerostathopoulos, and P. Lago, “An analysis of MLOps architectures: A systematic mapping study,” in Proc. ECSA , ser. LNCS, vol. 14889. Springer, 2024, pp. 69–85. [13] M. Mitchell et al. , “Model cards for model reporting,” in Proc. FAccT ,2019, pp. 220–229. [14] Google, “Data Cards Playbook,” 2022. [Online]. Available: https://sites. research.google/datacardsplaybook/. Accessed: Feb. 19, 2026. [15] Q. Lu et al. , “Responsible AI pattern catalogue,” ACM Comput. Surv. ,vol. 56, no. 7, Art. no. 173, 2024. [16] M. Autili, M. De Sanctis, P. Inverardi, M. A. Memon, P. Pelliccione, and S. Pettinari, “A reference architecture for ethical-aware autonomous systems,” J. Syst. Softw. , vol. 235, Art. no. 112749, 2026. [17] European Parliament and Council, “Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (AI Act),” Official J. EU ,2024. [Online]. Available: https://eur-lex.europa.eu/eli/reg/2024/1689/oj. Accessed: Feb. 19, 2026. [18] ISO/IEC, “25059:2023, Software engineering – Systems and software Quality Requirements and Evaluation (SQuaRE) – Quality model for AI systems,” 2023. [Online]. Available: https://www.iso.org/standard/ 80655.html. Accessed: Feb. 19, 2026. [19] ISO/IEC, “42001:2023, Information technology – Artificial intelligence – Management system,” 2023. [Online]. Available: https://www.iso.org/ standard/81230.html. Accessed: Feb. 19, 2026. [20] NIST, “Artificial Intelligence Risk Management Framework (AI RMF 1.0),” 2023. [Online]. Available: https://www.nist.gov/publications/ artificial-intelligence-risk-management-framework-ai-rmf-10. Accessed: Feb. 19, 2026. [21] CEN-CENELEC JTC 21, “prEN 18286: Artificial intelligence –Quality management system for EU AI Act regulatory purposes,” 2025. [Online]. Available: https://standards.iteh.ai/catalog/standards/ cen/34ea911c-a980-4433-85ac-1344f93da01b/pren-18286. Accessed: Feb. 19, 2026. [22] F. Sovrano, E. Hine, S. Anzolut, and A. Bacchelli, “Simplifying software compliance: AI technologies in drafting technical documentation for the AI Act,” Empir. Softw. Eng. , vol. 30, no. 4, Art. 91, 2025. [23] D. Golpayegani, I. Hupont, C. Panigutti, H. J. Pandit, S. Schade, D. O’Sullivan, and D. Lewis, “AI Cards: Towards an applied framework for machine-readable AI and risk documentation inspired by the EU AI Act,” in Proc. 12th Annu. Privacy Forum (APF) , ser. LNCS, vol. 14831. Springer, 2024, pp. 48–72. [24] L. Lucaj, A. Loosley, H. Jonsson, U. Gasser, and P. van der Smagt, “TechOps: Technical documentation templates for the AI Act,” in Proc. AAAI/ACM Conf. AI Ethics Soc. (AIES) , 2025, pp. 1647–1660. [25] AWS, “Well-Architected Machine Learning Lens,” 2025. [Online]. Available: https://docs.aws.amazon.com/wellarchitected/latest/ machine-learning-lens/machine-learning-lens.html. Accessed: Feb. 19, 2026. [26] vFunction, “2025 Architecture in Software Development Report,” 2025. [Online]. Available: https://vfunction.com/resources/ report-2025-architecture-in-software-development/. Accessed: Feb. 19, 2026. [27] J. Hermann and M. Del Balso, “Meet Michelangelo: Uber’s machine learning platform,” Uber Engineering Blog, 2017. [Online]. Available: https://www.uber.com/blog/michelangelo-machine-learning-platform/. Accessed: Feb. 19, 2026. [28] C. Sun, N. Azari, and C. Turakhia, “Gallery: A machine learning model management system at Uber,” in Proc. EDBT , 2020, pp. 474–485. [29] Uber Engineering, “D3: An automated system to detect data drifts,” Uber Blog, 2023. [Online]. Available: https://www.uber.com/ blog/d3-an-automated-system-to-detect-data-drifts/. Accessed: Feb. 19, 2026. [30] Uber Engineering, “From predictive to generative: How Michelangelo accelerates Uber’s AI journey,” Uber Engineering Blog, 2024. [Online]. Available: https://www.uber.com/blog/from-predictive-to-generative-ai/. Accessed: Feb. 19, 2026. [31] Netflix Technology Blog, “Supporting diverse ML systems at Netflix,” 2024. [Online]. Available: https://netflixtechblog.com/ supporting-diverse-ml-systems-at-netflix-2d2e6b6d205d. Accessed: Feb. 19, 2026. [32] M. Cho and M. Liu, “Building a scalable Flink platform: Atale of 15,000 jobs at Netflix,” in Confluent Current , 2024. [Online]. Available: https://current.confluent.io/2024-sessions/ building-a-scalable-flink-platform-a-tale-of-15-000-jobs-at-netflix. Accessed: Feb. 19, 2026. [33] D. Kreuzberger, N. K¨ uhl, and S. Hirschl, “Machine learning operations (MLOps): Overview, definition, and architecture,” IEEE Access , vol. 11, pp. 31 866–31 879, 2023. [34] R. Wieringa, Design Science Methodology for Information Systems and Software Engineering . Springer, 2014. [35] K.-J. Stol and B. Fitzgerald, “The ABC of software engineering re-search,” ACM Trans. Softw. Eng. Methodol. , vol. 27, no. 3, Art. no. 11, 2018. [36] “MADR: Markdown Any Decision Records,” 2024. [Online]. Available: https://adr.github.io/madr/. Accessed: Feb. 19, 2026. [37] J. Bogner, R. Verdecchia, and I. Gerostathopoulos, “Characterizing technical debt and antipatterns in AI-based systems: A systematic mapping study,” in Proc. TechDebt , 2021, pp. 64–73. [38] H. Sidhpurwala, E. Fox, G. Mollett, F. Cano Gabarda, and R. Zhukov, “Blueprints of trust: AI system cards for end-to-end transparency and governance,” arXiv:2509.20394 , 2025. [39] M. Boone, N. Pope, D. Yared, C. Xiao, and A. Anand-kumar, “Enhancing AI transparency and ethical consid-erations with Model Card++,” NVIDIA Technical Blog, 2022. [Online]. Available: https://developer.nvidia.com/blog/ enhancing-ai-transparency-and-ethical-considerations-with-model-card/. Accessed: Feb. 19, 2026. [40] Meta AI, “System cards, a new resource for un-derstanding how AI systems work,” Meta AI Blog, 2022. [Online]. Available: https://ai.meta.com/blog/ system-cards-a-new-resource-for-understanding-how-ai-systems-work/. Accessed: Feb. 19, 2026. [41] A. Bucaioni, M. Weyssow, J. He, Y. Lyu, and D. Lo, “Artificial intelligence for software architecture: Literature review and the road ahead,” arXiv:2504.04334 , 2025. [42] M. Esposito, X. Li, S. Moreschini, N. Ahmad, T. Cerny, K. Vaid-hyanathan, V. Lenarduzzi, and D. Taibi, “Generative AI for software architecture. Applications, challenges, and future directions,” J. Syst. Softw. , vol. 231, Art. no. 112607, 2026. [43] A. Bucaioni, A. Di Salle, L. Iovino, P. Pelliccione, and F. Raimondi, “Architecture as code,” in Proc. 22nd IEEE Int. Conf. Softw. Archit. (ICSA) , Odense, Denmark, 2025, pp. 187–198. [44] A. Bucaioni, M. Weyssow, J. He, Y. Lyu, and D. Lo, “A functional software reference architecture for LLM-integrated systems,” in Proc. 22nd IEEE Int. Conf. Softw. Archit. Companion (ICSA-C) , Odense, Denmark, 2025, pp. 1–5. [45] H. J¨ arvenp¨ a¨ a, P. Lago, J. Bogner, G. Lewis, H. Muccini, and I. Ozkaya, “A synthesis of green architectural tactics for ML-enabled systems,” in 
+
+Proc. 46th IEEE/ACM Int. Conf. Softw. Eng.: Softw. Eng. Soc. (ICSE-SEIS) , Lisbon, Portugal, 2024, pp. 130–141.

@@ -6,115 +6,79 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-03
-- 运行时间：2026-04-03 20:15:40 UTC
+- 最新运行日期：2026-04-04
+- 运行时间：2026-04-04 19:58:37 UTC
 - 运行状态：成功
-- 本次总论文数：31
-- 精读区：19
+- 本次总论文数：19
+- 精读区：7
 - 速读区：12
 
 ### 今日简报（AI）
-今日精读19篇论文，OccSim与Nomad以9.0高分领跑自动驾驶与具身智能前沿。
-重点推荐OccSim在长视距驾驶仿真上的突破，以及Nomad展现的自主探索与发现能力。
-建议关注世界模型如何赋能自动驾驶仿真，以及具身智能自主探索的最新进展。
-- 详情：[/202604/03/README](/202604/03/README)
+1) 今日研读19篇前沿论文，深度聚焦世界中心架构语义建模与代码生成的搜索陷阱修复。
+2) 重点推荐世界中心架构的语义建模新思路，以及网络增强代码生成中错误诱导页面的检测与修复方案。
+3) 建议读者关注提升AI代码生成的抗干扰能力，并深入了解多模态生成搜索的可靠性审计。
+- 详情：[/202604/04/README](/202604/04/README)
 
 ### 精读区论文标签
-1. [OccSim: Multi-kilometer Simulation with Long-horizon Occupancy World Models](/202604/03/2603.28887v1-occsim-multi-kilometer-simulation-with-long-horizon-occupancy-world-models)  
+1. [Semantic Modeling for World-Centered Architectures](/202604/04/2604.01359v1-semantic-modeling-for-world-centered-architectures)  
    标签：评分：9.0/10、query:wmodel
-   evidence：明确的占用世界模型用于自动驾驶仿真
-2. [Nomad: Autonomous Exploration and Discovery](/202604/03/2603.29353v1-nomad-autonomous-exploration-and-discovery)  
-   标签：评分：9.0/10、query:agent
-   evidence：探索智能体具备文档搜索、网络搜索和数据库工具能力
-3. [BigEarthNet.txt: A Large-Scale Multi-Sensor Image-Text Dataset and Benchmark for Earth Observation](/202604/03/2603.29630v2-bigearthnettxt-a-large-scale-multi-sensor-image-text-dataset-and-benchmark-for-earth-observation)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：用于地球观测的大规模多传感器图文数据集
-4. [When is Generated Code Difficult to Comprehend? Assessing AI Agent Python Code Proficiency in the Wild](/202604/03/2604.00299v1-when-is-generated-code-difficult-to-comprehend-assessing-ai-agent-python-code-proficiency-in-the-wild)  
-   标签：评分：9.0/10、query:agent
-   evidence：直接研究AI代码智能体及其Python代码能力
-5. [Collaborative AI Agents and Critics for Fault Detection and Cause Analysis in Network Telemetry](/202604/03/2604.00319v1-collaborative-ai-agents-and-critics-for-fault-detection-and-cause-analysis-in-network-telemetry)  
-   标签：评分：9.0/10、query:agent
-   evidence：多智能体协作系统，AI智能体与评论家完成多模态任务
-6. [Yet Even Less Is Even Better For Agentic, Reasoning, and Coding LLMs](/202604/03/2604.00824v2-yet-even-less-is-even-better-for-agentic-reasoning-and-coding-llms)  
-   标签：评分：9.0/10、query:agent
-   evidence：软件工程智能体的训练框架STITCH
-7. [Data-Model Co-Driven Continuous Channel Map Construction: A Perceptive Foundation for Embodied Intelligent Agents in 6G Networks](/202604/03/2604.01060v1-data-model-co-driven-continuous-channel-map-construction-a-perceptive-foundation-for-embodied-intelligent-agents-in-6g-networks)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：作为具身智能体世界模型的信道地图
-8. [ORBIT: Scalable and Verifiable Data Generation for Search Agents on a Tight Budget](/202604/03/2604.01195v2-orbit-scalable-and-verifiable-data-generation-for-search-agents-on-a-tight-budget)  
-   标签：评分：9.0/10、query:agent
-   evidence：搜索智能体的训练数据集生成
-9. [Safety, Security, and Cognitive Risks in World Models](/202604/03/2604.01346v1-safety-security-and-cognitive-risks-in-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：智能体AI中世界模型的安全与风险
-10. [Fuzzing with Agents? Generators Are All You Need](/202604/03/2604.01442v1-fuzzing-with-agents-generators-are-all-you-need)  
-   标签：评分：9.0/10、query:agent
-   evidence：LLM代码智能体自动合成目标特定的模糊测试生成器
-11. [From SWE-ZERO to SWE-HERO: Execution-free to Execution-based Fine-tuning for Software Engineering Agents](/202604/03/2604.01496v1-from-swe-zero-to-swe-hero-execution-free-to-execution-based-fine-tuning-for-software-engineering-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：软件工程智能体及发布的轨迹数据集
-12. [ProdCodeBench: A Production-Derived Benchmark for Evaluating AI Coding Agents](/202604/03/2604.01527v1-prodcodebench-a-production-derived-benchmark-for-evaluating-ai-coding-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：评估AI代码智能体的基准
-13. [F3DGS: Federated 3D Gaussian Splatting for Decentralized Multi-Agent World Modeling](/202604/03/2604.01605v1-f3dgs-federated-3d-gaussian-splatting-for-decentralized-multi-agent-world-modeling)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：联邦多智能体3D重建用于世界建模
-14. [CORAL: Towards Autonomous Multi-Agent Evolution for Open-Ended Discovery](/202604/03/2604.01658v1-coral-towards-autonomous-multi-agent-evolution-for-open-ended-discovery)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于LLM智能体自主进化的多智能体框架
-15. [ContextBudget: Budget-Aware Context Management for Long-Horizon Search Agents](/202604/03/2604.01664v1-contextbudget-budget-aware-context-management-for-long-horizon-search-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：长程搜索智能体的上下文管理
-16. [Hierarchical Memory Orchestration for Personalized Persistent Agents](/202604/03/2604.01670v1-hierarchical-memory-orchestration-for-personalized-persistent-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于持久智能体的HMO记忆框架
-17. [DriveDreamer-Policy: A Geometry-Grounded World-Action Model for Unified Generation and Planning](/202604/03/2604.01765v1-drivedreamer-policy-a-geometry-grounded-world-action-model-for-unified-generation-and-planning)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：世界-动作模型连接VLA与世界模型用于自动驾驶
-18. [World Action Verifier: Self-Improving World Models via Forward-Inverse Asymmetry](/202604/03/2604.01985v1-world-action-verifier-self-improving-world-models-via-forward-inverse-asymmetry)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：通过动作验证实现自改进的世界模型
-19. [Jagle: Building a Large-Scale Japanese Multimodal Post-Training Dataset for Vision-Language Models](/202604/03/2604.02048v1-jagle-building-a-large-scale-japanese-multimodal-post-training-dataset-for-vision-language-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：大规模日语多模态后训练数据集，含920万实例
+   evidence：引入以世界为中心的多智能体系统与共享世界模型
+2. [Search-Induced Issues in Web-Augmented LLM Code Generation: Detecting and Repairing Error-Inducing Pages](/202604/04/2603.26091v1-search-induced-issues-in-web-augmented-llm-code-generation-detecting-and-repairing-error-inducing-pages)  
+   标签：评分：8.0/10、query:agent
+   evidence：网络搜索增强的代码生成智能体
+3. [Sci-Mind: Cognitively-Inspired Adversarial Debate for Autonomous Mathematical Modeling](/202604/04/2603.27584v1-sci-mind-cognitively-inspired-adversarial-debate-for-autonomous-mathematical-modeling)  
+   标签：评分：8.0/10、query:agent
+   evidence：自主智能体框架用于数学建模和代码检索
+4. [Nomad: Autonomous Exploration and Discovery](/202604/04/2603.29353v2-nomad-autonomous-exploration-and-discovery)  
+   标签：评分：8.0/10、query:agent
+   evidence：探索智能体具备文档搜索、网页搜索和数据库工具能力
+5. [Doctor-RAG: Failure-Aware Repair for Agentic Retrieval-Augmented Generation](/202604/04/2604.00865v1-doctor-rag-failure-aware-repair-for-agentic-retrieval-augmented-generation)  
+   标签：评分：8.0/10、query:agent
+   evidence：智能体RAG框架用于多跳问答与故障修复
+6. [EgoSim: Egocentric World Simulator for Embodied Interaction Generation](/202604/04/2604.01001v1-egosim-egocentric-world-simulator-for-embodied-interaction-generation)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：具有可更新3D场景状态的闭环自我中心世界模拟器
+7. [ActionParty: Multi-Subject Action Binding in Generative Video Games](/202604/04/2604.02330v1-actionparty-multi-subject-action-binding-in-generative-video-games)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于生成式视频游戏的多主体世界模型
 
 ### 速读区论文标签
-1. [GAAMA: Graph Augmented Associative Memory for Agents](/202604/03/2603.27910v1-gaama-graph-augmented-associative-memory-for-agents)  
+1. [Auditing the Reliability of Multimodal Generative Search](/202604/04/2604.00944v1-auditing-the-reliability-of-multimodal-generative-search)  
    标签：评分：8.0/10、query:agent
-   evidence：面向AI智能体的图增强联想记忆系统
-2. [Evaluating Privilege Usage of Agents on Real-World Tools](/202604/03/2603.28166v1-evaluating-privilege-usage-of-agents-on-real-world-tools)  
-   标签：评分：8.0/10、query:agent
-   evidence：LLM智能体真实工具评估
-3. [Unify-Agent: A Unified Multimodal Agent for World-Grounded Image Synthesis](/202604/03/2603.29620v2-unify-agent-a-unified-multimodal-agent-for-world-grounded-image-synthesis)  
-   标签：评分：8.0/10、query:agent
-   evidence：用于图像合成的统一多模态智能体框架
-4. [Agent psychometrics: Task-level performance prediction in agentic coding benchmarks](/202604/03/2604.00594v1-agent-psychometrics-task-level-performance-prediction-in-agentic-coding-benchmarks)  
-   标签：评分：8.0/10、query:agent
-   evidence：智能体编程基准的性能预测框架
-5. [Internal APIs Are All You Need: Shadow APIs, Shared Discovery, and the Case Against Browser-First Agent Architectures](/202604/03/2604.00694v1-internal-apis-are-all-you-need-shadow-apis-shared-discovery-and-the-case-against-browser-first-agent-architectures)  
-   标签：评分：8.0/10、query:agent
-   evidence：提出Unbrowse框架用于自主网络智能体的共享路由发现
-6. [Project Imaging-X: A Survey of 1000+ Open-Access Medical Imaging Datasets for Foundation Model Development](/202604/03/2603.27460v1-project-imaging-x-a-survey-of-1000-open-access-medical-imaging-datasets-for-foundation-model-development)  
+   evidence：多模态大模型作为生成式搜索系统进行检索审计
+2. [Amalgam: Hybrid LLM-PGM Synthesis Algorithm for Accuracy and Realism](/202604/04/2603.27254v1-amalgam-hybrid-llm-pgm-synthesis-algorithm-for-accuracy-and-realism)  
    标签：评分：7.0/10、query:wmodel
-   evidence：全面调研1000多个开放获取医学影像数据集
-7. [Beyond Dataset Distillation: Lossless Dataset Concentration via Diffusion-Assisted Distribution Alignment](/202604/03/2603.27987v1-beyond-dataset-distillation-lossless-dataset-concentration-via-diffusion-assisted-distribution-alignment)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：数据集蒸馏生成紧凑代理数据集
-8. [What an Autonomous Agent Discovers About Molecular Transformer Design: Does It Transfer?](/202604/03/2603.28015v1-what-an-autonomous-agent-discovers-about-molecular-transformer-design-does-it-transfer)  
+   evidence：混合LLM-PGM数据集合成算法
+3. [Sci-Mind: Cognitively-Inspired Adversarial Debate for Autonomous Mathematical Modeling](/202604/04/2603.27584v2-sci-mind-cognitively-inspired-adversarial-debate-for-autonomous-mathematical-modeling)  
    标签：评分：7.0/10、query:agent
-   evidence：自主智能体执行架构搜索实验
-9. [Multi-Agent LLMs for Adaptive Acquisition in Bayesian Optimization](/202604/03/2603.28959v1-multi-agent-llms-for-adaptive-acquisition-in-bayesian-optimization)  
+   evidence：用于数学建模的自主智能体框架
+4. [ProgressVLA: Progress-Guided Diffusion Policy for Vision-Language Robotic Manipulation](/202604/04/2603.27670v1-progressvla-progress-guided-diffusion-policy-for-vision-language-robotic-manipulation)  
    标签：评分：7.0/10、query:agent
-   evidence：用于自适应搜索策略学习的多智能体LLM
-10. [ManipArena: Comprehensive Real-world Evaluation of Reasoning-Oriented Generalist Robot Manipulation](/202604/03/2603.28545v1-maniparena-comprehensive-real-world-evaluation-of-reasoning-oriented-generalist-robot-manipulation)  
+   evidence：机器人操作智能体的视觉-语言-动作模型
+5. [Meta-Harness: End-to-End Optimization of Model Harnesses](/202604/04/2603.28052v1-meta-harness-end-to-end-optimization-of-model-harnesses)  
+   标签：评分：7.0/10、query:agent
+   evidence：智能提议器搜索LLM应用的线束代码
+6. [PAR$^2$-RAG: Planned Active Retrieval and Reasoning for Multi-Hop Question Answering](/202604/04/2603.29085v1-par2-rag-planned-active-retrieval-and-reasoning-for-multi-hop-question-answering)  
+   标签：评分：7.0/10、query:agent
+   evidence：多跳检索与推理的RAG框架
+7. [MemRerank: Preference Memory for Personalized Product Reranking](/202604/04/2603.29247v1-memrerank-preference-memory-for-personalized-product-reranking)  
+   标签：评分：7.0/10、query:agent
+   evidence：基于LLM的购物智能体与偏好记忆
+8. [VACP: Visual Analytics Context Protocol](/202604/04/2603.29322v1-vacp-visual-analytics-context-protocol)  
+   标签：评分：7.0/10、query:agent
+   evidence：面向智能体的可视化分析应用框架
+9. [PhysVid: Physics Aware Local Conditioning for Generative Video Models](/202604/04/2603.26285v1-physvid-physics-aware-local-conditioning-for-generative-video-models)  
    标签：评分：6.0/10、query:wmodel
-   evidence：机器人操作领域的VLA模型和世界模型及评估框架
-11. [ReFormeR: Learning and Applying Explicit Query Reformulation Patterns](/202604/03/2604.01417v1-reformer-learning-and-applying-explicit-query-reformulation-patterns)  
+   evidence：生成式视频模型的物理感知条件化
+10. [MemBoost: A Memory-Boosted Framework for Cost-Aware LLM Inference](/202604/04/2603.26557v1-memboost-a-memory-boosted-framework-for-cost-aware-llm-inference)  
    标签：评分：6.0/10、query:agent
-   evidence：用于检索上下文的查询重写模式
-12. [Retrieval-Augmented Question Answering over Scientific Literature for the Electron-Ion Collider](/202604/03/2604.02259v1-retrieval-augmented-question-answering-over-scientific-literature-for-the-electron-ion-collider)  
+   evidence：具有记忆、检索和路由功能的LLM服务框架
+11. [RAD-AI: Rethinking Architecture Documentation for AI-Augmented Ecosystems](/202604/04/2603.28735v1-rad-ai-rethinking-architecture-documentation-for-ai-augmented-ecosystems)  
    标签：评分：6.0/10、query:agent
-   evidence：基于RAG的科学文献检索问答系统
+   evidence：AI增强生态系统的架构文档框架
+12. [MemRerank: Preference Memory for Personalized Product Reranking](/202604/04/2603.29247v2-memrerank-preference-memory-for-personalized-product-reranking)  
+   标签：评分：6.0/10、query:agent
+   evidence：基于LLM的购物智能体偏好记忆框架
 
 
 <div class="dpr-home-promo-card">
