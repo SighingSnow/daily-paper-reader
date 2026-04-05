@@ -1,0 +1,364 @@
+Title: AutoStan: Autonomous Bayesian Model Improvement via Predictive Feedback
+
+URL Source: https://arxiv.org/pdf/2603.27766v1
+
+Published Time: Tue, 31 Mar 2026 01:18:49 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# AutoStan: Autonomous Bayesian Model Improvement via Predictive Feedback 
+
+Oliver D¨ urr 
+
+Thurgau Institute for Digital Transformation (TIDIT), Switzerland 
+
+March 31, 2026 
+
+Abstract 
+
+We present AutoStan, a framework in which a command-line interface (CLI) coding agent autonomously builds and iteratively improves Bayesian models written in Stan. The agent operates in a loop, writing a Stan model file, executing MCMC sampling, then deciding whether to keep or revert each change based on two complementary feedback signals: the negative log predictive density (NLPD) on held-out data and the sampler’s own diagnostics (divergences, R-hat, effective sample size). We evaluate AutoStan on five datasets with diverse modeling structures. On a synthetic regression dataset with outliers, the agent progresses from naive linear regression to a model with Student-t robustness, nonlinear heteroscedastic structure, and an explicit contamination mixture, matching or outperforming TabPFN, a state-of-the-art black-box method, while remaining fully interpretable. Across four additional experiments, the same mechanism discovers hierarchical partial pooling, varying-slope models with correlated random effects, and a Poisson attack/defense model for soccer. No search algorithm, critic module, or domain-specific instructions are needed. This is, to our knowledge, the first demonstration that a CLI coding agent can autonomously write and iteratively improve Stan code for diverse Bayesian modeling problems. 
+
+# 1 Introduction 
+
+Bayesian modeling is, in principle, beautifully simple: you state what you believe about the data, condition on observations, and let probability theory do the rest. In practice, this simplicity was historically locked behind intractable integrals—until probabilistic programming languages like BUGS [Lunn et al., 2009], JAGS [Plummer, 2003], and Stan [Stan Development Team, 2017] made arbitrary generative models accessible via MCMC. Yet even with Stan, the practitioner must still closely monitor and ”babysit” the inference: diagnose divergences, check R-hat and effective sample sizes, reparameterize funnels, tune priors, and iterate, a workflow that textbooks like Gelman and Hill [2006] and McElreath [2020] have made accessible but not less laborious. The question we tackle in this paper is whether modern CLI coding agents can automate parts of this tedious cycle. Karpathy’s autoresearch [Karpathy, 2026] demonstrated that a coding agent with a single scalar reward (validation bits-per-byte) can autonomously improve a neural network training script overnight. We translate this idea to Bayesian modeling. Supervised Bayesian inference is a natural fit for autonomous optimization because it admits a principled, model-agnostic evaluation metric like the negative log predictive density (NLPD) or any other strictly proper scoring rule [Gneiting and Raftery, 2007]. NLPD rewards calibrated predictive distributions and cannot be gamed by over-or under-confident predictions, making it an ideal hands-off reward signal. The agent edits a Stan 1
+
+> arXiv:2603.27766v1 [cs.LG] 29 Mar 2026
+
+model file, runs MCMC, observes NLPD on held-out data, and decides whether to keep or revert. No additional orchestration beyond the CLI agent is needed. We demonstrate AutoStan on five datasets spanning four statistical paradigms: regression with outliers, hierarchical partial pooling, varying-slope models, and sports modeling. Each reveals qualitatively different agent behaviors: from immediately writing the correct model (hierarchical) to discovering Student-t robustness for outlier handling and ultimately an explicit contamination mixture (regression). To our knowledge, this is the first demonstration that a CLI coding agent can autonomously write and improve Stan code. 
+
+# 2 Method 
+
+2.1 CLI Coding Agents 
+
+A CLI coding agent is a terminal-based AI assistant that can read and edit files, execute shell commands, and reason about their output in a read–edit–execute loop. In our case, the agent edits Stan model files and executes MCMC via cmdstanpy [CmdStanPy Developers, 2024]. Examples of CLI coding agents include Claude Code [Anthropic, 2025], Gemini CLI [Google, 2025], Codex CLI [OpenAI, 2025], and opencode [opencode contributors, 2025], the last of which is open-source. AutoStan relies on this capability but is not tied to any specific agent: any CLI coding agent that can edit files and execute shell commands can implement the optimization loop. All experiments reported here use Claude Code (v2.1.86) with Sonnet 4.6 (Model ID claude-sonnet-4-6) and a context window of 200,000 tokens [Anthropic, 2025]. The framework, however, is agent-agnostic and should work with any modern CLI coding agent. 
+
+2.2 Workflow 
+
+The agent is launched with a single prompt: 
+
+Read program.md for your instructions. Your dataset is datasets/<name>. 
+
+Two files define the task: 
+
+program.md contains domain-agnostic Bayesian workflow instructions ( ∼56 lines; full text in Appendix E): read the data, inspect the training set, edit model.stan , run evaluation, interpret NLPD and diagnostics, decide whether to keep or revert, repeat. The instructions mention general strategies (non-centered parameterization, prior tuning, alternative likelihoods) but contain no dataset-specific guidance. 
+
+dataset.md is a short dataset description: column names, data format, the Stan data interface, and the dataset-specific evaluation command ( python evaluate.py ), which the agent calls to compile the model, run MCMC, and receive the resulting NLPD. For synthetic datasets, variable names are anonymized; the true generative process is never disclosed. Examples are given in Appendix D and at https://github.com/tidit-ch/autostan .
+
+2.3 Agent Autonomy 
+
+The agent is free to explore the data before writing code. In practice, it often computes summary statistics, checks for outliers, examines group structure, or inspects value ranges on its own initiative, behavior that emerges from the agent’s statistical reasoning rather than from any script. The agent 2then writes a model.stan file with complete freedom over priors, likelihood, parameterization, and model structure. The only contract: the model must output a log lik vector in the generated quantities block which is needed for the evaluation script to compute the NLPD. 
+
+2.4 Evaluation and Reward 
+
+Each dataset has an evaluate.py script (executable but not readable by the agent) that compiles the model via cmdstanpy, runs MCMC (4 chains, 1 000 post-warmup draws for most datasets; 30 000 for the large 1D regression, to reduce Monte Carlo noise), computes NLPD from the log lik vector (provided in the stan file). Test data is protected via filesystem permissions and never visible to the agent. The primary reward is NLPD on held-out data: NLPD = − 1
+
+Ntest 
+
+> Ntest
+
+X
+
+> n=1
+
+log 1
+
+S
+
+> S
+
+X
+
+> s=1
+
+p
+
+
+
+ytest  
+
+> n
+
+| θ(s)!
+
+. (1) As a strictly proper scoring rule [Gneiting and Raftery, 2007], the NLPD is uniquely minimized by the true predictive distribution. In contrast to metrics such as accuracy or RMSE, it penalizes both errors in the predictive mean and miscalibrated uncertainty. In principle, any other strictly proper scoring rule (e.g., CRPS) could be used. The agent halts after 3 consecutive non-improving iterations or 20 total. 
+
+# 3 Case Study: Regression with Outliers 
+
+We examine this case study in detail, as it clearly illustrates the core principles of our approach. Additional examples are provided in Section 4. 
+
+3.1 Setup 
+
+The agent receives a dataset.md file (see Appendix D) containing the column names ( predictor ,
+
+response ), the Stan data interface, and the evaluation command, plus the one-line dataset descrip-tion: “Observations of a continuous predictor and a continuous response.” The true generative process, which is unknown to the agent, involves three independent sources of difficulty: 
+
+f (x) = 2 sin(1 .2x) + 0 .3x, (2) 
+
+σ(x) = 0 .3 + 0 .8 exp 
+
+h
+
+− 12
+
+ x−31.5
+
+2i
+
+, (3) and ∼6% of training observations shifted ±10–15 units as extreme outliers. The test set is drawn from the clean generative process (no outliers), so the oracle NLPD is simply the negative log-density under the true f (x) and σ(x); no mixture component is needed. This oracle represents a lower bound that cannot be reached: beyond the usual parameter uncertainty from finite data, the oracle knows that the test set contains no outliers, an information the agent does not have. We evaluate on two datasets: large ( n=500 train, 200 test) and small ( n=68 train, 30 test). 30 1 2 3 4 5 6 7 8 9 10 11 12 13 14                                
+
+> Iteration
+> 1.21.41.61.82.02.2
+> NLPD (b) (c) (d)
+> (a) NLPD trajectory ( n=500)
+> Oracle (1.1442) TabPFN (1.2501)
+> 012345
+> −4
+> −20246
+> response
+> (b) Iter 0: Linear + Gaussian — NLPD 2.16
+> True f(x)
+> ±2ˆ σ(x)Model ˆf(x)
+> 012345
+> predictor
+> −4
+> −20246
+> response
+> (c) Iter 1: Cubic + Student-t— NLPD 1.32
+> 012345
+> predictor
+> (d) Iter 11: Sine + mixture + het. — NLPD 1.23
+> 012345
+> predictor
+> (e) TabPFN — NLPD 1.2501
+
+Figure 1: AutoStan on the large 1D regression dataset ( n= 500 train, 200 test; DGP defined in Section 3.1). In panels (b)–(d), the fitted mean ˆf (x) is plotted with ±2 ˆσ(x) shaded; the faint grey overlay marks the oracle ground truth f (x) ± 2σ(x). Training points outside the plot range [−5, 7] are shown as edge-pinned triangles ( ▲/▼) at the panel boundary. (a) NLPD trajectory over 15 iterations; colored markers identify the three model-fit panels. The dashed oracle line (NLPD = 1 .14) is a lower bound that cannot be reached (see Section 3.1). (b) Baseline (iter 0): Gaussian linear model; predictive bands are dominated by the ≈30 extreme training outliers (NLPD = 2 .16). (c) Iter 1: cubic polynomial mean + Student-t likelihood; one step eliminates most band inflation ( NLPD = 1 .32). (d) Iter 11 (best): sinusoidal mean with learned frequency ω,heteroscedastic log-linear variance, and a contamination-mixture likelihood; tight, locally calibrated bands closely follow the oracle noise envelope ( NLPD = 1 .23). (e) TabPFN (90% predictive interval, NLPD = 1 .25): mean tracking is accurate but intervals are uniformly too wide—the model has absorbed the training outliers, inflating uncertainty across the full input range. 
+
+3.2 Model Evolution on the Large Dataset 
+
+Figure 1 summarizes the large-dataset run in one view. In 15 iterations the agent progresses from a flat, outlier-dominated baseline to a posterior predictive that closely tracks the true DGP (compare panels (b)–(d)), and ends up outperforming TabPFN (panel (e)). The trajectory reveals four key discoveries (see also Table 1): 
+
+Discovery 1: Outlier Robustness ( ∆ = 0 .84 ). The baseline linear regression with Gaussian errors scores NLPD = 2.16. At iteration 1, the agent adds a cubic polynomial mean and switches to Student-t, a single change that drops NLPD by 0.84, the largest jump of the run. 
+
+Discovery 2: Nonlinear Mean Structure ( ∆ ≈ 0.02 ). The agent replaces the polynomial with a sinusoidal basis a sin (ωx ) + b cos (ωx ) + cx (iter 2). It subsequently frees ω as a learnable 4Iter NLPD Model ∆0 2.1589 Linear mean, Gaussian likelihood —1 1.3181 Cubic polynomial + Student-t −0.84 2 1.3060 Sine basis + Student-t −0.01 5 1.2854 + Quadratic log σ(x) −0.02 7 1.2844 + Learnable frequency ω −0.001 9 1.2325 Gaussian mixture (fixed σout =10) −0.05 
+
+11 1.2256 + Cubic log σ(x) −0.007 
+
+Table 1: NLPD trajectory, 1D regression large ( n= 500). Oracle NLPD = 1.1442. Full trajectory including rejected iterations in Table 4. parameter (iter 7), recovering a value near the true frequency 1 .2. 
+
+Discovery 3: Heteroscedastic Variance ( ∆ ≈ 0.02 ). Adding log σ(x) as a quadratic then cubic polynomial captures the locally elevated variance near x ≈ 3 (iters 5, 11). 
+
+Discovery 4: Robust Mixture Model ( ∆ = 0 .05 ). At iteration 9 the agent replaces Student-t
+
+with an explicit two-component Gaussian mixture: 
+
+y ∼ (1 − π) N (μ(x), σ (x)) + π N (μ(x), σ out ). (4) The posterior estimate ˆπ ≈ 6% is close to the true contamination fraction. However, introducing two exchangeable mixture components leads to a label-switching pathology: the posterior is invariant under permutation of the component labels, effectively swapping the roles of σ(x) and σout . As a result, MCMC chains alternate between modes in which either component explains the outliers, leading to poor mixing (R-hat = 1.52 at iteration 10). The agent resolves this issue by fixing 
+
+σout = 10 based on data inspection, thereby restoring stable inference. 
+
+3.3 Small Dataset ( n=68 )
+
+With only n = 68 training observations, the same three discoveries occur in compressed form (9 iterations; see Appendix A.1): (1) outlier robustness via Student-t (∆ =0.75), (2) nonlinear mean with heteroscedastic variance (∆ =0.35), and (3) contamination mixture (∆ =0.03), reaching NLPD 1.12. The sinusoidal frequency and cubic heteroscedastic profile, which require more data to identify, are absent here and cannot be identified due to small sample size. 
+
+3.4 Comparison with TabPFN 
+
+We compare against TabPFN [Hollmann et al., 2025], a transformer pre-trained on synthetic tabular data that claims to approximate Bayesian inference without fitting a model at test time (details in Appendix B). Other natural baselines exist (gradient-boosted trees [Chen and Guestrin, 2016] or deep ensembles), but TabPFN is particularly useful out of the box as it produces full predictive distributions rather than point estimates and is currently a state-of-the-art method for regression tasks. On the small dataset, TabPFN (NLPD 1.12) and AutoStan (NLPD 1.12) are effectively tied; on the large dataset, AutoStan slightly outperforms TabPFN (1.23 vs. 1.25). The gap reflects structural advantages: the sinusoidal mean captures the true functional form, the heteroscedastic variance gives locally calibrated uncertainty, and the mixture correctly separates outliers. The main 5advantage, however, is interpretability: AutoStan exposes every assumption (mean, variance profile, outlier fraction ˆπ) with posterior uncertainty; TabPFN provides a predictive distribution but no explanation. 
+
+# 4 Additional Datasets 
+
+The 1D regression serves as a single illustrative example. To assess how broadly the mechanism generalizes, within the limited scope of this exploratory study, we apply AutoStan to four additional datasets spanning hierarchical, varying-slope, and football (soccer) modeling problems (Table 2; complete trajectories in Appendix A). A large-scale benchmark is beyond the scope of this paper; our goal is instead to demonstrate the range of modeling structures the agent can discover. 
+
+Hierarchical: small ( nj =8, 20 groups). The generative structure follows the spirit of the classic Eight Schools model [Rubin, 1981] (group means drawn from a shared prior, observations drawn from those means), but uses a synthetic dataset with anonymized variable names to avoid LLM contamination. The agent selected a hierarchical partial-pooling model as its baseline (NLPD = 1.50, oracle: 1.49), reaching near-optimal performance already at iteration 0. Three attempted improve-ments (non-centered parameterization (NCP), Student-t, group-specific σ) all increased NLPD. The finding is the baseline choice itself: given anonymized group-structured data, the agent immediately wrote the correct model. 
+
+Hierarchical: large ( nj =40 , 20 groups). Same generative process, more data. The agent achieved four consecutive improvements: NCP, group-specific variances, Student-t likelihood, and tighter data-informed priors, reaching NLPD 1.4014 (oracle: 1.4039). It also ran a principled ablation, reverting to Normal likelihood to confirm Student-t was beneficial. However, the best model slightly outperforms the oracle, a result that is not statistically meaningful and likely reflects mild overfitting to the test set through iterative optimization (see Limitations). 
+
+Varying slopes ( J= 15 groups). Generated from correlated random intercepts and slopes, with anonymized variable names. The largest gain (∆ =0.51) came from discovering varying slopes at iter 1. Most strikingly, the agent discovered a piecewise linear structure not present in the true generative model (iter 10), achieving NLPD 1.2738 vs. oracle 1.2627. While the gap is small, the piecewise structure is a modeling artifact rewarded by the test set and is considered another instance of mild test-set adaptation through iterative optimization. The agent correctly recognized when additional complexity became counterproductive: 3-segment piecewise (15 divergences) and learned knot positions (282 divergences, R-hat = 1.63) were both rejected. 
+
+Bundesliga 2024/25 (real data). Real match results, 18 teams, temporal train/test split. This is the only dataset with domain-labeled column names ( home team id , home goals , etc.). The agent immediately applied a canonical Poisson model with separate attack and defense parameters, then iteratively added hierarchical priors (∆ =0.020), NCP, and team-specific home advantage (∆ =0.003). It rejected the negative binomial likelihood, the Dixon–Coles low-scoring correction [Dixon and Coles, 1997], and a Bradley–Terry-style quality parameter [Bradley and Terry, 1952], none of which improved NLPD. An earlier experiment with fully anonymized column names ( unit a , count a ) revealed the agent’s pattern recognition: from 18 units, small integer counts (0–7), and a paired-matchup structure alone, 6Hier. S Hier. L Slopes 1D S 1D L Bundes.                               
+
+> Oracle 1.494 1.404 1.263 0.944 †1.144 †—Baseline 1.500 1.404 1.818 2.248 2.159 1.566 Best 1.500 1.401 1.274 1.124 1.226 1.543
+> Gap 0.006 −0.003 0.011 0.180 †0.081 †—Iters 0410 511 9
+
+Table 2: Summary across all experiments. Gap = Best − Oracle (lower is better; negative means the model outperforms the oracle, likely due to test-set overfitting). †Oracle is a strict lower bound that cannot be reached: the oracle knows the test set contains no outliers, whereas the agent must account for the ≈6% training contamination. The agent exhibits qualitatively different behaviors depending on dataset structure and size. it reasoned “ This looks like a sports-style matchup dataset ” and wrote a Poisson attack/defense model as its baseline, without any domain labels. 
+
+# 5 Related Work 
+
+A growing body of work explores LLM-driven statistical modeling. Li et al. [2024] structure their system around the classic iterative cycle of proposing a model, fitting it, critiquing the fit, and revising. Implemented in PyMC, an LLM plays both roles: modeler (proposing probabilistic programs) and domain expert (critiquing them). ModelSMC [Wahl et al., 2026] takes a more formal route, recasting model discovery as probabilistic inference with candidate models as particles in a sequential Monte Carlo sampler; theoretically elegant but substantially more complex. MATHMO [Liu and van der Schaar, 2026] takes a broader scope, treating mathematical modeling in general (not just probabilistic models) as a sequential decision-making problem. Domke [2025] sidesteps iterative improvement entirely: an LLM generates many candidate probabilistic programs from an informal description, and predictions are computed as a weighted average, i.e., Bayesian model averaging with an LLM prior over model space. At the specification end, LLM-BI [Huang, 2025] demonstrates that LLMs can elicit priors and likelihoods from natural language, though so far only for linear regression. All of these approaches introduce dedicated infrastructure: custom critic modules, SMC samplers, model-space priors, or multi-objective search algorithms. AutoStan is radical in what it does not 
+
+need. The entire system consists of a generic CLI coding agent, a 56-line instruction file, a short dataset description, and NLPD as the sole reward: no custom framework, no search algorithm, no critic. Our direct inspiration is Karpathy’s autoresearch [Karpathy, 2026], which showed that a coding agent with a single scalar reward (validation bits-per-byte) can autonomously improve a neural network training script overnight. AutoStan translates this to Bayesian modeling, where NLPD (a strictly proper scoring rule) replaces bits-per-byte and Stan model files replace Python training scripts. An extension is that AutoStan augments the scalar reward with the rich diagnostic output of the MCMC sampler (divergences, R-hat, and effective sample sizes), giving the agent a second feedback channel that signals not just whether a model improved but how it is broken and what to fix next. The contrast with black-box methods is instructive. TabPFN [Hollmann et al., 2025], a transformer pre-trained on synthetic datasets, produces competitive predictive distributions, but no model: there are no parameters to interpret, no priors to inspect, no assumptions to challenge. AutoStan’s output is fundamentally different: a complete generative model in Stan with explicit likelihood, 7priors, and structure that a statistician can read, critique, and build upon. Moreover, because the agent runs in an interactive CLI, the practitioner can pause the loop, ask the agent to explain its modeling choices in plain language, request specific changes, or resume autonomous improvement; even a user who does not read Stan fluently can ask the agent to translate the model into a verbal description of its assumptions, making the Bayesian workflow accessible well beyond the traditional expert community. 
+
+# 6 Discussion and Conclusion 
+
+Four findings emerge across all experiments. (1) NLPD and MCMC diagnostics drive structural discovery : NLPD signals whether a change improves predictive performance, while the sampler’s output (divergences, elevated R-hat, poor mixing) signals how a model is broken and what to fix. Both channels are essential: the agent discovered robust likelihoods, nonlinear heteroscedastic structure, contamination mixtures, hierarchical pooling, varying slopes, and sport-specific models by reading both, and the final output is not just a score but a complete, readable Stan model. 
+
+(2) The agent adapts to data structure and scale : on small hierarchical data it immediately writes the correct model; with more data it finds additional structure (group-specific variances, learned frequencies). On the 1D regression, 68 observations suffice for outlier robustness; with 500, the agent also recovers the true sinusoidal frequency and cubic heteroscedastic profile. (3) The agent adapts to domain : anonymized variable names lead to generic baselines; domain-labeled columns (Bundesliga) lead to domain-appropriate models (Poisson attack/defense). Even with fully anonymized column names, the agent’s world knowledge helps it recognize structural patterns (e.g., paired integer counts as a sports matchup). (4) The agent knows when to stop : divergences, elevated R-hat, and increased NLPD serve as reliable stopping signals, and the agent correctly rejects overcomplex models across all datasets. 
+
+Limitations. Iterative NLPD optimization on a fixed test set risks mild overfitting: on the hierarchical-large dataset, the best model slightly outperforms the oracle (NLPD 1.401 vs. 1.404), and on varying slopes, the agent discovers piecewise structure not in the true DGP. These results are not statistically meaningful improvements over the oracle but artifacts of optimizing against a finite test set over multiple iterations. A mitigation is cross-validation or periodic test-set rotation, though this increases computational cost. When no held-out test set is available, PSIS-LOO [Vehtari et al., 2017] offers a principled within-sample surrogate: it is computed directly from the log lik vector. Because AutoStan produces inspectable Stan code, a human reviewer can always verify whether a given improvement reflects genuine statistical insight or test-set adaptation, an advantage absent from black-box methods. A similar issue can arise when the agent uses exploratory data analysis to inform priors. E.g., centering an outlier-scale prior on magnitudes observed in the training data. This technically conflates prior and likelihood, but is acceptable when prediction is the primary goal, as the held-out test set remains an honest judge of predictive quality. For users interested in genuine inference, the agent’s output is not a black box but readable Stan code: the data-informed priors can simply be replaced with the analyst’s true prior beliefs before a final sampling run. The agent’s training data presents both advantages and limitations. On the one hand, it may have encountered similar textbook problems, making it difficult to disentangle genuine statistical reasoning from memorization; we mitigate this by using anonymized synthetic datasets with unpublished generative processes. On the other hand, domain knowledge is a strength: when the Bundesliga columns carry semantic labels, the agent readily selects an appropriate Poisson attack/defense model, and even with fully anonymized columns it can recover structural patterns from its training. 8A CLI coding agent, guided only by NLPD, autonomously discovers sophisticated probabilistic models across diverse datasets (regression, hierarchical, varying-slope, and sports) while producing fully interpretable Stan code. No search algorithm, critic, or domain-specific tuning is required. NLPD and MCMC diagnostics are all you need. Code, datasets, and Stan model snapshots are available at https://github.com/tidit-ch/ autostan . A Claude Code skill for practical use on new data is available at https://github. com/tidit-ch/autostan-skill .9References 
+
+Anthropic. Claude code: An agentic coding tool, 2025. URL https://code.claude.com/docs/ en/overview .Ralph A. Bradley and Milton E. Terry. Rank analysis of incomplete block designs: I. the method of paired comparisons. Biometrika , 39(3/4):324–345, 1952. Tianqi Chen and Carlos Guestrin. XGBoost: A scalable tree boosting system. In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining , pages 785–794, 2016. CmdStanPy Developers. CmdStanPy: Python interface to CmdStan, 2024. URL https://mc-stan. org/cmdstanpy/ .Mark J. Dixon and Stuart G. Coles. Modelling association football scores and inefficiencies in the football betting market. Journal of the Royal Statistical Society: Series C (Applied Statistics) , 46 (2):265–280, 1997. Justin Domke. Large language Bayes. In Advances in Neural Information Processing Systems , 2025. URL https://arxiv.org/abs/2504.14025 .Andrew Gelman and Jennifer Hill. Data Analysis Using Regression and Multilevel/Hierarchical Models . Cambridge University Press, 2006. Tilmann Gneiting and Adrian E. Raftery. Strictly proper scoring rules, prediction, and estimation. 
+
+Journal of the American Statistical Association , 102(477):359–378, 2007. Google. Gemini CLI: An AI agent for the terminal, 2025. URL https://github.com/ google-gemini/gemini-cli .Noah Hollmann, Samuel M¨ uller, Lennart Purucker, Arjun Krishnakumar, Max K¨ orfer, Shi Bin Hoo, Robin Tibor Schirrmeister, and Frank Hutter. Accurate predictions on small data with a tabular foundation model. Nature , 637:319–326, January 2025. doi: 10.1038/s41586-024-08328-6. Yongchao Huang. LLM-BI: Towards fully automated Bayesian inference with large language models, 2025. URL https://arxiv.org/abs/2508.08300 .Andrej Karpathy. autoresearch. GitHub, 2026. URL https://github.com/karpathy/ autoresearch .Michael Y. Li, Emily B. Fox, and Noah D. Goodman. Automated statistical model discovery with language models. In Proceedings of the 41st International Conference on Machine Learning ,Proceedings of Machine Learning Research, 2024. URL https://arxiv.org/abs/2402.17879 .Tennison Liu and Mihaela van der Schaar. MATHMO: Automated mathematical modeling through adaptive search. In Proceedings of the 14th International Conference on Learning Representations ,2026. URL https://openreview.net/forum?id=t2fZ2GOwAT .David Lunn, David Spiegelhalter, Andrew Thomas, and Nicky Best. The BUGS project: Evolution, critique and future directions. Statistics in Medicine , 28(25):3049–3067, 2009. Richard McElreath. Statistical Rethinking: A Bayesian Course with Examples in R and Stan .Chapman & Hall/CRC, 2nd edition, 2020. 10 OpenAI. Codex CLI: A lightweight coding agent for the terminal, 2025. URL https://github. com/openai/codex .opencode contributors. opencode: Open-source AI coding agent for the terminal, 2025. URL 
+
+https://opencode.ai .Martyn Plummer. JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling. In Proceedings of the 3rd International Workshop on Distributed Statistical Computing (DSC 2003) , 2003. Donald B. Rubin. Estimation in parallel randomized experiments. Journal of Educational Statistics ,6(4):377–401, 1981. Stan Development Team. Stan modeling language users guide and reference manual, version 2.17.0, 2017. URL https://mc-stan.org .Aki Vehtari, Andrew Gelman, and Jonah Gabry. Practical bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing , 27(5):1413–1432, 2017. doi: 10.1007/s11222-016-9696-4. Stefan Wahl, Raphaela Schenk, Ali Farnoud, Jakob H. Macke, and Daniel Gedon. A probabilistic framework for LLM-based model discovery, 2026. URL https://arxiv.org/abs/2602.18266 .11 A Additional Results 
+
+This appendix collects full iteration-by-iteration trajectories for all experiments. Checkmarks ( ✓)denote accepted improvements; crosses ( ×) denote rejected attempts that were reverted. 
+
+A.1 1D Regression: Small Dataset ( n=68 )
+
+Figure 2: AutoStan on the 1D regression small dataset ( n= 68). (a) NLPD trajectory over 9 iterations. (b) Baseline: linear + Gaussian, enormous bands from 4 extreme outliers. (c) Iter 1: quadratic mean + Student-t, the largest gain (∆ =0.75). (d) Iter 5 (best): cubic + log-linear 
+
+σ(x) + contamination mixture; NLPD 1.1244, matching TabPFN (1.1202) while remaining fully interpretable. 12 Iter NLPD Model / change ∆0 2.2482 Baseline: linear mean, Gaussian likelihood —1 1.5023 ✓ Student-t likelihood + quadratic mean −0.746 2 1.1558 ✓ Cubic mean + log-linear σ(x) + Student-t −0.347 3 1.2247 × Fourier basis mean (sin/cos) +0.069 4 1.2319 × Quartic mean + quadratic log σ +0.076 
+
+5 1.1244 ✓ Contamination mixture (ˆ π ≈ 6%) + log-linear σ(x) −0.031 6 1.1520 × Student-t clean component instead of Normal +0.028 7 1.2131 × Mixture + cubic+sin(x) mean + linear log σ +0.089 8 1.2592 × Mixture + quartic mean (centered at x=2) +0.135 
+
+Table 3: Complete trajectory, 1D regression small ( n= 68). Oracle NLPD = 0.9443. TabPFN NLPD = 1.1202. 
+
+A.2 1D Regression: Large Dataset ( n=500 )
+
+The main body (Table 1) shows only the 7 key accepted iterations. Here the full 15-iteration run is shown, including all rejections. The spike at iter 10 (NLPD = 1.35) reflects label-switching when 
+
+σout was estimated; the agent diagnosed this via R-hat = 1.52 and reverted to fixing σout = 10. 
+
+Iter NLPD Model / change ∆0 2.1589 Baseline: linear mean, Gaussian likelihood —1 1.3181 ✓ Student-t + cubic polynomial mean −0.841 2 1.3060 ✓ Sine basis: a sin( πx/ 3)+ b cos( πx/ 3)+ cx −0.012 3 1.3088 × 2-harmonic Fourier basis +0.003 4 1.2952 ✓ + Linear log σ(x) = s0 + s1x −0.011 5 1.2854 ✓ + Quadratic log σ(x) = s0 + s1x + s2x2 −0.010 6 1.2859 × Sine+quadratic mean + quadratic log σ +0.001 7 1.2844 ✓ + Learnable frequency ω (recovers ˆ ω≈1.2) −0.001 8 1.2635 ✓ Gaussian mixture (ˆ π≈10%), estimated σout −0.021 9 1.2325 ✓ Mixture, fixed σout =10 (stabilizes label-switching) −0.031 10 1.3529 × Estimated σout (lognormal prior); R-hat = 1.52 +0.120 
+
+11 1.2256 ✓ Cubic log σ(x), fixed σout =10 −0.007 12 1.2262 × Sine-based log σ(x) instead of cubic +0.001 13 1.2258 × Cubic log σ + seasonal adjustment +0.000 14 1.2291 × Student-t inlier + Normal(10) outlier mixture +0.004 
+
+Table 4: Complete trajectory, 1D regression large ( n=500). Oracle NLPD = 1.1442. TabPFN NLPD = 1.2501. 
+
+A.3 Synthetic Hierarchical 
+
+Generated from μj ∼ N (0 , 1), yij ∼ N (μj , 1), J= 20 groups. Variable names anonymized (“unit”, “effect”). 13 A.3.1 Small Dataset ( nj =8 , 160 train / 40 test) 
+
+Iter NLPD Model 
+
+0 1.4999 Hierarchical centered, weakly informative priors ← best 1 1.5014 Non-centered parameterization 2 1.5035 Student-t likelihood 3 1.5019 Group-specific σ (overfit) Table 5: Complete trajectory, hierarchical small ( nj =8). Oracle NLPD = 1.4935. 
+
+A.3.2 Large Dataset ( nj =40 , 800 train / 200 test) 
+
+The agent ran a principled ablation at iter 7, reverting to Normal likelihood to confirm Student-t
+
+was beneficial (+0 .002 NLPD when removed). 
+
+Iter NLPD Model / change ∆0 1.4036 Hierarchical centered, shared σ —1 1.4035 ✓ NCP for group means −0.0001 2 1.4025 ✓ + Group-specific σ (hierarchical log-normal) −0.0010 3 1.4018 ✓ + Student-t likelihood ( ν estimated) −0.0007 
+
+4 1.4014 ✓ + Tighter data-informed priors −0.0004 5 1.4020 × Fixed ν=10 instead of estimated +0.0006 6 1.4015 × ν∼Gamma(2 , 0.2) (heavier prior) +0.0001 7 1.4034 × Normal likelihood ablation (confirms Student-t helps) +0.0020 
+
+Table 6: Complete trajectory, hierarchical large ( nj =40). Oracle NLPD = 1.4039. 
+
+A.4 Varying Slopes ( J=15 groups) 
+
+Generated from αj ∼ N (2 , 1), βj ∼ N (−0.5, 0.7), yij ∼ N (αj + βj xij , 0.8), 25 obs/group (300 train / 75 test). Anonymized column names. 
+
+Iter NLPD Model / change ∆0 1.8178 Baseline: fully pooled regression —1 1.3091 ✓ Varying intercepts + slopes, NCP −0.509 2 1.3073 ✓ + LKJ Cholesky correlation −0.002 3 1.3073 ✓ + Student-t likelihood ( ν∼Gamma) <0.001 4 1.3055 ✓ + Unit-specific σ (hierarchical) −0.002 5 1.2910 ✓ + Hierarchical quadratic term per unit −0.015 6 1.2933 × Independent slopes + intercepts + quadratic +0.002 7 1.2839 ✓ 3D LKJ ( α, β, γ) correlated −0.007 8 1.2861 × Tighter τ3∼N (0 , 0.5) prior +0.002 9 1.2890 × LKJ(4) prior instead of LKJ(2) +0.005 
+
+10 1.2738 ✓ Piecewise linear at x=0 , 3D LKJ −0.010 11 1.2833 × 3-segment piecewise (knots ±1); 15 divergences +0.010 12 1.2949 × Piecewise + predictor-dependent σ(x) +0.021 13 1.2937 × Learned shared knot k∼N (0 , 1); 282 divergences +0.020 
+
+Table 7: Complete trajectory, varying slopes ( J=15). Oracle NLPD = 1.2627. 14 A.5 Bundesliga 2024/25 
+
+Real match results, 18 teams, 207 training matches (matchdays 1–23), 99 test matches (matchdays 24–34). Domain-labeled column names. 
+
+Iter NLPD Model / change ∆0 1.5663 Baseline: Poisson, independent priors —1 1.5465 ✓ Hierarchical priors on attack/defense −0.020 2 1.5557 × Negative binomial likelihood +0.009 3 1.5463 ✓ NCP (attack/defense raw) −0.000 4 1.5472 × Dixon–Coles low-score correction +0.001 5 1.5468 × Correlated attack/defense ( ρ∼N (−0.3, 0.4)) +0.001 6 1.5460 ✓ NCP + tighter σ∼N (0 , 0.5) priors −0.000 7 1.5544 × Negative binomial home, Poisson away +0.008 8 1.5645 × Single quality param per team (Bradley–Terry style) +0.019 
+
+9 1.5432 ✓ Team-specific home advantage δj −0.003 10 1.5443 × Symmetric: δh added/subtracted from both λ +0.001 11 1.5432 × Separate attack/defense home advantage <0.001 12 1.5460 × ZIP + team home advantage ( πh≈9%) +0.003 
+
+Table 8: Complete trajectory, Bundesliga 2024/25. No oracle NLPD (real data). 
+
+(a) Team-specific home advantage. (b) Attack vs. defense strength. 
+
+Figure 3: Bundesliga model parameters (iteration 9). (a) Dortmund (0.39), Freiburg (0.33), Bayern (0.32) benefit most from playing at home; Heidenheim ( −0.01) and St. Pauli (0.00) show no home advantage. (b) Attack vs. defense with 90% credible intervals; Bayern’s dominance is clearly visible. 
+
+# B TabPFN Comparison Details 
+
+TabPFN 2.2.1 [Hollmann et al., 2025] was run with n estimators=8 : since the pre-trained trans-former is sensitive to the order of training examples, TabPFN runs 8 forward passes with different random permutations of the training data and averages the resulting predictive distributions. This 15 is an ensemble within a single fixed pre-trained model, not 8 separately trained models. TabPFN’s predictive output is a histogram (“bar distribution”) over a fixed grid of bins covering the response range. To compute NLPD, we need a continuous density rather than bin masses, so we approximate the density at each test point via CDF finite-differencing with δ = 0 .02: ˆp(yn | xn) ≈ CDF( yn + δ) − CDF( yn − δ)2δ . (5) This gives a properly normalized continuous density directly comparable to AutoStan’s Gaus-sian/mixture NLPD. TabPFN’s built-in pdf() method returns unnormalized bin masses and was not used.  
+
+> (a) Small dataset ( n=68). (b) Large dataset ( n=500).
+
+Figure 4: TabPFN predictions. On the large dataset, the intervals widen globally near outliers instead of isolating them, explaining TabPFN’s higher NLPD (1.2501 vs. AutoStan’s 1.2256). 
+
+# C Technical Details 
+
+C.1 Framework 
+
+After the agent edits model.stan , it calls a per-dataset evaluate.py script, which internally uses cmdstanpy to compile the model and run CmdStan for MCMC sampling (4 chains × 1000 post-warmup draws; 30 000 for the large 1D regression to reduce Monte Carlo noise in NLPD). The script then computes NLPD from the log lik vector and appends a JSON record to log.jsonl , printing the NLPD and sampler diagnostics for the agent to read. The agent never sees the test data or the script’s implementation: evaluate.py is executable but not readable ( chmod 111 ). 
+
+C.2 Permissions 
+
+Test data and generation scripts are protected via filesystem permissions: evaluate.py is executable but not readable ( chmod 111 ); test data and generation scripts have no access permissions ( chmod 000 ). The agent can only execute the evaluation script. 
+
+C.3 Compute and Token Usage 
+
+All experiments were run interactively on a MacBook Pro (Apple M2 Pro, 10-core CPU, 16 GB RAM). MCMC wall time per iteration ranges from a few seconds for small datasets (hierarchical models with nj =8) to several minutes for the large 1D regression ( n= 500, 30 000 draws), where individual iterations took up to ∼50 minutes due to the large number of draws required to reduce Monte Carlo noise in NLPD. Across the six reported experiments, the agent generated a total of 16 roughly 220 000 output tokens and read approximately 20 million tokens from cache. The high cache-read-to-output ratio reflects the structure of the loop: at each iteration the agent re-reads the accumulated conversation context (dataset description, previous Stan models, NLPD history) but produces only a short plan and the revised model.stan .
+
+C.4 NLPD Computation 
+
+NLPD = − 1
+
+Ntest 
+
+> Ntest
+
+X
+
+> n=1
+
+log 1
+
+S
+
+> S
+
+X
+
+> s=1
+
+p
+
+
+
+ytest  
+
+> n
+
+| θ(s)!
+
+, (6) where θ(s) are posterior draws. Computed via logsumexp from Stan’s log lik output. 
+
+# D Dataset Specifications 
+
+D.1 1D Regression 
+
+The 1D regression dataset is the main case study and the one from which the most conclusions are drawn. Below is the verbatim dataset.md the agent receives—this is the complete information provided, nothing more. The true generative process is never disclosed. 
+
+True generative process (not shown to agent): f (x) = 2 sin (1 .2x) + 0 .3x; σ(x) = 0 .3 + 0.8 exp 
+
+
+
+− 12
+
+  x−31.5
+
+2
+
+; ∼6% contamination at ±10–15 units. Small: 68 train / 30 test. Large: 500 train / 200 test. 
+
+Verbatim dataset.md (large version; small is identical except n): 
+
+# Dataset: 1D Regression (Large) ## Overview Observations of a continuous predictor and a continuous response. The goal is to predict ‘response’ for held-out test observations. This is a larger version of the dataset with more training data. ## Data Format ‘train.csv’ columns: - ‘predictor’ --- continuous predictor variable - ‘response’ --- continuous response variable (target) 500 training observations. 200 test observations (held out, not visible to the agent). ## Data Interface The evaluation script passes the following to Stan: int<lower=0> N train; int<lower=0> N test; vector[N train] predictor train; vector[N test] predictor test; vector[N train] response train; 
+
+17 vector[N test] response test; ## Evaluation python datasets/regression 1d large/protected/evaluate.py \
+
+--notes "..." --rationale "..." Your model must output a ‘log lik’ vector of length ‘N test’ in the generated quantities block. Note: This dataset uses extended MCMC sampling (30,000 post-warmup iterations per chain) for precise NLPD estimation. 
+
+D.2 All Other Datasets 
+
+The remaining datasets follow the same dataset.md structure (Overview, Data Format, Data Interface, Evaluation, log lik contract). The true generative parameters for the synthetic datasets are given in the trajectory tables in Appendix A. Full dataset.md files, generation scripts, and Stan model snapshots are available at https://github.com/tidit-ch/autostan .
+
+# E Agent Prompt 
+
+The complete program.md is the only behavioral specification the agent receives (beyond the dataset-specific dataset.md ). The contrast is the point: 56 lines of generic Bayesian workflow instructions + a 6-line dataset description ⇒ a sophisticated probabilistic model. Note that the reading of testfiles is not possible due to filesystem permissions, we just tell the agent that the test set is hidden so that it does not try to read it and wastes time on it. 
+
+# AutoStan --- Agent Instructions You are an autonomous Bayesian modeling agent. Your task is to iteratively improve a Stan model to minimize NLPD (negative log predictive density) on a held-out test set. ## Workflow 1. Read the dataset description: Read datasets/<dataset>/dataset.md to understand the data, format, and evaluation procedure. 2. Check history: Before proposing any change, read results/<dataset>/log.jsonl to see the full NLPD history and what has been tried. 3. Read training data: Read datasets/<dataset>/train.csv to understand the data structure and values. 4. Edit model.stan: Modify the model --- you can change priors, likelihood, parameterization, model structure, anything. 5. Evaluate: Run the evaluation script as specified in dataset.md. Always pass --notes (what you changed) and --rationale (why, referencing previous iterations). 6. Interpret results: Read the printed NLPD and diagnostics. Decide whether to keep or revert the change. 7. Repeat: Propose the next change based on what you’ve learned. 
+
+18 ## Rules - NLPD is the only metric. Lower NLPD = better model. - log lik is the only interface contract. Your model.stan must always output a log lik vector in the generated quantities block. - Do NOT read any files in protected/. - Do NOT randomly perturb. Think like a statistician reasoning from evidence. Reference previous iterations. - The filesystem is your memory. All history is in results/ --- read it before acting. - Reason briefly about why you make each change. ## Strategies to Consider - Non-centered vs centered parameterization - Prior tightening or loosening - Different likelihood families (Normal, Student-t, etc.) - Adding or removing hierarchy levels - Reparameterization for better sampling efficiency - Covariate effects, interactions - Regularizing priors ## Stopping Rule Stop when any of these conditions is met: - 3 consecutive non-improving iterations - 20 total iterations (including baseline) When you stop, write results/<dataset>/report.md summarizing: best model, trajectory, NLPD table, and key insights. ## Getting Started If no results/<dataset>/log.jsonl exists yet, write a deliberately simple baseline model. Run it to establish the baseline NLPD, then start improving. 
+
+19

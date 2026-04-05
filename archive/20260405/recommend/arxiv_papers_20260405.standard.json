@@ -1,0 +1,669 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-05T19:42:09.950059+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 5,
+    "deep_cap": 7,
+    "deep_selected": 5,
+    "quick_candidates": 11,
+    "quick_skim_target": 12,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.27766v1",
+      "title": "AutoStan: Autonomous Bayesian Model Improvement via Predictive Feedback",
+      "abstract": "We present AutoStan, a framework in which a command-line interface (CLI) coding agent autonomously builds and iteratively improves Bayesian models written in Stan. The agent operates in a loop, writing a Stan model file, executing MCMC sampling, then deciding whether to keep or revert each change based on two complementary feedback signals: the negative log predictive density (NLPD) on held-out data and the sampler's own diagnostics (divergences, R-hat, effective sample size). We evaluate AutoStan on five datasets with diverse modeling structures. On a synthetic regression dataset with outliers, the agent progresses from naive linear regression to a model with Student-t robustness, nonlinear heteroscedastic structure, and an explicit contamination mixture, matching or outperforming TabPFN, a state-of-the-art black-box method, while remaining fully interpretable. Across four additional experiments, the same mechanism discovers hierarchical partial pooling, varying-slope models with correlated random effects, and a Poisson attack/defense model for soccer. No search algorithm, critic module, or domain-specific instructions are needed. This is, to our knowledge, the first demonstration that a CLI coding agent can autonomously write and iteratively improve Stan code for diverse Bayesian modeling problems.",
+      "authors": [
+        "Oliver Dürr"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-29T16:58:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.27766v1",
+      "tags": [
+        "keyword:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "CLI coding agent autonomously builds and improves Bayesian models",
+      "llm_evidence_cn": "CLI代码智能体自主构建并改进贝叶斯模型",
+      "llm_evidence": "CLI代码智能体自主构建并改进贝叶斯模型",
+      "canonical_evidence": "CLI代码智能体自主构建并改进贝叶斯模型",
+      "llm_tldr_en": "A framework where a coding agent autonomously iterates on Bayesian model code using predictive feedback signals.",
+      "llm_tldr_cn": "代码智能体框架，通过预测反馈信号自主迭代改进贝叶斯模型。",
+      "llm_tldr": "代码智能体框架，通过预测反馈信号自主迭代改进贝叶斯模型。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29620v1",
+      "title": "Unify-Agent: A Unified Multimodal Agent for World-Grounded Image Synthesis",
+      "abstract": "Unified multimodal models provide a natural and promising architecture for understanding diverse and complex real-world knowledge while generating high-quality images. However, they still rely primarily on frozen parametric knowledge, which makes them struggle with real-world image generation involving long-tail and knowledge-intensive concepts. Inspired by the broad success of agents on real-world tasks, we explore agentic modeling to address this limitation. Specifically, we present Unify-Agent, a unified multimodal agent for world-grounded image synthesis, which reframes image generation as an agentic pipeline consisting of prompt understanding, multimodal evidence searching, grounded recaptioning, and final synthesis. To train our model, we construct a tailored multimodal data pipeline and curate 143K high-quality agent trajectories for world-grounded image synthesis, enabling effective supervision over the full agentic generation process. We further introduce FactIP, a benchmark covering 12 categories of culturally significant and long-tail factual concepts that explicitly requires external knowledge grounding. Extensive experiments show that our proposed Unify-Agent substantially improves over its base unified model across diverse benchmarks and real world generation tasks, while approaching the world knowledge capabilities of the strongest closed-source models. As an early exploration of agent-based modeling for world-grounded image synthesis, our work highlights the value of tightly coupling reasoning, searching, and generation for reliable open-world agentic image synthesis.",
+      "authors": [
+        "Shuang Chen",
+        "Quanxin Shou",
+        "Hangting Chen",
+        "Yucheng Zhou",
+        "Kaituo Feng",
+        "Wenbo Hu",
+        "Yi-Fan Zhang",
+        "Yunlong Lin",
+        "Wenxuan Huang",
+        "Mingyang Song",
+        "Dasen Dai",
+        "Bolin Jiang",
+        "Manyuan Zhang",
+        "Shi-Xue Zhang",
+        "Zhengkai Jiang",
+        "Lucas Wang",
+        "Zhao Zhong",
+        "Yu Cheng",
+        "Nanyun Peng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.MM"
+      ],
+      "published": "2026-03-31T11:41:13+00:00",
+      "link": "https://arxiv.org/pdf/2603.29620v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Unified multimodal agent with multimodal evidence searching pipeline",
+      "llm_evidence_cn": "具有多模态证据搜索管道的统一多模态智能体",
+      "llm_evidence": "具有多模态证据搜索管道的统一多模态智能体",
+      "canonical_evidence": "具有多模态证据搜索管道的统一多模态智能体",
+      "llm_tldr_en": "Presents Unify-Agent, a multimodal agent framework that reframes image synthesis as an agentic pipeline with search capabilities.",
+      "llm_tldr_cn": "提出Unify-Agent，将图像生成重构为包含搜索能力的智能体管道框架。",
+      "llm_tldr": "提出Unify-Agent，将图像生成重构为包含搜索能力的智能体管道框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29199v1",
+      "title": "AEC-Bench: A Multimodal Benchmark for Agentic Systems in Architecture, Engineering, and Construction",
+      "abstract": "The AEC-Bench is a multimodal benchmark for evaluating agentic systems on real-world tasks in the Architecture, Engineering, and Construction (AEC) domain. The benchmark covers tasks requiring drawing understanding, cross-sheet reasoning, and construction project-level coordination. This report describes the benchmark motivation, dataset taxonomy, evaluation protocol, and baseline results across several domain-specific foundation model harnesses. We use AEC-Bench to identify consistent tools and harness design techniques that uniformly improve performance across foundation models in their own base harnesses, such as Claude Code and Codex. We openly release our benchmark dataset, agent harness, and evaluation code for full replicability at https://github.com/nomic-ai/aec-bench under an Apache 2 license.",
+      "authors": [
+        "Harsh Mankodiya",
+        "Chase Gallik",
+        "Theodoros Galanos",
+        "Andriy Mulyar"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-31T03:10:28+00:00",
+      "link": "https://arxiv.org/pdf/2603.29199v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multimodal benchmark dataset for agentic systems",
+      "llm_evidence_cn": "代理系统多模态基准数据集",
+      "llm_evidence": "代理系统多模态基准数据集",
+      "canonical_evidence": "代理系统多模态基准数据集",
+      "llm_tldr_en": "AEC-Bench provides a multimodal benchmark dataset for evaluating agentic systems on real-world AEC domain tasks.",
+      "llm_tldr_cn": "AEC-Bench提供多模态基准数据集，评估代理系统在建筑领域的真实任务表现。",
+      "llm_tldr": "AEC-Bench提供多模态基准数据集，评估代理系统在建筑领域的真实任务表现。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00892v1",
+      "title": "When Users Change Their Mind: Evaluating Interruptible Agents in Long-Horizon Web Navigation",
+      "abstract": "As LLM agents transition from short, static problem solving to executing complex, long-horizon tasks in dynamic environments, the ability to handle user interruptions, such as adding requirement or revising goals, during mid-task execution is becoming a core requirement for realistic deployment. However, existing benchmarks largely assume uninterrupted agent behavior or study interruptions only in short, unconstrained language tasks. In this paper, we present the first systematic study of interruptible agents in long-horizon, environmentally grounded web navigation tasks, where actions induce persistent state changes. We formalize three realistic interruption types, including addition, revision, and retraction, and introduce InterruptBench, a benchmark derived from WebArena-Lite that synthesizes high-quality interruption scenarios under strict semantic constraints. Using a unified interruption simulation framework, we evaluate six strong LLM backbones across single- and multi-turn interruption settings, analyzing both their effectiveness in adapting to updated intents and their efficiency in recovering from mid-task changes. Our results show that handling user interruptions effectively and efficiently during long-horizon agentic tasks remains challenging for powerful large-scale LLMs. Code and dataset are available at https://github.com/HenryPengZou/InterruptBench.",
+      "authors": [
+        "Henry Peng Zou",
+        "Chunyu Miao",
+        "Wei-Chieh Huang",
+        "Yankai Chen",
+        "Yue Zhou",
+        "Hanrong Zhang",
+        "Yaozu Wu",
+        "Liancheng Fang",
+        "Zhengyao Gu",
+        "Zhen Zhang",
+        "Kening Zheng",
+        "Fangxin Wang",
+        "Yi Nian",
+        "Shanghao Li",
+        "Wenzhe Fan",
+        "Langzhou He",
+        "Weizhi Zhang",
+        "Xue Liu",
+        "Philip S. Yu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-01T13:40:28+00:00",
+      "link": "https://arxiv.org/pdf/2604.00892v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLM agents for web navigation with interruption handling",
+      "llm_evidence_cn": "处理中断的LLM网页导航智能体",
+      "llm_evidence": "处理中断的LLM网页导航智能体",
+      "canonical_evidence": "处理中断的LLM网页导航智能体",
+      "llm_tldr_en": "Studies interruptible agents in long-horizon web navigation tasks with formalized interruption types.",
+      "llm_tldr_cn": "研究长程网页导航任务中可中断智能体，形式化三种中断类型。",
+      "llm_tldr": "研究长程网页导航任务中可中断智能体，形式化三种中断类型。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.29281v1",
+      "title": "PRISM: A Multi-View Multi-Capability Retail Video Dataset for Embodied Vision-Language Models",
+      "abstract": "A critical gap exists between the general-purpose visual understanding of state-of-the-art physical AI models and the specialized perceptual demands of structured real-world deployment environments. We present PRISM, a 270K-sample multi-view video supervised fine-tuning (SFT) corpus for embodied vision-language-models (VLMs) in real-world retail environments. PRISM is motivated by a simple observation - physical AI systems fail not because of poor visual recognition, but because they do not understand space, physical dynamics and embodied action well enough to operate reliably in the world. To this end, PRISM is grounded in a novel three-dimensional knowledge ontology that spans spatial knowledge, temporal and physical knowledge, and embodied action knowledge. It covers 20+ capability probes across four evaluation dimensions - Embodied Reasoning (ER), Common Sense (CS), Spatial Perception (SP), and Intuitive Physics (IP), and to our knowledge, PRISM is the first dataset to instantiate all three knowledge dimensions within a single real-world deployment domain. The corpus captures data from egocentric, exocentric and 360° viewpoints across five supermarket locations and includes open-ended, chain-of-thought, and multiple-choice supervision. At 4 fps, PRISM spans approximately 11.8M video frames and approximately 730M tokens, placing it among the largest domain-specific video SFT corpora. Fine-tuning on PRISM reduces the error rate across all 20+ probes by 66.6% over the pre-trained baseline, with significant gains in embodied action understanding where the accuracy improves by 36.4%. Our results suggest that ontology-structured, domain specific SFT can meaningfully strengthen embodied VLMs for real-world settings. The PRISM dataset and more details are available at https://dreamvu.ai/prism",
+      "authors": [
+        "Amirreza Rouhi",
+        "Parikshit Sakurikar",
+        "Satya Sai Reddy",
+        "Narsimha Menga",
+        "Anirudh Govil",
+        "Sri Harsha Chittajallu",
+        "Rajat Aggarwal",
+        "Anoop Namboodiri",
+        "Sashi Reddi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-03-31T05:29:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.29281v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "270K-sample multi-view video SFT corpus for embodied VLMs in retail environments",
+      "llm_evidence_cn": "零售环境中具身VLM的27万样本多视角视频SFT语料库",
+      "llm_evidence": "零售环境中具身VLM的27万样本多视角视频SFT语料库",
+      "canonical_evidence": "零售环境中具身VLM的27万样本多视角视频SFT语料库",
+      "llm_tldr_en": "PRISM provides a large-scale multi-view video dataset for training embodied vision-language models.",
+      "llm_tldr_cn": "PRISM提供大规模多视角视频数据集用于训练具身视觉语言模型。",
+      "llm_tldr": "PRISM提供大规模多视角视频数据集用于训练具身视觉语言模型。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.27223v1",
+      "title": "EuraGovExam: A Multilingual Multimodal Benchmark from Real-World Civil Service Exams",
+      "abstract": "We present EuraGovExam, a multilingual and multimodal benchmark sourced from real-world civil service examinations across five representative Eurasian regions: South Korea, Japan, Taiwan, India, and the European Union. Designed to reflect the authentic complexity of public-sector assessments, the dataset contains over 8,000 high-resolution scanned multiple-choice questions covering 17 diverse academic and administrative domains. Unlike existing benchmarks, EuraGovExam embeds all question content--including problem statements, answer choices, and visual elements--within a single image, providing only a minimal standardized instruction for answer formatting. This design demands that models perform layout-aware, cross-lingual reasoning directly from visual input. All items are drawn from real exam documents, preserving rich visual structures such as tables, multilingual typography, and form-like layouts. Evaluation results show that even state-of-the-art vision-language models (VLMs) achieve only 86% accuracy, underscoring the benchmark's difficulty and its power to diagnose the limitations of current models. By emphasizing cultural realism, visual complexity, and linguistic diversity, EuraGovExam establishes a new standard for evaluating VLMs in high-stakes, multilingual, image-grounded settings. It also supports practical applications in e-governance, public-sector document analysis, and equitable exam preparation.",
+      "authors": [
+        "JaeSeong Kim",
+        "Chaehwan Lim",
+        "Sang Hyun Gil",
+        "Suan Lee"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-28T10:29:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.27223v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Multilingual multimodal benchmark dataset with 8000+ questions",
+      "llm_evidence_cn": "包含8000+问题的多语言多模态基准数据集",
+      "llm_evidence": "包含8000+问题的多语言多模态基准数据集",
+      "canonical_evidence": "包含8000+问题的多语言多模态基准数据集",
+      "llm_tldr_en": "Presents EuraGovExam, a multilingual multimodal benchmark from real-world civil service exams across five Eurasian regions.",
+      "llm_tldr_cn": "提出EuraGovExam，来自五个欧亚地区公务员考试的多语言多模态基准。",
+      "llm_tldr": "提出EuraGovExam，来自五个欧亚地区公务员考试的多语言多模态基准。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.27866v1",
+      "title": "Wan-R1: Verifiable-Reinforcement Learning for Video Reasoning",
+      "abstract": "Video generation models produce visually coherent content but struggle with tasks requiring spatial reasoning and multi-step planning. Reinforcement learning (RL) offers a path to improve generalization, but its effectiveness in video reasoning hinges on reward design -- a challenge that has received little systematic study. We investigate this problem by adapting Group Relative Policy Optimization (GRPO) to flow-based video models and training them on maze-solving and robotic navigation tasks. We first show that multimodal reward models fail catastrophically in this setting. To address this, we design verifiable reward functions grounded in objective task metrics. For structured game environments, we introduce a multi-component trajectory reward. For robotic navigation, we propose an embedding-level verifiable reward. Our experiments show that RL fine-tuning with verifiable rewards improves generalization. For example, on complex 3D mazes, our model improves exact match accuracy by 29.1\\% over the SFT baseline, and on trap-avoidance tasks by 51.4\\%. Our systematic reward analysis reveals that verifiable rewards are critical for stable training, while multimodal reward models could lead to degenerate solutions. These findings establish verifiable reward design as a key enabler for robust video reasoning. Code will be publicly available.",
+      "authors": [
+        "Ming Liu",
+        "Yunbei Zhang",
+        "Shilong Liu",
+        "Liwen Wang",
+        "Wensheng Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-29T20:53:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.27866v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "video generation with RL for spatial reasoning and navigation relates to world modeling",
+      "llm_evidence_cn": "视频生成结合强化学习进行空间推理和导航，与世界建模相关",
+      "llm_evidence": "视频生成结合强化学习进行空间推理和导航，与世界建模相关",
+      "canonical_evidence": "视频生成结合强化学习进行空间推理和导航，与世界建模相关",
+      "llm_tldr_en": "RL framework for video reasoning with verifiable rewards on maze-solving and navigation tasks.",
+      "llm_tldr_cn": "用于视频推理的强化学习框架，在迷宫求解和导航任务上设计可验证奖励。",
+      "llm_tldr": "用于视频推理的强化学习框架，在迷宫求解和导航任务上设计可验证奖励。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.29665v1",
+      "title": "Near-Miss: Latent Policy Failure Detection in Agentic Workflows",
+      "abstract": "Agentic systems for business process automation often require compliance with policies governing conditional updates to the system state. Evaluation of policy adherence in LLM-based agentic workflows is typically performed by comparing the final system state against a predefined ground truth. While this approach detects explicit policy violations, it may overlook a more subtle class of issues in which agents bypass required policy checks, yet reach a correct outcome due to favorable circumstances. We refer to such cases as $\\textit{near-misses}$ or $\\textit{latent failures}$. In this work, we introduce a novel metric for detecting latent policy failures in agent conversations traces. Building on the ToolGuard framework, which converts natural-language policies into executable guard code, our method analyzes agent trajectories to determine whether agent's tool-calling decisions where sufficiently informed.   We evaluate our approach on the $τ^2$-verified Airlines benchmark across several contemporary open and proprietary LLMs acting as agents. Our results show that latent failures occur in 8-17% of trajectories involving mutating tool calls, even when the final outcome matches the expected ground-truth state. These findings reveal a blind spot in current evaluation methodologies and highlight the need for metrics that assess not only final outcomes but also the decision process leading to them.",
+      "authors": [
+        "Ella Rabinovich",
+        "David Boaz",
+        "Naama Zwerdling",
+        "Ateret Anaby-Tavor"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-31T12:26:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.29665v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agentic workflows with ToolGuard framework for policy failure detection",
+      "llm_evidence_cn": "智能体工作流与ToolGuard框架用于策略失效检测",
+      "llm_evidence": "智能体工作流与ToolGuard框架用于策略失效检测",
+      "canonical_evidence": "智能体工作流与ToolGuard框架用于策略失效检测",
+      "llm_tldr_en": "Proposes a metric and framework for detecting latent policy failures in LLM-based agentic workflows.",
+      "llm_tldr_cn": "提出检测LLM智能体工作流中潜在策略失效的指标和框架。",
+      "llm_tldr": "提出检测LLM智能体工作流中潜在策略失效的指标和框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.29186v1",
+      "title": "SLVMEval: Synthetic Meta Evaluation Benchmark for Text-to-Long Video Generation",
+      "abstract": "This paper proposes the synthetic long-video meta-evaluation (SLVMEval), a benchmark for meta-evaluating text-to-video (T2V) evaluation systems. The proposed SLVMEval benchmark focuses on assessing these systems on videos of up to 10,486 s (approximately 3 h). The benchmark targets a fundamental requirement, namely, whether the systems can accurately assess video quality in settings that are easy for humans to assess. We adopt a pairwise comparison-based meta-evaluation framework. Building on dense video-captioning datasets, we synthetically degrade source videos to create controlled \"high-quality versus low-quality\" pairs across 10 distinct aspects. Then, we employ crowdsourcing to filter and retain only those pairs in which the degradation is clearly perceptible, thereby establishing an effective final testbed. Using this testbed, we assess the reliability of existing evaluation systems in ranking these pairs. Experimental results demonstrate that human evaluators can identify the better long video with 84.7%-96.8% accuracy, and in nine of the 10 aspects, the accuracy of these systems falls short of human assessment, revealing weaknesses in text-to-long-video evaluation.",
+      "authors": [
+        "Ryosuke Matsuda",
+        "Keito Kudo",
+        "Haruto Yoshida",
+        "Nobuyuki Shimizu",
+        "Jun Suzuki"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-31T02:51:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.29186v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Benchmark dataset for meta-evaluating text-to-video systems",
+      "llm_evidence_cn": "用于元评估文本到视频系统的基准数据集",
+      "llm_evidence": "用于元评估文本到视频系统的基准数据集",
+      "canonical_evidence": "用于元评估文本到视频系统的基准数据集",
+      "llm_tldr_en": "Proposes SLVMEval, a synthetic benchmark for meta-evaluating text-to-video generation systems on long videos up to 3 hours.",
+      "llm_tldr_cn": "提出SLVMEval基准，用于元评估长达3小时视频的文本到视频生成系统。",
+      "llm_tldr": "提出SLVMEval基准，用于元评估长达3小时视频的文本到视频生成系统。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.00281v1",
+      "title": "Human-in-the-Loop Control of Objective Drift in LLM-Assisted Computer Science Education",
+      "abstract": "Large language models (LLMs) are increasingly embedded in computer science education through AI-assisted programming tools, yet such workflows often exhibit objective drift, in which locally plausible outputs diverge from stated task specifications. Existing instructional responses frequently emphasize tool-specific prompting practices, limiting durability as AI platforms evolve. This paper adopts a human-centered stance, treating human-in-the-loop (HITL) control as a stable educational problem rather than a transitional step toward AI autonomy. Drawing on systems engineering and control-theoretic concepts, we frame objectives and world models as operational artifacts that students configure to stabilize AI-assisted work. We propose a pilot undergraduate CS laboratory curriculum that explicitly separates planning from execution and trains students to specify acceptance criteria and architectural constraints prior to code generation. In selected labs, the curriculum also introduces deliberate, concept-aligned drift to support diagnosis and recovery from specification violations. We report a sensitivity power analysis for a three-arm pilot design comparing unstructured AI use, structured planning, and structured planning with injected drift, establishing detectable effect sizes under realistic section-level constraints. The contribution is a theory-driven, methodologically explicit foundation for HITL pedagogy that renders control competencies teachable across evolving AI tools.",
+      "authors": [
+        "Mark Dranias",
+        "Adam Whitley"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-31T22:14:02+00:00",
+      "link": "https://arxiv.org/pdf/2604.00281v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM-assisted programming tools for computer science education",
+      "llm_evidence_cn": "用于计算机科学教育的LLM辅助编程工具",
+      "llm_evidence": "用于计算机科学教育的LLM辅助编程工具",
+      "canonical_evidence": "用于计算机科学教育的LLM辅助编程工具",
+      "llm_tldr_en": "Addresses objective drift in LLM-assisted programming education via human-in-the-loop control.",
+      "llm_tldr_cn": "通过人在环控制解决LLM辅助编程教育中的目标漂移问题。",
+      "llm_tldr": "通过人在环控制解决LLM辅助编程教育中的目标漂移问题。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.30045v1",
+      "title": "OmniRoam: World Wandering via Long-Horizon Panoramic Video Generation",
+      "abstract": "Modeling scenes using video generation models has garnered growing research interest in recent years. However, most existing approaches rely on perspective video models that synthesize only limited observations of a scene, leading to issues of completeness and global consistency. We propose OmniRoam, a controllable panoramic video generation framework that exploits the rich per-frame scene coverage and inherent long-term spatial and temporal consistency of panoramic representation, enabling long-horizon scene wandering. Our framework begins with a preview stage, where a trajectory-controlled video generation model creates a quick overview of the scene from a given input image or video. Then, in the refine stage, this video is temporally extended and spatially upsampled to produce long-range, high-resolution videos, thus enabling high-fidelity world wandering. To train our model, we introduce two panoramic video datasets that incorporate both synthetic and real-world captured videos. Experiments show that our framework consistently outperforms state-of-the-art methods in terms of visual quality, controllability, and long-term scene consistency, both qualitatively and quantitatively. We further showcase several extensions of this framework, including real-time video generation and 3D reconstruction. Code is available at https://github.com/yuhengliu02/OmniRoam.",
+      "authors": [
+        "Yuheng Liu",
+        "Xin Lin",
+        "Xinke Li",
+        "Baihan Yang",
+        "Chen Wang",
+        "Kalyan Sunkavalli",
+        "Yannick Hold-Geoffroy",
+        "Hao Tan",
+        "Kai Zhang",
+        "Xiaohui Xie",
+        "Zifan Shi",
+        "Yiwei Hu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-31T17:59:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.30045v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Video generation framework for scene/world modeling",
+      "llm_evidence_cn": "用于场景/世界建模的视频生成框架",
+      "llm_evidence": "用于场景/世界建模的视频生成框架",
+      "canonical_evidence": "用于场景/世界建模的视频生成框架",
+      "llm_tldr_en": "Proposes OmniRoam framework for long-horizon panoramic video generation as world simulation.",
+      "llm_tldr_cn": "提出OmniRoam框架，用于长程全景视频生成作为世界模拟。",
+      "llm_tldr": "提出OmniRoam框架，用于长程全景视频生成作为世界模拟。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.00556v1",
+      "title": "HabitatAgent: An End-to-End Multi-Agent System for Housing Consultation",
+      "abstract": "Housing selection is a high-stakes and largely irreversible decision problem. We study housing consultation as a decision-support interface for housing selection. Existing housing platforms and many LLM-based assistants often reduce this process to ranking or recommendation, resulting in opaque reasoning, brittle multi-constraint handling, and limited guarantees on factuality.   We present HabitatAgent, the first LLM-powered multi-agent architecture for end-to-end housing consultation. HabitatAgent comprises four specialized agent roles: Memory, Retrieval, Generation, and Validation. The Memory Agent maintains multi-layer user memory through internal stages for constraint extraction, memory fusion, and verification-gated updates; the Retrieval Agent performs hybrid vector--graph retrieval (GraphRAG); the Generation Agent produces evidence-referenced recommendations and explanations; and the Validation Agent applies multi-tier verification and targeted remediation. Together, these agents provide an auditable and reliable workflow for end-to-end housing consultation.   We evaluate HabitatAgent on 100 real user consultation scenarios (300 multi-turn question--answer pairs) under an end-to-end correctness protocol. A strong single-stage baseline (Dense+Rerank) achieves 75% accuracy, while HabitatAgent reaches 95%.",
+      "authors": [
+        "Hongyang Yang",
+        "Yanxin Zhang",
+        "Yang She",
+        "Yue Xiao",
+        "Hao Wu",
+        "Yiyang Zhang",
+        "Jiapeng Hou",
+        "Rongshan Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.ET",
+        "q-fin.CP",
+        "q-fin.RM"
+      ],
+      "published": "2026-04-01T06:59:50+00:00",
+      "link": "https://arxiv.org/pdf/2604.00556v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM-powered multi-agent architecture with Memory, Retrieval, Generation, and Validation agents",
+      "llm_evidence_cn": "LLM驱动的多智能体架构，包含记忆、检索、生成和验证智能体",
+      "llm_evidence": "LLM驱动的多智能体架构，包含记忆、检索、生成和验证智能体",
+      "canonical_evidence": "LLM驱动的多智能体架构，包含记忆、检索、生成和验证智能体",
+      "llm_tldr_en": "HabitatAgent is a multi-agent system for end-to-end housing consultation with specialized agent roles.",
+      "llm_tldr_cn": "HabitatAgent是端到端住房咨询的多智能体系统，具有专业化智能体角色。",
+      "llm_tldr": "HabitatAgent是端到端住房咨询的多智能体系统，具有专业化智能体角色。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.00731v1",
+      "title": "STCALIR: Semi-Synthetic Test Collection for Algerian Legal Information Retrieval",
+      "abstract": "Test collections are essential for evaluating retrieval and re-ranking models. However, constructing such collections is challenging due to the high cost of manual annotation, particularly in specialized domains like Algerian legal texts, where high-quality corpora and relevance judgments are scarce. To address this limitation, we propose STCALIR, a framework for generating semi-synthetic test collections directly from raw legal documents. The pipeline follows the Cranfield paradigm, maintaining its core components of topics, corpus, and relevance judgments, while significantly reducing manual effort through automated multi-stage retrieval and filtering, achieving a 99% reduction in annotation workload. We validate STCALIR using the Mr. TyDi benchmark, demonstrating that the resulting semi-synthetic relevance judgments yield retrieval effectiveness comparable to human-annotated evaluations (Hit@10 \\approx 0.785). Furthermore, system-level rankings derived from these labels exhibit strong concordance with human-based evaluations, as measured by Kendall's τ (0.89) and Spearman's \\r{ho} (0.92). Overall, STCALIR offers a reproducible and cost-efficient solution for constructing reliable test collections in low-resource legal domains.",
+      "authors": [
+        "M'hamed Amine Hatem",
+        "Sofiane Batata",
+        "Amine Mammasse",
+        "Faiçal Azouaou"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-01T10:50:28+00:00",
+      "link": "https://arxiv.org/pdf/2604.00731v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "framework for generating semi-synthetic test collections",
+      "llm_evidence_cn": "生成半合成测试集的框架",
+      "llm_evidence": "生成半合成测试集的框架",
+      "canonical_evidence": "生成半合成测试集的框架",
+      "llm_tldr_en": "Proposes STCALIR framework for generating semi-synthetic test collections for legal information retrieval with reduced annotation effort.",
+      "llm_tldr_cn": "提出STCALIR框架，用于生成法律信息检索的半合成测试集，大幅减少标注工作量。",
+      "llm_tldr": "提出STCALIR框架，用于生成法律信息检索的半合成测试集，大幅减少标注工作量。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.01529v1",
+      "title": "A Role-Based LLM Framework for Structured Information Extraction from Healthy Food Policies",
+      "abstract": "Current Large Language Model (LLM) approaches for information extraction (IE) in the healthy food policy domain are often hindered by various factors, including misinformation, specifically hallucinations, misclassifications, and omissions that result from the structural diversity and inconsistency of policy documents. To address these limitations, this study proposes a role-based LLM framework that automates the IE from unstructured policy data by assigning specialized roles: an LLM policy analyst for metadata and mechanism classification, an LLM legal strategy specialist for identifying complex legal approaches, and an LLM food system expert for categorizing food system stages. This framework mimics expert analysis workflows by incorporating structured domain knowledge, including explicit definitions of legal mechanisms and classification criteria, into role-specific prompts. We evaluate the framework using 608 healthy food policies from the Healthy Food Policy Project (HFPP) database, comparing its performance against zero-shot, few-shot, and chain-of-thought (CoT) baselines using Llama-3.3-70B. Our proposed framework demonstrates superior performance in complex reasoning tasks, offering a reliable and transparent methodology for automating IE from health policies.",
+      "authors": [
+        "Congjing Zhang",
+        "Ruoxuan Bao",
+        "Jingyu Li",
+        "Yoav Ackerman",
+        "Shuai Huang",
+        "Yanfang Su"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-04-02T01:58:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.01529v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Role-based LLM framework for information extraction",
+      "llm_evidence_cn": "用于信息提取的基于角色的LLM框架",
+      "llm_evidence": "用于信息提取的基于角色的LLM框架",
+      "canonical_evidence": "用于信息提取的基于角色的LLM框架",
+      "llm_tldr_en": "Proposes a role-based LLM framework with specialized agents for structured information extraction from policy documents.",
+      "llm_tldr_cn": "提出基于角色的LLM框架，用专门智能体从政策文档中提取结构化信息。",
+      "llm_tldr": "提出基于角色的LLM框架，用专门智能体从政策文档中提取结构化信息。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.01194v1",
+      "title": "AgentWatcher: A Rule-based Prompt Injection Monitor",
+      "abstract": "Large language models (LLMs) and their applications, such as agents, are highly vulnerable to prompt injection attacks. State-of-the-art prompt injection detection methods have the following limitations: (1) their effectiveness degrades significantly as context length increases, and (2) they lack explicit rules that define what constitutes prompt injection, causing detection decisions to be implicit, opaque, and difficult to reason about. In this work, we propose AgentWatcher to address the above two limitations. To address the first limitation, AgentWatcher attributes the LLM's output (e.g., the action of an agent) to a small set of causally influential context segments. By focusing detection on a relatively short text, AgentWatcher can be scalable to long contexts. To address the second limitation, we define a set of rules specifying what does and does not constitute a prompt injection, and use a monitor LLM to reason over these rules based on the attributed text, making the detection decisions more explainable. We conduct a comprehensive evaluation on tool-use agent benchmarks and long-context understanding datasets. The experimental results demonstrate that AgentWatcher can effectively detect prompt injection and maintain utility without attacks. The code is available at https://github.com/wang-yanting/AgentWatcher.",
+      "authors": [
+        "Yanting Wang",
+        "Wei Zou",
+        "Runpeng Geng",
+        "Jinyuan Jia"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-04-01T17:40:03+00:00",
+      "link": "https://arxiv.org/pdf/2604.01194v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Security monitoring tool for LLM agents",
+      "llm_evidence_cn": "LLM代理安全监控工具",
+      "llm_evidence": "LLM代理安全监控工具",
+      "canonical_evidence": "LLM代理安全监控工具",
+      "llm_tldr_en": "AgentWatcher is a rule-based monitor for detecting prompt injection attacks in LLM agents with scalable long-context handling.",
+      "llm_tldr_cn": "AgentWatcher是基于规则的监控工具，检测LLM代理的提示注入攻击。",
+      "llm_tldr": "AgentWatcher是基于规则的监控工具，检测LLM代理的提示注入攻击。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02097v1",
+      "title": "LatentUM: Unleashing the Potential of Interleaved Cross-Modal Reasoning via a Latent-Space Unified Model",
+      "abstract": "Unified models (UMs) hold promise for their ability to understand and generate content across heterogeneous modalities. Compared to merely generating visual content, the use of UMs for interleaved cross-modal reasoning is more promising and valuable, e.g., for solving understanding problems that require dense visual thinking, improving visual generation through self-reflection, or modeling visual dynamics of the physical world guided by stepwise action interventions. However, existing UMs necessitate pixel decoding as a bridge due to their disjoint visual representations for understanding and generation, which is both ineffective and inefficient. In this paper, we introduce LatentUM, a novel unified model that represents all modalities within a shared semantic latent space, eliminating the need for pixel-space mediation between visual understanding and generation. This design naturally enables flexible interleaved cross-modal reasoning and generation. Beyond improved computational efficiency, the shared representation substantially alleviates codec bias and strengthens cross-modal alignment, allowing LatentUM to achieve state-of-the-art performance on the Visual Spatial Planning benchmark, push the limits of visual generation through self-reflection, and support world modeling by predicting future visual states within the shared semantic latent space.",
+      "authors": [
+        "Jiachun Jin",
+        "Zetong Zhou",
+        "Xiao Yang",
+        "Hao Zhang",
+        "Pengfei Liu",
+        "Jun Zhu",
+        "Zhijie Deng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-04-02T14:22:29+00:00",
+      "link": "https://arxiv.org/pdf/2604.02097v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "unified model for cross-modal reasoning with world dynamics modeling",
+      "llm_evidence_cn": "跨模态推理统一模型，含世界动态建模",
+      "llm_evidence": "跨模态推理统一模型，含世界动态建模",
+      "canonical_evidence": "跨模态推理统一模型，含世界动态建模",
+      "llm_tldr_en": "LatentUM is a unified model enabling interleaved cross-modal reasoning with latent-space representations.",
+      "llm_tldr_cn": "LatentUM是支持交错跨模态推理的潜在空间统一模型。",
+      "llm_tldr": "LatentUM是支持交错跨模态推理的潜在空间统一模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

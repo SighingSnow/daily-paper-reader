@@ -1,0 +1,1403 @@
+Title: Wan-R1: Verifiable-Reinforcement Learning for Video Reasoning
+
+URL Source: https://arxiv.org/pdf/2603.27866v1
+
+Published Time: Tue, 31 Mar 2026 01:43:25 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+# Wan-R1: Verifiable-Reinforcement Learning for Video Reasoning 
+
+Ming Liu 1, Yunbei Zhang 2, Shilong Liu 3, Liwen Wang 1, and Wensheng Zhang 1 
+
+> 1
+
+Iowa State University, Ames, IA 50011, USA  
+
+> 2
+
+Tulane University, New Orleans, LA 70118, USA  
+
+> 3
+
+Princeton University, Princeton, NJ 08544, USA 
+
+Abstract. Video generation models produce visually coherent content but struggle with tasks requiring spatial reasoning and multi-step planning. Reinforcement learning (RL) offers a path to improve generalization, but its effectiveness in video reasoning hinges on reward design—a challenge that has received little systematic study. We investigate this problem by adapting Group Relative Policy Optimization (GRPO) to flow-based video models and training them on maze-solving and robotic navigation tasks. We first show that multimodal reward models fail catastrophically in this setting. To address this, we design verifiable reward functions grounded in objective task metrics. For structured game environments, we introduce a multi-component trajectory reward. For robotic navigation, we propose an embedding-level verifiable reward. Our experiments show that RL fine-tuning with verifiable rewards improves generalization. For example, on complex 3D mazes, our model improves exact match accuracy by 29.1% over the SFT baseline, and on trap-avoidance tasks by 51.4%. Our systematic reward analysis reveals that verifiable rewards are critical for stable training, while multimodal reward models could lead to degenerate solutions. These findings establish verifiable reward design as a key enabler for robust video reasoning. Code will be public available. 
+
+1 Introduction 
+
+The emergence of video generation models, such as Veo [ 10 ] and Sora [ 28 ], offers a new approach to visual reasoning. Instead of generating chains of thought through text to-kens [ 26 ], these models reason by generating temporally coherent visual sequences [ 41 ]. This “reasoning via video” paradigm naturally captures spatial relationships, physical dynamics, and temporal causality within a continuous visual medium. Recent work [ 41 , 12 ] shows that video models can learn reasoning tasks like maze-solving. Another work studys whether the same reasoning-via-video paradigm can support real-world semantic navigation, by evaluating on Target-Bench [ 37 ]. These tasks require spatial perception, path planning, and multi-step decision making, which remain challenging for current models [ 13 ]. Supervised fine-tuning (SFT) on demonstration videos teaches models to solve specific mazes, but it exposes a critical limitation: SFT models generalize poorly to out-of-distribution scenarios [ 45 ]. A model trained on easy mazes struggles with harder configurations. Training on regular grids does not transfer to irregular or 3D layouts, and changes in visual texture often break performance. This brittleness suggests that SFT encourages the memorization of training patterns rather than robust, transferable reasoning.  
+
+> arXiv:2603.27866v1 [cs.CV] 29 Mar 2026 2M. Liu et al.
+
+We investigate whether reinforcement learning (RL) can bridge this generalization gap. Because RL explores diverse solution strategies during training, it can encourage models to learn generalizable reasoning skills rather than surface-level heuristics. We adapt flow Group Relative Policy Optimization (GRPO) [ 20 ], a recent advance in RL for generative models, to flow-based video generation. 
+
+Fig. 1: VLLM fails to provide reliable reward, verified rewards can guarantee correct supervision. Applying RL to video reasoning requires careful reward design. Multimodal reward models are susceptible to reward hacking [ 48 , 22 , 15 ]; the generator learns to produce visually convincing videos that satisfy the judge without actually solving the underlying task. We avoid this by using verifiable reward functions. For game environments, we extract the agent’s path from the generated video and compare it against the ground-truth solution, ensuring the reward reflects true performance without the pitfalls of learned evaluators. For robotic navigation, where ground truth takes the form of reference rollout videos rather than discrete action sequences, we design an embedding-level reward that measures frame-wise visual similarity, temporal consistency, and endpoint fidelity between generated and reference videos. Our contributions are as follows: 
+
+– We adapt Flow-GRPO to flow-matching image-to-video generation with denoising-step reduction, making online RL for video reasoning computationally practical. 
+
+– We provide a systematic study of reward design for video generation RL. We show that vision-language reward models fail via reward hacking and that sparse task-completion rewards are insufficient. We introduce multi-component verifiable rewards based on trajectory extraction. 
+
+– We propose an embedding-level verifiable reward for robotic video reasoning that compares generated rollouts against reference demonstrations via frame similarity, temporal-order consistency, and endpoint fidelity. This reward enables RL training for real-world navigation without discrete action supervision. 
+
+– We demonstrate that RL with verifiable rewards consistently outperforms SFT baselines, improving exact match accuracy by up to 51.4 percentage points on out-of-distribution maze types. On Target-Bench for robotic path planning, our model achieves the best navigation score, reducing displacement errors by roughly half. 
+
+– We provide practical insights for scaling RL in video reasoning: we analyze KL regularization, denoising reduction, cold-start requirements, and test-time scaling, offering guidelines for practitioners applying RL to video reasoning. Abbreviated paper title 3
+
+2 Related Work 
+
+2.1 Video Generation Models 
+
+The field of video generation has seen rapid progress. Sora-2 [ 3] demonstrated the ability to produce controllable, physically plausible videos with coherent audio and dialogue integration. Closed source models—including Runway’s Gen-3 [ 33 ], Pika Labs [ 31 ], Luma AI [ 24 ], and Google DeepMind’s Veo family [ 5? ]—have pushed visual fidelity and realism further, though their implementations are not publicly available. Meanwhile, open-source alternatives like Stable Video Diffusion [ 2], OpenSora [ 47 ], Hunyuan-Video [18 ], and the Wan series [ 36 ] have broadened community access by providing efficient model designs and scalable training pipelines for high-quality video generation. 
+
+2.2 Reasoning via Visual Generation 
+
+Chain-of-Thought (CoT) prompting has substantially improved the reasoning capabilities of language models [ 39 , 38 , 11 ]. By incorporating reinforcement learning, CoT-style reasoning can be directly embedded into the training process, allowing models to develop internalized multi-step reasoning abilities [ 27 ]. Recently, the emergence of unified archi-tectures capable of both generation and comprehension has introduced a novel reasoning framework built around interleaved vision-language outputs [ 43 , 42 , 6], offering a more visually grounded and expressive approach to tackling complex multimodal reasoning tasks. Recent studies also explore the potential of video generative models in video reasoning [12, 41, 45, 37]. 
+
+2.3 RL for Generative Models 
+
+Reinforcement learning has demonstrated remarkable effectiveness in aligning large language models (LLMs) with human preferences [ 30 , 4 ]. Group Relative Policy Opti-mization (GRPO) [ 11 ] has recently emerged as a scalable alternative to PPO [ 34 ] for reasoning tasks. In the domain of visual generation, PPO-style policy gradients also demonstrated impressive generalization [ 1 , 7, 14 ]. More recently, DanceGRPO [ 44 ] and Flow-GRPO [ 20 ] pioneered the adaptation of GRPO to visual synthesis, providing a uni-fied framework for diffusion and flow models through SDE reformulation and achieving stable training across text-to-image, text-to-video, and image-to-video generation. 
+
+3 Method 
+
+We present our approach for improving video generation reasoning through reinforce-ment learning. We first describe the task formulation, then detail our adaptation of GRPO to flow-based video models, and finally present our verifiable reward design. 4 M. Liu et al. 
+
+Fig. 2: Flow-GRPO with verified reward. 
+
+3.1 Task Formulation 
+
+We consider the visual trace reasoning (VTR) task as shown in Figure 2, where a model receives a prompt c and an initial maze image I0, and must generate a video 
+
+V = {f1, f 2, . . . , f N } showing an agent (e.g., a colored ball) navigating from a start position to a goal position. The task requires the model to perceive the maze structure from the initial image, plan a valid path avoiding obstacles, and generate temporally consistent motion to the goal. 
+
+3.2 Background: Flow Matching 
+
+Flow matching models [ 19 , 23 ] define a continuous transformation between noise and data through a velocity field vθ (xt, t ). The forward process interpolates between data x0
+
+and noise x1:
+
+xt = (1 − t)x0 + tx 1, t ∈ [0 , 1]  (1) The model is trained to predict the velocity field by minimizing: 
+
+L(θ) = Et,x 0,x 1
+
+∥v − vθ (xt, t )∥2 (2) For inference, samples are generated by solving ordinary differential equation (ODE): 
+
+dx t = vθ (xt, t )dt  (3) 
+
+3.3 RL for Flow Matching 
+
+Group Relative Policy Optimization (GRPO) [ 11 ] provides a lightweight alternative to PPO [ 34 ] by using group-relative advantage estimation, eliminating the need for a separate value network. Abbreviated paper title 5
+
+ODE to SDE Conversion. A key challenge in applying GRPO to flow models is that the deterministic ODE sampling prevents the stochastic exploration required for RL. Flow-GRPO [ 21 ] convert the ODE to an equivalent stochastic differential equation (SDE) that preserves the marginal distribution while introducing randomness: 
+
+dx t =
+
+
+
+vt(xt) − σ2
+
+> t
+
+2 ∇ log pt(xt)
+
+
+
+dt + σtdw  (4) where σt controls the noise level and dw denotes Wiener process increments. For rectified flow, the discretized update becomes: 
+
+xt+∆t = xt + ˜ vθ (xt, t )∆t + σt
+
+√∆tϵ  (5) where ϵ ∼ N (0 , I ) and ˜vθ includes the score correction term. 
+
+Group Relative Advantage. Given a prompt-image pair (c, I 0), we sample a group of 
+
+G videos {V i}Gi=1 using SDE sampling. The advantage for each video is computed by normalizing rewards within the group: 
+
+ˆAi = R(V i, c ) − mean ({R(V j , c )}Gj=1 )
+
+std ({R(V j , c )}Gj=1 ) (6) 
+
+Policy Optimization. The GRPO objective maximizes: 
+
+J (θ) = E
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+1
+
+T 
+
+> T−1
+
+X
+
+> t=0
+
+
+
+Li,t  
+
+> clip
+
+− βKL DKL 
+
+#
+
+(7) where Li,t  
+
+> clip
+
+is the clipped surrogate objective and βKL controls KL regularization against the reference policy. 
+
+Denoising Reduction. Video generation is computationally expensive, requiring many denoising steps per sample. We follow denoising reduction [ 21 ]: using fewer steps (Strain = 30 ) during training data collection while retaining full steps ( Sinfer = 50 ) during evaluation. This significantly accelerates training without sacrificing final performance. 
+
+3.4 Verifiable Reward Design for Game 
+
+A critical—and underexplored—challenge in applying RL to video generation is reward design. Unlike text-based RL where human preference provides a natural reward signal, video generation tasks present unique difficulties: the output space is high-dimensional and continuous, success criteria are often spatial and temporal, and learned reward models face severe reward hacking risks specific to the visual domain. We identify three desiderata for effective video RL rewards: (i) verifiability —the reward must reflect genuine task success, not superficial visual quality; (ii) density —the reward should provide gradient information beyond binary success/failure; and (iii) decomposability —the reward should separate distinct aspects of task performance to prevent conflation. We now describe how our reward design satisfies each criterion. 6 M. Liu et al. 
+
+Trajectory Extraction. Given a generated video, we extract the agent’s trajectory using object tracking [ 45 ]. We initialize a tracker on the agent’s bounding box in the first frame and track its center position across all frames, yielding a trajectory τpred =
+
+{p1, p 2, . . . , p N }. Trajectory samples are presented in Appendix. 
+
+Reward Components. We define rewards based on trajectory-level metrics [ 45 ]. Let 
+
+{ˆvij }ni 
+
+> j=1
+
+denote the predicted trajectory steps and {vij }ni 
+
+> j=1
+
+denote the ground-truth optimal path for the i-th sample. 
+
+Exact Match Reward ( REM ): Measures whether the generated trajectory exactly matches the complete optimal path: 
+
+REM =
+
+> ni
+
+Y
+
+> j=1
+
+I(ˆ vij = vij ) (8) This is a strict binary reward that requires every step to be correct. One deviation from the optimal solution yields zero reward. 
+
+Precision Reward ( RPR ): Quantifies the proportion of consecutively correct steps along the optimal path, providing a softer metric than exact match: 
+
+RPR = 1
+
+niniX
+
+> j=1
+
+" jY
+
+> k=1
+
+I(ˆ vik = vik )
+
+#
+
+(9) This reward reflects the model’s ability to make steady, meaningful progress toward the complete correct trajectory. 
+
+Fidelity Reward ( RMF ): Measures the structural consistency of the maze layout across video frames, penalizing unrealistic behaviors such as walls changing or disap-pearing: 
+
+RMF = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+
+
+1 − |{ p : |I0(p) − Im(p)| > τ }| 
+
+Nm
+
+
+
+(10) where M is the number of sampled frames, I0 and Im denote the background regions of the first and m-th frames respectively, τ is a pixel-difference threshold, and Nm is the number of valid overlapping pixels. Higher values indicate better preservation of the static maze structure. 
+
+Combined Reward. Our final reward combines these components as shown in Figure 2: 
+
+R = αR EM + βR PR + γR MF  (11) where α, β, γ are hyperparameters balancing path correctness, progressive accuracy, and visual consistency. In our experiments, we use α = 0 .3, β = 0 .5, γ = 0 .2, prioritizing the precision reward which provides denser learning signal while still encouraging exact solutions and physical plausibility. Abbreviated paper title 7
+
+3.5 Verifiable Reward Design for Robotic Reasoning 
+
+For robotic reasoning task, such as Target-Bench [ 37 ], supervision is given as a reference rollout video collected by a teleoperated robot, rather than a discrete action sequence. We therefore design a reward that directly compares a generated video plan to its reference, without relying on a learned judge. 
+
+Problem setting. Each Target-Bench sample includes a semantic goal prompt c, a first-frame observation I0, and a reference video V ∗ = {f ∗ 
+
+> 1
+
+, . . . , f ∗  
+
+> T∗
+
+}. Conditioned on 
+
+(c, I 0), the model generates a video rollout V = {f1, . . . , f T } that should depict motion toward the target. 
+
+Frame embedding reward. We compute per-frame embeddings using a frozen vision encoder ϕ (DINOv2 [ 29 ] or CLIP [ 32 ]) and ℓ2 normalization: et = norm( ϕ(ft)) and 
+
+e∗ 
+
+> t
+
+= norm( ϕ(f ∗ 
+
+> t
+
+)) . Since T and T ∗ may differ, we linearly interpolate the shorter embedding sequence to a common length Tc. We then compute (i) mean frame cosine similarity Rcos , (ii) a temporal-order consistency score Rtemp based on normalized cumulative displacement in embedding space, and (iii) endpoint fidelity Rend :
+
+Rcos = 1
+
+TcTcX
+
+> t=1
+
+⟨et, e ∗ 
+
+> t
+
+⟩, (12) 
+
+Rend = 12
+
+
+
+⟨e1, e ∗
+
+> 1
+
+⟩ + ⟨eTc , e ∗ 
+
+> Tc
+
+⟩
+
+
+
+, (13) 
+
+Rtemp = 1 − 1
+
+Tc − 1
+
+> Tc−1
+
+X
+
+> t=1
+
+|¯ct − ¯c∗ 
+
+> t
+
+| , (14) where ¯ct =     
+
+> Ptk=1 ∥ek+1 −ek∥2
+> PTc −1
+> k=1 ∥ek+1 −ek∥2+ϵ
+
+(and similarly ¯c∗ 
+
+> t
+
+). The embedding reward is a weighted sum: 
+
+Remb = αemb Rcos + βemb Rtemp + γemb Rend , (15) with (αemb , β emb , γ emb ) = (0 .5, 0.2, 0.3) in our implementation. 
+
+3.6 Training Algorithm 
+
+Algorithm 1 summarizes the complete Video-GRPO training procedure. 
+
+4 Experimental Setup 
+
+4.1 Dataset and Tasks 
+
+We conduct experiments on maze-solving tasks from VR-Bench [ 45 ], which provides procedurally generated mazes across five types: 
+
+– Regular Maze: Grid-based layouts testing basic pathfinding 
+
+– Irregular Maze: Curved paths preventing coordinate shortcuts 8 M. Liu et al. 
+
+Algorithm 1 Video-GRPO Training 
+
+Require: SFT model πθ , reference πref , dataset D, group size G, training epoch Ttrain  
+
+> 1:
+
+for each iteration do  
+
+> 2:
+
+Sample batch of (c, I, τ ∗) from D 
+
+> 3:
+
+for each (c, I, τ ∗) in batch do  
+
+> 4:
+
+Sample G videos via SDE with Strain steps  
+
+> 5:
+
+Extract trajectories {ˆτ i}Gi=1 via tracking  
+
+> 6:
+
+Compute rewards {ri}Gi=1 against τ ∗ 
+
+> 7:
+
+Compute advantages { ˆAi}Gi=1 via Eq. (6)  
+
+> 8:
+
+end for  
+
+> 9:
+
+Update θ by maximizing J (θ) via Eq. (7)  
+
+> 10:
+
+end for  
+
+> 11:
+
+return Trained model πθ
+
+– 3D Maze: Stereoscopic structures requiring depth perception 
+
+– Trapfield: Obstacle avoidance with trap regions 
+
+– Sokoban: Box-pushing puzzles requiring rule comprehension Each maze type includes three difficulty levels (Easy, Medium, Hard) and multiple visual textures. Examples of games are presented in Appendix. 
+
+Target-Bench (robotic path planning). We additionally include Target-Bench [37 ], a real-world benchmark for mapless path planning toward text-specified semantic targets .Each sample provides an egocentric RGB observation I0, a goal prompt c (explicit or im-plicit), and a reference rollout video V ∗ collected with a quadruped robot, together with SLAM-verified ground-truth trajectories. We follow the official protocol and evaluate using the VGGT world decoder and trajectory metrics. 
+
+4.2 Base Model 
+
+We use Wan2.2-TI2V-5B [36 ] as our base video generation model. This is a flow-matching model for text-and-image-to-video generation. We start from an SFT checkpoint that has been fine-tuned on maze-solving demonstrations, which we refer to as Wan-SFT [ 45 ]. We compare our model Wan-R1 against a diverse set of baseline models across two categories: (1) Six closed-source video models, including Veo-3.1-fast , Veo-3.1-pro [10 ], 
+
+Sora-2 [ 28 ], Kling-v1 [17 ], Seedance-1.0-pro [9], and MiniMax-Hailuo-2.3 [25 ]; and (2) 
+
+three open-source video models, namely Wan2.5-i2v-preview [35 ] and Wan2.2-TI2V-5B 
+
+[36], as well the supervised finetuned Wan-SFT [45] 
+
+4.3 Training Configuration 
+
+The training configurations are presented in Appendix. Besides, we use α = 0 .3, β = 0 .5,
+
+γ = 0 .2 for the combined reward. For Target-Bench, we use the reward described in Sec. 3.5. We set (αemb , β emb , γ emb ) = (0 .5, 0.2, 0.3) . We use LoRA [ 16 ] to finetune the model. All experiments are conducted on machine with H200 GPUs. Abbreviated paper title 9
+
+4.4 Evaluation Metrics 
+
+We evaluate using four metrics from VR-Bench [45]: 
+
+– Exact Match (EM): Whether generated trajectory exactly matches the optimal path 
+
+– Success Rate (SR): Whether the agent reaches the goal 
+
+– Precision Rate (PR): Proportion of consecutively correct steps 
+
+– Step Deviation (SD): Relative path length redundancy (lower is better) 
+
+Target-Bench. We follow the Target-Bench evaluation protocol [ 37 ] to assess whether a generated video implies a useful navigation plan. We report five metrics: Average Displacement Error (ADE), Final Displacement Error (FDE), Miss Rate (MR, threshold 
+
+τ =2 .0 m), Soft Endpoint score (SE, tolerance σ=0 .6 m), and Approach Consistency (AC), which measures whether the predicted trajectory stays within a progress-dependent corridor around the ground-truth path. These are aggregated into a weighted overall score WO ∈ [0 , 1] , with AC and SE jointly carrying 65% of the weight. 
+
+5 Results 
+
+5.1 Main Results Method EM (↑) SR (↑) PR (↑) SD (↓)Base Irreg Trap 3D Soko Base Irreg Trap 3D Soko Base Irreg Trap 3D Soko Base Irreg Trap 3D Soko                                                                                                                                                                                                             
+
+> General Video Model
+> Closed-Source
+> Veo-3.1-fast 0.0 0.0 0.0 0.0 2.8 40.3 36.1 38.9 48.6 43.1 20.2 24.8 28.2 13.4 21.7 195.3 111.5 80.7 33.5 112.3 Veo-3.1-pro 0.0 4.2 1.4 0.0 0.0 47.2 36.1 59.7 50.0 37.5 24.6 33.9 39.1 18.0 21.4 140.7 94.5 85.4 40.1 141.8 Sora-2 1.4 5.6 0.0 0.0 4.2 75.0 72.2 83.0 37.5 43.1 45.1 45.7 46.6 19.3 27.4 302.9 187.0 145.1 92.4 138.7 kling-v1 0.0 0.0 0.0 0.0 0.0 2.8 0.0 1.4 27.8 12.5 6.3 8.8 10.4 11.7 9.0 25.2 ––69.7 356.1 Seedance-1.0-pro 0.0 2.8 2.8 0.0 0.0 75.0 45.8 59.7 77.8 13.9 12.8 35.8 42.7 23.6 17.1 162.3 143.4 99.1 84.4 241.9 MiniMax-Hailuo-2.3 0.0 1.4 2.8 0.0 0.0 68.1 40.3 70.8 55.6 45.8 23.2 24.2 30.3 20.3 15.5 464.0 170.0 90.9 50.1 165.5
+> Open-Source
+> Wan2.5-i2v-preview 0.0 2.8 4.2 0.0 0.0 58.3 26.4 77.8 24.5 22.4 14.3 21.8 34.4 24.5 17.1 378.4 281.8 73.2 119.9 278.0 Wan2.2-TI2V-5B 30.0 0.0 0.0 0.0 0.0 6.9 12.5 0.0 31.9 11.1 6.6 9.1 7.1 12.8 9.2 388.7 66.1 –5.4 176.6 Wan-SFT [45] 33.3 56.9 38.9 65.3 4.2 76.4 69.4 100.0 100.0 69.4 60.6 71.6 79.1 93.5 44.3 10.3 2.4 3.9 3.9 10.2
+> Train  Wan-R1(ours) 61.1 47.9 90.3 94.4 30.6 75.0 69.7 100.0 100.0 68.1 78.6 68.4 97.7 98.0 46.9 5.2 8.3 2.4 1.9 16.9
+> ∆↑+61.1 +47.9 +90.3 +94.4 +30.6 +68.1 +57.2 +100.0 +68.1 +57.0 +72.0 +59.3 +90.6 +85.2 +37.7 -383.5 -57.8 –-3.5 -159.7
+
+Table 1: VR-Bench comprises five tasks: Base (Regular Maze), Irreg (Irregular Maze), Trap (TrapField), 3D (3D Maze), and Soko (Sokoban). Last row shows the performance gain compared with Wan2.2-TI2V base model. Table 1 presents the main comparison between SFT and RL-tuned models across all maze types. The RL-tuned model (Wan-R1) consistently outperforms the SFT baseline across all maze types and metrics. On Regular Maze, Wan-R1 achieves 61.1% exact match compared to 33.3% for Wan-SFT, representing an absolute gain of 27.8 percentage points. For 3D Maze, the improvement is even more pronounced, with exact match increasing from 65.3% to 94.4%. Trapfield shows the most dramatic gains, where exact match jumps from 38.9% to 90.3%, accompanied by near-perfect precision (97.7%). While success rates remain comparable across both models for most tasks (as both achieve high completion rates), the key improvements manifest in path optimality: step deviation decreases substantially on Regular Maze (from 10.3 to 5.2) and 3D Maze (from 3.9 to 1.9), indicating that RL training produces more efficient trajectories that closely follow optimal solutions. 10 M. Liu et al. 
+
+Task EM SR PR SD 
+
+E M H E M H E M H E M HBase 0.0 0.0 0.0 8.3 8.3 4.2 13.2 3.8 2.7 154.8 – –                      
+
+> 0.0 (+0.0) 4.2 (+4.2) 0.0 (+0.0) 83.3 (+75.0) 41.7 (+33.4) 58.3 (+54.1) 40.1 (+26.9) 26.1 (+22.3) 6.0 (+3.3) 28.2 (-126.6) 10.1 (–) – (–) 87.5 (+87.5) 66.7 (+66.7) 29.2 (+29.2) 100.0 (+91.7) 87.5 (+79.2) 41.7 (+37.5) 97.0 (+83.8) 85.4 (+81.6) 57.2 (+54.5) 1.4 (-153.4) 2.5 (–) 14.6 (–)
+
+Irrg 0.0 0.0 0.0 29.2 4.2 4.2 13.4 8.1 5.8 48.3 – 39.3                       
+
+> 83.3 (+83.3) 66.7 (+66.7) 54.2 (+54.2) 95.8 (+66.6) 87.5 (+83.3) 62.5 (+58.3) 88.0 (+74.6) 74.8 (+66.7) 68.4 (+62.6) 3.5 (-44.8) 7.8 (–) 3.1 (-36.2) 79.2 (+79.2) 45.8 (+45.8) 20.8 (+20.8) 100.0 (+70.8) 66.7 (+62.5) 37.5 (+33.3) 82.3 (+68.9) 70.7 (+62.6) 51.6 (+45.8) 10.1 (-38.2) 9.1 (–) 4.3 (-35.0)
+
+Trap 0.0 0.0 0.0 0.0 0.0 0.0 6.0 6.4 8.9 – – –                      
+
+> 62.5 (+62.5) 0.0 (+0.0) 12.5 (+12.5) 100.0 (+100.0) 95.8 (+95.8) 62.5 (+62.5) 86.7 (+80.7) 43.7 (+37.3) 56.7 (+47.8) 2.1 (–) 5.9 (–) 3.5 (–) 79.2 (+79.2) 100.0 (+100.0) 75.9 (+75.9) 100.0 (+100.0) 100.0 (+100.0) 100.0 (+100.0) 94.7 (+88.7) 100.0 (+93.6) 86.4 (+77.5) 4.9 (–) 1.2 (–) 1.0 (–)
+
+3D 0.0 0.0 0.0 54.2 16.7 25.0 7.6 9.8 15.2 53.0 87.9 33.6                       
+
+> 41.7 (+41.7) 0.0 (+0.0) 4.2 (+4.2) 100.0 (+45.8) 79.2 (+62.5) 83.3 (+58.3) 78.7 (+71.1) 47.4 (+37.6) 58.7 (+43.5) 4.6 (-48.4) 10.2 (-77.7) 13.8 (-19.8) 87.5 (+87.5) 95.8 (+95.8) 91.7 (+91.7) 100.0 (+45.8) 100.0 (+83.3) 100.0 (+75.0) 98.4 (+90.8) 99.1 (+89.3) 96.2 (+81.0) 1.7 (-51.3) 1.6 (-86.3) 2.7 (-30.9)
+
+Soko 0.0 0.0 0.0 20.8 8.3 4.2 14.6 8.3 5.6 354.2 61.4 –                      
+
+> 4.2 (+4.2) 0.0 (+0.0) 0.0 (+0.0) 83.3 (+62.5) 45.8 (+37.5) 33.3 (+29.1) 62.2 (+47.6) 12.5 (+4.2) 10.4 (+4.8) 18.8 (-335.4) 84.5 (+23.1) 16.1 (–) 75.0 (+75.0) 12.5 (+12.5) 4.2 (+4.2) 91.7 (+70.9) 91.7 (+83.4) 45.8 (+41.6) 87.8 (+73.2) 30.3 (+22.0) 19.4 (+13.8) 5.8 (-348.4) 8.8 (-52.6) 38.6 (–)
+
+Table 2: Difficulty generalization performance of Wan-R1 on VR-Bench. Each task block presents a comparison between the baseline model (Wan2.2-TI2V-5B) and Wan-SFT (trained exclusively on Easy-level data) and Wan-R1 (trained on easy tasks with flow-GRPO) evaluated across three difficulty levels (E/M/H = Easy/Medium/Hard). 
+
+5.2 Generalization Results 
+
+Difficulty Generalization. Table 2 shows generalization to harder difficulty levels when trained only on Easy mazes. The GRPO model shows significantly better generalization to Medium and Hard difficulties. On Regular Maze, while the SFT model degrades catastrophically from Easy to Hard (40.1% to 6.0% PR), Wan-R1 maintains substantially higher performance (97.0% to 57.2% PR). For Irregular Maze, the RL-tuned model achieves 68.4% precision on Hard difficulty compared to just 5.8% for the baseline. The pattern holds across most maze types: on 3D Maze Hard, Wan-R1 reaches 96.2% precision versus 15.2% baseline, representing a gain of over 80 percentage points. These results demonstrate that RL encourages learning of more generalizable reasoning strategies rather than memorizing specific maze. 
+
+Texture Generalization. Our appendix presents results on unseen visual textures. The RL-tuned model shows substantially better texture generalization, particularly on visual styles that differ most from training. On Regular Maze, Wan-R1 achieves 31.9% exact match on both Skin2 and Skin3 compared to 1.4% and 23.6% for Wan-SFT respectively. For 3D Maze, the model maintains 79.2% exact match on unseen textures compared to 43.1% and 50.0% for the SFT baseline. This texture invariance suggests that RL encourages the model to focus on structural maze features rather than superficial visual patterns, learning more abstract reasoning strategies that transfer across visual domains. 
+
+Maze Type Generalization. Our appendix shows cross-task generalization when trained on a single maze type. While fine-tuning on individual tasks improves in-domain perfor-mance, our method further enhances both in-domain accuracy and cross-task transfer. For Regular Maze, our approach nearly doubles the in-domain EM (61.1 vs 33.3) while maintaining competitive cross-domain performance. The most substantial gains appear in 3D Maze, where our method achieves 94.4 EM compared to 65.3 from fine-tuning alone, alongside near-perfect PR (98.0). For Sokoban, the inherently more complex task requiring box-pushing logic, our method improves in-domain EM from 4.2 to 30.6 and dramatically boosts cross-domain SR on Base mazes (48.6 vs 0.5). Notably, Trapfield Abbreviated paper title 11 
+
+with our method achieves perfect SR (100.0) across Base, Irregular, and 3D domains, demonstrating improved generalization to visually distinct maze types. These results suggest that our approach not only strengthens task-specific learning but also facilitates more robust feature representations that transfer across maze variants. 
+
+5.3 Target-Bench: Mapless Path Planning 
+
+Fig. 3: Target-Bench results. Wan-R1 achieves the highest overall score, with lower displacement errors (ADE, FDE) and miss rate, and higher soft endpoint (SE) and approach consistency (AC) compared to both the base model and Wan-SFT. We additionally evaluate our models on Target-Bench [ 37 ], which measures whether a generated video rollout supports mapless navigation toward a semantic target. Figure 3 provides the results. Wan-R1 achieves the best overall score among all three models, reducing ADE and FDE by roughly half relative to the base model while substantially lowering miss rate. Both SE and AC also improve, indicating that RL training encourages the generated rollouts to better encode goal-directed motion. These gains suggest that the embedding-level verifiable reward transfers effectively to real-world robotic navigation beyond structured maze tasks. 
+
+6 Analysis 
+
+6.1 Effect of KL Regularization and Denoising Reduction 
+
+KL Regularization. Table 3a presents the effect of KL regularization strength on model performance. Without KL regularization ( βKL = 0 ), the model achieves moderate exact match (62.5%) but exhibits the highest step deviation (6.7), indicating a tendency to produce unnecessarily long or redundant paths. Increasing regularization to βKL = 0 .1
+
+yields the best overall performance, achieving the highest exact match (66.7%), precision rate (81.5%), and the lowest step deviation (3.7), while maintaining an identical success 12 M. Liu et al.             
+
+> βEM SR PR SD 062.5 75.0 79.0 6.7 0.04 61.1 75.0 78.6 5.2 0.1 66.7 75.0 81.5 3.7 (a) Effect of KL coefficient βKL .
+> Strain EM SR PR SD 559.7 70.8 77.5 4.0 30 61.1 75.0 78.6 5.2 50 62.5 73.6 79.7 2.9 (b) Effect of training denoising steps ( Strain ).
+
+Table 3: Ablation studies on KL regularization and denoising reduction. rate (75.0%) across all settings. This suggests that stronger KL regularization encourages the policy to stay closer to the reference distribution, producing more efficient and structurally consistent trajectories rather than exploring degenerate solution paths. 
+
+Denoising Reduction. Reducing training denoising steps dramatically accelerates train-ing with minimal performance loss. As shown in Table 3b, using Strain = 5 degrades performance noticeably (59.7% EM, 70.8% SR), confirming that an excessively aggres-sive reduction impairs sample quality during rollout collection. However, Strain = 30 
+
+recovers nearly all of the performance of the full 50-step setting (61.1% vs. 62.5% EM, 78.6% vs. 79.7% PR). Notably, Strain = 30 achieves the highest success rate (75.0% vs. 73.6% for full steps), suggesting that moderate denoising reduction may act as a mild regularizer by introducing controlled stochasticity into the generated rollouts. 
+
+6.2 Cold Start 
+
+Applying Flow-GRPO directly to the base model (Wan2.2-TI2V-5B) without prior super-vised fine-tuning yields poor results, as the base model achieves near-zero exact match across all maze types. This highlights a standard characteristic of reinforcement learning: the policy requires a foundational task understanding before RL can effectively guide exploration [ 46 , 8 ]. Because our verifiable rewards enforce strict logical correctness, they are naturally sparser than subjective visual quality metrics. Therefore, SFT acts as a necessary bootstrap, placing the model within a region of the reward landscape where policy gradient updates become meaningful. Future work could bridge this gap through curriculum learning on simplified environments or offline preference optimization. 
+
+6.3 Test-Time Scaling 
+
+Appendix examines whether RL genuinely improves model capability or merely benefits from best-of-K sampling. We evaluate Wan-R1 with varying numbers of samples K ∈{1, 4, 8, 12 , 16 } across difficulty levels. The results reveal that performance continues to improve with larger K, demonstrating that the model maintains meaningful diversity in its generations. Importantly, even at K=1 (no sampling advantage), Wan-R1 substantially outperforms the SFT baseline, confirming that RL training improves the underlying policy rather than simply increasing variance for lucky samples. The scaling curves show diminishing returns beyond K=8, suggesting this as a practical inference budget. Abbreviated paper title 13 
+
+6.4 Reward Design Analysis 
+
+We conduct a systematic study of reward design choices. This analysis serves two pur-poses: validating our multi-component verifiable reward and providing general insights on reward design in video reasoning. The results are presented in Appendix. 
+
+Reward models lead to reward hacking. We use Qwen2.5-VL as a reward model, prompting it to assess whether the generated video correctly solves the maze. Appendix reveal fundamental failure mode: the model learns to generate videos where the agent moves confidently along plausible-looking but incorrect paths. Figure in Appendix illustrates representative examples. The VLM assigns high scores to these incorrect solutions because it responds to visual cues of purposeful motion—smooth trajectories, clear agent visibility, and goal-directed movement—rather than verifying actual path correctness. This confirms that the high-dimensional, continuous nature of video outputs makes learned reward models particularly vulnerable to exploitation, more so than in text-based RL where outputs are discrete and more easily verified. 
+
+Sparse rewards provide insufficient learning signal. Using only binary success (SR-Only) or exact match ( REM ) as reward yields limited improvement over SFT. With SR-Only, the model learns to reach the goal but via highly suboptimal routes (high SD), because all successful trajectories receive identical reward regardless of efficiency. With 
+
+REM alone, the reward is even sparser—few generated trajectories exactly match the optimal path, so most samples receive zero reward, providing negligible gradient signal for early training. 
+
+Dense verifiable rewards enable stable learning. The precision reward RPR provides the critical dense signal: it rewards partial progress along the correct path, creating a smooth reward landscape that guides optimization. Training with RPR alone already achieves better EM, substantially outperforming sparse alternatives. Adding REM provides a bonus for complete solutions, encouraging the model to “close out” trajectories rather than settling for partial correctness. The fidelity term RMF prevents a subtle failure mode where the model achieves high trajectory scores by altering the maze structure in later frames (e.g., removing walls), which constitutes a form of visual “cheating.” 
+
+6.5 Why Does RL Improve Generalization? 
+
+We hypothesize several factors contribute to RL’s generalization benefits: 
+
+Exploration discovers diverse strategies. Unlike SFT which imitates a single demon-stration per maze, RL explores multiple trajectories through stochastic SDE sampling. During training, the model generates G=8 different video solutions for each maze, re-ceiving differentiated feedback based on trajectory quality. This exposure to a broader distribution of valid (and invalid) solutions helps the model learn which features of a solution are essential versus incidental. 14 M. Liu et al. 
+
+Reward provides task-level signal. SFT optimizes frame-level reconstruction loss, which may cause overfitting to superficial visual patterns such as specific texture details or agent appearances. RL optimizes task completion through trajectory-level rewards, encouraging the model to learn more abstract reasoning strategies that capture the essence of pathfinding rather than pixel-level imitation. 
+
+Group normalization reduces spurious correlations. By comparing within groups of videos generated for the same maze, GRPO’s advantage estimation naturally controls for maze-specific factors. A video is considered “good” only if it outperforms other attempts on the same maze, not if it happens to be generated for an easier maze. This relative evaluation helps the model learn transferable skills rather than maze-specific shortcuts. 
+
+7 Conclusion 
+
+We explored the application of reinforcement learning to enhance reasoning capabili-ties in video generation models. By adapting GRPO to flow-based video models and designing verifiable rewards grounded in trajectory matching, we achieved significant improvements in generalization across difficulty levels, visual textures, and maze types. Beyond structured game environments, we further demonstrated that embedding-level verifiable rewards enable effective RL training for robotic video reasoning, where our model improves mapless path planning toward semantic targets on Target-Bench. Our results demonstrate that online RL with carefully designed rewards can strengthen reasoning capabilities across both synthetic and real-world navigation tasks without sacrificing video quality or diversity. Our work highlights the critical importance of reward design in RL for generative models. While multimodal reward models offer convenience, they are prone to reward hacking in video generation tasks. In contrast, verifiable rewards—whether based on discrete trajectory matching for games or continuous embedding similarity for robotic rollouts—provide more reliable training signals and lead to genuine capability improve-ments. 
+
+8 Limitations 
+
+Our study focuses on reasoning tasks with strictly definable success criteria, such as ground-truth optimal paths and reference robotic rollouts. While extending this approach to open-ended generation is challenging, this constraint is by design. Evaluating complex spatial and temporal reasoning requires absolute correctness; current vision-language models frequently fail to act as reliable judges in these scenarios, often rewarding visually plausible but logically flawed trajectories. Therefore, grounding video RL in objective, verifiable metrics is a necessary prerequisite for developing models that genuinely reason rather than hallucinate. Additionally, our verifiable rewards are implemented as a weighted combination of multiple components. While our selected fixed weights 
+
+(α, β, γ ) proved effective and robust in our experiments, the optimal trade-off between path efficiency and visual fidelity may naturally shift depending on the environment’s complexity. Future work should explore adaptive or curriculum-based reward weighting to automatically balance these signals during training Abbreviated paper title 15 
+
+A Training Configuration 
+
+The training configurations are presented in Table 4. Additionally, we use α = 0 .3,
+
+β = 0 .5, γ = 0 .2 for the combined reward. For Target-Bench, we use our cus-tomized reward which compares generated rollouts against reference videos via (i) frame-level embedding similarity (DINOv2/CLIP) and (ii) optional VGGT-based tra-jectory scoring. Unless stated otherwise, we set (αemb , β emb , γ emb ) = (0 .5, 0.2, 0.3) and use (wemb , w traj ) = (1 .0, 0.0) , enabling the trajectory term only when VGGT inference is available. We use LoRA [ 16 ] to finetune the model. All experiments are conducted on a machine with H200 GPUs. Table 4: Training Hyperparameters 
+
+Hyperparameter Value 
+
+Group size G = 8 
+
+LoRA rank r = 32 
+
+Number of frames 193 Training Epoch Ttrain = 1 
+
+Inference denoising steps Sinfer = 50 
+
+KL coefficient βKL = 0 .04 
+
+Clipping parameter ϵ = 0 .2
+
+SDE noise scale a = 0 .5
+
+Learning rate 1 × 10 −4
+
+B More results 
+
+B.1 Maze Type Generalization. 
+
+Table 5 presents cross-task generalization results when training on a single maze type. GRPO consistently improves transfer to unseen maze types compared to SFT, suggesting that RL encourages learning of more abstract spatial reasoning skills that generalize beyond the specific task structure encountered during training. 
+
+B.2 Texture Generalization. 
+
+Table 6 evaluates performance on unseen visual textures. The RL-tuned model demon-strates stronger texture invariance, particularly on styles that differ substantially from training. This indicates that RL encourages the model to focus on structural maze features rather than superficial visual patterns. 16 M. Liu et al. 
+
+Task Model EM SR PR SD 
+
+Base Irreg 3D Soko Base Irreg 3D Soko Base Irreg 3D Soko Base Irreg 3D Soko 
+
+Wan2.2-TI2V-5B Baseline 0.0 0.0 0.0 0.0 6.9 12.5 31.9 11.1 6.6 9.1 12.8 9.2 388.7 66.1 5.4 176.6 Regular Maze Wan-SFT 33.3 
+
+> (+33.3)
+
+5.6 
+
+> (+5.6)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+76.4 
+
+> (+69.5)
+
+8.3 
+
+> (-4.2)
+
+69.4 
+
+> (+37.5)
+
+30.6 
+
+> (+19.5)
+
+60.6 
+
+> (+54.0)
+
+22.7 
+
+> (+13.6)
+
+13.7 
+
+> (+0.9)
+
+19.0 
+
+> (+9.8)
+
+10.3 
+
+> (-378.4)
+
+51.7 
+
+> (-14.4)
+
+12.7 
+
+> (+7.3)
+
+49.3 
+
+> (-127.3)
+
+Wan-R1 61.1 
+
+> (+61.1)
+
+4.2 
+
+> (+4.2)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+75.0 
+
+> (+68.1)
+
+13.7 
+
+> (+1.2)
+
+63.9 
+
+> (+32.0)
+
+15.3 
+
+> (+4.2)
+
+78.6 
+
+> (+72.0)
+
+23.9 
+
+> (+14.8)
+
+13.1 
+
+> (+0.3)
+
+20.6 
+
+> (+11.4)
+
+5.2 
+
+> (-383.5)
+
+27.1 
+
+> (-39.0)
+
+10.9 
+
+> (+5.5)
+
+9.0 
+
+> (-167.6)
+
+Irregular Maze Wan-SFT 0.0 
+
+> (+0.0)
+
+56.9 
+
+> (+56.9)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+11.1 
+
+> (+4.2)
+
+69.4 
+
+> (+56.9)
+
+79.2 
+
+> (+47.3)
+
+12.5 
+
+> (+1.4)
+
+16.6 
+
+> (+10.0)
+
+71.6 
+
+> (+62.5)
+
+16.8 
+
+> (+4.0)
+
+15.5 
+
+> (+6.3)
+
+35.8 
+
+> (-352.9)
+
+2.4 
+
+> (-63.7)
+
+9.0 
+
+> (+3.6)
+
+40.7 
+
+> (-135.9)
+
+Wan-R1 0.0 
+
+> (+0.0)
+
+47.9 
+
+> (+47.9)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+9.7 
+
+> (+2.8)
+
+69.7 
+
+> (+57.2)
+
+83.3 
+
+> (+51.4)
+
+16.7 
+
+> (+5.6)
+
+11.6 
+
+> (+5.0)
+
+68.4 
+
+> (+59.3)
+
+15.1 
+
+> (+2.3)
+
+16.9 
+
+> (+7.7)
+
+0.0 
+
+> (-388.7)
+
+8.3 
+
+> (-57.8)
+
+7.5 
+
+> (+2.1)
+
+9.3 
+
+> (-167.3)
+
+3D Maze Wan-SFT 0.0 
+
+> (+0.0)
+
+5.6 
+
+> (+5.6)
+
+65.3 
+
+> (+65.3)
+
+0.0 
+
+> (+0.0)
+
+38.9 
+
+> (+32.0)
+
+31.9 
+
+> (+19.4)
+
+100.0 
+
+> (+68.1)
+
+20.8 
+
+> (+9.7)
+
+6.8 
+
+> (+0.2)
+
+20.6 
+
+> (+11.5)
+
+93.5 
+
+> (+80.7)
+
+15.0 
+
+> (+5.8)
+
+108.2 
+
+> (-280.5)
+
+10.9 
+
+> (-55.2)
+
+3.9 
+
+> (-1.5)
+
+80.6 
+
+> (-96.0)
+
+Wan-R1 0.0 
+
+> (+0.0)
+
+6.9 
+
+> (+6.9)
+
+94.4 
+
+> (+94.4)
+
+0.0 
+
+> (+0.0)
+
+41.7 
+
+> (+34.8)
+
+39.2 
+
+> (+26.7)
+
+100.0 
+
+> (+68.1)
+
+23.6 
+
+> (+12.5)
+
+5.4 
+
+> (-1.2)
+
+22.0 
+
+> (+12.9)
+
+98.0 
+
+> (+85.2)
+
+12.5 
+
+> (+3.3)
+
+20.5 
+
+> (-368.2)
+
+8.3 
+
+> (-57.8)
+
+1.9 
+
+> (-3.5)
+
+28.2 
+
+> (-148.4)
+
+Sokoban Wan-SFT 0.0 
+
+> (+0.0)
+
+1.4 
+
+> (+1.4)
+
+0.0 
+
+> (+0.0)
+
+4.2 
+
+> (+4.2)
+
+0.5 
+
+> (-6.4)
+
+22.2 
+
+> (+9.7)
+
+22.2 
+
+> (-9.7)
+
+69.4 
+
+> (+58.3)
+
+15.7 
+
+> (+9.1)
+
+23.7 
+
+> (+14.6)
+
+15.7 
+
+> (+2.9)
+
+44.3 
+
+> (+35.1)
+
+46.3 
+
+> (-342.4)
+
+34.4 
+
+> (-31.7)
+
+20.1 
+
+> (+14.7)
+
+10.2 
+
+> (-166.4)
+
+Wan-R1 2.8 
+
+> (+2.8)
+
+1.3 
+
+> (+1.3)
+
+0.0 
+
+> (+0.0)
+
+30.6 
+
+> (+30.6)
+
+48.6 
+
+> (+41.7)
+
+19.2 
+
+> (+6.7)
+
+29.2 
+
+> (-2.7)
+
+68.1 
+
+> (+57.0)
+
+21.1 
+
+> (+14.5)
+
+26.1 
+
+> (+17.0)
+
+15.4 
+
+> (+2.6)
+
+46.9 
+
+> (+37.7)
+
+6.1 
+
+> (-382.6)
+
+29.2 
+
+> (-36.9)
+
+8.6 
+
+> (+3.2)
+
+16.9 
+
+> (-159.7)
+
+Trapfield Wan-SFT 0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+93.1 
+
+> (+86.2)
+
+40.3 
+
+> (+27.8)
+
+79.2 
+
+> (+47.3)
+
+6.9 
+
+> (-4.2)
+
+10.9 
+
+> (+4.3)
+
+12.9 
+
+> (+3.8)
+
+14.7 
+
+> (+1.9)
+
+10.0 
+
+> (+0.8)
+
+57.5 
+
+> (-331.2)
+
+16.8 
+
+> (-49.3)
+
+11.4 
+
+> (+6.0)
+
+57.8 
+
+> (-118.8)
+
+Wan-R1 0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+0.0 
+
+> (+0.0)
+
+93.1 
+
+> (+86.2)
+
+34.7 
+
+> (+22.2)
+
+73.6 
+
+> (+41.7)
+
+6.9 
+
+> (-4.2)
+
+10.8 
+
+> (+4.2)
+
+12.8 
+
+> (+3.7)
+
+14.4 
+
+> (+1.6)
+
+9.3 
+
+> (+0.1)
+
+10.8 
+
+> (-377.9)
+
+14.7 
+
+> (-51.4)
+
+4.4 
+
+> (-1.0)
+
+24.0 
+
+> (-152.6)
+
+Table 5: Performance comparison between the baseline model (Wan2.2-TI2V-5B), task-specific Wan-SFT models, and our method across four game types: Base, Irreg, 3D, and Soko. Each cell displays the absolute performance alongside the relative change from the baseline across four metrics (EM, SR, PR, SD). 
+
+B.3 Video Quality Preservation 
+
+Table 7 confirms that RL training does not degrade video quality in most cases. Maze Fidelity improves from 91.2% to 94.1% on Regular Maze and from 93.3% to 94.9% on Trapfield, while remaining stable on Irregular and 3D Maze. The decrease on Sokoban (94.1% to 73.0%) warrants further investigation but does not reflect a systematic quality degradation. These results indicate that performance improvements come from bet-ter reasoning rather than exploiting quality shortcuts or generating visually deceptive outputs. 
+
+B.4 Cold Start 
+
+Applying Flow-GRPO directly to the base model (Wan2.2-TI2V-5B) without prior supervised fine-tuning yields poor results, as the base model achieves near-zero exact match across all maze types. The results are presented in Table 8a. This highlights a standard characteristic of reinforcement learning: the policy requires a foundational task understanding before RL can effectively guide exploration [ 46 , 8]. Because our verifiable rewards enforce strict logical correctness, the reward is effectively too sparse near a cold start because the base policy rarely reaches informative regions. Therefore, SFT acts as a necessary bootstrap, placing the model within a region of the reward landscape where policy gradient updates become meaningful. Future work could bridge this gap through curriculum learning on simplified environments or offline preference optimization. Abbreviated paper title 17                                                                                                                                                                                                                                                                
+
+> Task EM SR PR SD
+> Raw Sk2 Sk3 Raw Sk2 Sk3 Raw Sk2 Sk3 Raw Sk2 Sk3 Base Base 0.0 0.0 0.0 6.9 4.2 2.8 6.6 4.6 9.4 388.7 11.7 14.9 SFT 33.3 1.4 23.6 76.4 38.9 68.1 60.6 12.3 51.0 10.3 19.0 9.0 R1 61.1 31.9 31.9 75.0 70.8 70.8 78.6 52.5 52.5 5.2 27.1 27.1
+> ∆+61.1 +31.9 +31.9 +68.1 +66.6 +68.0 +72.0 +47.9 +43.1 -383.5 +15.4 +12.2
+> Irreg Base 0.0 0.0 0.0 12.5 4.2 2.1 9.1 12.0 47.8 66.1 39.5 42.0 SFT 56.9 22.2 15.3 69.4 15.3 23.6 71.6 36.5 26.2 2.4 5.1 7.7 R1 47.9 12.3 12.3 69.7 13.6 13.6 68.4 19.3 19.3 8.3 4.2 4.2
+> ∆+47.9 +12.3 +12.3 +57.2 +9.4 +11.5 +59.3 +7.3 -28.5 -57.8 -35.3 -37.8
+> 3D Base 0.0 0.0 0.0 0.0 4.2 4.2 7.1 8.9 8.3 –73.6 59.3 SFT 65.3 43.1 50.0 100.0 97.2 100.0 93.5 83.8 86.8 3.9 6.4 5.9 R1 94.4 79.2 79.2 100.0 100.0 100.0 98.0 92.2 92.2 1.9 2.9 2.9
+> ∆+94.4 +79.2 +79.2 +100.0 +95.8 +95.8 +90.9 +83.3 +83.9 –-70.7 -56.4
+> Soko Base 0.0 0.0 0.0 31.9 2.8 7.1 12.8 9.3 8.1 5.4 ––SFT 4.2 0.0 1.4 69.4 34.7 58.3 44.3 21.0 14.1 10.2 58.6 82.6 R1 30.6 0.0 0.0 68.1 70.8 70.8 46.9 14.7 14.7 16.9 49.1 49.1
+> ∆+30.6 +0.0 +0.0 +36.2 +68.0 +63.7 +34.1 +5.4 +6.6 +11.5 ––
+> Trap Base 0.0 0.0 0.0 11.1 0.0 0.0 9.2 9.0 7.5 176.6 ––SFT 38.9 9.7 0.0 100.0 38.9 1.4 79.1 29.0 9.9 3.9 8.7 18.5 R1 90.3 0.0 0.0 100.0 1.4 1.4 97.7 8.5 8.5 2.4 0.0 0.0
+> ∆+90.3 +0.0 +0.0 +88.9 +1.4 +1.4 +88.5 -0.5 +1.0 -174.2 ––
+
+Table 6: Texture generalization performance across different visual skins. For each task, we report the baseline (Base), Wan-SFT , and Wan-R1 across three texture conditions (Raw, Sk2=Skin2, Sk3=Skin3), with ∆ indicating Wan-R1 improvement over baseline. See texture sample in Figure 7. 
+
+B.5 Test-Time Scaling 
+
+Figure 4 examines whether RL genuinely improves model capability or merely benefits from best-of-K sampling. We evaluate Wan-R1 with varying numbers of samples K ∈{1, 4, 8, 12 , 16 } across difficulty levels. The results reveal that performance continues to improve with larger K, demonstrating that the model maintains meaningful diversity in its generations. Importantly, even at K=1 (no sampling advantage), Wan-R1 substantially outperforms the SFT baseline, confirming that RL training improves the underlying policy rather than simply increasing variance for lucky samples. The scaling curves show diminishing returns beyond K=8, suggesting this as a practical inference budget for deployment. 
+
+B.6 Reward Design Analysis 
+
+We conduct a systematic study of reward design choices. This analysis serves two pur-poses: validating our multi-component verifiable reward and providing general insights on reward design in video reasoning. The results are presented in Table 8b. 
+
+When reward models are not reliable We use Qwen2.5-VL-7B-Instruct as a reward model, prompting it to assess whether the generated video correctly solves the maze. Fig-ure 5 reveals a fundamental failure mode: despite the generated video exhibiting visible glitches and degraded visual quality, the model produces a confident analysis stating that the agent moves smoothly with “no glitches, noise, or artifacts present,” and assigns a perfect reward score of 1.0. Rather than detecting actual visual fidelity, the model appears to hallucinate quality based on the presence of high-level semantic cues — a visible agent, a recognizable maze structure, and apparent goal-directed motion — that 18 M. Liu et al.                                                          
+
+> Method MF (↑)Base Irreg Trap 3D Soko
+> General Video Model
+> Closed-Source
+> Veo-3.1-fast 43.2 86.3 22.5 69.1 63.5 Veo-3.1-pro 80.5 89.3 82.2 73.4 95.8
+> Sora-2 96.5 97.2 97.2 95.4 95.2 kling-v1 55.5 73.8 54.4 84.9 72.9 Seedance-1.0-pro 87.7 97.2 64.3 86.3 83.0 MiniMax-Hailuo-2.3 92.4 93.4 91.4 94.9 93.3
+> Open-Source
+> Wan2.5-i2v-preview 69.2 74.8 70.6 82.7 90.4 Wan2.2-TI2V-5B 385.5 97.4 83.7 94.7 93.5 Wan-SFT [45] 91.2 98.1 93.3 95.7 94.1
+> Train  Wan-R1 94.1 98.1 94.9 95.6 73.0
+> -Wan2.2-TI2V-5B 3+8.6 +0.7 +11.2 +0.9 -20.5
+
+Table 7: MF denotes Maze Fidelity.             
+
+> EM SR PR SD w.o SFT 0.0 2.8 4.0 41.1 w. SFT 61.1 75.0 78.6 5.2 (a) Effect of Cold Start.
+> Strain EM SR PR SD Qwen2.5-VL-7B-Instruct 11.1 55.6 42.4 2.2 EM 58.3 75.0 79.3 4.4 PR & EM 61.1 75.0 78.6 5.2 (b) Effect of reward models.
+
+Table 8: Ablation studies on cold start (left) and reward models (right). superficially resemble a correct solution. This confirms that VLM-based reward models cannot reliably assess the fine-grained visual properties of generated videos, as the high-dimensional, continuous nature of video outputs makes such models particularly vulnerable to exploitation. Unlike text-based RL where outputs are discrete and verifi-able, video quality artifacts are subtle enough to evade VLM scrutiny entirely, rendering learned reward models an unreliable training signal. 
+
+Sparse rewards provide insufficient learning signal. Using only binary success (exact match ( REM ) as reward yields limited improvement over SFT. With REM alone, the reward is sparse—few generated trajectories exactly match the optimal path, so most samples receive zero reward, providing negligible gradient signal for early training. 
+
+Dense verifiable rewards enable stable learning. The precision reward RPR provides the critical dense signal: it rewards partial progress along the correct path, creating a smooth reward landscape that guides optimization. Training with RPR + RPR achieves better EM, outperforming sparse alternatives. Adding REM provides a bonus for complete solutions, encouraging the model to “close out” trajectories rather than settling for partial correctness. Abbreviated paper title 19 1 4 8 12 16             
+
+> K
+> 0.24
+> 0.26
+> 0.28
+> 0.30
+> 0.32
+> 0.34
+> 0.36
+> 0.38
+> Pass@K Score
+> Exact Match (EM)
+> 14812 16
+> K
+> 0.275
+> 0.300
+> 0.325
+> 0.350
+> 0.375
+> 0.400
+> 0.425
+> 0.450
+> Pass@K Score
+> Success Rate (SR)
+> 14812 16
+> K
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> Pass@K Score
+> Precision Rate (PR)
+> 14812 16
+> K
+> 0.000
+> 0.025
+> 0.050
+> 0.075
+> 0.100
+> 0.125
+> 0.150
+> 0.175
+> Pass@K Score
+> Step Deviation (SD)
+> Easy
+> Medium
+> Hard
+> Irregular Maze (Wan-R1)
+
+Fig. 4: Test-time scaling performance of Wan-R1 on Irregular Maze tasks. Performance is evaluated across varying numbers of samples ( K ∈ { 1, 4, 8, 12 , 16 }) and three difficulty levels (Easy, Medium, Hard). RL improves base capability (K=1) while maintaining beneficial scaling with increased sampling. 
+
+C VR Bench 
+
+In this section, we show the trajectory samples and game samples from VR-Bench in Figure 6 and Figure 7 respectively. We conduct experiments on VR-Bench [ 45 ], a benchmark designed to evaluate video models’ reasoning capabilities through maze-solving tasks. As illustrated in Figure 7, VR-Bench comprises five maze types of increasing complexity: Regular Maze (grid-based pathfinding), Irregular Maze (curved paths), 3D Maze (depth perception), Trapfield (obstacle avoidance), and Sokoban (box-pushing puzzles). Each maze type includes three difficulty levels and multiple visual textures, enabling systematic evaluation of generalization across task complexity, visual appearance, and reasoning requirements. 
+
+D Target Bench 
+
+In this section, we show the overview pipeline of Target-Bench in Figure 8. 20 M. Liu et al. <analysis> 
+
+> The video strictly follows all stated rules and constraints. The red circle slides smoothly along the white square path,
+> stopping perfectly on the green square. The red circle never slides or crosses into the light blue square areas of the maze.
+> The camera is a static, top -down view showing the entire maze with no change in scene composition or layout. The red
+> circle travels along the white square path without speeding up or slowing down. There are no glitches, noise, or artifacts
+> present in the video.
+> </analysis>
+> <score>
+> 1.0
+> </score>
+
+Fig. 5: Given the video output along with the evaluation prompt describing maze-solving rules, Qwen2.5-VL-7B-Instruct produces a step-by-step analysis and assigns a reward score. Although the generated video exhibits visible glitches and degraded visual quality, the model assigns a perfect score of 1.0. This illustrates the core vulnerability of VLM-based reward models: rather than detecting actual visual artifacts, the model hallucinates quality based on high-level semantic cues—a visible agent, a recognizable maze structure, and apparent goal-directed motion—and incorrectly concludes that the video contains “no glitches, noise, or artifacts.” Abbreviated paper title 21 
+
+Fig. 6: Trajectory tracking across five maze types (This figure is from [ 45 ]). Green: ground-truth trajectory; Blue: tracked trajectory from generated video. Columns show temporally ordered frames illustrating agent motion over time. 22 M. Liu et al. Irregular Maze 3D Maze Trapfield Sokoban （A) Regular Maze    
+
+> （C)
+> （B)
+> Chain of Frame
+> c
+> （D)Texture Generalization Difficulty Generalization Maze Type Generalization Test Time S caling
+
+Fig. 7: Overview of VR-Bench (This figure is from VR-Bench [ 45 ]) (A) Maze Types: Five maze types—Regular, Irregular, 3D, Trapfield, and Sokoban—spanning 2D/3D settings and diverse task structures. (B) Reasoning Paradigm: Chain-of-frame reasoning [ 40 ]requiring frame-by-frame inferences for sequential visual reasoning. (C) Benchmark Performance: Leading VLMs evaluated on four metrics across all maze types. (D) Additional Analysis: Evaluations on difficulty, texture, and maze-type generalization, plus test-time scaling. Abbreviated paper title 23 
+
+Fig. 8: Overview of Target-Bench (This figure is from Target-Bench [ 37 ]). Target-Bench introduces a quadruped-robot dataset and benchmark for assessing world models in mapless navigation toward text-specified goals with implicit semantic content. Given a single camera frame and a natural language description of the desired target state, world models must synthesize a future video depicting the trajectory to that goal. A world decoder then recovers the planned path from the generated video, which is evaluated against ground-truth maneuvers collected from a human-operated quadruped. Bibliography 
+
+[1] Black, K., Janner, M., Du, Y., Kostrikov, I., Levine, S.: Training diffusion models with reinforcement learning (2024), https://arxiv.org/abs/2305.13301 
+
+[2] Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V., Letts, A., et al.: Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 (2023) [3] Brooks, T., Peebles, B., Holmes, C., DePue, W., Guo, Y., Jing, L., Schnurr, D., Taylor, J., Luhman, T., Luhman, E., et al.: Video generation models as world simulators. OpenAI Blog 1(8), 1 (2024) [4] Christiano, P.F., Leike, J., Brown, T., Martic, M., Legg, S., Amodei, D.: Deep reinforcement learning from human preferences. Advances in neural information processing systems 30 (2017) [5] DeepMind, G.: Veo 2 (December 2024), accessed: 2024 [6] Duan, C., Fang, R., Wang, Y., Wang, K., Huang, L., Zeng, X., Li, H., Liu, X.: Got-r1: Unleashing reasoning capability of mllm for visual generation with reinforcement learning. arXiv preprint arXiv:2505.17022 (2025) [7] Fan, Y., Watkins, O., Du, Y., Liu, H., Ryu, M., Boutilier, C., Abbeel, P., Ghavamzadeh, M., Lee, K., Lee, K.: Dpok: Reinforcement learning for fine-tuning text-to-image diffusion models (2023), https://arxiv.org/abs/2305.16381 
+
+[8] Feng, K., Gong, K., Li, B., Guo, Z., Wang, Y., Peng, T., Wu, J., Zhang, X., Wang, B., Yue, X.: Video-r1: Reinforcing video reasoning in mllms (2025), https:// arxiv.org/abs/2503.21776 
+
+[9] Gao, Y., Guo, H., Hoang, T., Huang, W., Jiang, L., Kong, F., Li, H., Li, J., Li, L., Li, X., et al.: Seedance 1.0: Exploring the boundaries of video generation models. arXiv preprint arXiv:2506.09113 (2025) [10] Google: Veo 2 (2024), https://docs.cloud.google.com/vertex-ai/ generative-ai/docs/models/veo/2-0-generate , accessed on March 31, 2026 [11] Guo, D., Yang, D., Zhang, H., Song, J., Zhang, R., Xu, R., Zhu, Q., Ma, S., Wang, P., Bi, X., et al.: Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025) [12] Guo, Z., Chen, X., Zhang, R., An, R., Qi, Y., Jiang, D., Li, X., Zhang, M., Li, H., Heng, P.A.: Are video models ready as zero-shot reasoners? an empirical study with the mme-cof benchmark (2025), https://arxiv.org/abs/2510.26802 
+
+[13] Guo, Z., Chen, X., Zhang, R., An, R., Qi, Y., Jiang, D., Li, X., Zhang, M., Li, H., Heng, P.A.: Are video models ready as zero-shot reasoners? an empirical study with the mme-cof benchmark. arXiv preprint arXiv:2510.26802 (2025) [14] Gupta, S., Ahuja, C., Lin, T.Y., Roy, S.D., Oosterhuis, H., de Rijke, M., Shukla, S.N.: A simple and effective reinforcement learning method for text-to-image diffusion fine-tuning (2025), https://arxiv.org/abs/2503.00897 
+
+[15] Hong, Y., Kao, K.C., Zhou, H., Hsieh, C.J.: Understanding reward hacking in text-to-image reinforcement learning (2026), https://arxiv.org/abs/2601.03468 Abbreviated paper title 25 
+
+[16] Hu, E.J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen, W.: Lora: Low-rank adaptation of large language models (2021), https://arxiv. org/abs/2106.09685 
+
+[17] Kling AI: Kling Video Generation Platform (2025), accessed on March 31, 2026 [18] Kong, W., Tian, Q., Zhang, Z., Min, R., Dai, Z., Zhou, J., Xiong, J., Li, X., Wu, B., Zhang, J., et al.: Hunyuanvideo: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 (2024) [19] Lipman, Y., Chen, R.T.Q., Ben-Hamu, H., Nickel, M., Le, M.: Flow matching for generative modeling (2023), https://arxiv.org/abs/2210.02747 
+
+[20] Liu, J., Liu, G., Liang, J., Li, Y., Liu, J., Wang, X., Wan, P., Zhang, D., Ouyang, W.: Flow-grpo: Training flow matching models via online rl. arXiv preprint arXiv:2505.05470 (2025) [21] Liu, J., Liu, G., Liang, J., Li, Y., Liu, J., Wang, X., Wan, P., Zhang, D., Ouyang, W.: Flow-grpo: Training flow matching models via online rl (2025), https://arxiv. org/abs/2505.05470 
+
+[22] Liu, M., Zhang, W.: Is your video language model a reliable judge? In: The Thirteenth International Conference on Learning Representations (2025), https: //openreview.net/forum?id=m8yby1JfbU 
+
+[23] Liu, X., Gong, C., Liu, Q.: Flow straight and fast: Learning to generate and transfer data with rectified flow (2022), https://arxiv.org/abs/2209.03003 
+
+[24] LumaLabs: Dream machine (June 2024), accessed: 2024 [25] MiniMax: Minimax hailuo 2.3. Online (Dec 2024), https://www.minimax.io/ news/minimax-hailuo-23 
+
+[26] OpenAI: GPT-5 (2025), accessed on March 31, 2026 [27] OpenAI: OpenAI o3 and o4-mini System Card. Tech. rep., OpenAI (April 2025), accessed: 2025-11-01 [28] OpenAI: Sora 2 system card. Tech. rep., OpenAI (September 2025), 
+
+https://cdn.openai.com/pdf/50d5973c-c4ff-4c2d-986f-c72b5d0ff069/ sora_2_system_card.pdf 
+
+[29] Oquab, M., Darcet, T., Moutakanni, T., Vo, H., Szafraniec, M., Khalidov, V., Fernandez, P., Haziza, D., Massa, F., El-Nouby, A., Assran, M., Ballas, N., Galuba, W., Howes, R., Huang, P.Y., Li, S.W., Misra, I., Rabbat, M., Sharma, V., Synnaeve, G., Xu, H., Jegou, H., Mairal, J., Labatut, P., Joulin, A., Bojanowski, P.: Dinov2: Learning robust visual features without supervision (2024), https://arxiv.org/ abs/2304.07193 
+
+[30] Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al.: Training language models to follow instructions with human feedback. Advances in neural information processing systems 35 , 27730–27744 (2022) [31] PikaLabs: Pika 1.5 (October 2024), accessed: 2024 [32] Radford, A., Kim, J.W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., Krueger, G., Sutskever, I.: Learning transferable visual models from natural language supervision (2021), https://arxiv.org/ abs/2103.00020 
+
+[33] Runway: Introducing gen-3 alpha: A new frontier for video generation (June 2024), accessed: 2024 26 M. Liu et al. 
+
+[34] Schulman, J., Wolski, F., Dhariwal, P., Radford, A., Klimov, O.: Proximal policy optimization algorithms (2017), https://arxiv.org/abs/1707.06347 
+
+[35] Wan: Wan2.5-i2v-preview. Online (2025), https://www.alibabacloud.com/en/ events/wan2-5-preview-launch?_p_lc=1 
+
+[36] Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.W., Chen, D., Yu, F., Zhao, H., Yang, J., et al.: Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 (2025) [37] Wang, D., Ye, H., Liang, Z., Sun, Z., Lu, Z., Zhang, Y., Zhao, Y., Gao, Y., Seegert, M., Schäfer, F., Qin, H., Li, W., Palmieri, L., Jahncke, F., Piccinini, M., Betz, J.: Target-bench: Can world models achieve mapless path planning with semantic targets? (2025), https://arxiv.org/abs/2511.17792 
+
+[38] Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., Zhou, D.: Self-consistency improves chain of thought reasoning in language models. arXiv preprint arXiv:2203.11171 (2022) [39] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., Le, Q.V., Zhou, D., et al.: Chain-of-thought prompting elicits reasoning in large language models. Advances in neural information processing systems 35 , 24824–24837 (2022) [40] Wiedemer, T., Li, Y., Vicol, P., Gu, S.S., Matarese, N., Swersky, K., Kim, B., Jaini, P., Geirhos, R.: Video models are zero-shot learners and reasoners. arXiv preprint arXiv:2509.20328 (2025) [41] Wiedemer, T., Li, Y., Vicol, P., Gu, S.S., Matarese, N., Swersky, K., Kim, B., Jaini, P., Geirhos, R.: Video models are zero-shot learners and reasoners (2025), 
+
+https://arxiv.org/abs/2509.20328 
+
+[42] Wu, C., Li, J., Zhou, J., Lin, J., Gao, K., Yan, K., Yin, S.m., Bai, S., Xu, X., Chen, Y., et al.: Qwen-image technical report. arXiv preprint arXiv:2508.02324 (2025) [43] Xie, J., Yang, Z., Shou, M.Z.: Show-o2: Improved native unified multimodal models. arXiv preprint arXiv:2506.15564 (2025) [44] Xue, Z., Wu, J., Gao, Y., Kong, F., Zhu, L., Chen, M., Liu, Z., Liu, W., Guo, Q., Huang, W., et al.: Dancegrpo: Unleashing grpo on visual generation. arXiv preprint arXiv:2505.07818 (2025) [45] Yang, C., Wan, H., Peng, Y., Cheng, X., Yu, Z., Zhang, J., Yu, J., Yu, X., Zheng, X., Zhou, D., Wu, C.: Reasoning via video: The first evaluation of video models’ reasoning abilities through maze-solving tasks (2025), https://arxiv.org/abs/ 2511.15065 
+
+[46] Yue, Y., Chen, Z., Lu, R., Zhao, A., Wang, Z., Yue, Y., Song, S., Huang, G.: Does reinforcement learning really incentivize reasoning capacity in llms beyond the base model? (2025), https://arxiv.org/abs/2504.13837 
+
+[47] Zheng, Z., Peng, X., Yang, T., Shen, C., Li, S., Liu, H., Zhou, Y., Li, T., You, Y.: Open-sora: Democratizing efficient video production for all. arXiv preprint arXiv:2412.20404 (2024) [48] Zhou, J., Ji, J., Chen, B., Sun, J., Chen, W., Hong, D., Han, S., Guo, Y., Yang, Y.: Generative rlhf-v: Learning principles from multi-modal human preference (2025), 
+
+https://arxiv.org/abs/2505.18531
