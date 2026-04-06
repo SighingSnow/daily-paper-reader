@@ -1,0 +1,210 @@
+Title: From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests
+
+URL Source: https://arxiv.org/pdf/2604.03196v1
+
+Published Time: Mon, 06 Apr 2026 00:58:52 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests 
+
+## Kowshik Chowdhury 
+
+kchowdh1@students.kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Dipayan Banik 
+
+dipayan5175@gmail.com Quanta Technology Raleigh, North Carolina, USA 
+
+## K M Ferdous 
+
+kferdous@students.kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Shazibul Islam Shamim 
+
+mshamim@kennesaw.edu Kennesaw State University Marietta, Georgia, USA 
+
+## Abstract 
+
+Autonomous coding agents are generating code at an unprece-dented scale, with OpenAI Codex alone creating over 400,000 pull requests (PRs) in two months. As agentic PR volumes increase, code review agents (CRAs) have become routine gatekeepers in development workflows. Industry reports claim that CRAs can manage 80% of PRs in open source repositories without human involvement. As a result, understanding the effectiveness of CRA reviews is crucial for maintaining developmental workflows and preventing wasted effort on abandoned pull requests. However, em-pirical evidence on how CRA feedback quality affects PR outcomes remains limited. The goal of this paper is to help researchers and practitioners understand when and how CRAs influence PR merge success by empirically analyzing reviewer composition and the sig-nal quality of CRA-generated comments. From AIDev’s 19,450 PRs, we analyze 3,109 unique PRs in Commented review state, compar-ing human-only versus CRA-only reviews. We examine 98 closed CRA-only PRs to assess whether low signal-to-noise ratios con-tribute to abandonment. CRA-only PRs achieve a 45.20% merge rate, 23.17 percentage points lower than human-only PRs (68.37%), with significantly higher abandonment. Our signal-to-noise analy-sis reveals that 60.2% of closed CRA-only PRs fall into the 0–30% signal range, and 12 of 13 CRAs exhibit average signal ratios below 60%, indicating substantial noise in automated review feedback. These findings suggest that CRAs without human oversight often generate low-signal feedback associated with higher abandonment. For practitioners, our results indicate that CRAs should augment rather than replace human reviewers, and that human involvement remains critical for effective and actionable code review. 
+
+## CCS Concepts 
+
+• Software and its engineering → Software creation and man-agement ; Collaboration in software development ; Software verification and validation ; Software quality ; • Computing method-ologies → Artificial intelligence . 
+
+> This work is licensed under a Creative Commons Attribution 4.0 International License.
+> MSR ’26, Rio de Janeiro, Brazil
+> ©2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2474-9/2026/04 https://doi.org/10.1145/3793302.3793614
+
+## Keywords 
+
+AI code review, automated code review, pull requests, code review agents, signal-to-noise ratio, merge rates, GitHub 
+
+ACM Reference Format: 
+
+Kowshik Chowdhury, Dipayan Banik, K M Ferdous, and Shazibul Islam Shamim. 2026. From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests. In 23rd International Con-ference on Mining Software Repositories (MSR ’26), April 13–14, 2026, Rio de Janeiro, Brazil. ACM, New York, NY, USA, 5 pages. https://doi.org/10.1145/ 3793302.3793614 
+
+## 1 Introduction 
+
+Recent software engineering platforms are witnessing a surge in autonomous coding agents. OpenAI Codex alone created over 400,000 pull requests in open-source GitHub repositories in less than two months since its release and code review agents (CRAs) such as coderabbitai have become routine parts of development workflows [ 10 ]. As these agents generate increasing volumes of code, code review remains critical for quality assurance, leading to CRAs being integrated into GitHub pull requests (PRs). Prior stud-ies show that code review is a socio-technical process influenced by reviewer roles, build outcomes, and project activity [ 16 ] [ 22 ], indicating that merge decisions depend on various interactions inside the review discussion. Software developers perceive these tools as beneficial for au-tomating repetitive tasks and detecting issues early [ 2] [ 12 ] [ 9 ]. Recent industry reports present an optimistic picture: Qodo’s 2025 report, based on a survey of 609 developers, shows that 81% of CRA users see quality improvements and 69% see speed improvements, with 80% of PRs receiving no human comments when CRAs are enabled [ 13 ]. Similarly, Greptile blogs state that 82% of developers use CRAs daily or weekly [ 1 ]. These industry reports and blogs suggest CRAs can handle most PRs with minimal human oversight. However, empirical evidence reveals constraints. CRA adoption is limited by trust issues and lack of project-specific context [ 12 ] [ 3]. A large-scale analysis found that human comments were addressed more often (60%) than CRA comments (0.9% to 19.2%) [ 7 ], suggesting substantial noise in automated feedback. Meanwhile, CRAs often review code from the same provider [ 10 ], raising concerns about closed-loop biases. Noisy CRA comments may lead to higher PR abandonment, which can create technical debt. The gap between industry claims (80% of PRs need no human comments [ 13 ] [ 1]) and empirical findings (low CRA adoption [ 7 ])  
+
+> arXiv:2604.03196v1 [cs.SE] 3 Apr 2026 MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil Kowshik Chowdhury, Dipayan Banik, K M Ferdous, and Shazibul Islam Shamim
+
+motivates investigating whether CRAs can effectively review PRs without human involvement and whether noisy feedback correlates with abandonment. Yet no prior work has systematically quanti-fied signal-to-noise ratios in CRA reviews or linked them to PR outcomes. 
+
+The goal of this paper is to help researchers and practitioners un-derstand when and how CRAs influence PR merge success by em-pirically analyzing reviewer composition and the signal quality of CRA-generated comments. We focus on the following research ques-tions: 
+
+• RQ1: What are the differences in merge rates between human-only reviewed and CRA-only reviewed PRs in the commented review state? 
+
+• RQ2: How much does low signal-to-noise ratio in CRA com-ments contribute to lower merge rates in CRA-only reviewed PRs? 
+
+To address these questions, we analyze the AIDev dataset [ 10 ], which contains 19,450 PRs with review activity from HuggingFace 
+
+> 1
+
+. We extract 3,109 unique PRs and examine reviewer composition to distinguish between human-only, CRA-only, and mixed review scenarios. We measure merge and abandonment outcomes across these categories. We analyze CRA comments by classifying them using a two-tier keyword framework and computing signal-to-noise ratios to evaluate the relationship between CRA feedback quality and PR abandonment. 
+
+## 2 Dataset Description 
+
+Our analysis centers on the PRReviewComment table (19,450 records), which we enrich with additional information from related tables. This table provides the core data for our analysis. Each com-ment includes: (1) user : the name or identifier of the CRA or human who posted the comment, (2) user_type : categorical classification identifying reviewers as “User” (human) or “Bot” (CRA), (3) body :
+
+textual content of review comments, essential for signal-to-noise ra-tio analysis, and (4) pull_request_url : API endpoint referencing the parent PR. To enable outcome analysis, we enrich each comment with addi-tional attributes by merging data from the PRReview and Pull-Request tables. From PRReview , we obtain the review state 
+
+attribute, which categorizes review feedback as COMMENTED (gen-eral feedback without explicit approval or rejection), APPROVED 
+
+(approval to merge), CHANGES_REQUESTED (explicit request for mod-ifications), or DISMISSED (review dismissed or withdrawn). From 
+
+PullRequest , we obtain the PR state (open or closed) and merged_at 
+
+(timestamp in ISO format, null if not merged), which are critical for determining PR outcomes. These tables are merged using pr_id as the foreign key, and then joined to the comment-level data using 
+
+pull_request_review_id .We construct our analytical dataset by aggregating enriched records by pr_id , including only PRs with at least one review comment, producing 3,177 unique PRs. To ensure inclusion of only code review agents (CRAs), unique GitHub bot names were first extracted from the user field. These bots were then manu-ally classified by their functionality, and entities of github bots (e.g., github-actions[bot] ) that perform CI/CD and workflow 
+
+> 1https://huggingface.co/datasets/hao-li/AIDev/viewer/pr_review_comments
+
+automation rather than code review feedback were excluded. This filtering produced a final dataset of 3,109 PRs reviewed by actual CRAs. This aggregation (1) collects comment bodies into lists for signal detection, (2) aggregates review metadata to classify reviewer composition (human-only, CRA-only, or mixed), and (3) computes total comments per PR. 
+
+## 3 Methodology 
+
+For each of the 3,109 unique PRs, we examine the user_type values across all review comments to determine reviewer composition. We count the number of “User” (human) and “Bot” (CRA) reviewers and assign one of five categories: CRAs (only bots), User (only humans), 
+
+Mixed(CRAs) (bots outnumber humans), Mixed(Human) (humans outnumber bots), or Mixed (equal counts). We also determine the review condition by examining the state attribute across all com-ments for each PR. We arrange PRs by their most definitive review status: Approved takes precedence, followed by Dismissed , then 
+
+Changes Requested , with Commented as the default. For example, a PR with two Commented and one Approved review is classified as 
+
+Approved .We classify each PR into three outcomes using state and merged_at 
+
+attributes: Merged (state is “closed” and merged_at is not null), 
+
+Closed (state is “closed” but merged_at is null, indicating abandon-ment), or Stalled (state is “open”). To answer RQ1, we examine PR outcomes across all review condi-tions. Only the Commented condition contains PRs reviewed solely by CRAs (281 PRs out of 2,456 total Commented condition PRs). Other conditions contain only mixed or human-only reviewers, showing that single CRA reviewers cannot independently approve, dismiss, or request changes. Since Commented is a neutral state where CRAs provide feedback without explicit decisions and the highest percentage (2,456 PRs out of 3,109), we use it as the basis for comparing human-only versus CRA-only effectiveness. We fil-ter PRs with review_condition equal to Commented , construct a contingency table with reviewer types as rows and PR outcomes as columns, and perform a chi-squared test of independence to validate statistical significance. To answer RQ2, we analyze PRs reviewed solely by CRAs with 
+
+Closed outcomes to understand why CRA-only reviews failed to merge. We adopt the Signal-to-Noise Ratio framework from the blog [21] to evaluate review quality. We define two keyword tiers: 
+
+Tier 1 (Critical Signal) includes runtime errors, crashes, compi-lation failures, API-breaking changes, and security vulnerabilities; 
+
+Tier 2 (Important Signal) includes architectural problems, per-formance issues, and maintainability concerns. For each closed CRA-only PR, we count comments containing these keywords and classify them with a qualitative analysis technique called open cod-ing [ 15 ], achieving Cohen’s Kappa coefficient of 0.75 for inter-rater agreement. We compute the signal-to-noise ratio as: Signal Ratio = Tier 1 Count + Tier 2 Count Total Comments (1) This ratio ranges from 0.0 (no signal) to 1.0 (all actionable feed-back). We categorize PRs into four signal ranges: 0-30% (predomi-nantly noisy, less than one-third actionable), 31-59% (more noise than signal), 60-79% (more signal than noise), and 80-100% (pre-dominantly actionable, high-quality feedback). These thresholds From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil 
+
+divide PRs based on whether signal or noise dominates their feed-back content, allowing us to determine if noisy comments cause PR abandonment. Our implementation is publicly available [5]. 
+
+## 4 Analysis and Findings 4.1 Merge Rate Differences Between Human-Only and CRA-Only Reviews 
+
+We begin by examining the distribution of review conditions across all 3,109 PRs. We find that Commented contains the majority, with 2,456 PRs (79.0%), followed by Changes Requested with 492 PRs (15.8%), Approved with 129 PRs (4.1%), and Dismissed with only 32 PRs (1.0%). Critically, PRs reviewed solely by CRAs appear ex-clusively in the Commented condition, as CRAs provide feedback without making explicit merge decisions. We analyze the 2,456 PRs with Commented review condition to understand how reviewer composition affects outcomes. Table 1 presents the distribution across five reviewer types: CRA , User ,
+
+Mixed(CRA) , Mixed(Human) , and Mixed . PRs reviewed solely by CRAs achieve 127 merged outcomes from 281 total PRs, yielding a 45.20% merge rate. In contrast, human-only reviewed PRs merge 804 out of 1,176 PRs, achieving 68.37%. This represents a 23.17 percentage point difference in merge success. 
+
+Table 1: PR Outcomes by Reviewer Type 
+
+Reviewer Type Total Merged Closed Stalled 
+
+CRA 281 127 (45.20%) 98 (34.88%) 56 (19.93%) Mixed(CRA) 117 74 (63.25%) 17 (14.53%) 26 (22.22%) Mixed 604 369 (61.09%) 128 (21.19%) 107 (17.72%) Mixed(Human) 278 189 (67.99%) 41 (14.75%) 48 (17.27%) User 1,176 804 (68.37%) 254 (21.60%) 118 (10.03%) 
+
+The table reveals significant differences in abandonment patterns. CRA-only reviewed PRs show a 34.88% closure rate (98 out of 281 PRs), substantially exceeding the 21.60% for human-only reviews (254 out of 1,176 PRs). The mixed reviewer categories demonstrate intermediate outcomes: human-dominated reviews achieve 67.99%, CRA-dominated reviews show 63.25%, and balanced mixed reviews achieve 61.09%. This pattern suggests that human involvement sub-stantially improves merge outcomes, even when CRAs are present. And the noticeable part is human-only user merged rate 23.17 per-centage points higher than the CRA-only. To validate statistical significance, we perform a chi-squared test of independence between reviewer type and PR outcome. The test yields 𝜒 2 = 83 .0319 with 8 degrees of freedom and 𝑝 < 0.001 ,demonstrating a statistically significant association between re-viewer type and merge outcomes. 
+
+Answer to RQ1: CRA-only reviewed PRs achieve a 45.20% merge rate, 23.17 percentage points lower than human-only PRs (68.37%), with significantly higher abandonment (34.88% vs 21.60%). This difference is statistically significant ( 𝜒 2 = 83 .0319 , 𝑝 < 0.001 ). 
+
+## 4.2 Signal-to-Noise Ratio in CRAs Comments 
+
+RQ1 revealed that CRA-only reviewed PRs experience a substan-tially higher abandonment rate (34.88%) compared to other reviewer types in Table 1. To understand why CRA-only reviewed PRs show lower merge rates, we analyze the signal-to-noise ratio of the 98 closed CRA-only reviewed PRs. Figure 1(a) presents the distribu-tion across four signal ratio categories. The data reveals a heavily skewed pattern: 59 PRs (60.2%) fall into the 0-30% signal range, indicating more than half contain predominantly noisy comments. Additionally, 14 PRs (14.3%) achieve 31-59%, 7 PRs (7.1%) reach 60-79%, while 18 PRs (18.4%) achieve 80-100% signal ratio. This overwhelming concentration in the lowest category suggests that low signal-to-noise ratio is a primary factor in PR abandonment. Figure 1(b) shows the relationship between signal ratio and com-ment volume. PRs with great signal ratios ( ≥0.80, dark green) cluster in the 1 to 3 comment range, achieving ratios near 1.0, indicating high-quality CRA reviews provide concise feedback. PRs with good signal ratios (0.60-0.79, light green) scatter between 2 to 6 comments. In contrast, PRs with poor signal ratios ( <0.30, dark red) concen-trate heavily at the bottom across 1 to 8 comments, exhibiting ratios near 0.0. The middle-quality PRs (0.30-0.59, yellow-orange) scatter throughout with ratios between 0.20-0.50. This demonstrates that comment volume alone does not determine quality; the proportion of actionable feedback is critical. 0-30% 31-59% 60-79% 80-100%      
+
+> Signal Ratio Category
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> Number of PRs
+> (60.2%)
+> (14.3%)
+> (7.1%)
+> (18.4%)
+> (a) Quality Category Distribution
+> 0246810
+> Total Comments per PR
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Signal-to-Noise Ratio
+> (b) Signal Ratio vs. Comment Volume
+> Good threshold (0.60)
+> Great threshold (0.80)
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+
+Figure 1: Signal-to-noise ratio distribution across closed CRA-only PRs 
+
+We investigate the 98 closed PRs to identify which CRAs con-tribute to the noise problem. We find 13 unique CRAs, with github-advanced-security[bot] having the highest count (36 PRs), followed by Copilot (24 PRs) and ellipsis-dev[bot] (11 PRs). However, PR count does not correlate with quality. Copilot achieves only a 19.79% average signal ratio, while github-advanced-security[bot] achieves 27.62%. Multiple CRAs show very low ratios: codefactor-io[bot] at 0.00%, aikido-pr-checks[bot] at 20.00%, semgrep-code-assistant-ws[bot] at 25.00%. Only semgrep-code-getsentry[bot] achieves 100.00%, though it reviewed just 1 PR. Among CRAs with sub-stantial counts, entelligence-ai-pr-reviews[bot] shows the highest ratio at 52.29% (7 PRs), followed by cursor[bot] at 43.40% (5 PRs). MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil Kowshik Chowdhury, Dipayan Banik, K M Ferdous, and Shazibul Islam Shamim 
+
+Critically, 12 of 13 CRAs (92.31%) exhibit average signal ratios below 60%. 
+
+Answer to RQ2: Among 98 closed CRA-only PRs, 60.2% show 0–30% signal ratios, and 12 of 13 CRAs exhibit ratios below 60%, confirming that low signal-to-noise ratio substantially contributes to PR abandonment. 
+
+## 5 Threats to Validity 
+
+Construct Validity: Our keyword-based signal-to-noise classi-fication may miss actionable feedback without keywords or in-correctly label keyword-containing but irrelevant comments. We manually validated keyword-matched comments to mitigate this. Our priority-based review state classification was cross-checked against GitHub labels for consistency. 
+
+Conclusion Validity: Manual validation can introduce bias or misclassification. To mitigate this, two researchers independently classified comments, discussed disagreements, and iteratively re-fined keyword lists. While our chi-squared test shows statistically significant associations between reviewer type and PR outcomes, correlation does not imply causation. 
+
+External Validity: Our findings are based on 3,109 PRs from the AIDev dataset on GitHub repositories with AI-generated code, which may not generalize to proprietary repositories, other plat-forms, or projects without CRAs. However, the dataset spans diverse domains, sizes, and maturity levels, providing a strong basis for understanding CRA behavior in open-source environments. 
+
+## 6 Related Work 
+
+Studies have examined AI coding agents in PR workflows. Watanabe et al. showed that agentic PRs are used for maintenance tasks like refactoring, documentation, and test generation [ 19 ]. Horikawa et al. reported that AI agents perform refactorings, including renaming and type-related edits [ 8]. Twist found that agents import libraries but rarely add new dependencies [ 17 ]. These studies focus on what PRs change, not how review comments affect outcomes. Researchers have studied CRAs in open-source software. Wessel et al. found that agents reduce manual work and standardize feed-back, but introduce noise and harm communication when poorly aligned [ 20 ]. Recent work examines LLM-based review tools in industry. Ramesh et al. reported that developers found an LLM assistant helpful but relied on human judgment for decisions [ 14 ]. Vijayvergiya et al. deployed AutoCommenter at Google, showing these tools can work at scale [ 18 ]. These studies examine tool adop-tion and developer views rather than PR outcomes. Other studies investigate whether LLMs correctly understand code review content. Lin et al. proposed CodeReviewQA, showing that many models struggle with identifying review intent and re-quired changes [ 11 ]. This indicates AI-generated comments may suf-fer from limited precision. Beyond review generation, researchers examined how context shapes workflows. Chatlatanagulchai et al. found developers often provide build instructions but less fre-quently document security and policy constraints [ 4]. TiCoder shows that structured interaction reduces cognitive load and im-proves evaluation of AI-generated code [6]. Prior work has explored agent-authored PRs [ 19 ] [ 8 ] [ 17 ], tradi-tional CRAs [ 20 ], LLM-based review tools [ 14 ] [ 18 ] [ 11 ], and context in workflows [ 4 ] [ 6]. However, these studies focus on authoring behavior or perception rather than how reviewer composition and comment quality relate to merge and abandonment outcomes. 
+
+## 7 Discussion 
+
+The Need for Human Code Reviewers: Our analysis reveals two critical takeaways. First, CRAs cannot effectively replace human reviewers: while industry reports claim 80% of PRs need no human comments [ 13 ] [ 1], CRA-only reviews achieve only 45.20% merge rates versus 68.37% for human-only reviews, with 34.88% aban-donment rates. Second, most CRAs generate predominantly noisy feedback: signal-to-noise analysis shows 60.2% of closed CRA-only PRs fall into the 0-30% signal range, and 92.31% of CRAs perform below 60% signal quality. This noise burden overwhelms develop-ers, forcing them to sift through irrelevant feedback, increasing cognitive load without providing clear improvement paths. 
+
+Effective Use Cases for Code Review Agents: For develop-ers, we provide actionable strategies by identifying concrete use cases for code review agents. Developers should configure CRAs for narrow, specific checks such as security vulnerabilities or style violations rather than general-purpose review, because special-ized checks reduce false positives and improve feedback relevance. Specialized CRAs like semgrep-code-getsentry[bot] demonstrate higher precision in the AIDev dataset. Enforce human approval be-fore merging, as human-dominated reviews achieve 67.99% merge rates by providing contextual judgment that CRAs lack. Establish workflows where CRA comments trigger human review rather than direct developer responses, combining automation efficiency with human judgment on design and architectural decisions. 
+
+## 8 Conclusion 
+
+This paper investigates the effectiveness of CRA code reviews in Agentic PR workflows. While industry reports claim that 80% of PRs receive no human comments when AI review is enabled, our analysis of 3,109 PRs reveals a contrasting reality. CRA-only re-viewed PRs achieve a 45.20% merge rate, significantly lower than the 68.37% rate for human-only reviewed PRs, with substantially higher abandonment rates (34.88% vs 21.60%). Investigation of the 98 closed CRA-only PRs reveals that 60.2% fall into the 0-30% signal range, and 12 of 13 unique CRAs (92.31%) exhibit average signal ratios below 60%. This demonstrates that current CRAs frequently generate noisy feedback with minimal actionable content, which increases abandonment risk and burdens developers with low-value comments. The mixed reviewer results show that human involve-ment substantially improves outcomes. As autonomous coding agents generate code at an unprecedented scale, our findings reveal an urgent need of extend this work in three directions. First, develop metrics that quantify actionable signals in automated review comments beyond merge outcomes. Second, analyze reviewer effort by examining comment volume, requested changes, and integration feedback to design CRAs that reduce review burden. Third, investigate decision models that deter-mine when automated reviews require human involvement based on review outcomes and past agent performance. Pursuing these directions can enable empirically grounded review systems that improve PR outcomes while mitigating the risk of abandonment. From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests MSR ’26, April 13–14, 2026, Rio de Janeiro, Brazil 
+
+## References 
+
+[1] Everett Butler. 2025. What Developers Need to Know About AI Code Reviews. https://www.greptile.com/blog/ai-code-review. Accessed: 2025-12-19. [2] Michael Castaldi. 2025. Perceptions and Challenges of AI-driven Code Reviews. In Issues in Information Systems (IIS) . 346–360. https://iacis.org/iis/2025/2_iis_ 2025_346-360.pdf [3] Marco Cerliani et al . 2025. Rethinking Code Review Workflows with LLM As-sistance: An Empirical Study. arXiv preprint arXiv:2505.16339 (2025). https: //arxiv.org/abs/2505.16339 [4] Worawalan Chatlatanagulchai, Hao Li, Yutaro Kashiwa, Brittany Reid, Kundjana-sith Thonglek, Pattara Leelaprute, Arnon Rungsawang, Bundit Manaskasemsak, Bram Adams, Ahmed E. Hassan, and Hajimu Iida. 2025. Agent READMEs: An Em-pirical Study of Context Files for Agentic Coding. arXiv preprint arXiv:2511.12884 
+
+(2025). https://arxiv.org/abs/2511.12884 [5] Kowshik Chowdhury. 2026. Analysis Code and Datasets for Agentic PR Reviewer Performance (MSR Challenge 2025). https://doi.org/10.6084/m9.figshare.30978193. v1. [Online; accessed 30-December-2025]. [6] Sarah Fakhoury, Aaditya Naik, Georgios Sakkas, Saikat Chakraborty, and Shu-vendu K. Lahiri. 2024. LLM-Based Test-Driven Interactive Code Generation: User Study and Empirical Evaluation. IEEE Transactions on Software Engineering 
+
+(2024). doi:10.1109/TSE.2024.3428972 [7] Shaoduo Gan, Yinxing Xue, He Jiang, and Ye Yang. 2025. Does AI Code Re-view Lead to Code Changes? A Case Study of GitHub Actions. arXiv preprint arXiv:2508.18771 (2025). https://arxiv.org/abs/2508.18771 [8] Kosei Horikawa, Hao Li, Yutaro Kashiwa, Bram Adams, Hajimu Iida, and Ahmed E. Hassan. 2025. Agentic Refactoring: An Empirical Study of AI Coding Agents. 
+
+arXiv preprint arXiv:2511.04824 (2025). https://arxiv.org/abs/2511.04824 [9] Hong Jin Kang, Ali Raza, Xin Xia, David Lo, and John Grundy. 2024. Automated Code Review in Practice. arXiv preprint arXiv:2412.18531 (2024). https://arxiv. org/abs/2412.18531 [10] Hao Li, Haoxiang Zhang, and Ahmed E. Hassan. 2025. The Rise of AI Team-mates in Software Engineering (SE 3.0): How Autonomous Coding Agents Are Reshaping Software Engineering. arXiv preprint arXiv:2507.15003 (2025). https://arxiv.org/pdf/2507.15003v1.pdf [11] Hong Yi Lin, Chunhua Liu, Haoyu Gao, Patanamon Thongtanunam, and Christoph Treude. 2025. CodeReviewQA: The Code Review Comprehension Assessment for Large Language Models. In Findings of the Association for Compu-tational Linguistics: ACL 2025 . Association for Computational Linguistics, Vienna, Austria, 9138–9166. doi:10.18653/v1/2025.findings-acl.476 [12] Diogo Proença et al . 2025. How Software Engineers Perceive and Engage with AI-Assisted Development and Code Review. In Proceedings of the CHASE 2025 .https://portal.findresearcher.sdu.dk/files/280265016/CHASE_2025_CR.pdf [13] Qodo. 2025. 2025 State of AI Code Quality. https://www.qodo.ai/reports/state-of-ai-code-quality/. Accessed: 2025-12-19. [14] Shweta Ramesh, Joy Bose, Hamender Singh, A. K. Raghavan, Sujoy Roychowd-hury, Giriprasad Sridhara, Nishrith Saini, and Ricardo Britto. 2025. Automated Code Review Using Large Language Models at Ericsson: An Experience Report. 
+
+arXiv preprint arXiv:2507.19115 (2025). https://arxiv.org/abs/2507.19115 [15] Johnny Saldaña. 2021. The coding manual for qualitative researchers. (2021). [16] Ruoyu Shen, Marc Shapiro, Diomidis Spinellis, and Georgios Gousios. 2024. Ecosystem-wide Influences on Pull Request Decisions. arXiv preprint arXiv:2410.14695 (2024). https://arxiv.org/abs/2410.14695 [17] Lukas Twist. 2025. A Study of Library Usage in Agent-Authored Pull Requests. 
+
+arXiv preprint arXiv:2512.11589 (2025). https://arxiv.org/abs/2512.11589 [18] Manushree Vijayvergiya, Małgorzata Salawa, Ivan Budiselić, Dan Zheng, Pascal Lamblin, Marko Ivanković, Juanjo Carin, Mateusz Lewko, Jovan Andonov, Goran Petrović, Daniel Tarlow, Petros Maniatis, and René Just. 2024. AI-Assisted Assess-ment of Coding Practices in Modern Code Review. arXiv preprint arXiv:2405.13565 
+
+(2024). https://arxiv.org/abs/2405.13565 [19] Miku Watanabe, Hao Li, Yutaro Kashiwa, Brittany Reid, Hajimu Iida, and Ahmed E. Hassan. 2025. On the Use of Agentic Coding: An Empirical Study of Pull Requests on GitHub. arXiv preprint arXiv:2509.14745 (2025). https: //arxiv.org/abs/2509.14745 [20] Mairieli Santos Wessel, Alexander Serebrenik, Igor Wiese, Igor Steinmacher, and Marco Aurelio Gerosa. 2020. What to Expect from Code Review Bots on GitHub? A Survey with OSS Maintainers. In Proceedings of the 34th Brazilian Symposium on Software Engineering (SBES) . doi:10.1145/3422392.3422459 [21] Jet Xu. 2025. Drowning in AI Code Review Noise? A Framework to Measure Signal vs. Noise. https://jetxu-llm.github.io/posts/low-noise-code-review/. Accessed: 2025-12-20. [22] Zhiqiang Zeng, He Zhang, Ye Yang, Ying Zou, and Weifeng Sun. 2021. Pull Request Decision Explained: An Empirical Overview. arXiv preprint arXiv:2105.13970 
+
+(2021). https://arxiv.org/abs/2105.13970

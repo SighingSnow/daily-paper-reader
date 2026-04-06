@@ -6,70 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-05
-- 运行时间：2026-04-05 19:55:10 UTC
+- 最新运行日期：2026-04-06
+- 运行时间：2026-04-06 20:43:41 UTC
 - 运行状态：成功
-- 本次总论文数：16
-- 精读区：5
-- 速读区：11
+- 本次总论文数：20
+- 精读区：8
+- 速读区：12
 
 ### 今日简报（AI）
-今日研读 16 篇论文，重点聚焦智能体系统评测与贝叶斯模型自主优化。
-AutoStan 展示了通过预测反馈实现模型自主改进的新路径，AEC-Bench 则填补了建筑领域智能体评测的空白。
-建议深入了解 AutoStan 如何利用反馈闭环提升模型能力，探索智能体在垂直领域的实际应用潜力。
-- 详情：[/202604/05/README](/202604/05/README)
+今日精读8篇高分论文，揭示终端智能体与企业级代码基准的新突破。
+重点推荐评分9.0的终端智能体企业自动化方案，及生产级AI编程评测基准ProdCodeBench。
+建议关注AI智能体如何通过终端操作重塑企业工作流，并留意代码生成评测的新风向。
+- 详情：[/202604/06/README](/202604/06/README)
 
 ### 精读区论文标签
-1. [AutoStan: Autonomous Bayesian Model Improvement via Predictive Feedback](/202604/05/2603.27766v1-autostan-autonomous-bayesian-model-improvement-via-predictive-feedback)  
+1. [Terminal Agents Suffice for Enterprise Automation](/202604/06/2604.00073v2-terminal-agents-suffice-for-enterprise-automation)  
    标签：评分：9.0/10、query:agent
-   evidence：CLI代码智能体自主构建并改进贝叶斯模型
-2. [AEC-Bench: A Multimodal Benchmark for Agentic Systems in Architecture, Engineering, and Construction](/202604/05/2603.29199v1-aec-bench-a-multimodal-benchmark-for-agentic-systems-in-architecture-engineering-and-construction)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：代理系统多模态基准数据集
-3. [PRISM: A Multi-View Multi-Capability Retail Video Dataset for Embodied Vision-Language Models](/202604/05/2603.29281v1-prism-a-multi-view-multi-capability-retail-video-dataset-for-embodied-vision-language-models)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：零售环境中具身VLM的27万样本多视角视频SFT语料库
-4. [Unify-Agent: A Unified Multimodal Agent for World-Grounded Image Synthesis](/202604/05/2603.29620v1-unify-agent-a-unified-multimodal-agent-for-world-grounded-image-synthesis)  
-   标签：评分：8.0/10、query:agent
-   evidence：具有多模态证据搜索管道的统一多模态智能体
-5. [When Users Change Their Mind: Evaluating Interruptible Agents in Long-Horizon Web Navigation](/202604/05/2604.00892v1-when-users-change-their-mind-evaluating-interruptible-agents-in-long-horizon-web-navigation)  
-   标签：评分：8.0/10、query:agent
-   evidence：处理中断的LLM网页导航智能体
+   evidence：用于企业自动化的终端代码智能体
+2. [ProdCodeBench: A Production-Derived Benchmark for Evaluating AI Coding Agents](/202604/06/2604.01527v2-prodcodebench-a-production-derived-benchmark-for-evaluating-ai-coding-agents)  
+   标签：评分：9.0/10、query:agent
+   evidence：源自生产环境的AI编程智能体评估基准
+3. [Developer Experience with AI Coding Agents: HTTP Behavioral Signatures in Documentation Portals](/202604/06/2604.02544v1-developer-experience-with-ai-coding-agents-http-behavioral-signatures-in-documentation-portals)  
+   标签：评分：9.0/10、query:agent
+   evidence：九种AI代码智能体的实证研究
+4. [Beyond Resolution Rates: Behavioral Drivers of Coding Agent Success and Failure](/202604/06/2604.02547v1-beyond-resolution-rates-behavioral-drivers-of-coding-agent-success-and-failure)  
+   标签：评分：9.0/10、query:agent
+   evidence：跨框架分析编码智能体行为的大规模实证研究
+5. [InfoSeeker: A Scalable Hierarchical Parallel Agent Framework for Web Information Seeking](/202604/06/2604.02971v1-infoseeker-a-scalable-hierarchical-parallel-agent-framework-for-web-information-seeking)  
+   标签：评分：9.0/10、query:agent
+   evidence：用于网络信息搜索的分层智能体框架
+6. [Beyond Isolated Tasks: A Framework for Evaluating Coding Agents on Sequential Software Evolution](/202604/06/2604.03035v1-beyond-isolated-tasks-a-framework-for-evaluating-coding-agents-on-sequential-software-evolution)  
+   标签：评分：9.0/10、query:agent
+   evidence：评估编程智能体的框架
+7. [Supply-Chain Poisoning Attacks Against LLM Coding Agent Skill Ecosystems](/202604/06/2604.03081v1-supply-chain-poisoning-attacks-against-llm-coding-agent-skill-ecosystems)  
+   标签：评分：9.0/10、query:agent
+   evidence：LLM代码智能体技能生态系统的安全分析
+8. [From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests](/202604/06/2604.03196v1-from-industry-claims-to-empirical-reality-an-empirical-study-of-code-review-agents-in-pull-requests)  
+   标签：评分：9.0/10、query:agent
+   evidence：代码审查智能体的实证研究
 
 ### 速读区论文标签
-1. [EuraGovExam: A Multilingual Multimodal Benchmark from Real-World Civil Service Exams](/202604/05/2603.27223v1-euragovexam-a-multilingual-multimodal-benchmark-from-real-world-civil-service-exams)  
+1. [GPT-NL Public Corpus: A Permissively Licensed, Dutch-First Dataset for LLM Pre-training](/202604/06/2604.00920v1-gpt-nl-public-corpus-a-permissively-licensed-dutch-first-dataset-for-llm-pre-training)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于LLM预训练的大规模语料库含360亿荷兰语词元
+2. [VoxelCodeBench: Benchmarking 3D World Modeling Through Code Generation](/202604/06/2604.02580v1-voxelcodebench-benchmarking-3d-world-modeling-through-code-generation)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：通过代码生成评估3D世界建模
+3. [ExploreVLA: Dense World Modeling and Exploration for End-to-End Autonomous Driving](/202604/06/2604.02714v1-explorevla-dense-world-modeling-and-exploration-for-end-to-end-autonomous-driving)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于自动驾驶的密集世界建模
+4. [Learning Task-Invariant Properties via Dreamer: Enabling Efficient Policy Transfer for Quadruped Robots](/202604/06/2604.02911v1-learning-task-invariant-properties-via-dreamer-enabling-efficient-policy-transfer-for-quadruped-robots)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于机器人策略迁移的Dreamer世界模型架构
+5. [AfrIFact: Cultural Information Retrieval, Evidence Extraction and Fact Checking for African Languages](/202604/06/2604.00706v1-afrifact-cultural-information-retrieval-evidence-extraction-and-fact-checking-for-african-languages)  
    标签：评分：7.0/10、query:wmodel
-   evidence：包含8000+问题的多语言多模态基准数据集
-2. [Near-Miss: Latent Policy Failure Detection in Agentic Workflows](/202604/05/2603.29665v1-near-miss-latent-policy-failure-detection-in-agentic-workflows)  
+   evidence：非洲语言事实核查与信息检索数据集
+6. [PLUME: Latent Reasoning Based Universal Multimodal Embedding](/202604/06/2604.02073v1-plume-latent-reasoning-based-universal-multimodal-embedding)  
    标签：评分：7.0/10、query:agent
-   evidence：智能体工作流与ToolGuard框架用于策略失效检测
-3. [Human-in-the-Loop Control of Objective Drift in LLM-Assisted Computer Science Education](/202604/05/2604.00281v1-human-in-the-loop-control-of-objective-drift-in-llm-assisted-computer-science-education)  
+   evidence：用于检索和查询意图推断的多模态嵌入
+7. [GBQA: A Game Benchmark for Evaluating LLMs as Quality Assurance Engineers](/202604/06/2604.02648v1-gbqa-a-game-benchmark-for-evaluating-llms-as-quality-assurance-engineers)  
    标签：评分：7.0/10、query:agent
-   evidence：用于计算机科学教育的LLM辅助编程工具
-4. [HabitatAgent: An End-to-End Multi-Agent System for Housing Consultation](/202604/05/2604.00556v1-habitatagent-an-end-to-end-multi-agent-system-for-housing-consultation)  
+   evidence：用于游戏开发和错误检测的多智能体系统
+8. [AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis](/202604/06/2604.02690v1-annoretrieve-efficient-structured-retrieval-for-unstructured-document-analysis)  
    标签：评分：7.0/10、query:agent
-   evidence：LLM驱动的多智能体架构，包含记忆、检索、生成和验证智能体
-5. [A Role-Based LLM Framework for Structured Information Extraction from Healthy Food Policies](/202604/05/2604.01529v1-a-role-based-llm-framework-for-structured-information-extraction-from-healthy-food-policies)  
-   标签：评分：7.0/10、query:agent
-   evidence：用于信息提取的基于角色的LLM框架
-6. [Wan-R1: Verifiable-Reinforcement Learning for Video Reasoning](/202604/05/2603.27866v1-wan-r1-verifiable-reinforcement-learning-for-video-reasoning)  
+   evidence：用于文档分析的结构化检索范式
+9. [Generative World Renderer](/202604/06/2604.02329v1-generative-world-renderer)  
    标签：评分：6.0/10、query:wmodel
-   evidence：视频生成结合强化学习进行空间推理和导航，与世界建模相关
-7. [SLVMEval: Synthetic Meta Evaluation Benchmark for Text-to-Long Video Generation](/202604/05/2603.29186v1-slvmeval-synthetic-meta-evaluation-benchmark-for-text-to-long-video-generation)  
-   标签：评分：6.0/10、query:wmodel
-   evidence：用于元评估文本到视频系统的基准数据集
-8. [OmniRoam: World Wandering via Long-Horizon Panoramic Video Generation](/202604/05/2603.30045v1-omniroam-world-wandering-via-long-horizon-panoramic-video-generation)  
-   标签：评分：6.0/10、query:wmodel
-   evidence：用于场景/世界建模的视频生成框架
-9. [STCALIR: Semi-Synthetic Test Collection for Algerian Legal Information Retrieval](/202604/05/2604.00731v1-stcalir-semi-synthetic-test-collection-for-algerian-legal-information-retrieval)  
-   标签：评分：6.0/10、query:wmodel
-   evidence：生成半合成测试集的框架
-10. [AgentWatcher: A Rule-based Prompt Injection Monitor](/202604/05/2604.01194v1-agentwatcher-a-rule-based-prompt-injection-monitor)  
+   evidence：用于生成式世界渲染的大规模数据集
+10. [SelRoute: Query-Type-Aware Routing for Long-Term Conversational Memory Retrieval](/202604/06/2604.02431v1-selroute-query-type-aware-routing-for-long-term-conversational-memory-retrieval)  
    标签：评分：6.0/10、query:agent
-   evidence：LLM代理安全监控工具
-11. [LatentUM: Unleashing the Potential of Interleaved Cross-Modal Reasoning via a Latent-Space Unified Model](/202604/05/2604.02097v1-latentum-unleashing-the-potential-of-interleaved-cross-modal-reasoning-via-a-latent-space-unified-model)  
+   evidence：查询类型感知的路由框架
+11. [Overcoming the "Impracticality" of RAG: Proposing a Real-World Benchmark and Multi-Dimensional Diagnostic Framework](/202604/06/2604.02640v1-overcoming-the-impracticality-of-rag-proposing-a-real-world-benchmark-and-multi-dimensional-diagnostic-framework)  
+   标签：评分：6.0/10、query:agent
+   evidence：RAG评估的多维诊断框架
+12. [Not All Frames Deserve Full Computation: Accelerating Autoregressive Video Generation via Selective Computation and Predictive Extrapolation](/202604/06/2604.02979v1-not-all-frames-deserve-full-computation-accelerating-autoregressive-video-generation-via-selective-computation-and-predictive-extrapolation)  
    标签：评分：6.0/10、query:wmodel
-   evidence：跨模态推理统一模型，含世界动态建模
+   evidence：视频生成加速框架
 
 
 <div class="dpr-home-promo-card">

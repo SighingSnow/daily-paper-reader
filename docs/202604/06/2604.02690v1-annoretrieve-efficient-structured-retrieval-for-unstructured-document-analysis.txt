@@ -1,0 +1,356 @@
+Title: AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis
+
+URL Source: https://arxiv.org/pdf/2604.02690v1
+
+Published Time: Mon, 06 Apr 2026 00:23:01 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis 
+
+# Teng LIN 
+
+tlin280@connect.hkust-gz.edu.cn The Hong Kong University of Science and Technology (Guangzhou) Guangzhou, Guangdong, China 
+
+# Yuyu Luo 
+
+yuyuluo@hkust-gz.edu.cn The Hong Kong University of Science and Technology (Guangzhou) Guangzhou, Guangdong, China 
+
+# Nan Tang 
+
+nantang@hkust-gz.edu.cn The Hong Kong University of Science and Technology (Guangzhou) Guangzhou, Guangdong, China 
+
+## Abstract 
+
+Unstructured documents dominate enterprise and web data, but their lack of explicit organization hinders precise information re-trieval. Current mainstream retrieval methods, especially embedding-based vector search, rely on coarse-grained semantic similarity, incurring high computational cost and frequent LLM calls for post-processing. To address this critical issue, we propose AnnoRetrieve, a novel retrieval paradigm that shifts from embeddings to struc-tured annotations, enabling precise, annotation-driven semantic retrieval. Our system replaces expensive vector comparisons with lightweight structured queries over automatically induced schemas, dramatically reducing LLM usage and overall cost. The system in-tegrates two synergistic core innovations: SchemaBoot , which automatically generates document annotation schemas via multi-granularity pattern discovery and constraint-based optimization, laying a foundation for annotation-driven retrieval and eliminating manual schema design, and Structured Semantic Retrieval (SSR), the core retrieval engine, which unifies semantic understanding with structured query execution; by leveraging the annotated struc-ture instead of vector embeddings, SSR achieves precise semantic matching, seamlessly completing attribute-value extraction, table generation, and progressive SQL-based reasoning without relying on LLM interventions. This annotation-driven paradigm overcomes the limitations of traditional vector-based methods with coarse-grained matching and heavy LLM dependency and graph-based methods with high computational overhead. Experiments on three real-world datasets confirm that AnnoRetrieve significantly lowers LLM call frequency and retrieval cost while maintaining high accu-racy. Our contributions are threefold: (1) SchemaBoot, an automated schema induction framework that enhances retrieval precision and speed through schema optimization tailored for unstructured doc-uments; (2) SSR, a hybrid retrieval methodology that combines rigorous structured query processing with semantic analysis; (3) A complete end-to-end pipeline that establishes a new cost-effective, precise, and scalable paradigm for transforming unstructured docu-ments into structured index. AnnoRetrieve establishes a new par-adigm for cost-effective, precise, and scalable document analysis  
+
+> Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> Make sure to enter the correct conference title from your rights confirmation email,
+> ©2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+through intelligent structuring. The source code have been made available at https://anonymous.4open.science/r/AnnoRetrieve-07A7. 
+
+## CCS Concepts 
+
+• Information systems → Structured text search .
+
+## Keywords 
+
+Structured Semantic Retrieval, Unstructured Document Analysis, Knowledge Structuring, Automated Schema Induction 
+
+ACM Reference Format: 
+
+Teng LIN, Yuyu Luo, and Nan Tang. 2018. AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis. In Proceedings of Make sure to enter the correct conference title from your rights confirmation email. ACM, New York, NY, USA, 7 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+The digital era has given rise to an unprecedented deluge of tex-tual data [ 7 ]. From internal corporate reports and legal contracts to scientific literature and web content, unstructured documents constitute a massive, yet underexploited, foundation of the modern information ecosystem. Although rich in knowledge, the inherent nature of this data, lacking explicit organization, with no prede-fined schemas, tables, or clear relationships, poses a fundamental obstacle to precise access and systematic analysis. Consequently, the core task of structured retrieval, which involves transforming amorphous text into queryable, structured knowledge, becomes critically important [ 2 , 11 , 19 ]. Its successful realization can support high-precision question answering, complex analytical reasoning, and reliable integration with downstream business intelligence and decision support systems, ultimately unlocking the latent value embedded within textual corpora [12, 14, 22]. However, converting unstructured documents into precise, query-able structured knowledge faces significant challenges, primarily manifested in the core conversion paradigm from document to structured representation. As shown in Figure 1, existing main-stream methods predominantly follow two paths, each with no-table limitations: The first is the “Retrieve-then-Extract” paradigm (e.g., VectorDB+LLM). It initially uses dense vector embeddings for semantic similarity retrieval to return relevant documents or passages, then relies on Large Language Models (LLMs) to perform specific attribute extraction. While this approach boasts strong semantic understanding capabilities, the retrieval stage is coarse-grained [ 5 ]. The returned candidate sets often contain substantial irrelevant information, forcing frequent and costly LLM calls for subsequent refinement and extraction, resulting in high costs and inefficiency. The second is the “Extract-All-then-Query” paradigm  
+
+> arXiv:2604.02690v1 [cs.IR] 3 Apr 2026 Make sure to enter the correct conference title from your rights confirmation email, , Teng LIN, Yuyu Luo, and Nan Tang
+
+(e.g., LLM →Graph). It preemptively uses LLMs to fully extract en-tities and relations from all documents to construct a knowledge graph, followed by structured querying [ 3, 9 ]. Although this method supports complex queries, the upfront computational overhead for graph construction is immense, and it wholly depends on the ex-traction quality of the LLMs, making it difficult to scale to large document collections. To fundamentally overcome the limitations of the aforemen-tioned paradigms, we propose AnnoRetrieve, an end-to-end sys-tem whose core introduces and implements a third paradigm: the “Annotation-Driven Precise Retrieval and Structuring” paradigm (Attribute-Value). AnnoRetrieve abandons the pipeline of first per-forming coarse-grained vector retrieval followed by LLM calls. In-stead, it injects lightweight, query-oriented structural information into documents prior to retrieval through automated, task-aware pre-annotation. Specifically, AnnoRetrieve integrates two core inno-vative modules that work in synergy: First, the SchemaBoot module automatically induces an optimal annotation schema from the doc-ument collection through multi-granularity schema discovery and constraint-based optimization, entirely eliminating the need for cumbersome manual schema design and laying the groundwork for efficient annotation. The system then uses the schema produced by SchemaBoot to rapidly annotate documents, constructing a light-weight “attribute-value” pair index. Second, the Structured Semantic Retrieval (SSR) engine operates directly on this structured index, performing precise semantic operations and relational queries (e.g., joins, filtering, aggregation). It seamlessly accomplishes attribute-value extraction, dynamic table generation, and progressive SQL reasoning, achieving a unification of deep semantic understanding and strict structured query execution—without invoking LLMs on the critical retrieval path. This paradigm shift of “structure first, then retrieve” brings fun-damental advantages: Through low-cost structured preprocessing of documents, it transfers the complexity and cost of each subse-quent query from expensive LLM calls to efficient structured index queries. This not only significantly reduces the economic cost and latency of queries but also markedly improves retrieval accuracy through precise structural constraints. We validate AnnoRetrieve through extensive experiments on three real-world benchmark datasets spanning diverse domains. Results demonstrate its superiority in both accuracy and efficiency compared to existing retrieval paradigms. The main contributions of this paper include: 
+
+• SchemaBoot: An automated schema induction framework that enhances retrieval precision and speed through constraint-based optimization, removing the need for manual schema engineering. 
+
+• Structured Semantic Retrieval: A hybrid retrieval method-ology that integrates semantic analysis with rigorous struc-tured query processing, enabling precise attribute-based questioning and complex reasoning. 
+
+• Annotation-Driven Retrieval: a complete, end-to-end system that implements the novel “Annotation-Driven Retrieval” paradigm, establishing a new standard for cost-effective, precise, and scalable analysis of unstructured documents. By integrating automated schema generation with a hybrid re-trieval engine, AnnoRetrieve establishes a new paradigm for cost-effective, precise, and scalable document intelligence. 
+
+Figure 1: An architectural overview illustrating the flows from raw documents to structured knowledge and hybrid query processing in the current systems. Structured Seman-tic Retrieval achieves more precise retrieval by combining semantic understanding with structured reasoning 
+
+## 2 Related Work 2.1 Document Analysis for Structured Retrieval 
+
+Transforming raw documents into a queryable format is a prerequi-site for any retrieval system. A mature ecosystem of document pars-ing and layout analysis tools exists to digitize and initially structure content. Frameworks like DeepDoctection [ 20 ] and DocETL [ 18 ]provide robust pipelines for complex documents, performing OCR, layout analysis, table extraction, and text block classification to reconstruct logical document structure. General-purpose tools like Unstructured.io [ 21 ] offer a unified interface to parse diverse file formats into clean text. These tools are often positioned as the first step in a Retrieval-Augmented Generation (RAG) pipeline [ 5, 13 ], where their output is chunked and vectorized for semantic search. However, their focus is typically on preserving documental structure (titles, paragraphs, tables) rather than inducing and populating an application-specific knowledge schema. AnnoRetrieve incorporates this foundational parsing capability but directs the output toward its schema-driven structuring and retrieval engines, bridging the gap between generic document parsing and task-aware knowledge extraction. 
+
+## 2.2 Query Systems over Heterogeneous Data 
+
+Finally, the goal of answering complex questions from mixed data sources is explored in open-domain question answering [ 12 ]. Sys-tems like SRAG [ 8, 13 ] exemplify state-of-the-art approaches, using LLM-augmented semantic parsing to generate queries that retrieve and synthesize information from heterogeneous sources like text, tables, and Knowledge Graphs (KGs). Lotus [ 17 ] introduces several semantic operators to simplify batch semantic processing, including functions such as search, extraction, and indexing, which can be used to build complex workflows. However, it typically leverages large language models (LLMs) to analyze full texts, resulting in significant LLM costs. Other research [ 1, 10 , 24 ] efforts also apply AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis Make sure to enter the correct conference title from your rights confirmation email, , 
+
+LLMs or pre-trained language models to analyze unstructured docu-ments. Similar to Lotus, they do not specifically focus on optimizing the cost of language models. Palimpzest [ 16 ] employs a declarative language to analyze unstructured data. Its optimizer generates an execution plan that utilizes LLMs for data extraction and analysis. These systems highlight the end-objective that AnnoRetrieve also serves. The key differentiation lies in the data preparation assumption. In contrast, AnnoRetrieve is designed for the predomi-nant real-world scenario where the primary source is a corpus of raw, unstructured documents, and it actively solves the upstream problem of creating those structured, query-ready sources from scratch. 
+
+## 3 System Design 3.1 Overview 
+
+AnnoRetrieve is designed as a modular, annotation-driven retrieval system that transforms unstructured document corpora into a queryable, structured knowledge index. The system replaces the traditional embed-by-query-and-rank paradigm with a structure-annotate-and-query paradigm. The core design principle is to shift the computational burden from expensive online similarity searches and LLM post-processing to a single, offline structuring phase, thereby enabling efficient and precise online retrieval via light-weight structured queries. The system architecture comprises three core sequential mod-ules: 1) SchemaBoot , for automatic schema induction; 2) The Annotator , for populating the induced schema with instance-level annotations; and 3) Structured Semantic Retrieval (SSR) ,the retrieval engine. Let a document corpus be denoted as D =
+
+{𝑑 1, 𝑑 2, ..., 𝑑 𝑁 }. The system maps D to a structured annotation store 
+
+A, governed by a schema S, such that any user query 𝑞 can be resolved via a retrieval function R ( 𝑞, A, S) with high precision and low latency. 
+
+## 3.2 Automated Schema Induction: SchemaBoot 
+
+SchemaBoot formalizes the problem of optimal schema discovery as a constrained multi-objective optimization over the space of possible schemas. Its objective is to find a schema S∗ that maximizes retrieval utility while satisfying practical constraints. 
+
+3.2.1 Multi-Granularity Semantic Extraction. Given a clustered cor-pus C = {𝐶 1, 𝐶 2, ..., 𝐶 𝑘 }, SchemaBoot performs pattern mining and hierarchy construction per cluster. It outputs a candidate schema set S = {S lite  
+
+> 1
+
+, Sstd  
+
+> 2
+
+, Sfull  
+
+> 3
+
+, ... }, where each schema S is a tuple: 
+
+S = (F , H ) 
+
+Here, F = {𝑓 1, 𝑓 2, ..., 𝑓 𝑚 } is the set of annotation fields, and H
+
+defines a 3-tier hierarchical organization: 
+
+Hfast ⊂ F , Hsem ⊂ F , Hdetail ⊂ F 
+
+where Hfast ∪ H sem ∪ H detail = F and the subsets are disjoint. 
+
+Hfast contains fields for rapid filtering (e.g., doc_type , publish_date ), 
+
+Hsem for semantic matching (e.g., topic , name ), and Hdetail for gran-ular content (e.g., position , total_sales ). 
+
+3.2.2 Schema Quality Evaluation. The fitness of a candidate schema 
+
+S is quantified by a quality function 𝑄 (S) :
+
+𝑄 (S) = 𝛼 ·Cov (S , D)+ 𝛽 ·Disc (S , C)+ 𝛾 ·Cons (S)+ 𝛿 ·Match (S , Qhist )
+
+where: 
+
+• Cov : Document coverage, the fraction of 𝑑 ∈ D for which 
+
+F can be populated. 
+
+• Disc : Discriminative power, measured by the average infor-mation gain 𝐼𝐺 (𝑓 , C) across fields 𝑓 ∈ H sem .
+
+• Cons : Annotator consistency, estimated via the Fleiss’ Kappa 
+
+𝜅 score on a sample set. 
+
+• Match : Semantic alignment with historical queries Qhist ,computed as the average similarity between query embed-dings and their closest matched field description embeddings. 
+
+• 𝛼, 𝛽, 𝛾, 𝛿 are tunable weighting coefficients, with 𝛼 +𝛽 +𝛾 +𝛿 =
+
+1.
+
+3.2.3 Constrained Multi-Objective Optimization. The selection of 
+
+S∗ is framed as: maximize  
+
+> S ∈ S
+
+F(S) = 𝑄 (S) , −𝑇 annot (S) , −Size (S) ⊤
+
+subject to Depth (H ) ≤ 4
+
+BranchingFactor (H ) ≤ 8
+
+𝑇 annot (𝑑, S) ≤ 𝑇 max 
+
+Size (A S )
+
+Size (D) ≤ 𝜌 
+
+where 𝑇 annot is the average annotation time per document, Size (·) 
+
+is the storage footprint, 𝑇 max is a maximum allowable annotation time (e.g., 120 seconds), and 𝜌 is a storage expansion limit (e.g., 0.3). The Depth and BranchingFactor constraints ensure the schema remains tractable for query construction. The non-dominated sort-ing genetic algorithm (NSGA-II) is employed to approximate the Pareto-optimal front of schemas. The final S∗ is selected from this front by maximizing a weighted scalarization of the objectives, with primary weight on 𝑄 (S) .
+
+## 3.3 Structured Annotation Generation 
+
+With the optimal schema S∗ = (F ∗, H ) fixed, the annotation pro-cess is a function 𝜙 : D × S ∗ → A . We employ the GliNER2 [ 23 ]model, fine-tuned for the domain, to extract field values. 
+
+A =   𝑑 𝑖 , {( 𝑓 , 𝑣 𝑖,𝑓 ) | ∀ 𝑓 ∈ F ∗ } | ∀ 𝑑 𝑖 ∈ D 
+
+Here, 𝑣 𝑖,𝑓 is the value (or set of values) for field 𝑓 in document 𝑑 𝑖 .
+
+A is materialized as a hybrid index: a relational database table for 
+
+Hfast fields and a document-oriented store (e.g., JSON) for Hsem 
+
+and Hdetail fields, linked by a universal document identifier 𝑑𝑜𝑐 _𝑖𝑑 .
+
+## 3.4 Structured Semantic Retrieval (SSR) Engine 
+
+The SSR engine defines the online retrieval function R. For a natu-ral language query 𝑞 , it performs a two-stage process: Semantic Parsing and Progressive SQL-based Retrieval .
+
+3.4.1 Semantic Parsing to Structured Query. SSR first parses 𝑞 into a preliminary structured query predicate 𝑃 (𝑞, S∗). It identifies which components of 𝑞 refer to schema fields 𝑓 ∈ F ∗. This yields a set of 
+
+schema-bound constraints 𝐶 schema = {( 𝑓 𝑖 , op 𝑖 , val 𝑖 )} .Make sure to enter the correct conference title from your rights confirmation email, , Teng LIN, Yuyu Luo, and Nan Tang 
+
+Figure 2: The pipeline of the AnnoRetrieve system, comprising a pre-annotation stage for schema-guided document annotation and a structured semantic retrieval stage for answering complex user queries. In the pre-annotation stage, Schemapboot generates and optimizes a multi-granularity schema, which is paired with models like GliNER2 to extract attribute-value pair annotations from raw documents. The retrieval framework translates natural language queries into SQL, filters documents via type and schema constraints, and constructs structured tables to enable hybrid semantic-structured reasoning, yielding precise answers to complex questions. 
+
+3.4.2 Core Retrieval with EXTRACT Function. The core innovation is the EXTRACT operator, which enables queries over both structured fields and unannotated document content within a single SQL-like execution plan. The retrieval is formally defined as: 
+
+R ( 𝑞, A, S∗) = Πdoc_id 𝜎 𝑃 total A
+
+The total predicate 𝑃 total = 𝑃 schema ∧ 𝑃 extract . 𝑃 schema is directly evaluated against the indexed fields in Hfast and Hsem . 𝑃 extract is resolved using the EXTRACT function. We define EXTRACT (𝑓 ′, cond , 𝑑 ) → { True , False } for a virtual or composite field 𝑓 ′ not in F ∗. During query execution, for docu-ments filtered by 𝑃 schema , the engine invokes a lightweight, deter-ministic text-scanning or regex module (not an LLM) to evaluate cond on the raw text of 𝑑 . This allows for progressive refinement. 
+
+3.4.3 Algorithm and Latency Analysis. The SSR algorithm’s latency 
+
+𝐿 SSR is dominated by sequential filtering: 
+
+𝐿 SSR ≈ 𝐿 index (| 𝜎 𝑃 schema A|) + 𝑛 · 𝐿 extract 
+
+where 𝐿 index is the near-constant time for an indexed lookup, 𝑛 =
+
+|𝜎 𝑃 schema A| is the candidate set size after schema filtering (typically 
+
+≪ |D| ), and 𝐿 extract is the low-cost text scanning time. This con-trasts sharply with vector search latency 𝑂 (|D| · 𝑑 ) for embedding dimension 𝑑 , or complex graph traversal with complexity latency. 
+
+## 3.5 End-to-End Pipeline Formalism 
+
+The entire AnnoRetrieve pipeline can be summarized as a composite function: 
+
+Ψ(D , 𝑞 ) = R
+
+
+
+𝑞, 𝜙 (D , S∗), S∗ 
+
+,
+
+where S∗ = arg max  
+
+> S ∈ S
+
+𝑄 (S) s.t. constraints .
+
+This formalism underscores the system’s foundational shift: an op-timized structuring investment (𝜙, S∗) enables perpetually efficient and precise retrievals (R) without recurring LLM costs, establishing a new frontier in the trade-off space of retrieval accuracy, latency, and computational cost. 
+
+## 4 Experiments 
+
+To comprehensively evaluate the effectiveness and efficiency of AnnoRetrieve, we conduct extensive experiments on multiple real-world datasets. We aim to answer the following key research ques-tions (RQs): 
+
+• RQ1 (Overall Performance): How does AnnoRetrieve, as a complete pipeline, compare against state-of-the-art (SOTA) baselines in terms of retrieval accuracy and computational cost? 
+
+• RQ2 (Component Ablation): What is the individual contri-bution of the SchemaBoot module and the Structured Semantic Retrieval (SSR) engine to the overall system performance? AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis Make sure to enter the correct conference title from your rights confirmation email, , 
+
+• RQ3 (Scalability & Efficiency): How does the system scale with document corpus size and query complexity, particu-larly for joins and progressive reasoning? 
+
+• RQ4 (Schema Quality): How effective is SchemaBoot in in-ducing high-quality, task-aware schemas compared to man-ual or LLM-generated schemas? 
+
+## 4.1 Experimental Settings 
+
+4.1.1 Datasets. We evaluate AnnoRetrieve on three public datasets spanning diverse domains and structures to ensure robustness. Key characteristics are summarized in Table 1. 
+
+• LCR (Legal Case Reports) [ 4 ]: A collection of detailed legal documents. This dataset tests the system’s ability to handle long, complex textual narratives and extract precise legal attributes (e.g., court , judge , sentence_length ). 
+
+• WikiText [ 19 ] A curated set of Wikipedia pages across multiple domains (e.g., biographies, companies, cities). It fea-tures semi-structured text with rich attributes and relational information, ideal for testing join operations and schema induction over heterogeneous topics. 
+
+• SWDE (Structured Web Data Extraction) [ 6 ]: Contains semi-structured web pages (e.g., product listings, athlete profiles) with templated layouts but unstructured text within fields. It challenges the system’s ability to handle noisy, web-scale data. 
+
+4.1.2 Ground Truth & Query Construction. For each dataset, we manually annotate a subset of documents to establish ground-truth attribute values and relationships. We construct a benchmark of 50 queries per dataset, covering: 
+
+• Simple Projection-Selection ( 𝜎𝜋 ): Queries targeting single attributes with equality/range filters. 
+
+• Conjunctive/Disjunctive Queries: Multi-filter queries us-ing AND/OR logic. 
+
+• Join Queries: Multi-table queries requiring integration of information from different document subsets (e.g., “List pro-fessors who won a Turing Award after 2000, along with their university” ). 
+
+• Progressive Reasoning Queries: Multi-step analytical ques-tions that can be decomposed into sequential SQL operations. 
+
+4.1.3 Baselines. We compare AnnoRetrieve against a range of com-petitive baselines: 
+
+• VectorDB (Chroma/Pinecone): A pure vector similarity search baseline using dense embeddings (e.g., via text-embedding-ada-002). It retrieves relevant text chunks but cannot execute structured queries. 
+
+• Graph RAG (Neo4j + LLM): A knowledge graph-based method where entities/relations are first extracted by an LLM and stored in a graph database for Cypher querying. 
+
+• ZenDB [ 15 ]: A recent LLM-powered system that extracts tuples via a semantic hierarchical tree and supports SQL-like queries. 
+
+• Palimpsest [ 16 ]: A declarative system for AI-powered ana-lytics over unstructured data. 
+
+• QUEST [ 19 ]: A state-of-the-art cost-optimized system that employs a two-level index and instance-optimized query execution to minimize LLM token consumption during ex-traction. We re-implement its core optimizations (filter/join ordering, evidence-augmented retrieval) for a fair compari-son. 
+
+• ClosedIE (Fine-tuned LM): A model fine-tuned on the (attribute, value) extraction task for a specific domain. 
+
+• LLM (GPT-4): A prompting baseline where the entire docu-ment context and query are fed to a large LLM (GPT-4) for direct answer generation. 
+
+4.1.4 Evaluation Metrics. We report the following metrics: 
+
+• Accuracy: Precision ( 𝑃 ), Recall ( 𝑅 ), and F1-score ( 𝐹 1) of the final structured answers against the ground truth. For a query 𝑞 , let 𝑇 (𝑞 ) be the returned tuples and 𝐺𝑇 (𝑞 ) the ground truth. A tuple is correct only if all cell values match. 
+
+𝑃 = |𝑇 (𝑞 ) ∩ 𝐺𝑇 (𝑞 )| |𝑇 (𝑞 )| , 𝑅 = |𝑇 (𝑞 ) ∩ 𝐺𝑇 (𝑞 )| |𝐺𝑇 (𝑞 )| , 𝐹 1 = 2 · 𝑃 · 𝑅 𝑃 + 𝑅 (1) 
+
+• Efficiency: – LLM Cost: Total number of input/output tokens con-sumed, as the primary monetary cost indicator. 
+
+– Latency: End-to-end query execution time. 
+
+– Schema Induction Time: Time taken by SchemaBoot to derive an optimized schema 𝑆 ∗.
+
+• Schema Quality (for RQ4): We adopt metrics from schema induction literature: 
+
+– Schema F1: Alignment with a human-curated gold schema (macro-averaged over attributes). 
+
+– Cohesion: Average pairwise semantic similarity (cosine of embeddings) of attributes within the schema. 
+
+– Completion: Proportion of query-relevant attributes cov-ered by the induced schema. 
+
+## 4.2 Overall Performance Comparison 
+
+The overall performance across all datasets and query types is summarized in Table 2. AnnoRetrieve achieves the highest F1-score, significantly outperforming all baselines. 
+
+Analysis: The SSR engine’s hybrid approach ensures high preci-sion by enforcing structured constraints, while its semantic under-standing maintains high recall. Crucially, it does so at a fraction of the cost of methods like Graph RAG (high graph-building over-head) and LLM (processes entire documents). Compared to ZenDB and Palimpsest, AnnoRetrieve’s SchemaBoot -derived, optimized schema directs extraction more efficiently, reducing token con-sumption and improving accuracy, particularly on complex queries. 
+
+## 4.3 Ablation Study 
+
+We evaluate the contribution of AnnoRetrieve’s key components through an ablation study on WikiText; the results are presented in Table 3. The ablation confirms that SchemaBoot and SSR are synergistic .SchemaBoot’s optimized schema drastically reduces the search space for SSR. The SSR engine’s precise execution validates and utilizes the schema effectively, creating a performance-improving feedback loop. Make sure to enter the correct conference title from your rights confirmation email, , Teng LIN, Yuyu Luo, and Nan Tang 
+
+Table 1: Dataset Characteristics. Dataset Domain # Docs Avg. Tokens/Doc Key Challenge LCR Legal 100 ∼6,200 Long-form narrative, complex entity relations 
+
+WikiText Multi-domain 200 ∼1,300 Heterogeneous schemas, join-able tables 
+
+SWDE Web Pages 200 ∼400 Noisy, templated layouts, at-tribute sparsity 
+
+Table 2: Overall Performance Comparison (Average across all queries). Method F1-Score LLM Cost (K Tokens) Latency (s) 
+
+VectorDB 0.41 15.2 1.8 Graph RAG 0.58 142.5 (Graph Build) + 8.7 12.4 ZenDB [15] 0.65 45.6 6.1 Palimpsest [16] 0.70 38.9 5.3 QUEST [19] 0.78 22.1 4.0 ClosedIE 0.49 (WikiText-only) N/A 0.5 LLM(GPT-4) 0.72 312.8 24.7 
+
+AnnoRetrieve (Ours) 0.87 29.4 3.2 Table 3: Ablation Study on WikiText Dataset. Variant F1-Score LLM Cost (K Tokens) Interpretation 
+
+w/o SchemaBoot 
+
+(Manual Schema) 0.71 41.7 Manual schemas are suboptimal, increasing cost and missing attributes. w/o SSR 
+
+(Pure Vector Retrieval) 0.63 33.1 Pure vector search fails on structured queries, hurting F1 despite lower cost. w/o Schema Optimization 0.80 52.3 Unoptimized schemas contain redundant attributes, wasting LLM calls. 
+
+Full AnnoRetrieve 0.87 29.4 Both components are essential for optimal accuracy and efficiency. 
+
+## 4.4 Efficiency & Scalability 
+
+We test system performance with increasing corpus size (100 to 10k docs) and query complexity. 
+
+• Scalability: AnnoRetrieve’s indexing time scales linearly with Documents of scale, but query latency grows sub-linearly due to its two-level indexing. The LLM cost per query re-mains stable as the index efficiently filters irrelevant docu-ments. 
+
+• Join & Complex Queries: On multi-table join queries, An-noRetrieve significantly outperforms baselines. The progres-sive SQL-based reasoning in SSR allows it to decompose a complex 𝑛 -way join into an optimized sequence of filters and semi-joins, minimizing intermediate tuple extraction. For a 3-way join query, AnnoRetrieve achieved 𝐹 1 = 0.83 
+
+with a cost of 45K tokens, while Graph RAG achieved 0.70 
+
+at 210K tokens and LLM achieved 0.65 at over 500K tokens. 
+
+## 4.5 Schema Induction Analysis 
+
+We evaluate schemas induced by SchemaBoot against a human-curated gold standard and those generated by prompting GPT-4. 
+
+• Quality: SchemaBoot’s schemas achieve an average Schema F1 of 0.89 , outperforming the LLM-generated schemas (F1=0.75). This is because SchemaBoot’s constraint-based optimization explicitly balances coverage, conciseness, and discrimina-tivity based on the actual corpus, whereas LLM-generated schemas are often generic. 
+
+• Impact on Retrieval: A strong positive correlation ( 𝜌 >
+
+0.85 ) is observed between a schema’s Cohesion and Com-pletion scores (as produced by SchemaBoot) and the down-stream retrieval F1 score. This validates our core hypothesis: 
+
+task-aware schema optimization is critical for efficient and accurate structured retrieval .AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis Make sure to enter the correct conference title from your rights confirmation email, , 
+
+## 4.6 Summary 
+
+The experimental results conclusively demonstrate that AnnoRe-trieve sets a new state-of-the-art in transforming unstruc-tured documents into structured knowledge . It uniquely bal-ances high accuracy with practical efficiency by integrating auto-mated, optimized schema induction ( SchemaBoot ) with a deeply hybrid retrieval engine ( SSR ). It significantly outperforms all base-lines, in terms of end-to-end answer accuracy (F1-score), particu-larly on complex queries. It achieves this while maintaining highly competitive LLM cost and latency. 
+
+## 5 Conclusion 
+
+In this paper, we address a fundamental inefficiency in modern un-structured document analysis: the reliance on coarse-grained vector retrieval that necessitates frequent and costly LLM interventions for precise results. We identify that the core of the problem lies not in the extraction step itself, but in the preceding retrieval paradigm. To this end, we introduce AnnoRetrieve, a novel end-to-end sys-tem that pioneers an annotation-driven retrieval paradigm, shifting from approximate semantic matching to precise structure-aware querying. Extensive experiments on diverse real-world datasets validate that AnnoRetrieve successfully fulfills its design goals. It consistently reduces LLM invocation costs by significant mar-gins compared to state-of-the-art vector-based and database-based baselines, while simultaneously improving accuracy and execu-tion speed. This demonstrates that intelligent pre-structuring is not merely an auxiliary step but a transformative strategy for ef-ficient document intelligence. In summary, AnnoRetrieve makes three key contributions: (1) an automated schema induction frame-work SchemaBoot for retrieval-optimized structuring; (2) a hybrid retrieval engine SSR that unifies semantic and structured query processing; and (3) a fully realized pipeline that establishes a new paradigm for cost-effective, precise, and scalable transformation of unstructured corpora into actionable structured knowledge. Our work opens a promising direction for future systems that priori-tize "structure-first" retrieval to tame the complexity and cost of analyzing the ever-growing universe of unstructured text. 
+
+## References 
+
+[1] Zui Chen, Zihui Gu, Lei Cao, Ju Fan, Samuel Madden, and Nan Tang. 2023. Symphony: Towards Natural Language Query Answering over Multi-modal Data Lakes.. In CIDR .[2] Chanyeol Choi, Alejandro Lopez-Lira, Yongjae Lee, Jihoon Kwon, Minjae Kim, Juneha Hwang, Minsoo Ha, Chaewoon Kim, Jaeseon Ha, Suyeol Yun, and Jin Kim. 2025. Structuring the Unstructured: A Multi-Agent System for Extracting and Querying Financial KPIs and Guidance. arXiv:2505.19197 [cs.AI] https: //arxiv.org/abs/2505.19197 [3] Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, and Jonathan Larson. 2024. From local to global: A graph rag approach to query-focused summarization. arXiv preprint arXiv:2404.16130 
+
+(2024). [4] Filippo Galgani and Achim Hoffmann. 2011. LEXA: Towards Automatic Legal Citation Classification. In AI 2010: Advances in Artificial Intelligence , Jiuyong Li (Ed.). Springer Berlin Heidelberg, Berlin, Heidelberg, 445–454. [5] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, and Haofen Wang. 2023. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 (2023). [6] Qiang Hao, Rui Cai, Yanwei Pang, and Lei Zhang. 2011. From one tree to a forest: a unified solution for structured web data extraction. In Proceedings of the 34th International ACM SIGIR Conference on Research and Development in Information Retrieval (Beijing, China) (SIGIR ’11) . Association for Computing Machinery, New York, NY, USA, 775–784. doi:10.1145/2009916.2010020 [7] Tim King. 2019. 80 Percent of Your Data Will Be Unstructured in Five Years. Solutions Review. https://solutionsreview.com/data-management/80-percent-of-your-data-will-be-unstructured-in-five-years/ Accessed: 2026-01-22. [8] Zhuoqun Li, Xuanang Chen, Haiyang Yu, Hongyu Lin, Yaojie Lu, Qiaoyu Tang, Fei Huang, Xianpei Han, Le Sun, and Yongbin Li. 2024. StructRAG: Boosting Knowledge Intensive Reasoning of LLMs via Inference-time Hybrid Information Structurization. arXiv:2410.08815 [cs.CL] https://arxiv.org/abs/2410.08815 [9] Teng Lin. 2025. LightKGG: Simple and Efficient Knowledge Graph Generation from Textual Data. arXiv:2510.23341 [cs.CL] https://arxiv.org/abs/2510.23341 [10] Teng Lin. 2025. Simplifying Data Integration: SLM-Driven Systems for Unified Semantic Queries Across Heterogeneous Databases. In 2025 IEEE 41st International Conference on Data Engineering (ICDE) . 4690–4693. doi:10.1109/ICDE65448.2025. 00378 [11] Teng Lin. 2025. Structured Retrieval-Augmented Generation for Multi-Entity Question Answering over Heterogeneous Sources. In 2025 IEEE 41st Interna-tional Conference on Data Engineering Workshops (ICDEW) . 253–258. doi:10.1109/ ICDEW67478.2025.00036 [12] Teng Lin, Yuyu Luo, Honglin Zhang, Jicheng Zhang, Chunlin Liu, Kaishun Wu, and Nan Tang. 2025. MEBench: Benchmarking Large Language Models for Cross-Document Multi-Entity Question Answering. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , Chris-tos Christodoulopoulos, Tanmoy Chakraborty, Carolyn Rose, and Violet Peng (Eds.). Association for Computational Linguistics, Suzhou, China, 1481–1494. doi:10.18653/v1/2025.emnlp-main.77 [13] Teng Lin, Yizhang Zhu, Yuyu Luo, and Nan Tang. 2025. SRAG: Structured Retrieval-Augmented Generation for Multi-Entity Question Answering over Wikipedia Graph. CoRR abs/2503.01346 (March 2025). https://doi.org/10.48550/ arXiv.2503.01346 [14] Teng Lin, Yizhang Zhu, Zhengxuan Zhang, Yuyu Luo, and Nan Tang. 2026. DocSage: An Information Structuring Agent for Multi-Doc Multi-Entity Question Answering. arXiv:2603.11798 [cs.AI] https://arxiv.org/abs/2603.11798 [15] Yiming Lin, Madelon Hulsebos, Ruiying Ma, Shreya Shankar, Sepanta Zeigham, Aditya G. Parameswaran, and Eugene Wu. 2024. Towards Accurate and Efficient Document Analytics with Large Language Models. arXiv:2405.04674 [cs.DB] https://arxiv.org/abs/2405.04674 [16] Chunwei Liu, Matthew Russo, Michael Cafarella, Lei Cao, Peter Baile Chen, Zui Chen, Michael Franklin, Tim Kraska, Samuel Madden, Rana Shahout, et al . 2025. Palimpzest: Optimizing ai-powered analytics with declarative query processing. In Proceedings of the Conference on Innovative Database Research (CIDR) . 2. [17] Liana Patel, Siddharth Jha, Carlos Guestrin, and Matei Zaharia. 2024. LOTUS: En-abling Semantic Queries with LLMs Over Tables of Unstructured and Structured Data. arXiv preprint arXiv:2407.11418 (2024). [18] Shreya Shankar, Tristan Chambers, Tarak Shah, Aditya G Parameswaran, and Eugene Wu. 2024. Docetl: Agentic query rewriting and evaluation for complex document processing. arXiv preprint arXiv:2410.12189 (2024). [19] Zhaoze Sun, Chengliang Chai, Qiyan Deng, Kaisen Jin, Xinyu Guo, Han Han, Ye Yuan, Guoren Wang, and Lei Cao. 2025. QUEST: Query Optimization in Un-structured Document Analysis. Proc. VLDB Endow. 18, 11 (July 2025), 4560–4573. doi:10.14778/3749646.3749713 [20] The Deepdoctection Authors. 2023. deepdoctection . https://github.com/ deepdoctection/deepdoctection Accessed: 2026-01-22. [21] Unstructured Technologies, Inc. 2024. Unstructured . https://github.com/ Unstructured-IO/unstructured Accessed: 2026-01-22. [22] Minzheng Wang, Longze Chen, Fu Cheng, Shengyi Liao, Xinghua Zhang, Bingli Wu, Haiyang Yu, Nan Xu, Lei Zhang, Run Luo, Yunshui Li, Min Yang, Fei Huang, and Yongbin Li. 2024. Leave No Document Behind: Benchmarking Long-Context LLMs with Extended Multi-Doc QA. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing , Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen (Eds.). Association for Computational Linguistics, Miami, Florida, USA, 5627–5646. doi:10.18653/v1/2024.emnlp-main.322 [23] Urchade Zaratiana, Gil Pasternak, Oliver Boyd, George Hurn-Maloney, and Ash Lewis. 2025. GLiNER2: Schema-Driven Multi-Task Learning for Structured Infor-mation Extraction. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: System Demonstrations , Ivan Habernal, Peter Schulam, and Jörg Tiedemann (Eds.). Association for Computational Linguistics, Suzhou, China, 130–140. https://aclanthology.org/2025.emnlp-demos.10/ [24] Zhengxuan Zhang, Zhuowen Liang, Yin Wu, Teng Lin, Yuyu Luo, and Nan Tang. 2025. DataMosaic: Explainable and Verifiable Multi-Modal Data Analytics through Extract-Reason-Verify. CoRR abs/2504.10036 (2025). https://doi.org/10. 48550/arXiv.2504.10036 
+
+Received 20 February 2007; revised 12 March 2009; accepted 5 June 2009

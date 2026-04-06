@@ -1,0 +1,1332 @@
+Title: AfrIFact: Cultural Information Retrieval, Evidence Extraction and Fact Checking for African Languages
+
+URL Source: https://arxiv.org/pdf/2604.00706v1
+
+Published Time: Thu, 02 Apr 2026 00:51:09 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+## AfrIFact: Cultural Information Retrieval, Evidence Extraction And Fact Checking for African Languages 
+
+Israel Abebe Azime 1,†, Jesujoba O. Alabi 1,†, Crystina Zhang 2, Iffat Maab 3,Atnafu Lambebo Tonja 4,†, Tadesse Destaw Belay 5,†, Folasade Alabi 6,†, Salomey osei 7,†,Saminu Muhammad Aliyu 8, Nkechinyere Faith Aguobi 9,†, Bontu Fufa Balcha 11 ,†,Blessing Sibanda †, Davis David 10 , Mouhamadane Mboup 12 ,†, Daud Abolade †,Neo Putini †, Philipp Slusallek 1, David Ifeoluwa Adelani 13 , Dietrich Klakow 1                      
+
+> †Masakhane NLP, 1Saarland University, Saarland Informatic Campus, Germany 2University of Waterloo, Canada
+> 3National Institute of Informatics, Japan 4University College London, England 5Instituto Politécnico Nacional, Maxico,
+> 6University of Ilorin, Nigeria 7Universidad de Deusto, Spain, 8Bayero University, Nigeria 9University of Lagos, Nigeria
+> 10 Black Swan, 11 Addis Ababa University, Ethiopia 12 Universite Alioune Diop, Senegal
+> 13 McGill University, Mila-Quebec AI Institute & Canada CIFAR AI Chair Corresponding author: [se.israel.abebe@gmail.com]
+
+Abstract 
+
+Assessing the veracity of a claim made online is a complex and important task with real-world implications. When these claims are directed at communities with limited access to infor-mation and the content concerns issues such as healthcare and culture, the consequences in-tensify, especially in low-resource languages. In this work, we introduce AfrIFact, a dataset that covers the necessary steps for automatic fact-checking (i.e., information retrieval, ev-idence extraction, and fact checking), in ten African languages and English. Our evalua-tion results show that even the best embed-ding models lack cross-lingual retrieval ca-pabilities, and that cultural and news docu-ments are easier to retrieve than healthcare-domain documents, both in large corpora and in single documents. We show that LLMs lack robust multilingual fact-verification capa-bilities in African languages, while few-shot prompting improves performance by up to 43% in AfriqueQwen-14B , and task-specific fine-tuning further improves fact-checking accuracy by up to 26%. These findings, along with our release of the AfrIFact dataset, encourage work on low-resource information retrieval, evidence retrieval, and fact checking. 
+
+1 Introduction 
+
+Information poverty, defined as the lack of equi-table access to information, presents a significant global challenge that disproportionately impacts marginalized communities and regions where low-resource languages are spoken (Gebremichael and Jackson, 2006). With the advent of Large Language Models (LLMs) capable of generating, rewriting, and summarizing information, ensuring the validity and correctness of their outputs remains a critical 
+
+Figure 1: Three steps for verifying factual claims are covered by our dataset. (A) information retrieval to find documents related to a claim, (B) extraction of sentence-level evidence supporting or refuting the claim, and (C) fact-checking using the claim, retrieved document, and extracted evidence with LLMs. 
+
+concern. This issue is especially acute in linguis-tically diverse contexts, as most current systems are primarily engineered for English-speaking pop-ulations (Liu et al., 2025). Therefore, effectively addressing access to reliable and factual informa-tion requires not only improving access but also developing accurate and equitable language tech-nologies, including extracting valuable informa-tion from online sources, identifying valid evidence from given documents, and verifying claims with substantiating evidence (Bender et al., 2021). Fact-checking and evidence retrieval (Thorne et al., 2018; Schlichtkrull et al., 2023) aim to verify the truthfulness of claims using reliable sources. In                         
+
+> arXiv:2604.00706v1 [cs.CL] 1 Apr 2026 Dataset # Lang. # Native African Lang. Domains Tasks
+> X-FACT (Gupta and Srikumar, 2021) 25 0News, Politics Claim Verification XFEVER (Chang et al., 2023) 60Wikipedia Multilingual Claim Verification MultiClaim (Panchendrarajan et al., 2025) 78 1 (Sudanese) Social Media, News Claim Matching, Retrieval Poly-FEVER (Zhang et al., 2025a) 11 1 (Amharic) Wikipedia, Scientific Articles Multilingual Fact Verification
+> AfrIFact(ours) 11 10 Health, Culture(Wiki)-News Fact Verification, Evidence Extraction, Information Retrieval
+
+Table 1: Comparison of multilingual fact-checking datasets. We report the number of supported languages, number of African languages, domain coverage, and task types. AfrIFact focuses on African languages and introduces multilingual information retrieval, evidence extraction and claim verification across culturally grounded domains. 
+
+practice, claims made by individuals or organiza-tions cannot be classified as true or false without supporting evidence. Consequently, real-life fact-checking typically involves three steps: identifying relevant documents or web resources related to a claim, extracting specific sections that support or refute the claim, and classifying the claim as either supported or refuted by the evidence. In real-world settings, claims disseminated through social media can significantly influence public health decisions, social behaviors, and cul-tural perspectives. As a result, the ability to reliably evaluate and verify the veracity of such claims is in-creasingly essential. Furthermore, current systems are rarely evaluated across diverse cultural and lin-guistic contexts, such as those in Africa, which may undermine reliable access to information by allowing unreliable information to proliferate. In this work, inspired by the fact-checking pro-cess shown in Figure 1, we introduce AfrIFact ,a multilingual benchmark containing more than 18,000 claims in 10 African languages and English to assess the capability of embedding models and 
+
+LLMs to answer the following research questions: First, to investigate the capability in extracting rele-vant documents from large-scale resources, we ask 
+
+(RQ1) What is the effectiveness of embedding mod-els in performing information retrieval for under-resourced African languages? Secondly, to iden-tify and select the specific sentences or passages that support or refute a claim, assessing the quality and reliability of their evidence extraction, we ex-plore (RQ2) How precisely can embedding models identify and extract relevant evidence from single document for claim verification? Finally, we ask 
+
+(RQ3) To what extent can current LLMs correctly verify the factuality of claims? by asking LLMs to classify claims as SUPPORTED , REFUTED , or, when the available evidence is insufficient to draw a re-liable conclusion, NOT_ENOUGH_INFORMATION . To answer this question, this work makes the follow-ing contributions: • We introduce AfrIFact , a multilingual infor-mation retrieval, evidence retrieval and fact checking benchmark covering healthcare, cul-turally grounded content, with the aim of cre-ating a large-scale evaluation 1.• We investigate both monolingual and multi-lingual information retrieval performance using multilingual embedding models. • We assess the document-level evidence ex-traction abilities of embedding models in monolingual, culturally grounded single doc-ument settings. • We evaluate the fact-checking capabilities of LLMs across 10 African languages through 
+
+claim classification , both with and without labeled evidence spans, and examine methods for improvement, such as few-shot prompting and fine-tuning. 
+
+2 Related Work 
+
+Automated Fact Checking (AFC) has be-come an important research area with the goal of combating misinformation by verifying factual claims using computational methods (Vlachos and Riedel, 2014; Thorne et al., 2018; Schlichtkrull et al., 2023). Existing research typically model AFC as a multi-stage pipeline that includes claim detection, evidence retrieval, and claim verifica-tion (Guo et al., 2022). Prior work has explored identifying check-worthy claims in several dis-course (Hassan et al., 2015), as well as retriev-ing evidence from large knowledge sources such as Wikipedia (Thorne et al., 2018; Augenstein et al., 2019) and reasoning over them to verify claims (Nakashole and Mitchell, 2014; Thorne et al., 2018; Potthast et al., 2018). Table 1 summarizes widely used fact-checking benchmarks, their language coverage, their do-
+
+> 1
+
+Dataset: https://huggingface.co/collections/masakhane/afrifact Repository: https://github.com/IsraelAbebe/AfriFact mains and tasks they can be used for. How-ever, most existing datasets and approaches fo-cus primarily on English, and relatively little work has explored AFC for African languages. Multi-Claim (Panchendrarajan et al., 2025) is multilin-gual on a scale, but includes limited African lan-guage coverage with one language i.e., primarily Sudanese. In contrast, AfrIFact focuses explic-itly on African languages and supports culturally grounded domains, enabling multilingual fact veri-fication with evidence extraction and retrieval. 
+
+Information Retrieval (IR) Classical evidence retrieval (ER) in AFC courses on retrieving evi-dence that directly refutes a specific claim (Zheng et al., 2024a). In contrast, IR is a broader task that aims to retrieve relevant documents for down-stream applications, not limited to claim verifi-cation. For African languages, several research efforts have focused on information retrieval, in-cluding the development of IR datasets such as CLIRMatrix (Sun and Duh, 2020), AfriCLIRMa-trix (Ogundepo et al., 2022), MIRACL (Zhang et al., 2023), CIRAL (Adeyemi et al., 2024); how-ever, these datasets are often limited in scale or do-main coverage, and not designed for fact checking purpose. In this work, we repurpose AfrIFact for IR, enabling benchmarking of embedding models in monolingual and multilingual IR. 
+
+3 AfrIFact Dataset 
+
+AfrIFact covers two domains, health and culture-news, covering ten African languages. These do-mains were selected because of their high societal impact, their susceptibility to misinformation, and the availability of seed data for dataset curation. 
+
+Language Coverage: Included languages are Amharic, Hausa, Igbo, Oromo, Shona, Swahili, Twi, Wolof, Yorùbá, and isiZulu. The selection of these languages was influenced by the number of speakers, the availability of web resources, ty-pological diversity, geographical diversity (West, East and Southern Africa), the coverage in previ-ous datasets, and the availability of annotators. For each selected language, native-speaking annota-tors were recruited through an African AI commu-nity. Language coordinators, who are also native speakers, were recruited to oversee the annotators. Linguists were prioritized and, when unavailable, annotators with prior experience in similar projects were prioritized. More details about the languages and annotators are provided in Appendix A. AfriDocMT   
+
+> (Alabi et al., 2025)
+> Full Document Translation for remaining languages
+> Manual Filtering
+> Claim Labeling
+> Manual Claim Translation
+> SSA-COMET
+> Cultural Validity Temporal relevance
+> 3 supporting 3 refuting 3 unrelated
+> 10 Languages
+> Agreement score
+> Meta Annotators
+> Improve
+> low quality
+> Evidence
+> Alignment
+> Manual Claim Generation & Evidence Extraction
+> AfriFact-Health
+> 848 Claims X 11 lang 848 Evidence X 11 lang
+> Cultural Validity Temporal relevance Specific to the language
+> Native Wikipedia
+> XL-SUM (Hasan et al. 2021)
+> Manual Filterning
+> 2 supporting 2 refuting 2 unrelated
+> Manual Claim Generation & Evidence Extraction
+> Agreement score
+> Meta Annotators
+> Claim Labeling & Evidence Validation
+> Evidences Claim Matching
+> AfriFact-Culture-News
+> 810 Claims X 11 lang 810 Evidence X 11 lang
+
+Figure 2: Illustration of the data construction process for AfrIFact-Health on shared health-data approach for lack of structured native health documents and AfrIFact-Culture-News culturally grounded, natively sourced data approach 
+
+Figure 2 shows the data curation pipeline for both domains in AfrIFact. In the following sections, we describe the steps in detail. 
+
+3.1 AfrIFact-Health 
+
+To create AfrIFact-Health , which focuses on the factuality of healthcare information, particularly common diseases, recurrent outbreaks, and public health concerns, we build on the health split of the AfriDocMT (Alabi et al., 2025). This dataset is a document-level human-translated machine transla-tion (MT) corpus containing 334 articles from the World Health Organization (WHO) website. The ar-ticles are translated from English into five African languages, all of which are included in this project. In AfrIFact-Health , claim generation, evidence ex-traction, and factuality labeling are conducted in English. These annotations are then projected to the corresponding African language data through a translation and alignment process. 
+
+Manual Filtering: We manually filtered 93 doc-uments from AfriDocMT for use in this work. The selection process was guided by three criteria: cul-tural relevance and temporal validity. To support temporal validity, we excluded time-dependent ma-terials, such as short-term reports, and retained only documents whose content is expected to remain relevant over extended periods. These 93 docu-Split # Lang. Total Split Total Train Val Test Health 11 1100 550 7678             
+
+> Culture & News 11 1228 550 7150 2328 1100 14828 18256
+> Table 2: Dataset statistics (train, validation, test) for
+> AfrIFact-Health and AfrIFact-Culture-News across 11 languages. Detail data distribution in Appendix A.
+
+ments, totaling 2,600 sentences, are translated into five additional African languages not covered by AfriDocMT. The translations are done by human expert translators using the same guidelines as in the AfriDocMT dataset. 
+
+Claim Generation and Evidence Extraction: 
+
+Following the AVeriTeC framework (Schlichtkrull et al., 2023), which guides claim generation via question answering, and considering that AfrIFact-Health is a multiparallel dataset translated from English, as well as the strong performance of recent LLMs on English tasks, we first generated ques-tions to steer the claim generation process using 
+
+GPT-4.1 . Given the generated questions, annota-tors, under the supervision of language coordina-tors, created three supporting, three refuting, and three unrelated (insufficient information) claims per document. The questions helped them focus on important topics and ensure that each claim was relevant and coherent. To support or refute claims, annotators also identified evidence spans within the source documents, where evidence is restricted to the sentence level and consists of one or more contiguous full sentences. In total, this process produced 848 claims. 
+
+Claim Labeling: Three annotators followed the three-class annotation schema (Thorne et al., 2018) for AFC to label the generated claims, and to verify the associated evidence spans. 
+
+Manual Claim Translation: At this stage, we have the English documents, generated claims and their labels, corresponding evidence spans. To con-struct the claims across African languages, we per-formed manual translation with native speakers for each of the ten target languages. 
+
+Translation Quality: To verify the quality of the human translations of documents and claims from English into the ten target languages, we em-ployed SSA-COMET (Li et al., 2025). Following prior work (Azime et al., 2025; Alabi et al., 2025), we filtered out translations with scores below 0.6 and engaged language coordinators and translators to either revise them or flag them as low-quality. While SSA-COMET occasionally produced false positives as identified by language coordinators, we found that the metric served as a useful quality-assistance tool for identifying and improving sub-optimal translations. 
+
+Evidence Alignment: Given the sentence-level parallelism provided within AfriDocMT, we lever-aged evidence spans annotated and verified in En-glish to construct multilingual evidence for the 
+
+AfrIFact-Health split. This heuristic approach enables a reliable transfer of evidence, as all ev-idence spans are defined at the sentence level. Sub-sequently, we involved language coordinators to verify the evidence extracted in each target lan-guage and to ensure alignment with the correspond-ing English evidence. 
+
+3.2 AfrIFact-Culture-News 
+
+For AfrIFact-Culture-News , which focuses on the factuality of information related to cultural knowl-edge and news, we manually curated Wikipedia articles covering Africa-centric topics inspired by Thorne et al. (2018); Chang et al. (2023). We col-lected Wikipedia articles in the ten target languages covering locally relevant topics, including political leaders, food, regions, languages, historical events, sports, religion, currencies, and tourism. To fur-ther expand regionally relevant content, we added the News domain dataset, which comprises news articles written in the study languages and report-ing on regional events. We sourced these articles from XL-Sum (Hasan et al., 2021), a large-scale news summarization dataset, and retained docu-ments after filtering for document length and safety considerations. 
+
+Manual Filtering: We prioritized culturally fo-cused Wikipedia articles and supplemented them with news documents where cultural coverage was limited, resulting in 200 documents per language, each containing more than 400 sentences and cul-turally and linguistically authentic documents. 
+
+Claim Generation and Evidence Extrac-tion: To accommodate the diversity of doc-uments, annotators were tasked with gener-ating two SUPPORTS , two REFUTES , and two 
+
+NOT_ENOUGH_INFORMATION claims for each docu-ment based on selected evidence, each accompa-nied by annotated evidence sentences. Annotators were also responsible for verifying document qual-ity and validity; if a document contained missing information or did not meet regional relevance cri-teria, they were instructed to skip it without gener-Dataset Metric REFUTES NEI SUPPORTS Health Fleiss’ K. 0.74 0.79 0.82 Cohen’s K. 0.69 0.74 0.79 Krippendorff’s 0.74 0.79 0.82           
+
+> Culture-News Fleiss’ K. 0.82 0.83 0.83 Cohen’s K. 0.81 0.82 0.82 Krippendorff’s 0.85 0.85 0.85
+
+Table 3: Agreement scores for English AfrIFact-Health and averaged per language for AfrIFact-Culture-News split. Detailed result found in the Appendix A. 
+
+ating claims. 
+
+Claim Labeling and Evidence Validation: Fol-lowing the same claim labeling procedure used in the health data collection, annotators worked with native-language claims, evidence spans, and source documents to assign of three labels: SUPPORTS ,
+
+REFUTES , or NOT_ENOUGH_INFORMATION .
+
+Agreement Scores For both AfrIFact-Health and 
+
+AfrIFact-Culture-News splits, each claim was in-dependently labeled as SUPPORTS , REFUTES , or 
+
+NOT_ENOUGH_INFORMATION using three annotators. To assess the reliability of the annotations, we com-puted Cohen’s kappa (Cohen, 1960), Fleiss’ kappa (Fleiss, 1971), Krippendorff’s alpha (Krippendorff, 2011) alpha as inter-annotator agreement measures. As shown in Table 3, the dataset achieves substan-tial agreement across all metrics, indicating high annotation quality and supporting its reliability for evaluating the factuality of large language models. 
+
+4 Methodology 
+
+Given AfrIFact, we address our research questions and detail the experimental setup used in this study. 
+
+Information Retrieval Documents: Our main evaluation setting uses a universal multilingual multi-domain corpus for all types of queries, which covers health, news, and Wikipedia articles from all languages. 2 This design is to simplify cross-lingual cross-task results comparison on our benchmark. As data on AfrIFact-Health are parallel across languages, we evaluate it on both monolingual and multilingual settings: where the monolingual set-ting evaluates retrieval results on only the relevant documents from query’s language, 3 and the mul- 
+
+> 2In detail, we include documents from AfriDocMT, XL-Sum news, and manually collected, language-specific Wikipedia articles. In addition, we create language-specific retrieval collections using documents exclusively drawn from each corresponding language.
+> 3relevant documents that are not in the same language as query are removed from both the retrieval results and labels during evaluation.
+
+tilingual setting evaluates retrieval results using relevant documents in all languages. 4
+
+Information Retrieval & Evidence Extraction Evaluation: In both extraction tasks, we iden-tify the subset of textual units within a docu-ment or collection of documents that provide sup-porting or refuting evidence for a given claim. In our setting, the system retrieves the top-k
+
+ranked segments as candidate evidence. These ex-tracted evidence segments are subsequently used by a downstream fact verification model to deter-mine whether the claim is SUPPORTS , REFUTES , or 
+
+NOT_ENOUGH_INFORMATION .For information retrieval following prior litera-ture (Enevoldsen et al., 2025; Uemura et al., 2025), we use nDCG@10 as the primary metric and also report Recall@100 in the Appendix for reference. Similarly, for Evidence extraction, we reported nDCG@3 as the primary metric and also reported Recall@3 in the Appendix, given the reduced search space for this task. 
+
+Claim Labeling Evaluation: The claim-labeling task asks LLMs to label each document pair and its associated claims as SUPPORTS , REFUTES , or 
+
+NOT_ENOUGH_INFORMATION . In this work, this eval-uation is extended by presenting labeled evidence or balanced few-shot examples. For evidence-based evaluations, we have modified a prompt to guide the LLM to focus on the evidence text ex-tracted from the document, and for few-shot exam-ples, we present three distinct examples with differ-ent labels. Evaluation details and reproducibility are explained in Appendix G. 
+
+Language Models: In this work, we evaluate a diverse set of both embedding-based and lexical retrieval models. For information and evidence ex-traction, we use models that generate semantically meaningful sentence embeddings. These embed-dings can be compared using similarity measures, such as cosine similarity, to rank candidate sen-tences with respect to a given claim (Reimers and Gurevych, 2019). For embedding-based retrieval, we evalu-ate several multilingual and instruction-tuned models, including Qwen3-Embedding models ({0.6B, 4B, 8B} ) (Zhang et al., 2025b), 
+
+multilingual-e5-large (Wang et al., 2024), and  
+
+> 4Meanwhile, Appendix C provides more evaluation results when retrieving from a corpus containing documents from a single language or a single domain. multilingual-e5-large
+> multilingual-e5-large-instruct
+> AfriE5-Large-instruct
+> Qwen3-Embedding-0.6B
+> Qwen3-Embedding-4B
+> Qwen3-Embedding-8B
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> nDCG@10
+> (a) Monolingual Health Corpus
+> English (mono) A. Avg (mono)
+> multilingual-e5-large
+> multilingual-e5-large-instruct
+> AfriE5-Large-instruct
+> Qwen3-Embedding-0.6B
+> Qwen3-Embedding-4B
+> Qwen3-Embedding-8B
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> nDCG@10
+> (b) Multilingual Health Corpus
+> English (mono)
+> A. Avg (mono)
+> English
+> A. Avg
+> multilingual-e5-large
+> multilingual-e5-large-instruct
+> AfriE5-Large-instruct
+> Qwen3-Embedding-0.6B
+> Qwen3-Embedding-4B
+> Qwen3-Embedding-8B
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> nDCG@10
+> (c) Multilingual Health & Culture-News Corpus
+> English (mono)
+> A. Avg (mono)
+> English
+> A. Avg
+
+Figure 3: nDCG@10 scores on the Health domain when retrieving from different corpora and evaluated on relevant documents in mono- or multi-languages. "A. Avg" shows the average score on African languages. Scores with label “mono” indicate that we only consider relevant documents from the same language as the query during evaluation. 
+
+model English Amharic Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. ∆
+
+AfrIFact-Health 
+
+multilingual-e5-large 0.149 0.123 0.113 0.119 0.138 0.141 0.189 0.107 0.105 0.133 0.171 0.134 -0.015 
+
+multilingual-e5-large-inst. 0.229 0.094 0.092 0.118 0.133 0.116 0.148 0.105 0.115 0.085 0.123 0.113 -0.116 
+
+AfriE5-Large-instruct 0.298 0.235 0.221 0.248 0.215 0.224 0.287 0.183 0.173 0.172 0.257 0.222 -0.077 
+
+Qwen3-Embedding-0.6B 0.171 0.065 0.070 0.106 0.111 0.073 0.112 0.098 0.111 0.081 0.082 0.091 -0.080 
+
+Qwen3-Embedding-4B 0.184 0.087 0.077 0.100 0.103 0.073 0.132 0.103 0.126 0.095 0.102 0.100 -0.084 
+
+Qwen3-Embedding-8B 0.207 0.123 0.077 0.109 0.115 0.097 0.158 0.115 0.126 0.104 0.117 0.114 -0.093 
+
+AfrIFact-Culture-News 
+
+multilingual-e5-large 0.597 0.487 0.341 0.471 0.261 0.394 0.406 0.286 0.303 0.173 0.329 0.345 -0.252 
+
+multilingual-e5-large-inst. 0.735 0.622 0.567 0.633 0.462 0.576 0.533 0.446 0.554 0.483 0.445 0.532 -0.203 
+
+AfriE5-Large-instruct 0.752 0.631 0.544 0.623 0.380 0.513 0.530 0.408 0.543 0.359 0.368 0.490 -0.262 
+
+Qwen3-Embedding-0.6B 0.414 0.500 0.317 0.422 0.358 0.455 0.332 0.346 0.329 0.335 0.307 0.370 -0.044 
+
+Qwen3-Embedding-4B 0.428 0.544 0.382 0.520 0.361 0.492 0.386 0.359 0.340 0.426 0.314 0.412 -0.016 
+
+Qwen3-Embedding-8B 0.426 0.563 0.347 0.457 0.354 0.428 0.377 0.330 0.342 0.398 0.344 0.394 -0.032 
+
+Table 4: nDCG@10 of Information Retrieval Scores on Multilingual Corpus; A-Avg. column shows average score on African languages (i.e., excluding English); ∆ column shows the score gap between A-Avg. English scores. gray marks on best A-Avg. scores. 
+
+AfriE5-Large-instruct (Uemura et al., 2025). For the task of claim classification, we evalu-ate several LLMs from multiple model families, including Gemma (Team, 2025a) ( Gemma-3-12B & 27B-it ), Qwen (Team, 2025b) ( Qwen-3-14B ), 
+
+Cohere (Command R v01 , Tiny-Aya-Global ), and 
+
+AfriqueLLM (Yu et al., 2026) ( AfriqueGemma-12B ,
+
+AfriqueQwen-14B ). Almost all models in the main work, with the exception of Tiny-Aya-Global ,have more than 128k context length to eliminate the effect of context size on performance. Addi-tional models are included in the Appendix with lower context sizes. In addition, we include the closed-source model GPT-5.2 for comparison. Ap-pendix includes more model coverage, while the main paper focuses on a small subset. 
+
+Few-shot and Fine-tuning Settings: For zero-shot settings, we evaluated open LLMs using 3 different prompts, as shown in the appendix, and reported the average scores. For GPT-5.2 , we used a single prompt to reduce cost. For a few-shot experiment, we selected 3 random shots from the validation set, each with a balanced class label. We limited the number of shots to 3, given the evaluation size and the context length. For the Finetuning experiment, we created an alpaca-style (Taori et al., 2023) version of our training dataset by converting it to an instruction input-output format, and we have both evidence-and no-evidence versions to double our dataset size. We worked on LoRA (Hu et al., 2022), QLoRA (Dettmers et al., 2023), and full fine-tuning settings on AfriqueQwen-14B for reasons discussed in the results section. Details of repro-ducibility are explored under Appendix G. 
+
+5 Results and Analysis 
+
+5.1 Information Retrieval Capability 5.1.1 Analysis on AfrIFact-Health 
+
+Figure 3 presents results on AfrIFact-Health queries, under different corpus construction and evaluation settings. As AfrIFact-Health pro-vides all-way parallel claims (i.e., query), evidence (i.e., document), and corpus across languages, it enables a controlled comparison across both query languages and target evidence languages. model English Amharic Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. ∆                                                                                                                                                            
+
+> AfrIFact-Health
+> multilingual-e5-large 0.770 0.363 0.415 0.349 0.386 0.450 0.541 0.333 0.418 0.288 0.438 0.398 -0.372
+> multilingual-e5-large-inst. 0.724 0.346 0.403 0.346 0.379 0.447 0.517 0.341 0.412 0.269 0.420 0.388 -0.336
+> AfriE5-Large-instruct 0.742 0.371 0.419 0.361 0.395 0.455 0.527 0.363 0.443 0.290 0.442 0.407 -0.335
+> Qwen3-Embedding-0.6B 0.782 0.305 0.370 0.275 0.340 0.368 0.474 0.298 0.397 0.244 0.362 0.343 -0.439
+> Qwen3-Embedding-4B 0.788 0.325 0.371 0.295 0.339 0.373 0.510 0.305 0.405 0.249 0.381 0.355 -0.433
+> Qwen3-Embedding-8B 0.785 0.349 0.373 0.320 0.357 0.404 0.530 0.284 0.405 0.270 0.404 0.370 -0.416
+> AfrIFact-Culture-News
+> multilingual-e5-large 0.725 0.610 0.518 0.545 0.505 0.751 0.558 0.447 0.404 0.353 0.352 0.504 -0.221
+> multilingual-e5-large-inst. 0.685 0.619 0.510 0.567 0.539 0.760 0.554 0.426 0.438 0.366 0.350 0.513 -0.172
+> AfriE5-Large-instruct 0.701 0.618 0.528 0.577 0.536 0.765 0.583 0.441 0.436 0.377 0.352 0.521 -0.179
+> Qwen3-Embedding-0.6B 0.747 0.581 0.471 0.539 0.505 0.759 0.529 0.434 0.435 0.340 0.336 0.493 -0.254
+> Qwen3-Embedding-4B 0.752 0.586 0.488 0.559 0.498 0.768 0.565 0.425 0.436 0.352 0.332 0.501 -0.252
+> Qwen3-Embedding-8B 0.759 0.608 0.511 0.569 0.506 0.758 0.567 0.411 0.443 0.360 0.345 0.508 -0.251
+
+Table 5: nDCG@3 evidence extraction performances across languages and domains in AfrIFact. A-Avg. The column shows the average score on African languages (i.e., excluding English); ∆ column shows the score gap between A-Avg. English scores. gray shows the best A-Avg. scores. 
+
+Query Languages: In Figure 3, green bars de-note results on English, whereas orange bars denote the average across the 10 African languages. Al-though the subfigures differ in retrieval settings that we will discuss shortly, a substantial gap between English and African languages is consistently ob-served across all embedding models. This suggests considerable room for improving retrieval effec-tiveness for African languages. 
+
+Document Languages: Subfigure (a) serves as the basic retrieval scenario, where each query re-trieves from documents in the same language only, i.e., monolingual retrieval; In subfigure (b), we ex-pand the corpus to include documents from all lan-guages, resulting in a multilingual retrieval setting. Subfigure (c) further expands the multilingual cor-pus by adding documents from the Culture-News domain. As all documents are parallel, each query has relevant documents available in every language when retrieving from the multilingual corpus. On one hand, this helps to evaluate models’ “strong-alignment” capability (Roy et al., 2020), namely, whether it can rank relevant documents in other lan-guages above non-relevant documents in the query language. On the other hand, this is confounded with the impact of corpus size, and how retrieval is affected by enlarging the corpus with non-relevant documents. To disentangle these two factors, we report two evaluation variants on subfigures (b) and (c) — the solid bars correspond to the standard multi-lingual setting, which requires retrieving relevant documents from all languages. The shaded bars show scores when excluding relevant documents not in the same language as the query (labelled as “mono”), which keeps the corpus size almost unchanged but effectively reduces the evaluation criterion back to monolingual evaluation. Comparing the “mono” setting across three sub-figures, we observe that increasing corpus size with non-relevant documents indeed brings certain lev-els of effectiveness degradation, especially moving from subfigure (a) to (b), where the corpus grows by 11 times. This indicates that embedding mod-els are not particularly robust to a large amount of noisy information. However, their limitation in retrieving relevant documents across languages is even more severe, as reflected in the large gap between the shaded and solid bars: across query languages, performance drops sharply by roughly 50–70%. 
+
+5.1.2 Main Benchmark 
+
+While the above analysis shows that embedding models are vulnerable in the multilingual retrieval settings, we also find that their relative ranking remains broadly consistent across corpus construc-tions and evaluation conditions. Based on this ob-servation, we adopt a unified benchmark corpus that merges documents from all languages and do-mains, which not only increases task difficulty but also provides a simpler, more holistic evaluation setup. Table 4 reports our main information retrieval results, AfrIFact-Health is evaluated on multilin-gual settings 5, and AfrIFact-Culture-News is eval-uated on monolingual settings as it is not parallel across languages. Comparing the scores, we found that embedding models have different behavior across domains. where e5-based embeddings (i.e., 
+
+> 5
+
+corresponding to the non-mono setting in Figure 3-(c). Tiny aya global     
+
+> AfriqueGemma 12B
+> Gemma 3 12B
+> AfriqueQwen 14B
+> Qwen 3 14B
+> Gemma 3 27B
+> Command R v01
+> GPT 5.2
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Average Accuracy Tiny aya global
+> AfriqueGemma 12B
+> Gemma 3 12B
+> AfriqueQwen 14B
+> Qwen 3 14B
+> Gemma 3 27B
+> Command R v01
+> GPT 5.2
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Average Accuracy Without Evidence (0-shot) With Evidence (0-shot) Without Evidence (3-shot) With Evidence (3-shot) Best in Evaluation Type
+
+Figure 4: Average accuracy scores on African languages of different language models on the AfrIFact fact-checking task under zero-shot and three-shot settings, with and without evidence. 
+
+top-3 rows) are better on AfrIFact-Culture-News ,and Qwen3-based embeddings (bottom-3 rows) are better on AfrIFact-Health .
+
+5.2 Evidence Extraction Capability 
+
+In Table 5, we present evidence extraction scores and nDCG scores using the top 3 pieces of evidence extracted from a single document presented. We observe a large gap between English and African languages, except in the case of Shona, for the health domain, with around 0.76 nDCG@3 scores. 
+
+English African Language evidence retrieval gap is larger on health compared to culture-news. The Evidence extraction gap between En-glish and African languages is particularly pro-nounced in the Health domain compared to the Culture and News domains. In AfrIFact-Health ,the top-performing English score reaches 0.79, whereas the best-performing African language, Swahili, achieves only 0.52, indicating a substan-tial disparity. In contrast, the gap narrows in 
+
+AfrIFact-Culture-News , where English attains 0.76, and Shona reaches 0.80, even slightly surpassing English. This can be attributed not only to the availability of Wikipedia and cultural domains on the web, but also to a lack of cultural data (i.e., the motivation behind our various dataset-creation strategies). Evidence extraction tasks achieves bet-ter performances in AfrIFact-Culture-News (0.52-0.56 nDCG@3) compared to results in AfrIFact-Health (0.39-0.44 nDCG@3). 
+
+Increasing embedding model size is not as important as language coverage. Despite the substantial parameter differences between models such as Qwen3-Embedding-0.6B and 
+
+Qwen3-Embedding-8B , the evidence ex-traction scores remain very similar. In contrast, multilingual-e5-large and 
+
+AfriE5-Large-instruct achieved much better improvement due to their better language coverage, and the latter, fully adapted to African languages. Performance ranges only from 0.39 to 0.41 in the health domain and from 0.52 to 0.53 in the culture domain. This suggests that scaling model size alone yields limited gains, and that performance differences are more likely driven by dataset characteristics than by model capacity. 
+
+5.3 Fact Checking Capability 
+
+In Figure 4, we report African language average scores for models covered. We present document +
+
+claim , or document + claim + evidence evalu-ations. Additionally, we show variants of both evaluations by pre-setting 3 balanced few-shot ex-amples aligned with the evaluations. Finally, we in-clude the closed-source model GPT-5.2 as a closed-source comparison. Details in language scores are shown in Appendix E. 
+
+Zero-shot fact verification remains ex-tremely challenging across languages. Mid-size open models show near-random fact check-ing capability. While larger models like 
+
+Gemma-3-27B-it score close to 60% accuracy, most models achieve around 33% average accu-racy on African languages in zero-shot evalua-tions. Large models such as Gemma-3-27B-it and 
+
+Llama-3-70B-instruct achieve strong average scores among open-source models. However, im-provements from increased model size are often modest compared to gains from few-shot prompt-ing. 
+
+Few-shot dominates evidence effects. Across both health and culture-news domains, few-shot examples help improve models ´fact-checking ca-pability. models like AfriqueQwen-14B , Command R v01 , and Tiny-Aya-Global show improved re-Model Amharic English Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg.                                                                                                                         
+
+> AfrIFact-Health
+> Baseline 33.43 / 33.24 33.43 / 33.24 33.29 / 34.53 33.81 / 33.29 33.29 / 33.24 33.38 / 33.24 33.29 /34.96 33.29 / 33.24 33.33 /33.24 33.52 / 33.91 33.33 / 34.53 33.40 / 33.74
+> LoRA 49.14 / 63.94 49.00 / 59.41 47.85 / 61.41 46.78 / 56.92 48.21 / 58.74 48.50 / 58.93 48.42 / 62.85 37.25 / 40.59 38.18 / 42.26 46.92 / 59.22 48.28 / 60.46 45.95 / 56.53
+> QLoRA 8-bit 49.43 / 63.66 49.86 / 65.23 48.93 / 64.23 48.17 / 61.46 49.21 / 62.89 49.21 / 63.80 49.36 / 65.57 39.83 / 45.22 39.68 / 46.90 48.50 / 62.37 49.14 / 63.75 47.15 / 59.99
+> QLoRA 4-bit 39.30 / 50.96 34.38 / 35.96 36.29 / 49.04 35.34 / 44.84 36.06 / 44.17 36.44 / 44.41 37.06 / 49.43 33.38 / 34.96 33.33 / 34.53 38.78 / 49.76 37.06 / 50.38 36.30 / 45.25
+> Full Finetuning 33.31 / 33.24 33.74 / 33.48 33.31 / 33.24 33.31 / 33.24 33.31 / 33.24 33.31 / 33.29 33.31 / 33.29 33.31 / 33.24 33.31 / 33.24 33.31 / 33.24 33.31 / 33.24 33.31 / 33.25
+> AfrIFact-Culture-News
+> Baseline 35.30/36.10 33.40/45.70 39.50/36.10 33.00 / 33.70 34.40 / 35.60 38.30 / 37.30 36.90 / 32.00 31.00 / 31.10 38.70 / 37.40 32.20 / 33.60 38.00 / 34.10 35.73 / 34.70
+> LoRA 50.31 / 53.13 51.28 / 40.00 49.33 / 50.51 41.33 / 41.33 40.31 / 39.79 42.87 / 44.05 44.92 / 44.46 33.32 / 32.77 38.72 / 39.49 42.05 / 45.90 42.31 / 44.00 42.55 / 43.54
+> QLoRA 8-bit 55.64 / 57.13 58.77 / 54.00 57.79 / 57.90 49.79 / 50.00 50.41 / 48.05 49.49 / 52.82 52.26 / 49.49 39.33 / 38.72 39.90 / 42.10 50.15 / 53.95 47.59 / 46.97 49.24 / 49.71
+> QLoRA 4-bit 35.18 / 35.62 36.05 / 34.97 41.49 / 48.82 32.87 / 33.13 33.44 / 33.49 37.95 / 38.36 38.46 / 43.08 30.82 / 31.08 38.56 / 38.62 33.59 / 42.05 38.00 / 42.46 36.04 / 38.67
+> Full Finetuning 33.54 / 33.54 33.23 / 33.23 40.31 / 40.31 31.69 / 31.69 32.77 / 32.77 37.54 / 37.54 36.77 / 36.77 30.62 / 30.62 38.62 / 38.62 32.00 / 32.00 37.54 / 37.54 35.12 / 35.14
+
+Table 6: AfrIFact-Culture-News and AfrIFact-Culture-News without-evidence/with-evidence finetuning experiments on Baseline( AfriqueQwen-14B ) finetuned for mixed culture and health data processed for with and without setup. Training approaches include LoRA, QLoRA and full-finetuning 
+
+sults in few-shot compared to zero-shot. We see significant improvement with few-shot examples, with the biggest being by 43% from 34% to 77% accuracy for AfriqueQwen-14B .
+
+Providing evidence does not consistently im-prove fact-checking accuracy. Across many models, the difference between with-evidence and without-evidence settings is small or inconsistent, suggesting that models often rely more on their internal knowledge than on explicitly provided evi-dence. Looking at Table 6 AfriqueQwen-14B baseline scores, we see the model has near-random fact-verification performance. This near random perfor-mance, which is improved by three shot examples as shown in Appendix E. 
+
+A small scale dataset, coupled with param-eter efficient finetuning, can help improve the performance of models. Table 6 shows usage of our multilingual training dataset on a promising model( AfriqueQwen-14B ), given its few-shot per-formance, and we wanted to improve its perfor-mance using our small scale dataset. All training configurations except full finetuning seem to boost fact-checking classification. Specifically, QLoRA 8-bit fine-tuning shows the biggest improvement for the AfrIFact-Health domain, with a 26% av-erage accuracy improvement across African lan-guages. 
+
+Low-rank finetuned models learn to use evi-dence, shown by all LoRA and QLoRA with ev-idence models surpassing those without. In our benchmarking experiments, we show that aver-age African language scores with and without ev-idence are either very similar or that evidence re-duces performance, but all LoRA and QLoRA fine-tuning show that models learn to use the provided evidence span and improve scores with evidence present. QLoRA 8-bit quantization shows the best improvement, with evidence of a 12.84% improve-ment in the model. Providing evidence substan-tially improves fact verification in the Health do-main but has mixed effects in culture–news, while QLoRA-8 consistently outperforms other adapta-tion strategies, reaching 58.77% in the culture-news domain and 65.57% in the health domain in some languages. Given the consistent performance trends across all languages in model training with a fixed 3-epoch setup and similar hyperparameters, this demonstrates the effectiveness of our multilin-gual data. 
+
+6 Conclusion and Future Works 
+
+In this work, we introduce AfrIFact , a dataset for information retrieval, evidence retrieval, and fact-checking, comprising more than 18,000 human-generated claims, along with annotated source doc-uments and evidence spans across 10 African lan-guages. Our results show a large gap between in-formation retrieval and evidence extraction scores, even when relevant evidence is found in other lan-guages (i.e., the AfrIFact-Health multilingual ex-periment), and work done to create Afri-centric models shows promising results. Additionally, we show that open models lack 0-shot fact-verification capabilities, which can be improved with a few-shot examples or dedicated fine-tuning. We believe this benchmark reveals systematic gaps and challenges in culture-specific information retrieval, evidence retrieval, and fact verification, and encourages researchers to address each of the three problems by expanding dataset coverage and creating robust systems that aim to eliminate mis-information. 
+
+Limitations 
+
+Language inclusion in this dataset was guided by several factors, including the number of speakers, availability of web resources, typological and geo-graphical diversity, coverage in prior datasets, and the availability of annotators. AfrIFact focuses on the health and culture-news domains because of their societal importance and exposure to misinformation. However, the need for fact-checking extends far, beyond these areas, ex-panding AfrIFact to cover other additional domains would offer a more comprehensive assessment of multilingual fact-checking capabilities. Although the paper discusses a full pipeline for verifying claims by searching documents, extract-ing evidence spans, and classifying veracity, we treat each step as a standalone section and evaluate it on our dataset. This design allows us to isolate the challenges of each task, which are often studied as separate research problems. Future work can ex-plore end-to-end pipelines that integrate all stages and evaluate their joint performance. The focus of this work is on creating a substan-tially larger test set to support robust, high-quality, human-generated, and cross-lingual evaluation, and to accommodate automated fact-checking training datasets. This design choice forced us to create a smaller training and validation set. We intention-ally made this choice due to resource constraints and to leave a research gap of fine-tuning better fact verification and extraction models for other works. Fine-tuning experiments in this work overlook crucial steps such as hyperparameter optimization, data augmentation, and in-depth analysis of trained models, as the scope of this paper is limited to the introduction of dataset creation and benchmarking. 
+
+7 Ethical Consideration 
+
+All annotators, language coordinators, and meta-annotators were compensated fairly in accor-dance with the agreement(Appendix B). Annota-tors signed contracts specifying the purpose of the data collection and their compensation. We ensured that working conditions were fair and that annota-tors could skip documents they found unsuitable without penalty. The source data for AfrIFact is collected from publicly available resources: AfriDocMT (health documents), Wikipedia (cultural content), and XL-Sum (news articles). No private or personally iden-tifiable information has been collected. The claims were generated by annotators from public data. 
+
+Acknowledgments 
+
+This dataset was created with support from Lacuna Fund and Google.org. The views expressed herein do not necessarily represent those of Lacuna Fund, its Steering Committee, its funders, Meridian Insti-tute or CENIA’ Israel Abebe Azime is funded by the Ger-man Federal Ministry of Education and Re-search and the German federal states ( http:// www.nhr-verein.de/en/our-partners ) as part of the National High-Performance Computing (NHR) joint funding program. Also, we would like to express our appreciation to annotators and translators listed below: • Amharic: Hana Mekonen, Biniam Asmelash, Bereket Tilahun • Twi: Bernard Opoku, Richmond Opoku, Stephen Arthur • Hausa: Ruqayya Nasir Iro, Maryam Abubakar, Muhammad Abubakar Yaro • Igbo: Kelvin Francis Obitube, Onyinyechi Favour Chibueze, Onyinyechukwu Jane Anowi • Oromo: Dibora Taye, Diribe Kenea, Tadesse Kebede • Shona: Ester Chimhenga, Brian Mupini, Hazel Chamboko • Swahili: Mohamed Mwinyimkuu, Baraka Karuli, Nancy Shao • Wolof: Maimouna Diallo, Sidi Moctar Ndao, Rokhaya Diagne • Yoruba: Simbiat Ajao, Babátúndé Pópóòłá, Omolade Dorcas • isiZulu: Busisiwe Pakade, Esther Ntuli, Rooweither Mabuya 
+
+References 
+
+> David Ifeoluwa Adelani, Jessica Ojo, Israel Abebe Az-ime, Jian Yun Zhuang, Jesujoba Oluwadara Alabi, Xuanli He, Millicent Ochieng, Sara Hooker, Andiswa Bukula, En-Shiun Annie Lee, Chiamaka Ijeoma Chukwuneke, Happy Buzaaba, Blessing Kudzaishe Sibanda, Godson Koffi Kalipe, Jonathan Mukiibi, Salomon Kabongo Kabenamualu, Foutse Yuehgoh, Mmasibidi Setaka, Lolwethu Ndolela, and 8 others. 2025. IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models.
+
+In Proceedings of the 2025 Conference of the Na-tions of the Americas Chapter of the Association for Computational Linguistics: Human Language Tech-nologies (Volume 1: Long Papers) , pages 2732–2757, Albuquerque, New Mexico. Association for Compu-tational Linguistics. Mofetoluwa Adeyemi, Akintunde Oladipo, Xinyu Zhang, David Alfonso-Hermelo, Mehdi Reza-gholizadeh, Boxing Chen, and Jimmy Lin. 2024. CIRAL at FIRE 2023: Cross-Lingual Information Retrieval for African Languages. In Proceedings of the 15th Annual Meeting of the Forum for Informa-tion Retrieval Evaluation , FIRE ’23, page 4–6, New York, NY, USA. Association for Computing Machin-ery. Jesujoba Oluwadara Alabi, Israel Abebe Azime, Miaoran Zhang, Cristina España-Bonet, Rachel Bawden, Dawei Zhu, David Ifeoluwa Adelani, Clement Oyeleke Odoje, Idris Akinade, Iffat Maab, Davis David, Shamsuddeen Hassan Muhammad, Neo Putini, David O. Ademuyiwa, Andrew Caines, and Dietrich Klakow. 2025. AFRIDOC-MT: Document-level MT corpus for African languages. In Proceed-ings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 27770–27806, Suzhou, China. Isabelle Augenstein, Christina Lioma, Dongsheng Wang, Lucas Chaves Lima, Casper Hansen, Chris-tian Hansen, and Jakob Grue Simonsen. 2019. Mul-tiFC: A real-world multi-domain dataset for evidence-based fact checking of claims. In Proceedings of the 2019 Conference on Empirical Methods in Natu-ral Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP) , pages 4685–4697, Hong Kong, China. Israel Abebe Azime, Tadesse Destaw Belay, Dietrich Klakow, Philipp Slusallek, and Anshuman Chhabra. 2025. Bridging the Culture Gap: A Framework for LLM-Driven Socio-Cultural Localization of Math Word Problems in Low-Resource Languages. arXiv preprint arXiv:2508.14913 .Emily M. Bender, Timnit Gebru, Angelina McMillan-Major, and Shmargaret Shmitchell. 2021. On the dangers of stochastic parrots: Can language mod-els be too big? In Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Trans-parency , FAccT ’21, page 610–623, New York, NY, USA. Association for Computing Machinery. Yi-Chen Chang, Canasai Kruengkrai, and Junichi Yam-agishi. 2023. XFEVER: Exploring fact verification across languages. In Proceedings of the 35th Confer-ence on Computational Linguistics and Speech Pro-cessing (ROCLING 2023) , pages 1–11, Taipei City, Taiwan. The Association for Computational Linguis-tics and Chinese Language Processing (ACLCLP). Jacob Cohen. 1960. A coefficient of agreement for nominal scales. Educational and psychological mea-surement , 20(1):37–46. Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. 2023. Qlora: Efficient finetuning of quantized llms. Advances in neural information processing systems , 36:10088–10115. Kenneth Enevoldsen, Isaac Chung, Imene Kerboua, Márton Kardos, Ashwin Mathur, David Stap, Jay Gala, Wissam Siblini, Dominik Krzemi´ nski, Genta Indra Winata, Saba Sturua, Saiteja Utpala, Mathieu Ciancone, Marion Schaeffer, Diganta Misra, Shreeya Dhakal, Jonathan Rystrøm, Roman Solo-matin, Ömer Veysel Ça˘ gatan, and 63 others. 2025. MMTEB: Massive multilingual text embedding benchmark. In The Thirteenth International Con-ference on Learning Representations .Joseph L Fleiss. 1971. Measuring nominal scale agree-ment among many raters. Psychological bulletin ,76(5):378. Leo Gao, Jonathan Tow, Baber Abbasi, Stella Bider-man, Sid Black, Anthony DiPofi, Charles Foster, Laurence Golding, Jeffrey Hsu, Alain Le Noac’h, Haonan Li, Kyle McDonell, Niklas Muennighoff, Chris Ociepa, Jason Phang, Laria Reynolds, Hailey Schoelkopf, Aviya Skowron, Lintang Sutawika, and 5 others. 2024. The language model evaluation har-ness. Meseret D. Gebremichael and Jason W. Jackson. 2006. Bridging the gap in Sub-Saharan Africa: A holistic look at information poverty and the region’s digital di-vide. Government Information Quarterly , 23(2):267– 280. Zhijiang Guo, Michael Schlichtkrull, and Andreas Vla-chos. 2022. A survey on automated fact-checking. 
+
+Transactions of the Association for Computational Linguistics , 10:178–206. Ashim Gupta and Vivek Srikumar. 2021. X-fact: A new benchmark dataset for multilingual fact checking. In 
+
+Proceedings of the 59th Annual Meeting of the Asso-ciation for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 2: Short Papers) , pages 675–682, Online. Tahmid Hasan, Abhik Bhattacharjee, Md. Saiful Is-lam, Kazi Mubasshir, Yuan-Fang Li, Yong-Bin Kang, M. Sohel Rahman, and Rifat Shahriyar. 2021. XL-sum: Large-scale multilingual abstractive summariza-tion for 44 languages. In Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021 ,pages 4693–4703, Online. Naeemul Hassan, Chengkai Li, and Mark Tremayne. 2015. Detecting check-worthy factual claims in pres-idential debates. Proceedings of the 24th ACM Inter-national on Conference on Information and Knowl-edge Management .Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Liang Wang, Weizhu Chen, and 1 others. 2022. Lora: Low-rank adaptation of large language models. Iclr , 1(2):3. Klaus Krippendorff. 2011. Computing Krippendorff’s alpha-reliability. Senyu Li, Jiayi Wang, Felermino D. M. A. Ali, Colin Cherry, Daniel Deutsch, Eleftheria Briakou, Rui Sousa-Silva, Henrique Lopes Cardoso, Pontus Stene-torp, and David Ifeoluwa Adelani. 2025. SSA-COMET: Do LLMs outperform learned metrics in evaluating MT for under-resourced African lan-guages? In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing ,pages 12979–12998, Suzhou, China. Shuliang Liu, Hongyi Liu, Aiwei Liu, Duan Bingchen, Zheng Qi, Yibo Yan, He Geng, Peijie Jiang, Jia Liu, and Xuming Hu. 2025. A survey on proactive de-fense strategies against misinformation in large lan-guage models. In Findings of the Association for Computational Linguistics: ACL 2025 , pages 18144– 18155, Vienna, Austria. Association for Computa-tional Linguistics. Ndapandula Nakashole and Tom M. Mitchell. 2014. Language-aware truth assessment of fact candidates. In Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 1009–1019, Baltimore, Mary-land. Odunayo Ogundepo, Xinyu Zhang, Shuo Sun, Kevin Duh, and Jimmy Lin. 2022. AfriCLIRMatrix: En-abling cross-lingual information retrieval for African languages. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing ,pages 8721–8728, Abu Dhabi, United Arab Emirates. Rrubaa Panchendrarajan, Rubén Míguez Pérez, and Arkaitz Zubiaga. 2025. MultiClaimNet: A massively multilingual dataset of fact-checked claim clusters. In Findings of the Association for Computational Lin-guistics: EMNLP 2025 , pages 11203–11215, Suzhou, China. Martin Potthast, Johannes Kiesel, Kevin Reinartz, Janek Bevendorff, and Benno Stein. 2018. A stylometric inquiry into hyperpartisan and fake news. In Proceed-ings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) ,pages 231–240, Melbourne, Australia. Nils Reimers and Iryna Gurevych. 2019. Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natu-ral Language Processing (EMNLP-IJCNLP) , pages 3982–3992, Hong Kong, China. Uma Roy, Noah Constant, Rami Al-Rfou, Aditya Barua, Aaron Phillips, and Yinfei Yang. 2020. LAReQA: Language-agnostic answer retrieval from a multilin-gual pool. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 5919–5930, Online. Michael Sejr Schlichtkrull, Zhijiang Guo, and Andreas Vlachos. 2023. AVeriTeC: A Dataset for Real-world Claim Verification with Evidence from the Web. In 
+
+Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track .Shuo Sun and Kevin Duh. 2020. CLIRMatrix: A mas-sively large collection of bilingual and multilingual datasets for cross-lingual information retrieval. In 
+
+Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) ,pages 4160–4170, Online. Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos Guestrin, Percy Liang, and Tatsunori B. Hashimoto. 2023. Stanford alpaca: An instruction-following llama model. https:// github.com/tatsu-lab/stanford_alpaca .Gemma Team. 2025a. Gemma 3. Qwen Team. 2025b. Qwen3 Technical Report. Preprint ,arXiv:2505.09388. James Thorne, Andreas Vlachos, Christos Christodoulopoulos, and Arpit Mittal. 2018. FEVER: a large-scale dataset for fact extraction and VERification. In Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers) ,pages 809–819, New Orleans, Louisiana. Kosei Uemura, Miaoran Zhang, and David Ifeoluwa Adelani. 2025. Afrimteb and afrie5: Benchmark-ing and adapting text embedding models for african languages. arXiv preprint arXiv:2510.23896 .Andreas Vlachos and Sebastian Riedel. 2014. Fact checking: Task definition and dataset construction. In Proceedings of the ACL 2014 Workshop on Lan-guage Technologies and Computational Social Sci-ence , pages 18–22, Baltimore, MD, USA. Liang Wang, Nan Yang, Xiaolong Huang, Linjun Yang, Rangan Majumder, and Furu Wei. 2024. Multilin-gual e5 text embeddings: A technical report. arXiv preprint arXiv:2402.05672 .Hao Yu, Tianyi Xu, Michael A. Hedderich, Wassim Hamidouche, Syed Waqas Zamir, and David Ife-oluwa Adelani. 2026. Afriquellm: How data mixing and model architecture impact continued pre-training for african languages. Preprint , arXiv:2601.06395. Hanzhi Zhang, Sumera Anjum, Heng Fan, Weijian Zheng, Yan Huang, and Yunhe Feng. 2025a. Poly-fever: a multilingual fact verification benchmark for hallucination detection in large language mod-els. arXiv preprint arXiv:2503.16541 .Xinyu Zhang, Nandan Thakur, Odunayo Ogundepo, Ehsan Kamalloo, David Alfonso-Hermelo, Xi-aoguang Li, Qun Liu, Mehdi Rezagholizadeh, and Jimmy Lin. 2023. MIRACL: A multilingual retrieval dataset covering 18 diverse languages. Transactions of the Association for Computational Linguistics ,11:1114–1131. Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, Fei Huang, and Jingren Zhou. 2025b. Qwen3 embedding: Advancing text embedding and reranking through foundation models. 
+
+arXiv preprint arXiv:2506.05176 .Liwen Zheng, Chaozhuo Li, Xi Zhang, Yu-Ming Shang, Feiran Huang, and Haoran Jia. 2024a. Evidence retrieval is almost all you need for fact verification. In Findings of the Association for Computational Linguistics: ACL 2024 , pages 9274–9281, Bangkok, Thailand. Yaowei Zheng, Richong Zhang, Junhao Zhang, Yanhan Ye, and Zheyan Luo. 2024b. Llamafactory: Unified efficient fine-tuning of 100+ language models. In 
+
+Proceedings of the 62nd annual meeting of the as-sociation for computational linguistics (volume 3: system demonstrations) , pages 400–410. A Data Statistics 
+
+AfrIFact maintains balanced training and valida-tion sizes per language, while the test split is sub-stantially larger to support robust, high-quality, human-generated, and cross-lingual evaluation, and to accommodate automated fact-checking training datasets. The languages included are Amharic (Ethiopia), Twi (Ghana), Hausa (Nigeria, Niger, Chad, Cameroon, and Benin), Igbo (Nigeria), Oromo (Ethiopia and Kenya), Shona (Zimbabwe and Mozambique), Swahili (East Africa and the Democratic Republic of Congo), Wolof (Senegal, Gambia, and Mauritania), Yoruba (Nigeria, Benin, and Togo), and isiZulu (South Africa, Lesotho, and Eswatini) 
+
+B Annotators, Structure, Recruitment And Payment 
+
+The annotation team consists of 30 annotators, 10 language coordinators, 3 meta-annotators, and 2 administrative assistants. For each language, three native speakers serve as annotators under the super-vision of a dedicated language coordinator. The lan-guage coordinators have prior experience in data an-notation and research and are responsible for guid-ing the annotation process and ensuring alignment and consistency of the outputs. The recruitment process involved appointing language coordinators based on prior experience in similar projects. An-notators signed contracts specifying the purpose of the data collection and the compensation provided. Everyone involved in the work received training in fact-checking and verification, along with video and textual guidelines for using the tools at each stage of the data annotation process. Before full participation, annotators completed trial tasks that were reviewed and verified by the language coordi-nators to ensure quality. Appropriate compensation was provided to all contributors involved in the project in accordance with international wage stan-dards. 
+
+C Information Retrieval Results 
+
+Table 11 presents additional evaluation results on the AfrIFact-Health dataset as complement to Ta-ble 4. Specifically: 1. Monolingual Corpus on Health : Queries from each language only search for relevant doc-uments from documents in the same lan-guage under the health domain, e.g., Amharic queries are only searched against Amharic documents. 2. Multilingual Corpus on Health : Queries in each language are searched against documents in all 11 languages. As documents are paral-lel across languages, now each query has 11 copies of relevant documents, which all con-tribute to the evaluation of retrieval results. All documents are still from the health do-main. 3. Multilingual Corpus on Health and Culture-News : [in main table] Queries in each lan-guage are additionally searched against doc-uments in all languages from culture-news domains. Evaluations stays the same as Multi-lingual Corpus on Health .4. Multilingual Corpus on Health and Culture-News (eval on monolingual ground-truth : [in main table] Identical corpus as above, but exclude relevant documents from non-query-language in retrieval results and ground-truth during evaluation. In the above settings, the retrieval corpus grad-ually moved from monolingual mono-domain to multilingual multi-domain, where settings 3 and 4 are used as the main evaluation reported in Table 4 so as to achieve a unified corpus with culture-news domains. Comparing results from the above 4 settings, we have two major observations: First, embed-ding models struggle with placing relevant docu-ments from non-query languages on top of non-relevant documents from query languages : Mov-ing from setting 1 to 2, i.e., monolingual-health to multilingual-health, scores of models are at least cut by half if not smaller, and it is not better when using English queries. Second, embedding models are overall ro-bust to additional non-relevant documents from other languages or domains . Mov-ing from 1 to 4 (corpus includes more non-relevant documents from other languages and domains), while some embeddings are heavily impacted (e.g., multilingual-e5-large ), the scale is smaller than when introducing rele-vant documents from other languages as men-tioned above. Moreover, some embedding mod-els are barely affected by the “noise” document — multilingual-e5-large-inst. maintains the same effectiveness overall on both English and African languages (i.e., 0.629 v.s. 0.614 on English, language Amharic English Hausa Igbo Twi Oromo Shona Swahili Wolof Yoruba Zulu Total                                                                                                             
+
+> AfrIFact-Health
+> SUPPORT 284 284 284 284 284 284 284 284 284 284 284 3124 REFUTES 283 283 283 283 283 283 283 283 283 283 283 3113 NEI 281 281 281 281 281 281 281 281 281 281 281 3091 Total 848 848 848 848 848 848 848 848 848 848 848 9328
+> AfrIFact-Culture-News
+> SUPPORT 285 263 282 278 278 271 291 307 246 275 286 3062 REFUTES 253 267 213 272 272 271 212 211 256 269 225 2721 NEI 275 283 336 263 263 271 310 295 311 269 302 3178 TOTAL 810 810 828 810 810 810 810 810 810 810 810 8928 TOTAL 1658 1658 1676 1658 1658 1658 1658 1658 1658 1658 1658 18256
+
+Table 7: Detailed distribution of annotated examples in the AfrIFact dataset across languages, domains, and verification labels. The table reports the number of instances labeled as SUPPORTS , REFUTES , and 
+
+NOT_ENOUGH_INFORMATION (Not Enough Information) for each language in the AfrIFact-Health and AfrIFact-Culture-News domains. 
+
+Language Class Fleiss’ Kappa Cohen’s Kappa (avg) Krippendorff’s Alpha Amharic REFUTES 0.80 0.80 0.80 
+
+NOT_ENOUGH_INFORMATION 0.88 0.88 0.88 
+
+SUPPORTS 0.88 0.88 0.88 
+
+Yoruba REFUTES 0.92 0.92 0.92 
+
+NOT_ENOUGH_INFORMATION 0.94 0.94 0.94 
+
+SUPPORTS 0.96 0.96 0.96 
+
+igbo REFUTES 0.67 0.67 0.67 
+
+NOT_ENOUGH_INFORMATION 0.76 0.76 0.76 
+
+SUPPORTS 0.83 0.83 0.83 
+
+Swahili REFUTES 0.82 0.82 0.82 
+
+NOT_ENOUGH_INFORMATION 0.82 0.83 0.83 
+
+SUPPORTS 0.85 0.85 0.85 
+
+oromo REFUTES 0.87 0.87 0.87 
+
+NOT_ENOUGH_INFORMATION 0.94 0.94 0.94 
+
+SUPPORTS 0.87 0.87 0.87 
+
+Hausa REFUTES 0.74 0.75 0.75 
+
+NOT_ENOUGH_INFORMATION 0.80 0.81 0.81 
+
+SUPPORTS 0.86 0.87 0.87 
+
+Shona REFUTES 0.99 0.99 0.99 
+
+NOT_ENOUGH_INFORMATION 0.96 0.96 0.96 
+
+SUPPORTS 0.97 0.97 0.97 
+
+Wolof REFUTES 0.79 0.79 0.79 
+
+NOT_ENOUGH_INFORMATION 0.78 0.78 0.78 
+
+SUPPORTS 0.82 0.82 0.82 
+
+English REFUTES 0.84 0.84 0.84 
+
+NOT_ENOUGH_INFORMATION 0.72 0.72 0.72 
+
+SUPPORTS 0.78 0.78 0.78 
+
+Twi REFUTES 0.74 0.74 0.74 
+
+NOT_ENOUGH_INFORMATION 0.79 0.79 0.79 
+
+SUPPORTS 0.84 0.84 0.84 
+
+Zulu REFUTES 0.84 0.84 0.84 
+
+NOT_ENOUGH_INFORMATION 0.72 0.72 0.72 
+
+SUPPORTS 0.77 0.78 0.77 
+
+Table 8: Inter-Annotator Agreement Metrics by Language and Category for AfrIFact-Culture-News , showing substantial to great agreement score. 
+
+0.424 v.s. 0.421 on average on African languages). The same observation is made moving from 2 to 3 (a multilingual corpus includes more non-relevant documents from other domains), where the overall scores are not impacted. 
+
+D Evidence Extraction Detailed Metrics 
+
+Table 13 shows recall@3 alternative metric scores for evidence retrieval from a single document. Language Family/branch Region # speakers # chars in MADLAD (MB)                                         
+
+> Swahili (swa) Niger-Congo / Bantu East & Central Africa 71M–106M 2,400MB Hausa (hau) Afro-Asiatic / Chadic West Africa 77M 630MB Amharic (amh) Afro-Asiatic / Ethio-Semitic East Africa 57M 509MB chiShona (sna) Niger-Congo / Bantu Southern Africa 11M 266MB isiZulu (zul) Niger-Congo / Bantu Southern Africa 27M 257MB Igbo (ibo) Niger-Congo / Volta-Niger West Africa 31M 251MB Yoruba (yor) Niger-Congo / Volta-Niger West Africa 46M 239MB Oromo (orm) Afro-Asiatic / Cushitic East Africa 37M 88MB Twi (twi) Niger-Congo / Kwa West Africa 9M 25MB Wolof (wol) Niger-Congo / Senegambia West Africa 5M 5MB
+
+Table 9: Languages represented in AfrIFact dataset. The table reports the language family and branch, geographic region, countries where the language is widely spoken, and the approximate number of speakers.                                             
+
+> Language Country Gender Distribution (LC/Annotator) Qualifications Resides in Country
+> Amharic Ethiopia M / 2M1F Linguistics, CS, Translation ✓
+> Hausa Nigeria M / 2M1F Linguistics and translation ✓
+> Igbo Nigeria F / 1M2F Language studies ✓
+> Twi Ghana F / 1M2F Linguistics, education ✓
+> Oromo Ethiopia F/ 2F1M Linguistics and journalism ✓
+> Shona Zimbabwe F / 2M1F Language studies and translation ✓
+> Swahili Kenya M / 2M1F Linguistics, education ✓
+> Wolof Senegal M / 2M1F Linguistics and translation ✓
+> Yoruba Nigeria F / 1M2F Linguistics, NLP annotation ✓
+> Zulu South Africa F / 1M2F Linguistics and education ✓
+
+Table 10: Summary of annotator teams involved in the creation of the AfriFact dataset. For each language, we report the country context, gender of the language coordinator (LC), gender distribution of the three annotators, a summary of annotator qualifications, and whether annotators reside in the corresponding language region. 
+
+E Fact Classification Detailed Scores 
+
+In Table 15, we observe that providing labeled evi-dence does not consistently improve fact-checking accuracy. Many models collapse to near-random performance in the zero-shot setting, indicating difficulty in understanding the task without demon-strations. Few-shot examples often yield dra-matic improvements of up to 43 points for mod-els such as AfriqueQwen-14B . Increasing model size generally improves performance, but gains plateau beyond mid-scale models. English con-sistently achieves higher scores than African lan-guages, highlighting a persistent multilingual per-formance gap. Languages such as Wolof, Twi, and Yoruba show lower scores across most models, while GPT-5.2 demonstrates substantially higher performance across all evaluation settings. 
+
+F Translation Verification Tasks 
+
+In AfrIFact-Health , all claim generation, evidence extraction, and labeling are performed in English. This design choice offers three main advantages. First, it ensures that new annotators can more easily understand and perform the task. Second, given the availability of sentence-level translations in AfriDocMT, evidence spans annotated in English can be directly translated into other languages, sig-nificantly reducing the human effort required to transfer evidence across languages and helping us cover the healthcare domain, which lacks sufficient native resources. Figure 7 shows translation qual-ities and modifications and corrections made by translators. 
+
+G Setup and Reproducibility 
+
+G.1 Evaluation 
+
+We conducted all evaluations using EleutherAI’s open-source Language Model Evaluation Harness (lm-eval ) (Gao et al., 2024). The framework supports multiple evaluation strategies, includ-ing log-likelihood, with experiments configured and managed via configuration files. For open-source models, we employed log-likelihood and generation-based evaluation for multiple-choice tasks as shown in (Adelani et al., 2025). In multiple-choice, each candidate option is appended to the corresponding question prompt, after which the log-likelihood is computed. Model accuracy is Figure 5: Why is evidence not helping improve accuracy? Evidence introduces a conservative shift in model predictions: in Health, it reduces hallucinated SUPPORTS but increases NOT_ENOUGH_INFORMATION predictions, while in Culture, it significantly improves NEI detection by reducing false S UPPORTS classifications. In the Health domain NOT_ENOUGH_INFORMATION and SUPPORTS improve while in the culture domain, the model tends to be good at identifying NOT_ENOUGH_INFORMATION when evidence is provided. In both domains, the model confusion between SUPPORTS and REFUTES improves with evidence provided. SUPPORTS 
+
+> REFUTES
+> NOT_ENOUGH_INFORMATION
+
+Predicted label 
+
+SUPPORTS 
+
+REFUTES 
+
+NOT_ENOUGH_INFORMATION 
+
+> True label
+
+2085 90 388 
+
+303 1461 799 
+
+29 1 2522 
+
+Health - With Evidence (Overall) 
+
+> SUPPORTS
+> REFUTES
+> NOT_ENOUGH_INFORMATION
+
+Predicted label 
+
+SUPPORTS 
+
+REFUTES 
+
+NOT_ENOUGH_INFORMATION 
+
+> True label
+
+2270 134 159 
+
+394 1694 475 
+
+130 9 2413 
+
+Health - Without Evidence (Overall) 
+
+> SUPPORTS
+> REFUTES
+> NOT_ENOUGH_INFORMATION
+
+Predicted label 
+
+SUPPORTS 
+
+REFUTES 
+
+NOT_ENOUGH_INFORMATION 
+
+> True label
+
+1983 67 403 
+
+104 1561 532 
+
+37 49 2414 
+
+Culture - With Evidence (Overall) 
+
+> SUPPORTS
+> REFUTES
+> NOT_ENOUGH_INFORMATION
+
+Predicted label 
+
+SUPPORTS 
+
+REFUTES 
+
+NOT_ENOUGH_INFORMATION 
+
+> True label
+
+2256 89 108 
+
+181 1740 276 
+
+549 141 1810 
+
+Culture - Without Evidence (Overall) 
+
+Figure 6: Distribution of COMET scores for claim and document translations across African languages. The upper grid shows histograms of COMET scores for claim translations across ten languages, while the lower grid presents score distributions for document translations in five languages (Igbo, Oromo, Shona, Twi, and Wolof). This fixed or false alarm percentages items that has below 0.6 COMET scores colored red and addressed by annotators. 0.0 0.2 0.4 0.6 0.8 1.0 
+
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> Frequency
+
+Claim Translation - Amharic      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> Frequency
+
+Claim Translation - Hausa      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 25
+> 50
+> 75
+> 100
+> 125
+> 150
+> 175
+> 200
+> Frequency
+
+Claim Translation - Igbo      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> Frequency
+
+Claim Translation - Oromo      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> Frequency
+
+Claim Translation - Shona      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> Frequency
+
+Claim Translation - Swahili      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 25
+> 50
+> 75
+> 100
+> 125
+> 150
+> 175
+> Frequency
+
+Claim Translation - Twi      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> Frequency
+
+Claim Translation - Wolof      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> Frequency
+
+Claim Translation - Yoruba      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> Frequency
+
+Claim Translation - Zulu Model English Amharic Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. ∆
+
+Monolingual Corpus on Health 
+
+multilingual-e5-large 0.524 0.422 0.366 0.385 0.444 0.354 0.371 0.323 0.348 0.259 0.387 0.366 -0.158 
+
+multilingual-e5-large-inst. 0.629 0.426 0.372 0.438 0.476 0.384 0.517 0.420 0.464 0.313 0.433 0.424 -0.205 
+
+AfriE5-Large-instruct 0.593 0.431 0.394 0.431 0.449 0.412 0.525 0.391 0.408 0.301 0.424 0.417 -0.176 
+
+Qwen3-Embedding-0.6B 0.558 0.286 0.169 0.267 0.360 0.206 0.326 0.282 0.336 0.150 0.204 0.259 -0.299 
+
+Qwen3-Embedding-4B 0.546 0.326 0.233 0.274 0.341 0.212 0.363 0.325 0.394 0.208 0.262 0.294 -0.252 
+
+Qwen3-Embedding-8B 0.582 0.373 0.208 0.293 0.385 0.258 0.403 0.354 0.386 0.234 0.285 0.318 -0.264 
+
+Multilingual Corpus on Health 
+
+multilingual-e5-large 0.200 0.149 0.145 0.176 0.141 0.147 0.192 0.114 0.114 0.136 0.174 0.149 -0.051 
+
+multilingual-e5-large-inst. 0.234 0.094 0.092 0.118 0.134 0.117 0.149 0.109 0.116 0.085 0.123 0.114 -0.120 
+
+AfriE5-Large-instruct 0.299 0.237 0.222 0.250 0.215 0.227 0.287 0.186 0.174 0.172 0.258 0.223 -0.076 
+
+Qwen3-Embedding-0.6B 0.175 0.065 0.071 0.107 0.118 0.075 0.115 0.102 0.115 0.081 0.083 0.093 -0.082 
+
+Qwen3-Embedding-4B 0.186 0.088 0.077 0.101 0.111 0.075 0.133 0.109 0.132 0.096 0.105 0.103 -0.083 
+
+Qwen3-Embedding-8B 0.212 0.124 0.081 0.111 0.121 0.099 0.159 0.120 0.132 0.104 0.118 0.117 -0.095 
+
+Multilingual Corpus on Health (eval on monolingual ground-truth) 
+
+multilingual-e5-large 0.448 0.367 0.208 0.165 0.377 0.150 0.180 0.226 0.215 0.117 0.205 0.221 -0.227 
+
+multilingual-e5-large-inst. 0.613 0.426 0.372 0.436 0.472 0.384 0.517 0.417 0.461 0.313 0.428 0.423 -0.190 
+
+AfriE5-Large-instruct 0.501 0.385 0.295 0.270 0.335 0.311 0.376 0.326 0.335 0.236 0.316 0.319 -0.183 
+
+Qwen3-Embedding-0.6B 0.513 0.287 0.156 0.236 0.353 0.191 0.293 0.276 0.328 0.120 0.190 0.243 -0.270 
+
+Qwen3-Embedding-4B 0.507 0.326 0.231 0.247 0.329 0.209 0.341 0.321 0.379 0.175 0.255 0.281 -0.226 
+
+Qwen3-Embedding-8B 0.549 0.372 0.202 0.259 0.361 0.249 0.377 0.342 0.363 0.187 0.276 0.299 -0.250 
+
+Multilingual Corpus on Health and Culture-News 
+
+multilingual-e5-large 0.149 0.123 0.113 0.119 0.138 0.141 0.189 0.107 0.105 0.133 0.171 0.134 -0.015 
+
+multilingual-e5-large-inst. 0.229 0.094 0.092 0.118 0.133 0.116 0.148 0.105 0.115 0.085 0.123 0.113 -0.116 
+
+AfriE5-Large-instruct 0.298 0.235 0.221 0.248 0.215 0.224 0.287 0.183 0.173 0.172 0.257 0.222 -0.077 
+
+Qwen3-Embedding-0.6B 0.171 0.065 0.070 0.106 0.111 0.073 0.112 0.098 0.111 0.081 0.082 0.091 -0.080 
+
+Qwen3-Embedding-4B 0.184 0.087 0.077 0.100 0.103 0.073 0.132 0.103 0.126 0.095 0.102 0.100 -0.084 
+
+Qwen3-Embedding-8B 0.207 0.123 0.077 0.109 0.115 0.097 0.158 0.115 0.126 0.104 0.117 0.114 -0.093 
+
+Multilingual Corpus on Health and Culture-News (eval on monolingual ground-truth) 
+
+multilingual-e5-large 0.465 0.383 0.231 0.207 0.387 0.189 0.236 0.241 0.216 0.156 0.254 0.250 -0.215 
+
+multilingual-e5-large-inst. 0.614 0.426 0.372 0.436 0.473 0.380 0.516 0.41 0.455 0.313 0.432 0.421 -0.193 
+
+AfriE5-Large-instruct 0.512 0.421 0.340 0.323 0.358 0.354 0.456 0.328 0.346 0.278 0.379 0.358 -0.154 
+
+Qwen3-Embedding-0.6B 0.506 0.284 0.161 0.250 0.324 0.195 0.308 0.259 0.314 0.128 0.194 0.242 -0.264 
+
+Qwen3-Embedding-4B 0.501 0.323 0.229 0.251 0.299 0.209 0.353 0.303 0.362 0.181 0.250 0.276 -0.225 
+
+Qwen3-Embedding-8B 0.534 0.368 0.192 0.272 0.341 0.246 0.387 0.333 0.343 0.216 0.278 0.298 -0.236 
+
+Table 11: AfrIFact-Health nDCG@10 scores when retrieving queries from different corpus and evaluated on corresponding qrels. Figure 7: Distribution of COMET scores for document translations across African languages. This fixed or false alarm percentages items that has below 0.6 COMET scores colored red and addressed by annotators. 0.0 0.2 0.4 0.6 0.8 1.0                     
+
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> 350
+> 400
+> Frequency
+> Doc Translation COMET - Igbo
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> 600
+> Frequency
+> Doc Translation COMET - Oromo
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> 350
+> 400
+> Frequency
+> Doc Translation COMET - Shona
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> Frequency
+> Doc Translation COMET - Twi
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> COMET Score
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> Frequency
+> Doc Translation COMET - Wolof
+
+then reported based on the option with the highest log-likelihood score. For the GPT-5.2 model, we created the same prompts and used batched API generation to reduce costs by selecting only the best prompt. Evaluation costs are close to 400 USD for GPT models across all variants. All experiments use temperature=0, top_p=1. 
+
+G.2 Finetuning 
+
+To fine-tune LLLMs, we leveraged LLaMA-Factory (Zheng et al., 2024b), an open-source framework that supports efficient fine-tuning through parameter-efficient methods and scalable training pipelines. We performed LoRA-based su-pervised fine-tuning on our dataset using one H100 GPU. Our Training split was converted to the Al-paca instruction format and will be shared as part of our released resources. Training was conducted for three epochs using a LoRA rank of 8 and an effective batch size of 8 via gradient accumula-tion. For the QLoRA trainings we did, we kept the same hyper parameters with LORA and modified it to have 8 and 4-bit bits and bytes quantization. For full finetuning, we leveraged LLaMA-Factory, configurations with the same 3 epochs across 4 H100 GPUs. Detailed training configuration will be released in our GitHub training code examples. A systematic exploration and optimization of hy-Model English A-Avg. ∆                                                                         
+
+> Monolingual Corpus on Health
+> multilingual-e5-large 0.524 0.366 -0.158
+> multilingual-e5-large-inst. 0.629 0.424 -0.205
+> AfriE5-Large-instruct 0.593 0.417 -0.176
+> Qwen3-Embedding-0.6B 0.558 0.259 -0.299
+> Qwen3-Embedding-4B 0.546 0.294 -0.252
+> Qwen3-Embedding-8B 0.582 0.318 -0.264
+> Multilingual Corpus on Health
+> multilingual-e5-large 0.200 0.149 -0.051
+> multilingual-e5-large-inst. 0.234 0.114 -0.120
+> AfriE5-Large-instruct 0.299 0.223 -0.076
+> Qwen3-Embedding-0.6B 0.175 0.093 -0.082
+> Qwen3-Embedding-4B 0.186 0.103 -0.083
+> Qwen3-Embedding-8B 0.212 0.117 -0.095
+> Multilingual Corpus on Health and Culture-News
+> multilingual-e5-large 0.149 0.134 -0.015
+> multilingual-e5-large-inst. 0.229 0.113 -0.116
+> AfriE5-Large-instruct 0.298 0.222 -0.077
+> Qwen3-Embedding-0.6B 0.171 0.091 -0.080
+> Qwen3-Embedding-4B 0.184 0.100 -0.084
+> Qwen3-Embedding-8B 0.207 0.114 -0.093
+> Multilingual Corpus on Health and Culture-News (eval on mono)
+> multilingual-e5-large 0.465 0.250 -0.215
+> multilingual-e5-large-inst. 0.614 0.421 -0.193
+> AfriE5-Large-instruct 0.512 0.358 -0.154
+> Qwen3-Embedding-0.6B 0.506 0.242 -0.264
+> Qwen3-Embedding-4B 0.501 0.276 -0.225
+> Qwen3-Embedding-8B 0.534 0.298 -0.236
+
+Table 12: AfrIFact-Health nDCG@10 scores when retrieving queries from different corpora and evaluated on corresponding qrels. Table 11 reports results per-language. 
+
+perparameters, including LoRA configuration and training dynamics, is left for future work. 
+
+H Without Evidence and With Evidence Prompt Examples 
+
+We worked on prompts that focus on docment +
+
+claim for without evidence and document +
+
+evidence + claim for with evidence span. Given the log-likelihood eval we used for open models, we make the claim and evidence closer together. 
+
+Prompt 1 
+
+SYSTEM: 
+
+You are a helpful assistant for automated fact-checking. Your task is to analyze claims based solely on the pro-vided document. 
+
+USER: 
+
+You are an intelligent decision support system de-signed for automated fact-checking. Determine whether the document Supports , Refutes , or provides 
+
+Not_Enough_Information for the given claim. Veracity: Support, Refute, Not_Enough_Information, Justification: Detailed reasoning addressing clar-ity,relevance, consistency, and sufficiency of the doc-ument 
+
+Definitions for Veracity Labels: 
+
+• Support: The claim is accurate and there is noth-ing significant missing. • Refute: The claim is inaccurate, contradicted by the document, or makes an incorrect assertion. • Not_Enough_Information: The document is in-sufficient, unrelated, or does not provide enough relevant information to determine whether the claim is true or false. Determine whether the claim is Supported , Refuted ,or Not_Enough_Information based ONLY on the pro-vided document. 
+
+Document: 
+
+{DOCUMENT} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the document above, does it Support, Re-fute, or provide Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or 
+
+NOT_ENOUGH_INFORMATION )
+
+Prompt 2 
+
+Role: 
+
+You are a professional fact checker responsible for veri-fying factual claims. 
+
+Objective: 
+
+Assess the relationship between a claim and the provided document by determining whether the document Sup-ports , Refutes , or provides Not_Enough_Information 
+
+for the claim. 
+
+Constraints: 
+
+• Use only the document provided below. • Do not rely on prior knowledge, assumptions, or external information. • If the document does not clearly support or contra-dict the claim, select Not_Enough_Information .
+
+Document: 
+
+{DOCUMENT} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the document above, does it Support ,
+
+Refute , or provide Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or 
+
+NOT_ENOUGH_INFORMATION )  
+
+> Prompt 3
+> SYSTEM:
+> You are a helpful assistant for Multilingual Evidence-Centered Fact Ver-ification. Your task is to analyze claims based solely on the provided documents.
+> USER:
+> You are an intelligent decision support system designed for automated fact-checking. Determine whether the document Supports ,Refutes , or
+
+Table 13: AfrIFact Recall@3 Evidence Extraction Scores. 
+
+model English Amharic Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. ∆
+
+AfrIFact-Health 
+
+multilingual-e5-large 0.820 0.408 0.460 0.403 0.439 0.509 0.586 0.396 0.484 0.325 0.495 0.450 -0.369 
+
+multilingual-e5-large-inst. 0.822 0.380 0.455 0.401 0.422 0.507 0.572 0.398 0.473 0.317 0.478 0.440 -0.382 
+
+AfriE5-Large-instruct 0.822 0.412 0.464 0.412 0.437 0.513 0.574 0.409 0.506 0.337 0.495 0.456 -0.366 
+
+Qwen3-Embedding-0.6B 0.823 0.355 0.444 0.344 0.402 0.444 0.548 0.350 0.470 0.300 0.417 0.407 -0.416 
+
+Qwen3-Embedding-4B 0.825 0.373 0.443 0.349 0.395 0.458 0.567 0.347 0.480 0.294 0.440 0.415 -0.410 
+
+Qwen3-Embedding-8B 0.827 0.377 0.424 0.381 0.408 0.478 0.587 0.344 0.473 0.317 0.462 0.425 -0.402 
+
+AfrIFact-Culture-News 
+
+multilingual-e5-large 0.807 0.637 0.589 0.606 0.560 0.808 0.616 0.512 0.474 0.391 0.390 0.558 -0.248 
+
+multilingual-e5-large-inst. 0.790 0.644 0.572 0.604 0.595 0.805 0.616 0.491 0.489 0.419 0.394 0.563 -0.227 
+
+AfriE5-Large-instruct 0.797 0.639 0.585 0.632 0.595 0.808 0.638 0.498 0.481 0.423 0.395 0.569 -0.228 
+
+Qwen3-Embedding-0.6B 0.825 0.613 0.552 0.591 0.570 0.801 0.603 0.495 0.484 0.391 0.379 0.548 -0.277 
+
+Qwen3-Embedding-4B 0.848 0.623 0.572 0.618 0.573 0.810 0.638 0.483 0.479 0.396 0.366 0.556 -0.292 
+
+Qwen3-Embedding-8B 0.836 0.634 0.581 0.627 0.571 0.803 0.638 0.473 0.484 0.410 0.382 0.560 -0.276 
+
+Table 14: AfrIFact-Health 0-shot/3-shot Accuracy Scores. The best open source models are Bold, and the best overall models are grayed. 
+
+Model Amharic English Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. 
+
+AfrIFact-Health With Evidence 
+
+AfriqueGemma-12B 38.11/38.68 36.01/47.66 36.82/38.44 38.59/40.40 38.68/39.40 35.20/41.17 34.48/38.40 34.81/34.48 34.19/33.38 35.96/35.86 37.73/38.78 36.46/37.90 
+
+AfriqueQwen-14B 33.24/71.11 33.24/92.26 34.53/84.19 33.29/83.38 33.24/86.44 33.24/86.87 34.96/86.34 33.24/58.17 33.24/54.97 33.91/79.27 34.53/81.76 33.74/ 77.25 
+
+Command R v01 39.06/35.24 63.75/89.83 40.54/45.08 38.49/44.56 36.91/55.06 39.54/47.66 45.32/46.94 36.68/48.95 35.77/52.96 37.73/38.97 42.88/49.28 39.29/46.47 
+
+Gemma-3-12B-it 38.59/39.02 58.07/71.30 55.21/58.31 58.60/60.74 52.58/53.39 56.26/63.18 58.36/63.80 45.46/47.23 38.40/43.36 35.77/35.91 54.58/56.30 49.38/52.13 
+
+Gemma-3-1B-it 34.77/35.91 34.34/52.39 34.24/35.51 33.76/36.51 33.67/33.72 33.76/37.18 35.82/39.21 33.67/35.10 33.43/34.15 34.62/34.03 34.00/35.24 34.17/35.65 
+
+Gemma-3-27B-it 40.16/40.15 84.38/88.97 64.33/69.70 68.10/68.02 64.47/65.83 73.93/75.82 72.87/78.40 47.18/45.95 47.85/43.70 38.40/38.11 65.09/67.19 58.24 /59.29 
+
+Gemma-3-4B-it 35.43/35.96 58.40/74.93 44.94/47.99 46.08/46.18 44.70/41.45 55.92/54.35 54.63/62.89 40.83/37.92 41.31/37.01 34.72/34.72 48.90/50.00 44.75/44.85 
+
+Llama-3-70B-instruct 49.90/42.17 79.13/89.68 60.70/73.97 63.51/73.69 61.27/69.58 56.06/65.52 67.72/86.44 57.55/59.22 53.77/60.46 50.48/43.74 57.50/67.14 57.85/64.19 
+
+Qwen-3-14B 36.29/63.56 34.67/73.59 33.52/45.56 33.81/43.70 35.82/40.69 34.57/44.56 39.97/55.44 33.24/45.89 35.48/41.98 34.48/42.31 35.82/51.00 35.30/47.47 
+
+Tiny-Aya-Global 33.24/44.70 33.38/68.15 34.05/42.36 33.24/47.80 33.24/36.96 33.29/51.43 37.63/48.90 33.24/34.91 33.24/45.80 34.19/36.87 34.72/46.56 34.01/43.63 
+
+GPT-5.2 80.95/78.94 83.24/84.10 78.22/77.65 79.51/79.94 78.65/78.65 80.80/79.80 82.52/80.23 75.64/76.36 73.93/74.50 78.51/77.08 77.36/75.79 78.61/77.89 
+
+AfrIFact-Health Without Evidence 
+
+AfriqueGemma-12B 34.86/33.62 37.01/53.49 34.34/35.77 34.15/34.48 34.29/32.38 34.81/39.88 34.48/38.59 34.10/29.51 33.86/31.81 33.24/28.75 34.57/32.38 34.27/33.72 
+
+AfriqueQwen-14B 33.43/73.73 33.43/79.42 33.29/72.54 33.81/71.30 33.29/72.87 33.38/72.45 33.29/75.64 33.29/54.63 33.33/49.43 33.52/70.92 33.33/71.87 33.40/ 68.54 
+
+Command R v01 34.86/39.45 51.05/80.04 33.67/47.66 33.81/47.33 33.48/56.69 33.67/51.00 36.58/53.34 33.57/50.00 33.43/52.01 33.43/46.13 34.19/57.93 34.07/50.15 
+
+Gemma-3-12B-it 50.91/55.01 58.55/70.15 39.92/53.34 39.40/43.31 38.44/43.98 40.74/52.87 47.99/59.84 33.14/35.48 32.81/35.10 31.76/33.24 42.55/48.95 39.77/46.11 
+
+Gemma-3-1B-it 34.81/36.53 37.01/51.58 33.43/35.74 33.57/34.89 34.15/33.98 35.48/37.42 35.05/41.79 33.29/34.36 35.00/33.93 33.24/33.21 34.10/34.17 34.21/35.60 
+
+Gemma-3-27B-it 71.74/67.87 79.51/76.32 67.80/64.53 63.68/59.60 59.74/55.65 70.24/66.15 74.36/71.61 44.23/38.64 44.59/37.30 45.24/43.67 64.90/58.68 60.65 /56.37 
+
+Gemma-3-4B-it 33.14/53.10 41.26/67.81 30.85/49.81 30.95/39.40 28.46/39.59 29.70/47.85 33.91/58.36 27.84/35.58 25.26/40.35 30.52/32.62 33.38/46.56 30.40/44.32 
+
+Llama-3-70B-instruct 51.09/50.86 70.95/79.37 56.50/68.39 55.53/64.66 47.68/60.08 48.51/57.69 61.72/75.17 47.74/51.58 42.75/52.63 45.07/47.18 54.50/59.89 51.11/58.81 
+
+Qwen-3-14B 29.99/34.19 28.61/60.98 25.74/39.68 24.21/37.15 28.13/37.01 25.07/38.63 27.79/40.74 24.83/36.25 27.08/39.06 25.93/35.77 22.78/40.83 26.16/37.93 
+
+Tiny-Aya-Global 33.29/50.96 33.24/62.23 33.24/47.23 33.19/46.90 33.29/37.82 33.29/49.71 33.29/53.15 33.29/34.96 33.29/41.55 33.05/43.51 33.19/46.47 33.24/45.22 
+
+GPT-5.2 86.96/83.38 88.25/86.82 82.95/80.37 83.67/81.38 82.52/80.95 85.10/81.66 84.81/82.23 79.23/78.94 77.36/78.08 82.09/79.37 80.66/79.08 82.54/80.54 
+
+Table 15: AfrIFact-Culture-News 0-shot/3-shot Accuracy Scores. The best open source models are Bold, and the best overall models are grayed. 
+
+Model Amharic English Hausa Igbo Oromo Shona Swahili Twi Wolof Yoruba Zulu A-Avg. 
+
+AfrIFact-Culture-News With Evidence 
+
+AfriqueGemma-12B 36.10/39.10 45.70/57.70 36.10/44.50 33.70/36.70 35.60/39.00 37.30/48.20 32.00/34.20 31.10/32.30 37.40/36.70 33.60/35.50 34.10/43.40 34.70/38.96 
+
+AfriqueQwen-14B 33.50/77.00 35.40/99.90 37.60/77.10 31.80/78.40 32.80/80.80 37.50/76.80 36.60/71.80 30.60/61.10 38.60/44.70 34.00/74.60 36.80/70.10 34.98/ 71.24 
+
+Command R v01 42.80/39.20 53.60/92.80 37.50/47.10 32.60/46.30 33.00/57.50 38.70/43.50 39.10/58.20 31.30/48.90 38.60/42.60 37.60/41.70 43.80/47.10 37.50/47.21 
+
+Gemma-3-12B-it 61.60/65.10 82.60/86.40 59.50/63.10 58.10/60.70 47.60/53.60 51.00/63.50 56.40/57.80 45.60/50.70 39.40/44.50 49.80/52.70 54.40/57.00 52.34/56.87 
+
+Gemma-3-1B-it 35.00/33.70 35.20/54.70 38.10/37.00 31.80/38.70 32.80/38.00 37.70/33.60 36.30/30.80 30.70/33.80 38.70/37.20 35.10/36.90 37.50/32.70 35.37/35.24 
+
+Gemma-3-27B-it 80.60/81.80 98.70/98.80 70.90/73.60 73.90/75.30 69.20/68.00 74.10/76.60 65.30/66.10 59.80/61.30 48.40/49.00 64.20/64.90 67.40/70.10 67.38 /68.67 
+
+Gemma-3-4B-it 58.70/61.30 63.00/75.40 51.70/56.30 49.80/51.00 46.50/49.20 50.90/54.90 52.60/55.10 46.20/45.10 40.40/40.60 44.40/46.80 46.60/52.30 48.78/51.26 
+
+Qwen-3-14B 38.50/67.30 46.80/72.10 35.90/54.60 37.10/53.20 36.60/49.70 37.30/64.60 37.70/50.50 36.60/53.80 31.60/49.10 35.50/51.00 37.30/55.70 36.41/54.95 
+
+Tiny-Aya-Global 33.50/57.30 40.60/64.20 43.90/41.10 32.10/50.50 32.80/41.60 37.50/52.10 40.80/46.80 30.60/43.50 38.60/41.30 39.20/39.30 42.30/43.70 37.13/45.72 
+
+GPT-5.2 89.69/89.23 97.54/99.38 86.46/85.85 84.15/87.23 80.15/81.54 85.38/82.62 71.23/73.38 78.00/81.38 79.23/79.54 82.77/86.00 82.00/83.54 81.91/83.03 
+
+AfrIFact-Culture-News Without Evidence 
+
+AfriqueGemma-12B 33.60/34.70 33.70/34.10 40.10/40.90 31.30/32.70 32.90/33.70 37.40/45.10 36.10/37.70 30.70/32.80 37.60/36.80 32.20/34.10 37.50/38.10 34.94/36.66 
+
+AfriqueQwen-14B 35.30/66.30 33.40/86.90 39.50/66.50 33.00/67.30 34.40/64.80 38.30/67.50 36.90/57.90 31.00/52.70 38.70/38.20 32.20/59.50 38.00/62.80 35.73/ 60.35 
+
+Command R v01 38.30/41.60 43.60/80.70 39.90/47.70 32.60/52.50 33.40/57.80 38.60/49.50 38.60/54.90 31.30/50.90 38.90/39.80 32.40/48.10 38.80/49.50 36.28/49.23 
+
+Gemma-3-12B-it 41.20/45.40 45.00/51.10 49.50/55.80 39.40/43.40 38.50/46.00 47.50/57.90 46.90/52.40 36.60/41.50 38.60/40.50 36.30/42.30 47.80/55.20 42.23/48.04 
+
+Gemma-3-1B-it 34.30/35.60 33.60/43.80 40.20/35.00 31.70/36.70 32.60/37.50 37.50/38.10 36.90/30.40 30.80/34.30 38.70/35.30 32.70/37.50 37.60/34.40 35.30/35.48 
+
+Gemma-3-27B-it 59.90/60.70 67.10/65.90 68.40/65.60 58.70/56.70 60.10/56.90 66.30/65.20 64.80/63.40 51.00/50.60 43.80/39.60 54.00/52.70 62.50/62.90 58.95 /57.43 
+
+Gemma-3-4B-it 38.50/42.50 42.50/48.60 47.30/53.30 36.50/40.50 35.10/40.30 41.10/49.70 43.80/51.50 34.50/37.70 38.50/39.60 34.50/41.50 41.70/49.60 39.15/44.62 
+
+Qwen-3-14B 37.60/41.60 47.50/54.40 42.20/48.80 38.50/46.20 38.20/46.60 39.40/53.10 44.10/43.30 36.70/48.30 33.70/40.30 38.10/43.60 38.10/47.50 38.66/45.93 
+
+Tiny-Aya-Global 33.50/55.40 33.50/50.50 40.40/47.40 31.70/51.60 32.80/45.90 37.50/53.90 36.80/52.50 30.60/45.20 38.60/41.30 32.00/48.20 37.50/48.50 35.14/48.99 
+
+GPT-5.2 84.00/83.23 97.54/98.00 81.54/83.08 84.92/85.54 87.23/87.54 74.31/74.31 71.23/72.00 91.54/89.54 70.62/70.46 81.08/81.08 69.23/68.77 79.57/79.55 
+
+provides Not_Enough_Information for the given claim. 
+
+Role: 
+
+You are an independent fact checker tasked with evaluating factual claims in linguistically diverse settings. 
+
+Objective: 
+
+Determine the factual status of a claim by interpreting the provided 
+
+document, which may appear in different languages or linguistic varieties, and decide whether the document confirms the claim, contradicts it, or fails to address it. 
+
+Constraints: 
+
+• Base your judgment exclusively on the document provided, re-gardless of language or linguistic variation. • Do not use background knowledge, assumptions, or external sources. • If the document does not directly confirm or contradict the claim, choose Not_Enough_Information .
+
+Document: 
+
+{DOCUMENT} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the document above, does it Support , Refute , or provide 
+
+Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or NOT_ENOUGH_INFORMATION )
+
+Prompt 1 
+
+SYSTEM: 
+
+You are a helpful assistant for automated fact-checking. Your task is to analyze claims based on the provided evidence. 
+
+USER: 
+
+You are an intelligent decision support system designed for auto-mated fact-checking. Based only on the evidence provided be-low, determine whether the evidence Supports , Refutes , or provides 
+
+Not_Enough_Information for the given claim. Veracity: Support, Refute, Not_Enough_Information Justification: Detailed reasoning addressing clarity, relevance, consis-tency, and sufficiency of the evidence 
+
+Definitions for Veracity Labels: 
+
+• Support: The claim is accurate and there is nothing significant missing. • Refute: The claim is inaccurate, contradicted by the evidence, or makes an incorrect assertion. • Not_Enough_Information: The evidence is insufficient, unre-lated, or does not provide enough relevant information to deter-mine whether the claim is true or false. Determine whether the claim is Supported , Refuted , or 
+
+Not_Enough_Information based ONLY on the provided evidence. 
+
+Document: 
+
+{DOCUMENT} 
+
+Evidence: 
+
+{EVIDENCE} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the evidence above, does the evidence Support, Refute, or provide Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or NOT_ENOUGH_INFORMATION )
+
+Prompt 2 
+
+Role: 
+
+You are a professional fact checker responsible for verifying factual claims. 
+
+Objective: 
+
+Assess the relationship between a claim and the provided evidence by determining whether the evidence Supports , Refutes , or provides 
+
+Not_Enough_Information for the claim. 
+
+Constraints: 
+
+• Use only the evidence provided below. • Do not rely on prior knowledge, assumptions, or external infor-mation. • If the evidence does not clearly support or contradict the claim, select Not_Enough_Information .
+
+Document: 
+
+{DOCUMENT} 
+
+Evidence: 
+
+{EVIDENCE} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the evidence above, does the evidence Support , Refute ,or provide Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or NOT_ENOUGH_INFORMATION )
+
+Prompt 3 
+
+SYSTEM: 
+
+You are a helpful assistant for Multilingual Evidence-Centered Fact Veri-fication. Your task is to analyze claims based on the provided evidence. 
+
+USER: 
+
+You are an intelligent decision support system designed for auto-mated fact-checking. Based only on the evidence provided be-low, determine whether the evidence Supports , Refutes , or provides 
+
+Not_Enough_Information for the given claim. 
+
+Role: 
+
+You are an independent fact checker tasked with evaluating factual claims in linguistically diverse settings. 
+
+Objective: 
+
+Determine the factual status of a claim by interpreting the provided evidence, which may appear in different languages or linguistic varieties, and decide whether the evidence confirms the claim, contradicts it, or fails to address it. 
+
+Constraints: 
+
+• Base your judgment exclusively on the evidence provided, regard-less of language or linguistic variation. • Do not use background knowledge, assumptions, or external sources. • If the evidence does not directly confirm or contradict the claim, choose Not_Enough_Information .
+
+Document: 
+
+{DOCUMENT} 
+
+Evidence: 
+
+{EVIDENCE} 
+
+Claim: 
+
+{CLAIM} 
+
+Question: 
+
+Based only on the evidence above, does the evidence Support , Refute ,or provide Not_Enough_Information for the claim? 
+
+Answer: (choose SUPPORTS , REFUTES , or NOT_ENOUGH_INFORMATION )
+
+I Annotation Tool Examples 
+
+Figures 8 and 9 show screenshots of tools used for claim generation and claim labeling tasks. Figure 8: Example interface of the customized tool used for claim generation, showing an Amharic example. 
+
+Figure 9: Example of the customized annotation in-terface used for labeling claims in the claim labeling, showing an English example. 
+
+J Annotation Guide 
+
+Due to multiple tasks and multiple platforms used in our task, we leveraged several guides, includ-ing video, textual, and similar practices on how to perform the tasks, followed by tests and back-and-forth with language coordinators to verify the validity of the tasks. 
+
+AfriFact Annotation Guidelines 
+
+Task 1: Claim Generation Claim Definition: A claim is a single sentence ex-pressing information about one target entity. 
+
+Requirements 
+
+• Must reference the main entity directly (no pro-nouns). • Avoid vague expressions (e.g., “may be”, “it is re-ported”). • Claims must be derivable from the source sentence and dictionary. • Include temporal context when facts may change. 
+
+Evidence Labels 
+
+• SUPPORTED : Evidence agrees with the claim. • REFUTED : Evidence contradicts the claim. • NOT ENOUGH INFO : Evidence insufficient to determine truth. 
+
+Task 2: Claim Labeling Objective: Label claims and select the minimal evi-dence needed. 
+
+Procedure 
+
+1. Read the claim and candidate evidence sentences. 2. Determine if evidence supports or refutes the claim. 3. Combine multiple sentences if needed. 4. If no sufficient evidence exists, label NOT ENOUGH INFO .
+
+Rule of Thumb 
+
+If only the selected evidence is given, can the claim be verified as true or false? If not, label NOT ENOUGH INFO. 
+
+Edge Case Rules 
+
+• Avoid ambiguous claims (e.g., many, several, popu-lar). • Distinguish between actors and fictional characters. • Filmographies and lists are not exhaustive evidence. • Be time-aware when verifying roles or titles. 
+
+Skipping Rules 
+
+• Claim cannot be verified from Wikipedia. • Claim is vague or personal. • Claim contains major grammatical errors.

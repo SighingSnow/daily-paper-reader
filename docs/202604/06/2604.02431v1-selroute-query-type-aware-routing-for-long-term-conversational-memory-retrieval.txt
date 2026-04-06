@@ -1,0 +1,220 @@
+Title: SelRoute: Query-Type-Aware Routing for Long-Term Conversational Memory Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.02431v1
+
+Published Time: Mon, 06 Apr 2026 00:05:46 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# SelRoute: Query-Type-Aware Routing for Long-Term Conversational Memory Retrieval 
+
+Matthew McKee Independent Researcher Adelaide, Australia 
+
+sindecker@gmail.com 
+
+Abstract 
+
+Retrieving relevant past interactions from long-term conversational memory typically relies on large dense retrieval models (110M–1.5B parameters) or LLM-augmented indexing. We introduce SelRoute, a framework that routes each query to a specialized retrieval pipeline — lexical, semantic, hybrid, or vocabulary-enriched — based on its query type. On LongMemEval M (Wu et al., 2024), SelRoute achieves Recall@5 of 0.800 with bge-base-en-v1.5 (109M parameters) and 0.786 with bge-small-en-v1.5 (33M parameters), compared to 0.762 for Contriever with LLM-generated fact keys. A zero-ML baseline using SQLite FTS5 alone achieves NDCG@5 of 0.692, already exceeding all published baselines on ranking quality — a gap we attribute partly to implementation differences in lexical retrieval. Five-fold stratified cross-validation confirms routing stability (CV gap of 1.3–2.4 Recall@5 points; routes stable for 4/6 query types across folds). A regex-based query-type classifier achieves 83% effective routing accuracy, and end-to-end retrieval with predicted types (Recall@5 = 0.689) still outperforms uniform baselines. Cross-benchmark evaluation on 8 additional benchmarks spanning 62,000+ instances — including MSDialog, LoCoMo, QReCC, and PerLTQA — confirms generalization without benchmark-specific tuning, while exposing a clear failure mode on reasoning-intensive retrieval (RECOR Recall@5 = 0.149) that bounds the claim. We also identify an enrichment–embedding asymmetry: vocabulary expansion at storage time improves lexical search but degrades embedding search, motivating per-pipeline enrichment decisions. The full system requires no GPU and no LLM inference at query time. 
+
+# 1 Introduction 
+
+Long-term memory retrieval for conversational AI systems requires locating relevant past interactions across potentially hundreds of sessions spanning months or years of dialogue history. The LongMemEval benchmark (Wu et al., 2024) provides a standardized evaluation for this task, testing retrieval across seven question types that exercise five core memory abilities: information extraction, multi-session reasoning, temporal reasoning, knowledge updates, and abstention. Published approaches to this benchmark employ dense retrieval models ranging from 110M parameters (Contriever; Izacard et al. 2022) to 1.5B parameters (Stella V5). The strongest reported result on the M split — Recall@5 = 0.762 — requires both a 110M-parameter encoder and LLM-generated fact keys appended to each indexed session (Wu et al., 2024). These results establish strong baselines but leave open whether retrieval strategy selection , rather than retrieval model scale , can yield further gains. Three observations motivate our approach. First, no single retrieval method dominates across all query types. The well-established complementarity of sparse and dense retrieval (Lin et al., 2021) manifests strongly in conversational memory: full-text search excels at verbatim keyword matching (single-session-user queries), while embedding search handles paraphrasing (single-session-assistant queries where query vocabulary diverges from stored content). Second, vocabulary enrichment at storage time can partially bridge the lexical 1
+
+> arXiv:2604.02431v1 [cs.IR] 2 Apr 2026
+
+gap for specific query types without LLM inference. Rule-based hypernym expansion and action bridges serve a function analogous to Wu et al. (2024)’s fact-key augmentation, with narrower coverage but zero inference cost. Third, query type is a strong prior for retrieval strategy selection: the optimal method varies predictably by type, enabling even a simple deterministic router to consistently select the better strategy. Building on these observations, we present SelRoute, a selective routing framework that assigns each query to a specialized retrieval pipeline based on its query type. Our contributions are: 1. A type-aware routing framework achieving Recall@5 = 0.800 on LongMemEval M session-level retrieval (bge-base configuration), compared to 0.762 for Contriever + fact keys (Wu et al., 2024), with five-fold cross-validation confirming a generalization gap of only 1.3–2.4 points. 2. A rule-based storage-time enrichment pipeline and the finding that vocabulary enrichment helps lexical search but degrades embedding search — an asymmetry that motivates per-pipeline enrichment and, more broadly, the routing architecture itself. 3. A regex-based query-type classifier (83% effective routing accuracy) that narrows the oracle-to-predicted gap to 2.1 Recall@5 points, demonstrating that routing provides value even without ground-truth query types. 4. Cross-benchmark evaluation on 8 additional benchmarks (62,000+ instances) showing that the same routing table generalizes without benchmark-specific tuning, with one clear failure mode (reasoning-intensive retrieval) that bounds the claim. We note important caveats. Our routing table was derived from empirical analysis of LongMemEval instances; cross-validation confirms stability but evaluation on held-out benchmarks is the stronger test (Section 5.9). Our primary comparison draws from baselines reported by Wu et al. (2024), and we discuss comparability considerations — particularly a substantial FTS5-vs-BM25 gap — in Section 6.3. 
+
+# 2 Related Work 
+
+Dense retrieval for conversational memory. Contriever (Izacard et al., 2022) achieves Recall@5 = 0.723 on LongMemEval M using unsupervised contrastive pre-training. When augmented with LLM-extracted fact keys at index time, performance improves to 0.762 — the strongest result reported by Wu et al. (2024). Stella V5 (1.5B parameters) achieves 0.720 despite its significantly larger capacity. Recent work on LongMemEval includes Associa (ACL 2025 Findings), which uses LLM-based associative reasoning to achieve strong results, though at substantially higher computational cost. 
+
+Sparse–dense complementarity. The complementarity of lexical and semantic retrieval is well-established in information retrieval (Lin et al., 2021). Reciprocal Rank Fusion (Cormack et al., 2009) provides a parameter-free method for combining ranked lists from heterogeneous retrievers. Most hybrid approaches apply a single fusion strategy uniformly across all query types; our work differs in selecting the fusion strategy per query type. 
+
+Query-adaptive retrieval. Adaptive retrieval strategies have been explored in web search, including learning to route between sparse and dense retrievers (Arabzadeh et al., 2021) and adaptive retrieval augmen-tation (Mallen et al., 2023). To our knowledge, type-specific routing for long-term conversational memory has not been studied. 
+
+Storage-time enrichment. Wu et al. (2024) propose fact-key expansion, where LLM-generated factual summaries are appended to session content at index time. Document expansion has a longer history in IR (Nogueira et al., 2019). Our rule-based enrichment achieves a similar effect through deterministic vocabulary expansion, trading coverage for reproducibility and zero inference cost. 23 Method 
+
+3.1 Base Retrieval Components 
+
+SelRoute combines three base retrieval components. 
+
+FTS5 full-text search. SQLite’s FTS5 extension provides BM25-ranked full-text search. Sessions are stored in a primary table with an associated FTS5 virtual table that triggers on insert/update. FTS5 serves as both the zero-ML baseline and the lexical component of hybrid search. 
+
+Embedding search. We evaluate three BERT-based embedding models: bge-small-en-v1.5 (33M parameters, 384 dimensions; Xiao et al. 2023), all-MiniLM-L6-v2 (22M parameters, 384 dimensions), and bge-base-en-v1.5 (109M parameters, 768 dimensions). Memory content is truncated to 2,000 characters before encoding. At query time, we compute cosine similarity between the query embedding and all stored embeddings. 
+
+Hybrid search. We combine FTS5 and embedding results using Reciprocal Rank Fusion (Cormack et al., 2009): RRF (d) = X
+
+> r∈R
+
+1
+
+k + rank r(d) (1) where R is the set of retrieval methods and k = 60 (standard RRF constant). 
+
+3.2 Storage-Time Vocabulary Enrichment 
+
+Our enrichment pipeline expands indexed content with vocabulary bridges at storage time, before it enters the FTS5 index. The pipeline has three components: 
+
+Hypernym maps (210 entries) link specific terms to broader categories. For example, cocktail → drink, beverage, alcohol, mixed drink . When a session mentions “cocktail,” the enriched index also contains “drink” and “beverage,” enabling FTS5 to match queries using either level of specificity. 
+
+Action bridges (70 entries) connect action-oriented query patterns to content patterns: attended →
+
+went, participated, was at, visited . This bridges the gap between “What events did I attend?” and content containing “I went to a concert.” 
+
+Topic rooms (13 categories) add contextual terms when co-occurring triggers are detected. A session mentioning both “cooking” and “recipe” triggers the food dining topic room, adding terms like meal ,
+
+restaurant , cuisine .Enriched content is appended to the FTS5 index only; raw session content remains unchanged in the primary table. The enrichment vocabulary was developed iteratively: V1 (150 hypernyms, 50 bridges) established the framework; V2 (210 hypernyms, 70 bridges, 13 rooms) targeted 13 failing instances from a hard subset, improving multi-session Recall@5 from 0.462 to 0.751; V3 (270 hypernyms, 85 bridges) produced zero further improvement, establishing V2 as the ceiling for vocabulary-based enrichment. 
+
+Enrichment–embedding asymmetry. A critical finding is that enrichment improves FTS5 performance but degrades embedding performance. FTS5 treats additional terms as independent signals — more matching terms increase BM25 score. Embedding models, by contrast, compute a single vector for the entire content; adding vocabulary bridges shifts the vector away from the original semantic center, reducing similarity to on-topic queries. This asymmetry is what necessitates type-specific routing rather than uniform enrichment. 
+
+3.3 Selective Routing 
+
+We route each query to a retrieval pipeline based on query type. The routing table was derived empirically from a 51-instance hard subset (instances where at least one strategy failed): 3Query Type n Pipeline Enrichment Embeddings knowledge-update 72 enriched fts Yes No multi-session 121 enriched hybrid Yes Yes single-session-assistant 56 embeddings No Yes single-session-preference 30 embeddings No Yes single-session-user 64 baseline fts No No temporal-reasoning 127 hybrid No Yes Routing is deterministic: query type is extracted from metadata and the corresponding pipeline is selected. The rationale for each assignment reflects the retrieval characteristics of each query type: • knowledge-update queries ask about factual changes using abstract terms (“What did I say about X?”). Enrichment bridges the vocabulary gap (e.g., “said” → “mentioned,” “discussed”); embeddings add noise because the queries are lexically specific. • multi-session queries require aggregating information across sessions. Both enrichment (vocabulary coverage) and embeddings (semantic breadth) contribute, with their combination yielding the best results. • single-session-assistant/preference queries involve semantic paraphrasing where the query uses different vocabulary than the stored assistant response. Pure embedding search handles this best. • single-session-user queries involve near-verbatim recall of user utterances. FTS5 alone is near-optimal; enrichment and embeddings add no value. • temporal-reasoning queries require finding sessions based on temporal context. Hybrid search captures both keyword and semantic signals, but enrichment degrades temporal precision. 
+
+# 4 Experimental Setup 
+
+4.1 Dataset 
+
+We evaluate primarily on LongMemEval M (Wu et al., 2024), the medium-difficulty split of LongMemEval. The dataset contains 500 instances across seven question types exercising five core memory abilities: 470 retrieval queries across 6 types (single-session-user, single-session-assistant, single-session-preference, multi-session, knowledge-update, and temporal-reasoning), plus 30 abstention queries where no relevant session exists. Each instance includes a question, a haystack of approximately 460–490 conversation sessions with timestamps, and ground-truth session IDs. The number of ground-truth sessions per instance ranges from 1 to 6 (mean 1.9). All metrics are computed over the full 500 instances, including the 30 abstention queries in the denominator. 
+
+4.2 Metrics 
+
+Recall@5 (Ra@5). Binary all-or-nothing recall at rank 5: Ra@5 = 1.0 if all ground-truth sessions appear in the top 5 results, 0.0 otherwise, averaged across all 500 instances. This follows the recall all@k 
+
+definition in Wu et al. (2024). 
+
+NDCG@5. Normalized Discounted Cumulative Gain at rank 5 with binary relevance, using the standard 
+
+1/ log 2(rank + 1) discount. Measures ranking quality. We verified that both implementations exactly match the LongMemEval evaluation code (Appendix B). 44.3 Baselines 
+
+We compare against four systems from Wu et al. (2024), Table 9 (Appendix E.2), at session-level granularity: System Parameters Ra@5 NDCG@5 BM25 0 0.634 0.516 Stella V5 1.5B 0.720 0.594 Contriever 110M 0.723 0.634 Contriever + fact keys 110M + LLM 0.762 0.632 We note that other papers evaluating on LongMemEval report substantially different baseline numbers (e.g., BM25 Ra@5 = 0.38 in some reports). These discrepancies arise from differences in retrieval granularity (turn-level vs. session-level), recall definition (fractional vs. binary all-or-nothing), or dataset version. All our comparisons use session-level granularity with binary all-or-nothing recall, matching Wu et al. (2024), Table 9. 
+
+4.4 Infrastructure 
+
+All experiments run on a consumer laptop with no GPU. Embedding models run on CPU via MLX/ONNX runtime. The complete 500-instance benchmark with routing completes in approximately 43 minutes (bge-small), with the majority of time on embedding computation. 
+
+# 5 Results 
+
+5.1 Main Results 
+
+System Parameters Ra@5 NDCG@5 BM25 0 0.634 0.516 Stella V5 1.5B 0.720 0.594 Contriever 110M 0.723 0.634 SelRoute FTS5 (zero ML) 0 0.745 0.692 Contriever + fact keys 110M + LLM 0.762 0.632 SelRoute (MiniLM) 22M 0.785 0.717 SelRoute (bge-small) 33M 0.786 0.718 SelRoute (bge-base) 109M 0.800 0.800 
+
+Bootstrap 95% confidence intervals (10,000 resamples): SelRoute MiniLM Ra@5 = 0.789 [0.751, 0.826]; SelRoute bge-base Ra@5 = 0.794 [0.757, 0.830]. The CI lower bounds exceed BM25, Stella V5, and Contriever; the advantage over Contriever + fact keys (0.762) is borderline — see Section 5.6 for paired significance tests. We report three embedding configurations to demonstrate that routing architecture, not embedding model choice, drives the gains: the MiniLM and bge-small results (0.785 vs. 0.786) differ by 0.001, within noise. The bge-base configuration (109M parameters — comparable to Contriever at 110M) achieves 0.800, showing that routing yields substantial improvements even at the same parameter scale as existing dense retrievers. The zero-ML baseline (FTS5 alone) achieves NDCG@5 = 0.692, substantially higher than published BM25 (0.516). We investigate this gap in Section 6.3. 55.2 Per-Type Analysis 
+
+Query Type n FTS5 Routed ∆ Route ss-assistant 56 0.804 0.964 +0.161 embeddings multi-session 121 0.661 0.716 +0.055 enriched hybrid preference 30 0.500 0.533 +0.033 embeddings knowledge-update 72 0.868 0.882 +0.014 enriched fts temporal 127 0.729 0.741 +0.012 hybrid ss-user 64 0.859 0.859 +0.000 baseline fts The largest gain comes from single-session-assistant queries (+0.161), where embedding search captures semantic paraphrasing that FTS5 misses entirely. Single-session-user queries show zero improvement — FTS5 is already near-optimal for verbatim utterance recall. This divergence between the two single-session types illustrates why uniform strategies underperform: what helps one type is irrelevant or harmful to another. 
+
+5.3 Enrichment Impact 
+
+On the 51-instance hard subset, V2 enrichment improved multi-session Recall@5 from 0.462 to 0.751 (+62.8% relative) while leaving other types unchanged. Applied to embedding retrieval, enrichment decreased 
+
+performance on most types. The expanded vocabulary introduces semantically adjacent but contextually inap-propriate terms, diluting the embedding signal. This finding motivated the routing architecture: enrichment and embeddings must be applied selectively, not uniformly. 
+
+5.4 Ablation: Routing vs. Uniform Strategy 
+
+Strategy Ra@5 NDCG@5 FTS5 only 0.745 0.692 Hybrid only (uniform) 0.756 0.681 Enriched FTS5 (uniform) 0.751 0.688 Selective routing 0.786 0.718 
+
+No single strategy matches the routed result. Uniform hybrid search improves recall over FTS5 but slightly hurts NDCG, because embedding noise degrades ranking for types where FTS5 is already optimal. Routing eliminates this trade-off. 
+
+5.5 Negative Result: Storage-Time Dream Cycle 
+
+We evaluated an 8-step “dream cycle” storage pipeline inspired by memory consolidation, performing entity extraction, canonical resolution, topic room assignment, and cross-session linking at storage time, replacing raw content with a heavily processed representation. Metric Baseline Dream Cycle ∆
+
+Weighted Ra@5 0.829 0.145 −0.684 
+
+The dream cycle reduced recall by 68 percentage points — a catastrophic degradation. The pipeline over-processes content, transforming natural language into structured metadata that FTS5 cannot effectively 6match against natural language queries. This confirms that storage-time processing must preserve the original content signal; enrichment succeeds precisely because it appends vocabulary bridges while retaining the original text. 
+
+5.6 Statistical Significance 
+
+Paired bootstrap tests (10,000 resamples, bge-small): 
+
+Comparison ∆ Ra@5 p-value SelRoute vs. FTS5 +0.057 0.0003 SelRoute vs. embeddings only +0.181 <0.0001 SelRoute vs. hybrid (uniform) +0.045 <0.0001 SelRoute vs. best single RRF +0.011 0.121 SelRoute significantly outperforms pure FTS5 and pure embeddings ( p < 0.001 ). The advantage over the best single RRF variant is not statistically significant, indicating that routing’s primary value lies in type-specific strategy selection rather than uniform superiority over all fusion methods. 
+
+5.7 Routing Robustness via Cross-Validation 
+
+To address the concern that the routing table could overfit to evaluation data, we performed 5-fold stratified cross-validation. For each fold, we derived the optimal routing table from 4 training folds (376 instances) and evaluated on the held-out fold (94 instances). Configuration Full-data Ra@5 CV Ra@5 (mean ± std) Gap bge-base, 6-type routing 0.794 0.774 ± 0.027 1.9 pt bge-base, 9-bucket routing 0.800 0.776 ± 0.019 2.4 pt bge-small, 6-type routing 0.711 0.698 ± 0.035 1.3 pt The generalization gap of 1.3–2.4 points confirms that the routing table captures genuine query-type characteristics rather than instance-level artifacts. Route assignments are stable across folds for 4/6 query types in both configurations. The two unstable types (ss-user, ss-preference) are precisely those where multiple methods perform similarly, making route instability immaterial to downstream scores. 
+
+5.8 Query-Type Classification 
+
+SelRoute assumes access to query-type metadata. To evaluate feasibility without this oracle, we built a regex-based query-type classifier using a priority-ordered hierarchy over query text, matching temporal markers, assistant references, preference cues, aggregation patterns, and user-action patterns, with knowledge-update as the default. 
+
+Classification accuracy: 
+
+Not all misclassifications degrade retrieval equally. Types sharing the same pipeline family (e.g., knowledge-update and ss-user both use FTS-based routes) are effectively harmless when confused. Of 132 misclassifications, 52 (39.4%) map to the same route family, yielding an effective routing accuracy of 83.0% .
+
+End-to-end retrieval with predicted types: 
+
+7Query Type n Accuracy ss-assistant 56 96.4% temporal-reasoning 127 96.1% ss-preference 30 90.0% multi-session 121 63.6% ss-user 64 46.9% knowledge-update 72 38.9% 
+
+Overall 470 71.9% 
+
+System Ra@5 FTS5 (no routing) 0.653 Hybrid (uniform) 0.666 Predicted-type routing 0.689 Oracle-type routing 0.711 Despite only 72% classification accuracy, predicted routing outperforms uniform FTS5 (+3.6 points) and uniform hybrid (+2.3 points), confirming that even imperfect type classification provides routing value. The oracle-to-predicted gap is 2.1 points ( p = 0 .003 , paired bootstrap). 
+
+5.9 Cross-Benchmark Generalization 
+
+To move beyond single-benchmark evaluation, we tested SelRoute on 8 additional benchmarks spanning diverse retrieval domains. All benchmarks use the same routing logic, embedding models, and evaluation protocol — with no benchmark-specific tuning. Benchmark Domain n Best Ra@5 Best Model LongMemEval M Conversational memory 500 0.774 bge-base LongMemEval S Conversational (shorter) 500 0.920 bge-base MSDialog Tech support 2,199 0.998 all models LoCoMo Long-form conversation 1,986 0.767 FTS5 PerLTQA Personal QA 345 0.745 FTS5 QReCC Conversational QA 52,678 0.595 FTS5+reasoning Episodic Memory Spatio-temporal 273 0.667 bge-small LMEB Dialogue retrieval 840 0.977 FTS5 RECOR Reasoning retrieval 2,971 0.149 bge-base Three findings emerge from the cross-benchmark evaluation. First, no single model dominates : FTS5 achieves the best Recall@5 on LoCoMo (0.767), PerLTQA (0.745), and LMEB (0.977), while embedding models win on LongMemEval, QReCC, Episodic, and RECOR. This validates the core thesis that retrieval strategy should be selected per query type. Second, lexical retrieval is sufficient or superior for benchmarks involving structured dialogue with specific terminology (LoCoMo, PerLTQA, LMEB, MSDialog). Embeddings add value primarily when queries involve paraphrasing or semantic gaps. Third, RECOR exposes a genuine limitation . At Recall@5 = 0.149, SelRoute fails on reasoning-intensive multi-hop retrieval. Published systems on RECOR (e.g., DIVER) use 9B-parameter LLMs for inference-time 8reasoning — a capability absent from our pipeline. This bounds the claim: routing among lightweight retrievers does not substitute for deep multi-hop reasoning. Across all benchmarks, SelRoute was evaluated on 62,292 instances spanning tech support, personal QA, conversational QA, episodic narratives, and reasoning-intensive retrieval. 
+
+# 6 Discussion 
+
+6.1 Why Routing Works 
+
+The six retrieval query types exercise fundamentally different capabilities. Single-session-user queries require lexical recall of verbatim utterances — FTS5 excels. Single-session-assistant and preference queries require semantic matching where the query paraphrases stored content — embeddings excel. Knowledge-update queries require vocabulary bridging between abstract query terms and specific content terms — enriched FTS5 excels. Multi-session queries require aggregation across sessions, benefiting from both enrichment and embeddings. Temporal queries require temporal-context matching where hybrid search captures complementary signals. A uniform strategy must compromise across these axes. Routing eliminates the compromise. The ablation (Section 5.4) confirms that no single strategy matches routing performance, and paired bootstrap tests (Section 5.6) show significant improvements over pure components. 
+
+6.2 The Enrichment–Embedding Asymmetry 
+
+Our most actionable finding is that storage-time vocabulary enrichment helps FTS5 but hurts embedding search. The mechanism is straightforward: FTS5 treats additional terms as independent signals — more matching terms increase BM25 score. Embedding models compute a single vector for entire content; adding bridges shifts the vector away from the original semantic center, reducing similarity to on-topic queries. This means enrichment and embeddings are complementary but mutually exclusive for most query types. The exception is multi-session queries, where the breadth of vocabulary coverage compensates for slight embedding degradation. For system designers, the implication is clear: enrichment should be applied to the lexical index only, not to the content used for embedding computation. 
+
+6.3 FTS5 vs. BM25 and Comparability 
+
+Our FTS5 baseline (Ra@5 = 0.745) substantially exceeds the published BM25 baseline (0.634). This gap (+0.111) is larger than our routing contribution and requires transparency. Contributing factors likely include: tokenization differences (FTS5 uses an ICU tokenizer; BM25 implementations vary); query preprocessing (our pipeline normalizes paths, phone numbers, and abbreviations); content indexing format; and BM25 parameter defaults. The strength of our lexical baseline means some of SelRoute’s advantage over published BM25 comes from a stronger lexical engine, not solely from routing. Running a standardized BM25 implementation (e.g., PySerini with default parameters) at session-level granularity would isolate the routing contribution from the lexical engine contribution. We flag this as important future work that would strengthen the claims. 
+
+6.4 Comparison to Contriever + Fact Keys 
+
+Contriever’s fact-key approach and our enrichment pipeline both expand indexed content to improve retrieval, but differ in mechanism. Fact keys use LLM inference per session, offering arbitrary factual coverage at computational cost; our rules are deterministic, limited to pre-defined vocabulary maps, but free. Despite 9narrower coverage, our system with routing scores higher on this benchmark (Ra@5 0.800 vs. 0.762), suggesting that routing compensates for coverage limitations. Whether this advantage holds on benchmarks where fact keys provide greater benefit remains to be tested. 
+
+6.5 Limitations 
+
+Query-type classification. Our regex classifier achieves 72% accuracy (83% effective routing accuracy), but struggles with knowledge-update (39%) and ss-user (47%) queries that share surface patterns. Few-shot LLM classification or fine-tuned classifiers would likely close the remaining 2.1-point oracle gap. 
+
+Weak categories. Preference queries (Ra@5 = 0.533) remain our weakest type, requiring deeper semantic understanding of implicit preferences beyond what vocabulary bridges or lightweight embeddings capture. Abstention is effectively unsolved (1/30 correct). 
+
+Routing derived from evaluation data. The routing table was derived from a 51-instance hard subset of the evaluation benchmark. Cross-validation (Section 5.7) confirms stability, and cross-benchmark evaluation (Section 5.9) provides evidence of generalization, but the routing table was not derived from a separate development set. 
+
+Enrichment is manually authored. The 210 hypernym maps and 70 action bridges were hand-crafted from failure analysis. Automated rule generation (e.g., from WordNet or LLM-generated expansions) could improve coverage and reduce manual effort. 
+
+Limited direct comparison. Our primary baselines come from Wu et al. (2024). Running additional dense retrieval models (E5, GTE, ColBERTv2) ourselves at session-level granularity would provide more comprehensive comparisons. The FTS5-vs-BM25 gap (Section 6.3) means that some of the improvement over published baselines may be attributable to a stronger lexical engine rather than routing. 
+
+# 7 Conclusion 
+
+We have presented SelRoute, a selective routing framework for long-term conversational memory retrieval. Our best configuration achieves Recall@5 = 0.800 on LongMemEval M, compared to 0.762 for Contriever + fact keys (Wu et al., 2024). Cross-validation confirms stability (1.3–2.4 point gap), and cross-benchmark evaluation on 62,000+ instances across 8 benchmarks confirms generalization — while exposing a clear failure mode on reasoning-intensive retrieval that bounds the claim. The central finding is that long-term conversational memory retrieval is a family of sub-problems, each with distinct retrieval characteristics. A uniform strategy compromises across query types; routing eliminates the compromise. The secondary finding — that vocabulary enrichment helps lexical retrieval but degrades embedding retrieval — has practical implications for hybrid system design. Our results suggest a design principle: when retrieval requirements vary systematically across identifiable query categories, routing logic may yield larger gains than model scale. The principle appears to hold across the 9 benchmarks we evaluated, with the caveat that routing among lightweight retrievers does not substitute for inference-time reasoning on tasks that require it. Code and routing configurations: https://github.com/sindecker/selroute 
+
+# A Enrichment Example 
+
+Original session content: 
+
+user: I took a cocktail-making class last weekend assistant: That sounds fun! What cocktails did you learn to make? user: We made mojitos and old fashioneds 
+
+10 After V2 enrichment (appended to FTS5 index): 
+
+[original content] cocktail drink beverage alcohol mixed_drink class lesson course workshop tutorial mojito old_fashioned cocktail_recipe making preparing creating crafting food_dining: meal restaurant cuisine cooking recipe ingredients cocktail 
+
+A query like “What drinks have I learned to make?” now matches via the bridges: drinks → drink →
+
+cocktail, learned → class → lesson. 
+
+# B Metric Verification 
+
+We verified that our Recall@5 and NDCG@5 implementations exactly match the LongMemEval evaluation code ( src/retrieval/eval utils.py ): 
+
+Recall@5 (recall all@k). Binary all-or-nothing: Ra@5 = 1.0 if all ground-truth sessions appear in the top 5 results, 0.0 otherwise, averaged across instances. 
+
+NDCG@5. Binary relevance with standard DCG formula ( 1/ log 2(rank + 1) discount) and ideal DCG from min( nrelevant , k ).All retrieval operates at session-level granularity, matching the “Value=Session” column in Wu et al. (2024), Table 9, Appendix E.2. 
+
+# C Per-Type Bootstrap Confidence Intervals 
+
+Query Type n Ra@5 95% CI NDCG@5 95% CI knowledge-update 72 0.903 [0.833, 0.958] 0.890 [0.834, 0.937] multi-session 121 0.636 [0.554, 0.719] 0.742 [0.686, 0.796] ss-assistant 56 1.000 [1.000, 1.000] 0.980 [0.954, 1.000] ss-preference 30 0.667 [0.500, 0.833] 0.532 [0.382, 0.680] ss-user 64 0.969 [0.922, 1.000] 0.814 [0.746, 0.878] temporal-reasoning 127 0.717 [0.638, 0.795] 0.766 [0.708, 0.821] The ss-preference type has the widest CI ([0.500, 0.833]) due to small sample size ( n = 30 ). The ss-assistant type achieves perfect Ra@5 with zero variance. 
+
+# References 
+
+Anantha, R., Vakulenko, S., Tu, Z., Longpre, S., Pulber, S., & Chappidi, S. (2021). Open-Domain Question Answering Goes Conversational via Question Rewriting. In Proceedings of NAACL 2021 .arXiv:2010.04898. Arabzadeh, N., Yan, X., & Clarke, C. L. A. (2021). Predicting Efficiency/Effectiveness Trade-offs for Dense vs. Sparse Retrieval Strategy Selection. In Proceedings of SIGIR 2021 .11 Chen, Z., et al. (2025). LMEB: Long-horizon Memory Embedding Benchmark. arXiv:2603.12572. Cormack, G. V., Clarke, C. L., & Buettcher, S. (2009). Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods. In Proceedings of SIGIR 2009 .Du, Y., et al. (2024). PerLTQA: A Personal Long-Term Memory Dataset for Memory Classification, Retrieval, and Synthesis in Question Answering. arXiv:2402.16288. Haguet, A. (2025). Episodic Memories Generation and Evaluation Benchmark for Large Language Models. In Proceedings of ICLR 2025 . arXiv:2501.13121. Izacard, G., Caron, M., Hosseini, L., Riedel, S., Bojanowski, P., Joulin, A., & Grave, E. (2022). Unsupervised Dense Information Retrieval with Contrastive Learning. Transactions on Machine Learning Research .Lin, J., Ma, X., Lin, S.-C., Yang, J.-H., Pradeep, R., & Nogueira, R. (2021). Pyserini: A Python Toolkit for Reproducible Information Retrieval Research with Sparse and Dense Representations. In Proceedings of SIGIR 2021 .Maharana, A., Lee, D., Tulyakov, S., Bansal, M., Barbieri, F., & Fang, Y. (2024). Evaluating Very Long-Term Conversational Memory of LLM Agents. In Proceedings of ACL 2024 . arXiv:2402.17753. Mallen, A., Asai, A., Zhong, V., Das, R., Khashabi, D., & Hajishirzi, H. (2023). When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories. In Proceedings of ACL 2023 .Nogueira, R., Yang, W., Lin, J., & Cho, K. (2019). Document Expansion by Query Prediction. arXiv:1904.08375. Qu, C., Yang, L., Croft, W. B., Zhang, Y., Trippas, J. R., & Qiu, M. (2018). Analyzing and Characterizing User Intent in Information-Seeking Conversations. In Proceedings of SIGIR 2018 .RECOR (2026). Reasoning-focused Multi-turn Conversational Retrieval Benchmark. arXiv:2601.05461. Wu, D., Wang, H., Yu, W., Zhang, Y., Chang, K.-W., & Yu, D. (2024). LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. In Proceedings of ICLR 2025 . arXiv:2410.10813. Xiao, S., Liu, Z., Zhang, P., & Muennighoff, N. (2023). C-Pack: Packaged Resources To Advance General Chinese Embedding. arXiv:2309.07597. Yang, L., Qiu, M., Gottipati, S., Zhu, F., Jiang, J., Sun, H., & Chen, Z. (2018). Response Ranking with Deep Matching Networks and External Knowledge in Information-Seeking Conversation Systems. In 
+
+Proceedings of SIGIR 2018 .12

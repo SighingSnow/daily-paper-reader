@@ -1,0 +1,1499 @@
+Title: Beyond Isolated Tasks: A Framework for Evaluating Coding Agents on Sequential Software Evolution
+
+URL Source: https://arxiv.org/pdf/2604.03035v1
+
+Published Time: Mon, 06 Apr 2026 00:57:26 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+April 3, 2026 
+
+# Beyond Isolated Tasks: A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+KN Ajay Shastry 1,* , Ganesh Senrayan 1,* , Shrey Satapara 1,* , Pranoy Panda 1, Chaitanya Devaguptapu 1
+
+Existing datasets for coding agents evaluate performance on isolated, single pull request (PR) tasks in a stateless manner, failing to capture the reality of real-world software development where code changes accumulate, technical debt accrues, and test suites grow over time. To bridge this gap, we introduce an automated coding task generation framework, which helps generate our dataset SWE-STEPS, that evaluates coding agents on long-horizon tasks through two realistic settings mirroring actual developer workflows: Conversational coding with iterative requests, and single-shot Project Requirement document (PRD)-based coding. Unlike existing datasets that evaluate agents on disjointed Pull Requests (PRs), our framework assesses performance across chains of dependent PRs, enabling evaluation of sequential execution, regression verification, and long-term repository health. We discover that widely used isolated PR evaluations yield inflated success rates, w.r.t. our settings - overshooting performance by as much as 20 percentage points - because they ignore the “spillover” effects of previous inefficient or buggy code. Furthermore, our analysis reveals that even when agents successfully resolve issues, they degrade repository health by generating code with higher cognitive complexity and technical debt compared to human developers, underscoring the necessity for multidimensional evaluation. 
+
+1 Introduction 
+
+In recent years, LLM-based coding agents have approached human-level performance on increasingly difficult tasks - most strikingly in competitive programming, where systems like OpenAI’s o3 have achieved human-competitive results on Codeforces and IOI El-Kishky et al. [2025]. Encouraged by these milestones, organizations are rapidly deploying agents into production: For instance, OpenHands Wang et al. [2025], a popular coding agent used in enterprises, now authors a substantial fraction of commits to its own codebase Neubig [2024], and commercial tools increasingly integrate LLMs into pull request reviews Cihan et al. [2025], feature additions, and debugging workflows. However, this rapid adoption overlooks a fundamental distinction between solving isolated coding tasks and building software. Software engineering’s (SWE) cumulative nature Lehman [2005], Bennett and Rajlich [2000] demands that code remain not only functionally correct but also extensible over time Martin [2009], thus a critical question arises: Given a codebase, can agents sustain performance across multi-step SWE tasks? 
+
+To address this question, we present an automated framework for generating and evaluating multi-step coding tasks . Along with being multi-step, our framework is designed to assess agents under two human-agent interaction paradigms mirroring SWE workflows: Conversational coding , defined by iterative requests (PRs from a human) to the agent, where it processes requests sequentially while managing the effects of its previously written code along with persistent memory; and PRD-based coding , defined by a single-shot specification where agent receives aggregated requirements upfront. Configured with one of these interaction modes, a git repository, a target coding agent, and a temporal window [tstart , t end ] within which we retrospectively wish to evaluate the coding agent, our framework extracts coherent task chains from the commit history. It subsequently validates task executability through test-driven verification. And then evaluates agent performance across two dimensions: functional correctness (test passage rates) and   
+
+> 1Fujitsu Research, *Equal contribution,
+> Correspondence : K N Ajay Shastry at knajayshastry@fujitsu.com
+> arXiv:2604.03035v1 [cs.SE] 3 Apr 2026
+
+A Framework for Evaluating Coding Agents on Sequential Software Evolution  
+
+> Table 1.
+
+Comparison of existing SWE evaluation approaches . Sequential Evolution : evaluates agents on a trajectory of tasks with persistent state; Repository Health Analysis : tracks static analysis metrics (cognitive complexity and technical debt); Interdependent Tasks : tasks are causally linked (our dataset SWE-STEPS’s 48.7% of tasks have interdependent PRs); Regression Verification : verifies previous functionality against new changes. FEA-Bench Li et al. [2025] & COMMIT-0 Zhao et al. [2024] both adapt SWE-Bench style, though FEA deals with 
+
+features instead of issues , & COMMIT-0 benchmarks coding agents rather than LLMs.                                                                        
+
+> Dataset Repository Execution Real-World Sequential Repository Dependent Regression Level Environment Tasks Evolution Health Analysis Tasks Verification
+> CodeFeedback Zheng et al. [2024]
+> ××✓××××
+> APPS Hendrycks et al. [2021]
+> ×✓✓××××
+> HumanEval Chen [2021] ×✓✓××××
+> MBPP Austin et al. [2021] ×✓✓××××
+> R2E Jain et al. [2025] ✓✓×××××
+> SWE-Bench Jimenez et al. [2024]
+> ✓×✓××××
+> SWE-Gym Pan et al. [2025]
+> ✓✓✓××××
+> Ours ✓✓✓✓✓✓✓
+
+repository maintainability (code complexity and the accumulation of technical debt). The code snippet below provides a glimpse of our framework and its applicability to any git repository.        
+
+> 1# Extract commit data
+> 2C = CommitGraphAnalyzer(git_repository_path).extract_prs(t_start, t_end)
+> 3# Create verified tasks (PR chains with tests)
+> 4T = VerifiedTaskGenerator(C).generate_tasks()
+> 5# Agent executes tasks and returns evaluation metrics
+> 6F, M = AgentExecutor(agent,T,git_repository_path, eval_setting).execute_and_evaluate()
+> 7# functional correctness (F) & maintainability (M)
+
+Although existing works, SWE-bench Jimenez et al. [2024] and SWE-gym Pan et al. [2025], represent significant progress in grounding evaluation tasks in authentic GitHub issues, they evaluate agents on 
+
+isolated tasks in a stateless manner - each evaluation resets the environment to a clean, human-validated codebase. This doesn’t align with the reality of software development where code changes accumulate over time : technical debt accrues, test suites grow, and new code must coexist with artifacts from previous development cycles Kruchten et al. [2012], Letouzey [2012]. This gap between isolated task evaluation and cumulative, interdependent nature of software development is key motivation of our framework’s design. To instantiate our framework on real-world codebases, we construct SWE-STEPS (Stateful and Temporal Evaluation ProcesS), a dataset comprising 168 tasks spanning 963 PRs across 6 popular Python repositories. Tasks feature PR chains ranging from 3 to 11 in length, which is approximately (median) 1 to 3 weeks of development work for a developer Seporaitis [2021]. Our empirical evaluation across state-of-the-art LLMs on SWE-STEPS (lite & mini versions) reveals three critical findings. (i) isolated PR evaluation (SWE-bench style) inflates success rates compared to our realistic settings, overshooting performance by as much as 20 percentage points. (ii) performance degrades with task complexity : as PR chain length increases and test suites grow, agent success rates drop significantly - a pattern less visible in isolated PR evaluation, which lacks temporal continuity of code base. (iii) even when agents successfully resolve issues, they degrade repository health : agent-generated code exhibits higher cognitive complexity and accumulates more technical debt compared to human-written implementations, as measured via the static analysis tool SonarQube SonarSource [2024]. To summarize, we list our contributions below: 
+
+• An automated framework for extracting long-horizon coding tasks from git repositories that captures realistic dependency structures and enables granular, multi-dimensional evaluation across time horizons and interaction settings; 
+
+• SWE-STEPS , a dataset instantiating this framework, evaluating agents across chains of PRs in realistic settings on popular Python libraries. 
+
+• Empirical findings show inflation in existing evaluation methodologies and code quality degradation under sustained agent use. 
+
+2A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+We hope our work provides a foundation for principled progress toward agents that can collaborate with human developers over extended periods, maintaining not only functional correctness but also the long-term health and maintainability of codebases. 
+
+2 Related Work 
+
+In this section, we contextualize our contributions by reviewing the progression of code generation datasets, the emergence of repository-scale datasets, and the rise of SWE agents. Table 1 provides a comparative overview of existing evaluation approaches w.r.t. ours. 
+
+Evolution of Code Generation datasets. Early evaluation frameworks focused primarily on function-level synthesis and template completion. datasets such as HumanEval Chen [2021], MBPP Austin et al. [2021], and CodeMMLU Nguyen et al. established the foundational capabilities of LLMs by evaluating their ability to generate standalone functions from natural language. While effective for assessing basic syntax and logic, these datasets generally operate without Repository Level context. Subsequent datasets like APPS Hendrycks et al. [2021] and CodeFeedback Zheng et al. [2024] shifted focus toward complex algorithmic reasoning. However, these tasks remain largely independent; they assess whether a model can solve a specific puzzle in isolation. 
+
+Repository-Level Programming Datasets. The field has recently advanced toward repository-scale evaluation, recognizing that real-world coding requires navigating complex file structures. SWE-bench Jimenez et al. [2024] and its successors (SWE-gym Pan et al. [2025], FEA-Bench Li et al. [2025], COMMIT-0 Zhao et al. [2024]) represent significant progress, evaluating agents on resolving GitHub issues within real-world repositories. A distinct characteristic of these repository-level datasets, however, is their reliance on a single-issue, reset-based model. That is, the environment is reset after every task (here, PR) to ensure isolation. This differs from professional workflows where sequential evolution of the codebase is inevitable. 
+
+Software Engineering Agents and Architectural Evolution. The capabilities of coding assistants have evolved from completion engines to autonomous agents capable of multi-step reasoning (SWE-agent Yang et al. [2024], OpenHands Wang et al. [2025], Aider Gauthier [2023]). While current systems demonstrate impressive problem-solving skills on single-issue datasets, the evaluation criteria have primarily centered on functional resolution - passing the immediate test cases. Less attention has been paid to the potential accumulation of technical debt. By expanding evaluation criteria to include long-term code health metrics, we wish to better understand how agents balance immediate problem-solving with architectural integrity. As illustrated in Table 1, our work seeks to complement existing datasets by introducing a long-horizon temporal dimension to agent evaluation. We unify repository-level execution with a sequential evolution 
+
+paradigm, where agents navigate a sequence of sub-tasks with persistent state. This design allows us to enforce Regression Verification - ensuring new features preserve existing functionality - and to conduct continuous Repository Health Analysis 
+
+3 Dataset Design and Construction 
+
+3.1 Dataset Desiderata & Framework Formulation 
+
+Software engineering involves implementing sequences of changes over extended time horizons, where code quality, technical debt, and regression management become critical factors. To evaluate whether coding agents can sustain performance in such workflows on a given codebase, we need an evaluation framework that captures three essential characteristics: (i) Sequential evolution: Tasks should consist of chains of PRs where changes accumulate and tests cascade. (ii) Stateful execution: Unlike datasets that reset to clean codebases, agents should work with artifacts from previous steps —including inefficient code, accumulated technical debt, and growing test suites. (iii) Multidimensional evaluation: Success should be measured not only by functional correctness but also by repository health evolution, including code quality metrics that predict long-term maintainability To operationalize these principles, we formally define the framework as a generative pipeline F(R, A, W, S ) →
+
+(T , M) that accepts a git repository, a coding agent, a temporal window, and evaluation setting as input to generate multi-step coding tasks and the corresponding agent performance. Below, we define its input and output formally. 
+
+Framework Inputs: 
+
+Target Repository R: A git repository containing the commit history and associated metadata. 
+
+Coding agent A: defined by agent architecture, LLM, tools and iteration budget 
+
+Evaluation Window W = [ tstart , t end ]: The temporal interval within which we retrospectively wish to evaluate a coding agent on the repository. 
+
+3A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Evaluation Setting S. To reflect how developers interact with coding agents in practice, we introduce two evaluation settings that differ in context presentation, test obligation cascading, and memory management. (i) Global Memory Configuration (Conversational Coding). The agent processes PRs in sequential order while maintaining shared conversational and working context across the entire task chain. task description and definition description are provided iteratively as the agent progresses through the sequence; the agent must discover relevant files through exploration. Tests cascade as the sequence progresses: obligations introduced or relevant in earlier PRs remain in scope for later PRs, reflecting realistic development workflows where regressions and previously-fixed behavior must remain stable. (Refer figure 8a) (ii) PRD Configuration (PRD-based Coding). We concatenate the task list into a single string, which we refer to as the Product Requirements Document (PRD) - it combines task description and definition description extracted from all PRs in the sequence. The agent receives this high-level feature specification with all requirements presented upfront and must infer implementation details and orchestration strategy. The accumulated test suite from all PRs is evaluated at the final state. (Refer figure 8b) (iii) (SWE-bench Baseline) Individual PR Setting. Each PR is executed independently in isolation. The agent receives the complete task description and definition description , operates with visibility of the entire repository structure, and is provided feedback from test cases. Critically, each PR is treated as stateless: the environment resets to a clean, human-validated codebase before execution, eliminating any spillover effects from previous PRs. The exact configuration for each setup is in section 4. 
+
+Framework Outputs: The framework outputs a set of coding tasks T and a metric suite M.
+
+Generated Tasks T . Each generated task τ ∈ T is a tuple (R0, Q, V) representing a sequential chain of Pull Requests, where R0 is the initial state of the repository at the base commit, Q = {q1, . . . , q n}
+
+is an ordered sequence of requests (PRs). Each qi contains a task description (synthesized natural language instructions) and a definition specification (target files/functions). Finally, V = {v1, . . . , v n}
+
+refers to the verification suite. Each vi contains FAIL_TO_PASS (F2P) tests (new feature validation) and 
+
+PASS_TO_PASS (P2P) tests (regression verification) extracted from the historical PR data. 
+
+Metric Suite M. For every executed task, the framework computes: (i) Functional Correctness : Per-PR test pass rates (P2P and F2P percentages). It also includes binary indicators for PR-level and task-level completion. A PR succeeds when the agent resolves all F2P tests without breaking any P2P tests (maintaining 100% pass rate). A task succeeds when all its PRs succeed. (ii) Repository Health : Static analysis metrics (Cognitive Complexity, Technical Debt) comparing the agent’s implementation against the ground-truth human developer’s code. 
+
+3.2 Proposed Data Generation Framework 
+
+The core challenge in constructing realistic long-horizon datasets is identifying coherent sequences of development work from git repositories while ensuring each task is properly validated and executable. Our approach addresses this through an automated pipeline that extracts task chains directly from git commit graphs, validates their executability through rigorous test-driven verification, and constructs comprehensive specifications that mirror the information available to human developers. The pipeline operates in two stages (illustrated in Figure 1): (1) mining PR metadata and dependency relationships from git history to extract a set of PRs and (2) validating task executability through test-driven filtering. This process ensures that generated tasks reflect development patterns —with valid and comprehensive test suites, and specification quality comparable to human-written requirements —while maintaining reproducibility and dataset validity. We now describe each stage in detail. 
+
+Phase I: Repository Mining and Metadata Extraction . We select 6 popular repositories ( >8k GitHub stars) from SWE-Gym and scrape the most recent 2,000 pull requests from each. For transparency and analysis purposes, we automatically categorize each PR into one of six types using an LLM-based classifier (Table 5): Feature/Enhancement , Bug Fix , Maintenance , Infrastructure , Documentation , and 
+
+Testing (prompt for the LLM classifier in Appendix 8.3.1). For each PR, we perform comprehensive metadata extraction, capturing attributes detailed in Table 4. Critically, we extract: commit IDs, the PR number and issue descriptions, the patches applied, the list of modified files, the specific functions or classes that were added, modified, or deleted, and the associated unit test cases. Unit tests newly introduced in a given PR are classified as F2P test cases, while pre-existing unit tests in modified files are classified as P2P. 
+
+Dependency Extraction (for Analysis). To model the causal structure of development workflows, we quantify dependencies between PRs using two complementary methods. First, we analyze symbol-level dependencies by tracking whether Python classes added, modified, or deleted in an earlier PR are referenced 
+
+4A Framework for Evaluating Coding Agents on Sequential Software Evolution PR #553  PR #554  
+
+> Fixes #321
+> PR #560
+> Refactor class LLM
+> 5 January
+> 2025
+> 15 January
+> 2025
+> Implements tool add ..
+> PR #554 PR #560 PR #553
+
+1. Task Extraction                    
+
+> Repository Execution Sandbox
+> Extracted Task
+> PR #554
+> PR #560
+> PR #553 > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> 1. Apply Test Patch
+> > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> > Exec Pytest
+> Test fec
+> Test rand
+> Test ini
+> Test path
+> 2. Apply Fix Patch
+> PR #554
+> PR #560
+> Valid
+> Task
+
+2. Task Verification 
+
+> Input
+> Task
+> PR #553
+
+Git Repositories 
+
+Figure 1. Task Extraction Pipeline. Tasks are extracted from PRs and verified via the execution sandbox. 
+
+Table 2. Dataset Comparison (Task wise) 
+
+Category Metric SWE-Bench SWE-Gym Ours (All) Ours (Lite) Ours (Mini) 
+
+Issue Text Length by Words 195.1 239.8 3656.0 3161.1 2666.2 Gold Patch # Files edited 1.7 2.5 17.1 15.7 15.4 # Func. edited 3.0 4.1 36. 33.4 26.7 Tests # Fail to Pass 9.0 10.0 15.9 17.5 15.4 # Total 132.5 760.8 235.1 224.9 199.3 Figure 2. Distribution of tasks across reposi-tories 
+
+in subsequent PRs. Second, we utilize line-level ancestry via Git blame data: if PR j modifies a line previously introduced or altered by PR i, we establish a temporal dependency. These dependency signals inform our task chain construction and enable downstream analysis of agent behavior on interdependent modifications, though they are not used as filtering criteria as these are quite rare. 
+
+Phase II: Test-Driven Validation and Refinement Raw PR data often contains inconsistencies, incomplete test coverage, or environment-specific issues that compromise dataset validity. We implement a test-driven validation process to ensure each task instance provides a fair evaluation signal. This validation procedure operates in two steps: (1) Test patch validation : Apply only the test_patch and verify that all P2P tests remain passing while all F2P tests remain failing (confirming tests properly capture missing functionality) (2) Fix patch validation : Apply the fix_patch containing the implementation and confirm that all P2P tests continue passing while all F2P tests transition to passing We exclude PRs lacking test cases and PRs involving only infrastructure or documentation changes, as these fall outside our focus on functional code evolution. During validation, we address data quality challenges through a two-stage filtering process: first, we identify and filter test cases exhibiting behavior contrary to their expected state (e.g., F2P tests passing prematurely); second, we re-execute tests to validate behavioral consistency. This ensures a clean test suite that neither unfairly penalizes nor artificially benefits evaluated agents. 
+
+Phase III: Multi-Step Task Chain Construction While existing datasets evaluate agents on isolated, single-PR scenarios, real-world development involves coordinated sequences of related changes. We construct multi-step task instances by identifying sequences of PRs that fall within a specified temporal range (based on commit timestamps), representing coherent development trajectories between two points. 
+
+5A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+For each PR within a task chain, we automatically synthesize the task description and definition description components (as defined in Section 3.1): 
+
+• The task description is constructed by aggregating information from the PR description, linked GitHub issues, and any associated documentation changes extracted during Phase I 
+
+• The definition description is automatically extracted by parsing the changes metadata to identify function and class signatures that were added, modified, or deleted in the gold patch The agent’s objective is to implement the chain of changes while satisfying both functional requirements (test passage) and structural constraints (correct naming and interfaces). Figure 1 illustrates this extraction process, showing how we traverse the git commit graph to identify task chains and synthesize comprehensive specifications from metadata. 
+
+3.3 SWE-STEPS Dataset 
+
+As an instantiation of our automated task generation framework, we construct SWE-STEPS (Software Engineering with Stateful and Temporal Evaluation ProcesS), a dataset comprising 168 tasks spanning 
+
+963 PRs across 6 diverse Python repositories. Repository complexity is estimated using industry-standard metrics via the SCC tool Boyter [2025], includ-ing lines of code, number of files, and cyclomatic complexity. The repositories range from moderately-sized projects (Conan: $1.52M development cost estimate) to large-scale systems (Moto: $129.13M development cost estimate), ensuring diversity in architectural complexity and development effort. Repositories span domains including build tools (Conan), AI versioning (DVC), scientific computing and AI (Haystack), database engines (Sqlglot), scientific/engineering libraries (Pandas), and software development/testing infrastructure (Moto). See appendix for detailed repository metrics. 
+
+Dataset Characteristics. Our tasks feature PR chains ranging from 3 to 11 PRs and detailed prob-lem descriptions corresponding to complex issues and feature requests. These characteristics demand long-horizon reasoning, extensive context understanding, and robust memory capabilities from software engineering agents. 
+
+Statistical Analysis and Comparison. To quantify how SWE-STEPS differs from existing datasets, we compare task-level statistics with SWE-Bench and SWE-Gym in Table 2. Our dataset exhibits complex tasks across multiple dimensions: (i) Specification complexity : Average issue text length is 18.7 × longer than SWE-Bench (3,656 vs. 195.1 words) and 15.3 × longer than SWE-Gym (3,656 vs. 239.8 words), reflecting the aggregation of multiple PR descriptions and comprehensive requirement synthesis. (ii) 
+
+Implementation scope : Tasks edit 10.1 × more files than SWE-Bench (17.1 vs. 1.7 files) and 6.8 × more files than SWE-Gym (17.1 vs. 2.5 files), with correspondingly larger function-level changes. These differences reflect fundamental design choices: SWE-Bench and SWE-Gym optimize for breadth of isolated issues, while SWE-STEPS optimizes for depth of interdependent development sequences that mirror realistic multi-week engineering efforts. As shown in Table 2, even our lighter subsets (Lite and Mini) maintain this characteristic profile, with average issue lengths of 3,161 and 2,666 words respectively 
+
+—substantially exceeding existing datasets while preserving the essential complexity of long-horizon development tasks. 
+
+Lite and Mini Subsets. Evaluating coding agents on long-horizon tasks is computationally expensive. To facilitate broader dataseting and rapid iteration, we introduce two stratified subsets: SWE-STEPS-Lite 
+
+(50 tasks) and SWE-STEPS-Mini (15 tasks) (Refer figure 6). 
+
+4 Experimental Setup 
+
+We conduct our primary evaluation using the OpenHands Wang et al. [2025] agent architecture, with CodeAct Wang et al. [2024]. We select this agent for its open-source transparency, which allows for white-box analysis of internal execution traces - including tool calls, reasoning steps, and file edits. We also report results with Aider Gauthier [2023] in 8.2.3. 
+
+4.1 Agent Configuration 
+
+Architecture and Tools. The agent operates as a partially autonomous system equipped with a standard suite of three tools: a Terminal for executing shell commands, a FileEditor for modifying repository files, and a Task Tracker for managing sub-tasks. To prevent false negatives caused strictly by naming mismatches, we scaffold the agent’s context by explicitly providing the expected function signatures required by the test harness. In the PRD Setting , this architecture is augmented with a preliminary planning step, where a planner agent decomposes the aggregate requirements before execution begins. 
+
+Models. We evaluate performance across varying model capabilities to balance reasoning depth with statistical coverage: (i) Mini Split (Deep Analysis): Evaluated using high-performance models such as Gemini 3 ProDeepMind [2025], Claude Sonnet 4.5 Anthropic [2025] using Vertex AI API Google Cloud, 
+
+6A Framework for Evaluating Coding Agents on Sequential Software Evolution  
+
+> Table 3.
+
+(Mini dataset) Performance comparison of models across multiple repositories using the mini dataset. The PR and Task columns indicate the number of completed pull requests and tasks, respectively. We use openhands Wang et al. [2025] as agent architecture here.                                                                                                                                                                                                                                                              
+
+> Setting Model Conan DVC Haystack Moto Pandas Sqlglot Total PRs PR Success Avg Cost PR Task PR Task PR Task PR Task PR Task PR Task Passed Rate Per Task ($) /10 /2 /8 /2 /7 /2 /15 /2 /20 /5 /20 /2 /80
+> Gemini 3 PRO 912050808011 043 53.75 14.15 Claude Sonnet 4.5 80307210 011 014 053 66.25 14.27 GPT 5.2 Chat 91206110 07011 045 56.25 4.64 Gemini 3 Flash 60307210 0708041 51.25 2.97
+> Individual
+> GPT 5.1 Codex Mini 70206160806035 43.75 3.53 Gemini 3 PRO 60307270903035 43.75 17.47 Claude Sonnet 4.5 10 2206160704035 43.75 21.46 GPT 5.2 Chat 10 2205010 0705039 48.75 12.33 Gemini 3 Flash 50206150502025 31.25 5.41
+> Global
+> GPT 5.1 Codex Mini 71005070502026 32.5 4.75 Gemini 3 PRO 60105050806031 38.75 27.60 Claude Sonnet 4.5 81104090806036 45.00 47.08 GPT 5.2 Chat 81205130705030 37.50 17.37 Gemini 3 Flash 60104050402022 27.5 10.70
+> PRD
+> GPT 5.1 Codex Mini 7100404012 13030 37.5 7.56
+
+and GPT-5.2 Chat OpenAI [2025] using Azure OpenAI Microsoft Endpoints. (ii) Lite Split (Broad Coverage): Evaluated using cost-effective models - Gemini 3 Flash from Vertex AI API and GPT-5.1 Codex Mini from Azure OpenAI endpoints. 
+
+4.2 Environment and Execution Protocol 
+
+Runtime Environment and Safety. Experiments are conducted in isolated Docker containers with strict anti-cheat measures. Network Isolation restricts internet access to dependency installation only, disabling browser usage to prevent web-based debugging. File Immutability locks test files to read-only mode, preventing the agent from altering assertions and revoking all relevent testcases during agent execution to prevent shortcut solutions by agent History Pruning truncates the git history at the base commit, ensuring the agent cannot “leak" future ground-truth solutions by inspecting logs. 
+
+Execution Protocol (Reflection Cycles). We enforce a standardized interaction loop driven by test feedback. Execution is organized into Reflection Cycles , where each cycle consists of a maximum of 40 agent iterations. At the end of a cycle —either due to iteration exhaustion or explicit submission —the environment executes the formal test suite. If tests pass, the task is marked complete; if they fail, the stderr logs are returned to agent, triggering the next cycle. 
+
+Budgets and Evaluation Settings. We instantiate the settings defined in Section 3.1 with specific computational constraints: In Individual & Global Settings , the agent is allocated a budget of 3 reflection cycles per PR. In Global setting, the repository state persists across the task; in Individual setting, it resets to the ground truth after every PR. Similarly, in the PRD Setting , to ensure comparable total compute, the agent is allocated a pooled budget of 3 × N cycles (where N is the number of PRs). 
+
+5 Results And Analysis 
+
+In this section, we empirically evaluate the impact of long-horizon software evolution on coding agents. Unless explicitly stated, all the analysis is being done on the mini dataset. Our investigation is guided by four key questions: 
+
+RQ1 (Performance Inflation): How does introduction of stateful dependencies (Global/PRD settings) impact agent success rates compared to stateless, isolated benchmarks (SWE-bench style)? 
+
+RQ2 (Temporal Degradation): How does agent reliability correlate with the accumulation of history, specifically as a function of task chain length and expanding test suites? 
+
+7A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+RQ3 (Repository Health): Do coding agents prioritize short-term functional correctness at the expense of long-term repository maintainability? 
+
+RQ4 (Error Attribution): What are the dominant failure modes? Do agents fail due to immediate implementation errors or inability to manage regressions from previous tasks? 
+
+RQ1: How does introduction of stateful dependencies (Global/PRD) impact agent success rates compared to stateless, isolated benchmarks (SWE-bench style) 
+
+We find isolated PR setting provides significantly inflated scores compared to our realistic settings. As shown in Table 3, comparisons on the Mini dataset reveal a consistent trend where the standard “Individual PR” setting outperforms the “Global” (conversational) and “PRD-based” settings across all evaluated repositories. Notably, SOTA models like Claude Sonnet 4.5 and Gemini 3 Flash exhibit a substantial performance drop when moving from isolated to continuous settings, with issue resolution rates falling by approximately 20 percentage points (e.g., Claude Sonnet 4.5 drops from 66.25% to 43.75%). This trend is further corroborated by the Lite dataset results in Table 7. When scaling the evaluation, models such as Gemini 3 Flash see a degradation from 56.52% in the Individual setting to just 36.59% in the Global setting. Across all LLMs, we observe a consistent performance decrease ranging between 15% to 25% when statefulness is introduced. This gap shows that SWE-bench style evaluations—where agents start with a clean, human-validated codebase—mask the difficulties of handling “spillover” effects, where previous buggy code or accumulated technical debt hampers future task resolution. Beyond Openhands, we also observe this trend in Aider coding agent (results in Appendix 8.2.3) 
+
+Takeaway: Isolated PR-based evaluations overestimate agent capabilities by upto 20 percentage points 
+
+RQ2: How does agent reliability correlate with the accumulation of history, specifically as a function of task chain length and expanding test suites? 3 4 5 6 9 11           
+
+> Total Number of PRs
+> 20
+> 40
+> 60
+> 80
+> 100
+> Average PR Pass Rate (%)  Claude Sonnet 4.5
+> PRD
+> Global Memory
+> Individual PR
+> 3456911
+> Total Number of PRs
+> Gemini 3.0 Pro
+> PRD
+> Global Memory
+> Individual PR
+> 3456911
+> Total Number of PRs
+> GPT 5.2 Chat
+> PRD
+> Global Memory
+> Individual PR
+> Average PR pass rate vs Total Number of PRs
+
+Figure 3(a) Pass Rate Analysis. Comparison of Average PR Pass Rates for Large models relative to the total number of PRs on Mini Dataset Experiment. The plots reveal that the Individual PR setting consistently maintains higher pass rates. 0.0 2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0 
+
+> Number of Occurrences
+> Failed from
+> Next PRs
+> Failed to Find
+> Relevant File
+> Other
+> Failed to Find
+> Edit Location
+> Ran Out of
+> Budget
+> Incorrect
+> Implementation
+> Solving Previous
+> Issues
+> 1
+> 2
+> 2
+> 5
+> 9
+> 1
+> 2
+> 2
+> 4
+> 2
+> 8
+> 1
+> 2
+> 1
+> 3
+> 1 (2.2%)
+> 2 (4.4%)
+> 3 (6.7%)
+> 4 (8.9%)
+> 6 (13.3%)
+> 9 (20.0%)
+> 20 (44.4%)
+> Distribution of Failure Modes by Category
+> Category
+> Feature/Enhancement
+> Bug Fix
+> Testing
+> Maintenance
+
+Figure 3(b) Distribution of Fail-ure Modes in Global Setting. 
+
+Analysis of failure categories for Claude Sonnet 4.5 on Mini dataset, evaluated by Gemini 3.0 Pro. 
+
+We analyze the difficulty of our evaluation settings by examining the correlation between performance, task chain length, and test suite size on the mini dataset. 
+
+Impact of Chain Length: In Figure 3a, we see a sharp drop in performance as the number of PRs increases. Furthermore, across all models, the Individual PR trendline consistently remains above Global and PRD trajectories, effectively establishing an upper performance bound. 
+
+Impact of Test Accumulation: Figure 9, reveals a similar trend regarding test suite size. As the volume of active tests increases, agents struggle to maintain regression stability. GPT 5.2 Chat , for example, sees its PRD pass rate plummet from over 60% to ∼10% in the largest test bin, whereas the Individual PR setting maintains significantly higher success rates throughout. 
+
+Takeaway: Agents degrade significantly under contextual burden of long PR chains & accumulated regression tests 
+
+RQ3: Do coding agents prioritize short-term functional correctness at the expense of long-term repository maintainability? 
+
+Beyond functional correctness, we evaluated quality of codebase using code quality metrics on the Mini dataset . To track evolution, we filtered for task chains exceeding 5 PRs and normalized progress into five bins. We focus our analysis on the Global setting, as its conversational nature best mirrors the evolution of a repository. Figure 4 and 10 illustrates the divergence in Cognitive Complexity and SQALE Index 
+
+8A Framework for Evaluating Coding Agents on Sequential Software Evolution Bin 1 Bin 2 Bin 3 Bin 4 Bin 5         
+
+> No. of PRs Completed (Bins)
+> 2.5
+> 0.0
+> 2.5
+> 5.0
+> 7.5
+> 10.0
+> 12.5
+> Cognitive Complexity  Cognitive Complexity comparison - conan
+> Gemini 3.0 Pro
+> Claude Sonnet 4.5
+> GPT 5.2 Chat
+> Gold Trace Bin 1 Bin 2 Bin 3 Bin 4 Bin 5
+> No. of PRs Completed (Bins)
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> 35
+> Cognitive Complexity  Cognitive Complexity comparison - haystack
+> Gemini 3.0 Pro
+> Claude Sonnet 4.5
+> GPT 5.2 Chat
+> Gold Trace Bin 1 Bin 2 Bin 3 Bin 4 Bin 5
+> No. of PRs Completed (Bins)
+> 10
+> 0
+> 10
+> 20
+> 30
+> 40
+> Cognitive Complexity  Cognitive Complexity comparison - moto
+> Gemini 3.0 Pro
+> Claude Sonnet 4.5
+> GPT 5.2 Chat
+> Gold Trace
+
+Figure 4. Comparative Analysis of Code Quality Evolution. The figure illustrates the progression of ∆ Cognitive Complexity across conan , haystack , and moto . Plots reveal that autonomous agents tend to introduce higher complexity compared to the human code. 
+
+(Technical Debt) between agents and human developer code (Gold Trace) for conan , haystack , & moto .
+
+The Hidden Cost of High Performance: We observe a concerning inverse relationship between functional success and code health. For instance, in the haystack repository, Gemini 3.0 Pro attains a perfect 7/7 PR resolution rate in the Global setting (Table 3). Yet, examining Figure 10 (middle column), we see a sharp degradation in code health: the agent’s SQALE Index (technical debt) surges abruptly in the final bin, ending significantly higher than human reference, which maintains near-zero debt. Similarly, in moto repository (right column), while agents maintain competitive pass rates, Gemini 3.0 Pro exhibits a linear increase in cognitive complexity (Bin 1 to Bin 5). In contrast, human trace often shows negative slopes, perhaps indicating that humans actively refactor to reduce debt while solving tasks. 
+
+Takeaway: High agent performance often masks degrading repository health. 
+
+RQ4: What are the dominant failure modes? Do agents fail due to immediate implementation errors or inability to manage regressions from previous tasks? 
+
+Failure Mode: Solving Previous Issues 
+
+Pandas: PR #62848 (3rd PR in the task) 
+
+Fix a bug in pd.json_normalize where an AttributeError was raised if max_level was set to an integer and input data contained non-dict items. 
+
+Cycle 1 (Observation) The agent tries to solve the given task. The agent runs tests. The environment (shared with previous tasks) displays residual logs from a different PR #62729 (1st PR). 
+
+> pytest pandas/tests/groupby/aggregate/test_aggregate.py ... PASSED pandas/tests/groupby/aggregate/test_aggregate.py (Test case summary: All tests passed for NamedAgg support)
+
+Cycle 2 (Reflection) The agent hallucinates that the passed tests for the previous PR are actually the requirements for the current PR. 
+
+"I see the tests for test_aggregate.py are passing. Wait, looking at the logs, it seems I am interacting with the 
+
+NamedAgg functionality (PR #62729). I will rewrite the functionality to match PR #62729." 
+
+Outcome Failure. The agent implemented support for NamedAgg (PR #62729) instead of fixing json_normalize (PR #62848). The original issue remains unresolved. 
+
+Figure 5. The agent conflates the current sub-task with artifacts found in the environment from a previous sub-task. 
+
+We conducted a qualitative error analysis on the Mini dataset using execution traces from Claude Sonnet 4.5 . We focus our analysis on the Global setting. To categorize failures, we employed Gemini 3.0 Pro as an evaluator, using a prompt detailed in the Appendix. We adopted the error taxonomy from SWE-agent [Yang et al., 2024], but introduced a new category - “Solving Previous Issues” , to capture failures specific to our sequential Global and PRD settings. 
+
+The Dominance of Contextual Failures: Figure 3b presents the distribution of failure modes. The results show the unique difficulty of stateful evaluation. The dominant failure mode, accounting for 
+
+44.4% (20 occurrences) of all errors, is Solving Previous Issues . This failure is pervasive across both 
+
+Feature/Enhancement and Bug Fix tasks. Figure 5 gives a walkthrough of one of such errors. 
+
+Takeaway: Context overhead of previous tasks is a bottleneck for coding agents. 
+
+9A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+6 Conclusion 
+
+To bridge the gap between isolated coding tasks and reality of cumulative software development, we introduce an evaluation framework and the SWE-STEPS dataset. Our findings reveal that current methods inflate agent success rates and, more critically, that agent-generated code degrades long-term repository health, underscoring the need for evaluations that value maintainability alongside functional correctness. 
+
+7 Impact Statement 
+
+We collected the data from publicly available Github repositories only for research purposes. All the repositories have licenses that allow free software use. LLMs are used only for classification during the construction of the dataset, so no harmful information can be created in the dataset. The dataset and code for our proposed method will be made publicly available for academic research. However, we should note that the inference results of the task instances from the benchmark may contain code that is harmful to computer systems. Evaluation by docker is recommended, just like in SWE-bench Jimenez et al. [2024]. 
+
+References 
+
+Wei Li, Xin Zhang, Zhongxin Guo, Shaoguang Mao, Wen Luo, Guangyue Peng, Yangyu Huang, Houfeng Wang, and Scarlett Li. FEA-bench: A benchmark for evaluating repository-level code generation for feature implementation. In Wanxiang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar, editors, Proceedings of the 63rd Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , pages 17160–17176, Vienna, Austria, July 2025. Association for Computational Linguistics. ISBN 979-8-89176-251-0. doi: 10.18653/v1/2025.acl-long.839. URL 
+
+https://aclanthology.org/2025.acl-long.839/ .Wenting Zhao, Nan Jiang, Celine Lee, Justin T Chiu, Claire Cardie, Matthias Gallé, and Alexander M Rush. Commit0: Library generation from scratch. arXiv preprint arXiv:2412.01769 , 2024. Tianyu Zheng, Ge Zhang, Tianhao Shen, Xueling Liu, Bill Yuchen Lin, Jie Fu, Wenhu Chen, and Xiang Yue. Opencodeinterpreter: Integrating code generation with execution and refinement. arXiv preprint arXiv:2402.14658 , 2024. Dan Hendrycks, Steven Basart, Saurav Kadavath, Mantas Mazeika, Akul Arora, Ethan Guo, Collin Burns, Samir Puranik, Horace He, Dawn Song, et al. Measuring coding challenge competence with apps. arXiv preprint arXiv:2105.09938 , 2021. Mark Chen. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374 , 2021. Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al. Program synthesis with large language models. arXiv preprint arXiv:2108.07732 , 2021. Naman Jain, Jaskirat Singh, Manish Shetty, Liang Zheng, Koushik Sen, and Ion Stoica. R2e-gym: Procedural environments and hybrid verifiers for scaling open-weights swe agents. arXiv preprint arXiv:2504.07164 , 2025. Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R Narasimhan. SWE-bench: Can language models resolve real-world github issues? In The Twelfth International Conference on Learning Representations , 2024. URL https://openreview.net/forum?i d=VTF8yNQM66 .Jiayi Pan, Xingyao Wang, Graham Neubig, Navdeep Jaitly, Heng Ji, Alane Suhr, and Yizhe Zhang. Training software engineering agents and verifiers with swe -gym. In Proceedings of the 42nd International Conference on Machine Learning (ICML 2025) , 2025. URL https://arxiv.org/abs/2412.21139 .arXiv:2412.21139, accepted at ICML 2025. Ahmed El-Kishky, Alexander Wei, Andre Saraiva, Borys Minaiev, Daniel Selsam, David Dohan, Francis Song, Hunter Lightman, Ignasi Clavera, Jakub Pachocki, et al. Competitive programming with large reasoning models. arXiv preprint arXiv:2502.06807 , 2025. Xingyao Wang, Boxuan Li, Yufan Song, Frank F. Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, Hoang H. Tran, Fuqiang Li, Ren Ma, Mingzhang Zheng, Bill Qian, Yanjun Shao, Niklas Muennighoff, Yizhe Zhang, Binyuan Hui, Junyang Lin, Robert Brennan, Hao Peng, Heng Ji, and Graham Neubig. Openhands: An open platform for AI software developers as generalist agents. In The Thirteenth International Conference on Learning Representations , 2025. URL 
+
+https://openreview.net/forum?id=OJd3ayDDoF .Graham Neubig. Open-source coding agents in your github, fixing your issues, 2024. URL https: //openhands.dev/blog/open-source-coding-agents-in-your-github-fixing-your-issues .Umut Cihan, Vahid Haratian, Arda İçöz, Mert Kaan Gül, Ömercan Devran, Emircan Furkan Bayendur, Baykal Mehmet Uçar, and Eray Tüzün. Automated code review in practice. In 2025 IEEE/ACM 47th 
+
+10 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP) ,pages 425–436. IEEE, 2025. Meir M Lehman. Programs, life cycles, and laws of software evolution. Proceedings of the IEEE , 68(9): 1060–1076, 2005. Keith H Bennett and Václav T Rajlich. Software maintenance and evolution: a roadmap. In Proceedings of the Conference on the Future of Software Engineering , pages 73–87, 2000. Robert C Martin. Clean code: a handbook of agile software craftsmanship . Pearson Education, 2009. Philippe Kruchten, Robert L Nord, and Ipek Ozkaya. Technical debt: From metaphor to theory and practice. Ieee software , 29(6):18–21, 2012. Jean-Louis Letouzey. The SQALE method for evaluating technical debt. In Third International Workshop on Managing Technical Debt (MTD) , pages 31–36. IEEE, 2012. Julius Seporaitis. What can 75,000 pull requests tell about lyst?, 2021. URL https://making.lyst.com/ 2021/04/28/what-can-75000-pull-requests-tell-about-lyst/ .SonarSource. SonarQube: Code Quality and Security , 2024. URL https://www.sonarqube.org/ . Accessed: 2024. Dung Manh Nguyen, Thang Chau Phan, Nam Le Hai, Tien-Thong Doan, Nam V Nguyen, Quang Pham, and Nghi DQ Bui. Codemmlu: A multi-task benchmark for assessing code understanding & reasoning capabilities of codellms. In The Thirteenth International Conference on Learning Representations .J. Yang, C. E. Jimenez, A. Wettig, K. Lieret, S. Yao, and K. Narasimhan. Swe-agent: Agent-computer interfaces enable automated software engineering. In Advances in Neural Information Processing Systems , 2024. Paul Gauthier. Aider: Ai pair programming in your terminal. https://github.com/paul-gauthier/aider ,2023. Ben Boyter. scc: v3.5.0, 2025. URL https://github.com/boyter/scc/ .Xingyao Wang, Yangyi Chen, Lifan Yuan, Yizhe Zhang, Yunzhu Li, Hao Peng, and Heng Ji. Executable code actions elicit better llm agents. In Forty-first International Conference on Machine Learning , 2024. Google DeepMind. Gemini 3 pro: Model card. Technical report, Google DeepMind, 2025. URL 
+
+https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-3-Pro-Model-Card.pdf .Accessed 2026-01-29. Anthropic. Claude sonnet 4.5 system card. Technical report, Anthropic, 2025. URL https://www.anthro pic.com/claude-sonnet-4-5-system-card . Accessed 2026-01-29. Google Cloud. Model Garden on Vertex AI (Model Catalog). https://cloud.google.com/model-garden .Accessed 2026-01-29. OpenAI. Update to gpt-5 system card: Gpt-5.2. Technical report, OpenAI, 2025. URL https://openai .com/index/gpt-5-system-card-update-gpt-5-2/ . Accessed 2026-01-29. Microsoft. AI Model Catalog | Azure AI Foundry (Microsoft Foundry Models). https://ai.azure.com/c atalog/models . Accessed 2026-01-29. 
+
+11 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+8 Appendix 
+
+In this section, we provide additional results and details that we could not include in the main paper due to space constraints. We have shared our SWE-STEPS-mini dataset as a zip file, and we will open source the code upon paper acceptance. In particular, this appendix contains the following: 
+
+• Dataset and Execution Environment – Dataset Composition and Attributes 
+
+– Execution Setup and Diagrammatic Representation 
+
+• Performance Analysis – OpenHands: General Benchmarks (Lite vs. Mini) 
+
+– Repository-Specific Analysis: SonarQube 
+
+– Aider Performance Benchmarks 
+
+• Prompts, Inputs, and Artifacts – Task Generation and Categorization Prompts 
+
+– Agent System Prompts 
+
+– Sample Inputs: PR Descriptions and Requirements 
+
+– Sample Output: Generated Plans 
+
+8.1 Dataset and Execution Environment 
+
+8.1.1 Dataset Composition and Attributes 
+
+This section details the attributes of the dataset, analyzing repository statistics and the complexity of tasks based on their categorization. 
+
+Dataset Distribution and Representativeness. Figures 6 and 7 provide a detailed breakdown of the task composition across the Standard , Lite , and Mini datasets. Figure 6 illustrates the distribution of tasks across the six evaluated repositories. In the Standard 
+
+dataset (Figure 6a), the tasks are spread across diverse domains, with Pandas (25.3%) and Sqlglot (17.3%) representing a significant portion of the workload. Crucially, the Lite and Mini subsets (Figures 6b and 6c) generally preserve this proportional distribution, ensuring that the smaller evaluation sets remain representative of the broad repository diversity found in the full benchmark. Figure 7 serves as a proxy for task complexity by categorising the problems by their nature. The analysis reveals that the benchmark is rigorously focused on complex software engineering problems rather than trivial changes. Across all three splits, the vast majority of tasks fall into the Bug Fix 
+
+and Feature/Enhancement categories. For instance, in the Standard dataset, Bug Fixes (46.6%) and Features (40.1%) combined account for over 86% of the total tasks. This trend holds consistent in the 
+
+Lite (Figure 7b) and Mini (Figure 7c) datasets, confirming that the reduced-size benchmarks retain the high complexity profile required to effectively evaluate agent reasoning and coding capabilities. 
+
+Repository Structure and Context Attributes. To provide a comprehensive understanding of the experimental setup, we present the structural breakdown of the evaluated repositories and the specific attributes used for agent context. Table 6 outlines the diversity of the selected repositories, which span distinct domains ranging from AI versioning (DVC) and scientific engineering (Pandas) to database engines (Sqlglot). This domain heterogeneity ensures that the agents are evaluated against varied coding paradigms and architectural patterns. Within these repositories, tasks are classified according to the taxonomy defined in Table 5, distinguishing between activities such as routine maintenance, complex feature enhancements, and critical bug fixes. Finally, Table 4 details the granular metadata extracted for each Pull Request. These attributes —including the raw code diffs ( fix_patch , test_patch ), modified file lists, and regression testing constraints (F2P) —constitute the full context window provided to the agents during execution. 
+
+8.1.2 Execution Setup and Diagrammatic Representation 
+
+To evaluate the adaptability of autonomous agents to different development workflows, we structured the experiments around three distinct execution configurations. Figure 8 illustrates the architectural differences between the sequential, stateful approach and the holistic planning approach. The specific protocols for these configurations are defined as follows: (1) Global Memory Configuration (Conversational Coding). As depicted in Figure 8a, the agent processes Pull Requests in a strict sequential order while maintaining shared conversational and working context across the entire task chain. The task description and definition description are provided iteratively. A key feature of this setting is the cascading test suite :obligations introduced in earlier PRs ( P R i−1) remain in the active test scope for current and 
+
+12 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Figure 6. Repository task lists distribution (pie charts) 
+
+Figure 6(a) Standard Figure 6(b) Lite Figure 6(c) Mini 
+
+Figure 7. Task distribution (bar charts) 
+
+Figure 7(a) Standard Figure 7(b) Lite Figure 7(c) Mini 
+
+Table 4. Attributes extracted for each Pull Request. 
+
+Attribute Description 
+
+commit_id Commit ID of the PR. 
+
+parent_id Commit ID of the base repository. 
+
+pr_number PR number for merging. 
+
+prs Dictionary with PR information. 
+
+changed_files List of modified files. 
+
+test_files List of modified test files. 
+
+changes Added, modified, or deleted items. 
+
+pass_to_pass Tests that must remain passing. 
+
+fail_to_pass Tests changing from fail to pass. 
+
+fix_patch Git diff of source code. 
+
+test_patch Git diff of test code. 
+
+all_texts Issues, docs, PR messages. 
+
+Table 5. Pull Request classification categories. 
+
+Category Description 
+
+Feature/ Enhanc. New features, performance, security. Bug Fix Bug fixes and issue resolution. Maintenance Refactoring, cleanup, updates. Infrastructure Build, CI, configuration changes. Documentation Documentation updates. Testing Test additions and modifications. 
+
+Table 6. Domains of evaluated repos-itories. 
+
+Repository Domain 
+
+Conan Build Tools DVC AI Versioning Haystack Scientific, AI Sqlglot Database Engines Pandas Scientific/Engineering Moto Software Dev, Testing 
+
+13 A Framework for Evaluating Coding Agents on Sequential Software Evolution PR #2            
+
+> PR #N
+> PR #1
+> Agent
+> Repository Execution Sandbox
+> Agent
+> implementation Testcase
+> Execution
+> Testcase
+> Feedback
+> Input Task
+> Input 𝑷 𝑹 𝒊
+> Awaiting next
+> Input 𝑷 𝑹 𝒊 +𝟏
+> Search Localize
+> Implement
+> Test 𝑷 𝑹 (𝒊 −𝟏 )
+> Test 𝑷 𝑹 (𝒊 −𝟐 )
+> Test 𝑷 𝑹 𝟏
+> Test 𝑷 𝑹 𝒊
+> Context Memory
+
+Figure 8(a) Global Setting PR #2           
+
+> PR #N
+> PR #1
+> PRD Document
+> Testcase
+> Execution
+> Testcase
+> Feedback
+> Input Task Agent
+> Agent
+> implementation
+> Search Localize
+> Implement
+> Plan
+> Repository Execution Sandbox
+> Test 𝑷 𝑹 𝟐
+> Test 𝑷 𝑹 𝟑
+> Test 𝑷 𝑹 𝑵
+> Test 𝑷 𝑹 𝟏
+
+Figure 8(b) PRD setting 
+
+Figure 8. Comparison of Agent Execution Configurations. (a) Global Memory Setting (Conversational Coding): The agent processes Pull Requests sequentially (P R 1 → P R N ), maintaining context across the chain. Verification involves cascading tests (T est P R i + T est P R i−1 . . . ) to ensure new changes do not regress previous fixes. (b) PRD Setting: Task requirements are aggregated into a unified Product Requirements Document (PRD). The agent synthesizes a high-level plan before implementation, validated against the complete accumulated test suite. 
+
+future PRs ( P R i). This simulates a realistic development workflow where regressions must be prevented and previously fixed behaviors must remain stable throughout the lifecycle of the feature chain. (2) PRD Configuration (PRD-based Coding). Illustrated in Figure 8b, this setting shifts the agent’s focus from iterative execution to architectural planning. We concatenate the requirements from the entire task chain into a unified Product Requirements Document (PRD). The agent receives this high-level specification upfront and is prompted to generate a comprehensive plan before writing code. Unlike the iterative approach, the agent must infer the necessary orchestration strategy to satisfy all requirements simultaneously, and the accumulated test suite is evaluated only at the final state. 
+
+8.2 Performance Analysis 
+
+8.2.1 OpenHands: General Benchmarks 
+
+Analysis of performance on the Lite and Mini datasets, focusing on Pass-to-Pass (P2P) and Fail-to-Pass (F2P) metrics. Table 7 presents the specific breakdown of the Lite dataset results by repository. It lists the number of completed pull requests and tasks for each setting (Individual, Global, PRD), illustrating how the performance degradation and “spillover” effects vary across different codebase structures and sizes. Tables 8 and 9 dissect the test-level performance across the Mini and Lite datasets, respectively. A consistent trend emerges across both scales: models exhibit a strong bias toward regression safety (high P2P scores) at the expense of task resolution (F2P scores) as statefulness increases. In Table 8, top-performing models like Claude Sonnet 4.5 see F2P rates drop by nearly 30% when moving from Individual to PRD settings. Table 9 corroborates this on a larger scale, where Gemini Flash’s F2P performance nearly halves (52.45% to 27.65%) in the PRD environment. This data suggests that "spillover" effects in long-context interactions cause agents to struggle with fault localization, leading them to preserve the status quo rather than successfully implementing the necessary fixes. Figure 9 shows agent performance with the variation in chain length and the test suite size. 
+
+14 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Table 7. (Lite dataset) Performance comparison of models across multiple repositories using the lite dataset. The 
+
+PR and Task columns indicate the number of completed pull requests and tasks, respectively. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Total PR Success Avg Cost PR TaskPR TaskPR Task PR TaskPR TaskPR TaskPasssed Rate Per Task ($) /25 /4 /24 /7 /45 /8 /78 /13 /55 /12 /49 /6 /276 
+
+GPT 5.1 Codex Mini 16 0 6 0 31 1 27 0 25 0 15 0 120 43.48 3.73 
+
+Individual 
+
+Gemini 3 Flash 17 1 12 1 35 2 46 1 25 0 21 0 156 56.52 2.79 GPT 5.1 Codex Mini 12 1 4 0 15 0 18 0 17 0 5 0 71 25.72 5.12 
+
+Global 
+
+Gemini 3 Flash 12 0 11 2 23 1 31 1 16 0 8 0 101 36.59 4.32 GPT 5.1 Codex Mini 12 1 3 0 11 0 14 0 24 1 5 0 69 25.00 9.09 
+
+PRD 
+
+Gemini 3 Flash 13 0 8 1 18 0 22 0 17 0 11 1 89 32.25 9.85 
+
+Table 8. (Mini dataset) Performance comparison of models across multiple repositories using the mini dataset. The P2P and F2P columns indicate the percentage of Pass to Pass and Fail to Pass tests passed. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Average P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P /146 /8 /170 /16 /80 /64 /954 /31 /650 /50 /812 /18 /2812 /187 
+
+Gemini 3 PRO 99.32 100.0067.06 50.00 100.0096.88 63.94 41.94 56.31 42.00 95.07 44.44 74.22 64.17 
+
+Claude Sonnet 4.5 92.47 87.50 54.12 56.25 100.00100.00100.0038.71 78.46 78.00 100.0061.11 91.86 75.93 
+
+GPT 5.2 Chat 100.0075.00 67.65 43.75 100.0042.19 95.28 35.48 65.08 30.00 99.26 55.56 88.16 40.65 
+
+Gemini 3 Flash 71.23 50.00 48.24 50.00 100.00100.0093.61 41.94 57.69 30.00 94.95 38.89 81.97 59.36 Individual 
+
+GPT 5.1 Codex Mini 96.58 50.00 52.35 31.25 100.0098.44 90.15 9.68 78.46 54.00 94.95 16.67 87.16 56.15 
+
+Gemini 3 PRO 99.32 62.50 42.35 56.25 100.00100.0096.02 22.58 73.23 62.00 99.14 11.11 87.07 65.56 
+
+Claude Sonnet 4.5 100.00100.0042.35 37.50 100.0087.50 100.0025.81 49.38 32.00 99.14 22.22 82.19 54.44 
+
+GPT 5.2 Chat 100.00100.0052.94 37.50 100.0026.56 98.85 51.61 75.23 40.00 99.01 33.33 89.40 40.56 
+
+Gemini 3 Flash 95.89 37.50 35.88 43.75 100.0093.75 90.04 22.58 87.54 52.00 92.86 22.22 87.59 57.22 Global 
+
+GPT 5.1 Codex Mini 99.32 62.50 31.76 0.00 92.50 64.06 90.15 12.90 63.69 48.00 98.65 27.78 87.16 56.15 
+
+Gemini 3 PRO 69.86 50.00 25.29 18.75 100.0095.31 92.35 6.45 71.08 56.00 97.78 33.33 82.69 57.78 
+
+Claude Sonnet 4.5 87.67 87.50 52.94 31.25 100.0026.56 99.79 45.16 82.00 66.00 98.77 33.33 90.90 45.56 
+
+GPT 5.2 Chat 99.32 87.50 92.35 18.75 100.0025.00 42.66 3.23 84.00 50.00 98.40 27.78 72.13 31.67 
+
+Gemini 3 Flash 69.86 37.50 44.12 18.75 100.0095.31 94.65 16.13 74.62 44.00 75.49 5.56 80.29 50.80 PRD 
+
+GPT 5.1 Codex Mini 99.32 75.00 88.82 12.50 100.0015.62 99.79 3.23 83.23 68.00 99.14 11.11 95.09 29.41 
+
+Table 9. (Lite dataset) Performance comparison of models across multiple repositories using the lite dataset. The 
+
+P2P and F2P columns indicate the percentage of Pass to Pass and Fail to Pass tests passed. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Average P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P /230 /34 /467 /63 /1328/280 /3747/287 /2834/173 /1765 /42 /10371 /879 
+
+GPT 5.1 Codex Mini 92.17 35.29 64.03 26.98 95.33 49.64 96.32 13.24 60.09 29.48 97.34 14.29 84.92 29.92 Individual 
+
+Gemini 3 Flash 81.74 47.06 74.95 50.79 99.70 69.29 96.77 57.84 51.73 27.97 88.05 35.71 82.04 52.45 
+
+GPT 5.1 Codex Mini 79.57 41.18 63.38 20.63 78.31 33.57 93.3 4.88 47.85 27.17 96.77 11.9 77.90 21.27 Global 
+
+Gemini 2.5 Flash 97.39 20.59 72.38 52.38 94.73 50.71 96.93 19.51 79.78 27.75 90.71 19.05 89.81 33.45 
+
+GPT 5.1 Codex Mini 98.7 26.47 84.15 20.63 86.45 12.5 96.02 3.83 66.94 36.99 89.75 4.76 85.31 15.24 PRD 
+
+Gemini 2.5 Flash 80.87 23.53 47.54 33.33 95.11 38.57 91.22 14.98 61.36 31.79 86.57 19.05 80.57 27.65 
+
+15 A Framework for Evaluating Coding Agents on Sequential Software Evolution         
+
+> Figure 9. Pass Rate Analysis. Comparison of Average PR Pass Rates for Claude, Gemini, and GPT models relative to test suite size. The plots reveal that the Individual PR setting consistently maintains higher pass rates compared to Global Memory and PRD strategies, particularly as the number of tests increases.
+
+8.2.2 Repository-Specific Analysis: SonarQube 
+
+A focused analysis comparing performance on the SonarQube repository against other repositories in the dataset. Figure 10 visualizes the longitudinal evolution of code health metrics —∆ Cognitive Complexity and 
+
+∆ SQALE Index (Technical Debt) —across six repositories. The data is normalized into five temporal bins to allow for a direct comparison between the trajectories of autonomous agents (Gemini 3.0 Pro, Claude Sonnet 4.5, GPT 5.2 Chat) and the Human Gold Trace. The plots serve to illustrate the deviation in coding standards: while the human baseline typically reflects a steady, controlled progression (often near-zero or negative slope due to refactoring), agent trajectories frequently diverge, exhibiting either unbounded accumulation of complexity (e.g., moto , sqlglot ) or erratic volatility (e.g., pandas ), indicative of a struggle to maintain code maintainability over long-context interactions. 
+
+8.2.3 Aider Performance Benchmarks 
+
+To show that our findings are generalizable, we evaluate our framework with the another open source coding agent, Aider Gauthier [2023]. Contrast to OpenHands, it is a semi-autonomous pair programming tool that operates via a command line interface. We used the Aider Python SDK to simulate an autonomous workflow similar to the one followed in OpenHands. Table 10 and Table 11 showcase Aider’s performance across multiple repositories in the Individual , Global and PRD settings. The general trend in performance seems to be consistent with our claims that Indivdual setting are often riddled with inflated scores that do not truly capture the essense of software engineering. Since Aider is not equipped with a standalone planning agent or a good context condensation agent like OpenHands, we try to give it a fair chance by introducing a new setting: Local . In this setting, the context is automatically refreshed after each PR is complete. This bypasses the need for a context condensation agent, but comes at the cost of missing stateful context. We also supplement the context by providing all the file paths and function declarations to the agent. The performance in Local is considerably better than 
+
+Global , necessitating the need for active context management when using AI pair programming agents. 
+
+16 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Figure 10. Code Quality Evolution Across Repository Difficulty Levels. The figure displays ∆ Cognitive Complexity (rows 1–2) and ∆ SQALE Index (rows 3–4) across six repositories of varying difficulty. Rows 1 & 3 (conan , haystack , moto ): Performance evaluated across five difficulty bins (Bin 1–5) for three Large Language Model agents (Gemini 3.0 Pro, Claude Sonnet 4.5, GPT 5.2 Chat) versus the human ground truth ( Gold Trace ). The plots reveal that while the Gold Trace maintains near-zero or low fluctuation in complexity and technical debt, autonomous agents introduce significantly higher complexity and debt accumulation, particularly in higher bins. Rows 2 & 4 (dvc , pandas , sqlglot ): High-difficulty scenarios where agents struggled significantly. Rather than consistently accumulating debt, agents often exhibit flatlines (e.g., GPT 5.2 in dvc ) or erratic negative drops (e.g., pandas ), indicating failure to generate necessary code modifications compared to the steady progression of the human ground truth. 
+
+8.3 Prompts, Inputs, and Artifacts 
+
+8.3.1 Task Generation and Categorization Prompts 
+
+The specific prompts used to categorize PRs before execution. 
+
+17 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Table 10. (Lite dataset) Performance comparison of models across multiple repositories using the lite dataset and the Aider agent. The PR and Task columns indicate the number of completed pull requests and tasks, respectively. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Total PR Success Avg Cost PR TaskPR TaskPR Task PR TaskPR TaskPR TaskPasssed Rate Per Task ($) /25 /4 /24 /7 /45 /8 /78 /13 /55 /12 /49 /6 /276 
+
+GPT 5.1 Codex Mini 13 0 6 1 22 0 24 0 14 0 6 0 85 30.79 0.64 
+
+Individual 
+
+Gemini 2.5 Flash 16 0 7 0 22 0 39 1 19 0 22 0 125 45.29 0.82 GPT 5.1 Codex Mini 7 0 3 0 7 0 5 0 5 1 1 0 28 10.14 0.63 
+
+Global 
+
+Gemini 2.5 Flash 8 0 2 1 7 0 11 1 4 0 1 0 33 11.96 2.52 GPT 5.1 Codex Mini 8 0 3 0 7 0 12 0 4 0 1 0 35 12.68 0.58 
+
+PRD 
+
+Gemini 2.5 Flash 6 0 3 0 6 0 12 0 4 0 1 0 32 11.59 3.96 
+
+Table 11. (Lite dataset) Performance comparison of models across multiple repositories using the lite dataset and the Aider agent. The P2P and F2P columns indicate the percentage of Pass to Pass and Fail to Pass tests passed. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Average P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P /230 /34 /467 /63 /1328/280 /3747/287 /2834/173 /1765 /42 /10371 /879 
+
+GPT 5.1 Codex Mini 40.87 47.06 32.55 19.05 54.59 43.57 26.31 15.68 15.35 12.14 13.60 16.67 25.38 25.37 Individual 
+
+Gemini 2.5 Flash 78.26 35.29 68.95 41.27 80.95 54.29 91.09 35.89 80.06 52.02 77.90 38.10 83.25 45.39 
+
+GPT 5.1 Codex Mini 30.87 8.82 26.34 14.29 52.03 6.07 12.06 2.44 27.83 19.65 34.45 23.81 26.36 9.10 Global 
+
+Gemini 2.5 Flash 89.57 26.47 59.74 23.81 55.57 20.71 62.74 17.42 39.59 43.93 60.96 11.90 55.65 24.23 
+
+GPT 5.1 Codex Mini 99.62 0.00 100.00 0.00 95.18 16.79 99.52 0.0 99.85 0.00 98.52 0.00 98.91 5.35 PRD 
+
+Gemini 2.5 Flash 85.22 29.41 73.88 17.46 48.42 37.85 62.12 13.24 64.64 51.44 53.99 4.76 58.20 29.12 
+
+Table 12. (Lite dataset) Performance comparison of models across multiple repositories using the lite dataset and the Aider agent. The P2P and F2P columns indicate the percentage of Pass to Pass and Fail to Pass tests passed. 
+
+Setting Model Conan DVC Haystack Moto Pandas Sqlglot Average P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P P2P F2P /230 /34 /467 /63 /1328/280 /3747/287 /2834/173 /1765 /42 /10371 /879 Individual GPT 5.1 Codex Mini 60.00 50.00 43.25 20.63 59.04 38.93 39.20 17.07 10.87 10.98 18.47 16.67 31.11 24.34 
+
+w/Filepaths Gemini 2.5 Flash 71.74 41.18 71.95 50.79 79.97 53.57 45.29 31.71 46.89 16.18 81.70 54.76 58.15 38.45 Global GPT 5.1 Codex Mini 74.35 41.18 14.13 23.81 51.43 23.57 46.52 27.18 5.93 2.31 5.16 14.29 22.04 7.17 
+
+w/Filepaths Gemini 2.5 Flash 88.70 44.12 58.67 57.14 59.26 45.71 50.76 15.68 60.52 57.80 61.93 19.05 41.26 21.39 Local GPT 5.1 Codex Mini 99.62 0.00 100.00 0.00 95.18 16.79 99.52 0.0 99.85 0.00 98.52 0.00 28.18 20.82 
+
+w/Filepaths Gemini 2.5 Flash 85.22 29.41 73.88 17.46 48.42 37.85 62.12 13.24 64.64 51.44 53.99 4.76 57.61 37.76  
+
+> 1
+
+You are a software development expert tasked with categorizing Git commits based on their associated text content (PR titles, descriptions, etc.).  
+
+> 2
+
+Commit ID: {commit_id}  
+
+> 3
+
+Text Content:  
+
+> 4
+
+{commit_text}  
+
+> 5
+
+Available Categories:  
+
+> 6
+
+{chr (10).join(f"- {cat}" for cat in categories)} 
+
+18 A Framework for Evaluating Coding Agents on Sequential Software Evolution  
+
+> 7
+
+Category Descriptions:  
+
+> 8
+
+- Feature/Enhancement: New features, performance improvements, security enhancements  
+
+> 9
+
+- Bug Fix: Bug fixes and issue resolution  
+
+> 10
+
+- Maintenance: Refactoring, code cleanup, dependency updates  
+
+> 11
+
+- Infrastructure: Build changes, CI changes, configuration changes  
+
+> 12
+
+- Documentation: Documentation updates  
+
+> 13
+
+- Testing: Test additions, modifications, test-related changes  
+
+> 14
+
+Instructions:  
+
+> 15
+
+1. Analyze the provided text content carefully  
+
+> 16
+
+2. Determine the primary purpose/ type of this commit  
+
+> 17
+
+3. Select the most appropriate category from the list above  
+
+> 18
+
+4. Provide a brief explanation for your categorization choice  
+
+> 19
+
+5. Identify the exact keywords/phrases from the input text that influenced your decision  
+
+> 20
+
+Response Format (JSON only):  
+
+> 21
+
+Return your response as a valid JSON object with the following structure:  
+
+> 22
+
+{{  
+
+> 23
+
+"category": "Selected Category",  
+
+> 24
+
+"explanation": "Brief explanation of why this category was chosen",  
+
+> 25
+
+"confidence": "HighMediumLow",  
+
+> 26
+
+"reasoning": "Key indicators that led to this categorization",  
+
+> 27
+
+"keywords": ["exact", "keywords", "or phrases", "from input text"]  
+
+> 28
+
+}}  
+
+> 29
+
+Please categorize this commit now and return only the JSON response. 
+
+8.3.2 Agent System Prompts 
+
+The comprehensive additional user prompts provided to the agents along with openhands system prompts for Individual and Sequential PR execution, as well as PRD processing.  
+
+> 1
+
+You are working on a SINGLE pull request in the repository at: {workdir}.  
+
+> 23
+
+Task:  
+
+> 4
+
+{task_text}  
+
+> 56
+
+You are NOT running over a full task list or stacking tests from other PRs.  
+
+> 7
+
+Focus only on this PR and the currently failing tests.  
+
+> 89
+
+Hard constraints (you MUST obey these):  
+
+> 10
+
+- DO NOT run tests yourself for any reason.  
+
+> 11
+
+- Never call `pytest `, `python -m pytest `, `tox `, `nox `, `nose `, 
+
+> 12
+
+`unittest `, `coverage run `, or any other test runner commands.  
+
+> 13
+
+- Treat the feedback below as the only ground truth about which tests are failing.  
+
+> 14
+
+- Never run any test wrapper scripts created by the harness, such as : 
+
+> 15
+
+- `combined_PR<PR_NO>_<timestamp>.sh ` 
+
+> 16
+
+- `run_tests_PR<PR_NO>.sh ` 
+
+> 17
+
+- any script whose name contains `combined_PR ` or `run_tests_PR `. 
+
+> 18
+
+- Do not execute any shell command that looks like it is running tests.  
+
+> 19 20
+
+If there are missing dependencies in environment or you want to install them,  
+
+> 21
+
+please note that testcase execution uses the following environment path: {env_path}  
+
+> 22
+
+- Use the provided env only for all installation.  
+
+> 23 24
+
+Feedback from the last test run:  
+
+> 25
+
+{feedback}  
+
+> 26 27
+
+Rules: 
+
+19 A Framework for Evaluating Coding Agents on Sequential Software Evolution  
+
+> 28
+
+- Make minimal, deterministic code changes.  
+
+> 29
+
+- Prefer editing existing files over creating new ones.  
+
+> 30
+
+- When you edit files, ensure they remain syntactically valid.  
+
+> 31
+
+- Do NOT add or modify tests unless explicitly instructed.  
+
+> 32
+
+- DO NOT ADD TIMEOUT FOR MORE THEN 120.0s at max in any case.  
+
+> 1
+
+You are working in the repository at: {workdir}.  
+
+> 23
+
+Task:  
+
+> 4
+
+{task_text}  
+
+> 56
+
+Do not look into test files or execute testcases unless specified.  
+
+> 78
+
+Hard constraints (you MUST obey these):  
+
+> 9
+
+- DO NOT run tests yourself for any reason.  
+
+> 10
+
+- Never call `pytest `, `python -m pytest `, `tox `, `nox `, `nose `, 
+
+> 11
+
+`unittest `, `coverage run `, or any other test runner commands.  
+
+> 12
+
+- Treat the feedback above as ground truth about which tests are failing.  
+
+> 13
+
+- Never run any test wrapper scripts created by the harness, such as : 
+
+> 14
+
+- `combined_PR<PR_NO>_<timestamp>.sh ` 
+
+> 15
+
+- `run_tests_PR<PR_NO>.sh ` 
+
+> 16
+
+- any script whose name contains `combined_PR ` or `run_tests_PR `. 
+
+> 17
+
+- Do not execute any shell command that looks like it is running tests.  
+
+> 18 19
+
+If there are missing dependencies in environment or you want to install them,  
+
+> 20
+
+please note that testcase execution uses the following environment path: {env_path}  
+
+> 21
+
+- Use the provided env only for all installation.  
+
+> 22 23
+
+Feedback from the last test run:  
+
+> 24
+
+{feedback}  
+
+> 25 26
+
+Rules:  
+
+> 27
+
+- Make minimal, deterministic code changes.  
+
+> 28
+
+- Prefer editing existing files over creating new ones.  
+
+> 29
+
+- When you edit files, ensure they remain syntactically valid.  
+
+> 30
+
+- Do NOT add or modify tests unless explicitly instructed.  
+
+> 31
+
+- DO NOT ADD TIMEOUT FOR MORE THEN 120.0s at max in any case.  
+
+> 1
+
+You are working in the repository at: {workdir}.  
+
+> 23
+
+You are given following list of code and document change requests on everything needed to implement multiple changes together.  
+
+> 45
+
+{task_text}  
+
+> 67
+
+PROCESS (MANDATORY)  
+
+> 8
+
+1) Before making any code changes, delegate to planning_agent to produce PLAN.md.  
+
+> 9
+
+2) Wait for the plan output and follow it step-by-step.  
+
+> 10
+
+3) Only after PLAN.md is written, start implementation if requirements.  
+
+> 11
+
+4) If the plan becomes invalid after new evidence (tests/logs), re-delegate and update PLAN.md.  
+
+> 12 13
+
+DELEGATION  
+
+> 14
+
+Use the DelegateTool to call planning_agent with :
+
+20 A Framework for Evaluating Coding Agents on Sequential Software Evolution  
+
+> 15
+
+- Objective  
+
+> 16
+
+- PRD/requirements (summarize if large)  
+
+> 17
+
+- Constraints (time/budget, max iterations)  
+
+> 18
+
+- Required deliverables  
+
+> 19
+
+Planning agent must write/update PLAN.md using PlanningFileEditorTool.  
+
+> 20 21
+
+Do not look into test files or execute testcases unless specified.  
+
+> 22 23
+
+Hard constraints (you MUST obey these):  
+
+> 24
+
+- DO NOT run tests yourself for any reason.  
+
+> 25
+
+- Never call `pytest `, `python -m pytest `, `tox `, `nox `, `nose `, 
+
+> 26
+
+`unittest `, `coverage run `, or any other test runner commands.  
+
+> 27
+
+- Treat the feedback above as ground truth about which tests are failing.  
+
+> 28
+
+- Never run any test wrapper scripts created by the harness, such as : 
+
+> 29
+
+* `combined_PR<PR_NO>_<timestamp>.sh ` 
+
+> 30
+
+* `run_tests_PR<PR_NO>.sh ` 
+
+> 31
+
+* any script whose name contains `combined_PR ` or `run_tests_PR `. 
+
+> 32
+
+- Do not execute any shell command that looks like it is running tests.  
+
+> 33 34
+
+If there are missing dependencies in environment or you want to install them,  
+
+> 35
+
+please note that testcase execution uses the following environment path: {env_path}  
+
+> 36
+
+- Use the provided env only for all installation.  
+
+> 37 38
+
+Feedback from the last test run:  
+
+> 39
+
+{feedback}  
+
+> 40 41
+
+Rules:  
+
+> 42
+
+- Make minimal, deterministic code changes.  
+
+> 43
+
+- Prefer editing existing files over creating new ones.  
+
+> 44
+
+- When you edit files, ensure they remain syntactically valid.  
+
+> 45
+
+- Do NOT add or modify tests unless explicitly instructed.  
+
+> 46
+
+- DO NOT ADD TIMEOUT FOR MORE THEN 120.0s at max in any case. 
+
+8.3.3 Sample Inputs: PR Descriptions and Requirements 
+
+Examples of the input data provided to the model, including raw Pull Request descriptions and structured Product Requirement Documents. 
+
+This is a task request in which we need to add new code or modify the existing code in the repository or do both. 
+
+Task Request 
+
+Request 
+
+Task Description 
+
+• Fix OpenAIChatGenerator response_format serialization errors by allowing proper serialization of 
+
+response_format dictionary objects. The issue occurs because {"type": "json_object"} is a valid 
+
+response_format , which is a dictionary object, not a class, causing TypeError: issubclass() arg 1 must be a class .
+
+Issue Description 
+
+No separate issue entry present. 
+
+Documentation Changes 
+
+No documentation changes present. No new functions or classes were added in this commit. Some existing functions or classes were modified. There are several functions or classes that need to be modified, using the definitions below: 
+
+21 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+Modified Definitions 
+
+Definitions 
+
+Function: OpenAIChatGenerator.to_dict 
+
+Docstring: Serialize this component to a dictionary. 
+
+Returns: 
+
+• The serialized component as a dictionary. 
+
+Class: OpenAIChatGenerator 
+
+Declaration: class OpenAIChatGenerator: 
+
+Docstring: Completes chats using OpenAI’s large language models (LLMs). It works with the gpt-4 and o-series models and supports streaming responses from OpenAI API. It uses 
+
+ChatMessage format in input and output. You can customize how the text is generated by passing parameters to the OpenAI API. Use the 
+
+**generation_kwargs argument when you initialize the component or when you run it. Any parameter that works with openai.ChatCompletion.create will work here too. For details on OpenAI API parameters, see OpenAI documentation. 
+
+Usage example 
+
+from haystack.components.generators.chat import OpenAIChatGenerator from haystack.dataclasses import ChatMessage messages = [ChatMessage.from_user("What 's Natural Language Processing?")] client = OpenAIChatGenerator() response = client.run(messages) print(response) 
+
+Output 
+
+{'replies ':[ChatMessage(_role=<ChatRole.ASSISTANT: 'assistant '>, _content= [TextContent(text="Natural Language Processing (NLP) is a branch of artificial intelligence that focuses on enabling computers to understand, interpret, and generate human language in a way that is meaningful and useful.")], _name=None, _meta={ 'model ': 'gpt-4o-mini ', 'index ': 0, 'finish_reason ': 'stop ',
+
+'usage ': { 'prompt_tokens ': 15, 'completion_tokens ': 36, 'total_tokens ':51}})] }
+
+Please note that in addition to the newly added components mentioned above, you also need to make other code changes to ensure that the new feature can be executed properly. 
+
+1. Objective 
+
+Implement coordinated enhancements to DVC for database import functionality: (1) Import-DB Command : New dvc import-db command with –sql and –model modes for import-ing data from databases (2) LFS Pre-fetching Support : Fix Git-LFS pointer issue by pre-fetching LFS objects during imports (3) SQLAlchemy Connection Strings : Add config support for database connections with experi-mental SQLAlchemy integration (4) Config Bug Fix : Fix global config environment variable handling in global_config_dir() 
+
+(5) Functional Testing : Add comprehensive tests for database import functionality These features work together to enable DVC to import and track data from various database platforms using dbt adapters for authentication and SQLAlchemy for direct connections. 
+
+2. Context Summary 
+
+DVC Architecture Overview 
+
+22 A Framework for Evaluating Coding Agents on Sequential Software Evolution Commands Layer ( dvc/commands/ )
+
+• Each command has a class extending CmdBase /CmdBaseNoRepo 
+
+• Commands registered in dvc/cli/parser.py via add_parser() function 
+
+• Commands delegate to repository methods 
+
+Repository Layer ( dvc/repo/ )
+
+• Repo class imports methods from individual files (e.g., from dvc.repo.imp import imp )
+
+• Import logic: imp() → imp_url() → creates Stage with dependencies 
+
+• Locking via @locked decorator ensures thread safety 
+
+Stage Layer ( dvc/stage/ )
+
+• Stage class represents pipeline stages and data operations 
+
+• Properties: is_import , is_repo_import , is_versioned_import , is_partial_import 
+
+• Stage operations: update() , save() , run() , etc. 
+
+• Import helpers: update_import() , sync_import() in stage/imports.py 
+
+Dependency Layer ( dvc/dependency/ )
+
+• Dependency extends Output class 
+
+• RepoDependency : Imports from other repos (uses DVCFileSystem) 
+
+• ParamsDependency : Parameter tracking 
+
+• Factory pattern in __init__.py : _get() creates appropriate dependency type 
+
+• Schema defined in SCHEMA dict 
+
+Config Layer ( dvc/config.py , dvc/config_schema.py )
+
+• Config levels: system, global, repo, local 
+
+• Schema validation with voluptuous 
+
+• dirs.py provides config directory locations 
+
+Filesystem Layer ( dvc/fs/ )
+
+• GitFileSystem : Git repository access 
+
+• DVCFileSystem : DVC repository access 
+
+• Version-aware filesystems for imports 
+
+Current Import Flow 
+
+(1) Command: dvc import <url> <path> → CmdImport.run() 
+
+(2) Repo: repo.imp() → repo.imp_url() 
+
+(3) Stage Creation: repo.stage.create() with deps=[url] , outs=[path] 
+
+(4) Graph Check: repo.check_graph() validates stage (5) Execution: Stage runs, downloads data via dependency (6) Save: Stage dumps to .dvc file 
+
+Key Issues to Address 
+
+Issue 1: Config Bug 
+
+• global_config_dir() in dvc/dirs.py incorrectly uses DVC_SYSTEM_CONFIG_DIR instead of 
+
+DVC_GLOBAL_CONFIG_DIR 
+
+Issue 2: LFS Pointers 
+
+• Git-LFS tracked files are read as pointer text instead of actual content 
+
+• Need to pre-fetch LFS objects before GitFileSystem reads them 
+
+8.3.4 Sample Output: Generated Plans 
+
+A truncated qualitative example of a PLAN.md file generated by the OpenHands planning agent from the PRD mentioned in subsubsection 8.3.3 
+
+1. Objective 
+
+Implement coordinated enhancements to DVC for database import functionality: (1) Import-DB Command : New dvc import-db command with –sql and –model modes for import-ing data from databases (2) LFS Pre-fetching Support : Fix Git-LFS pointer issue by pre-fetching LFS objects during imports (3) SQLAlchemy Connection Strings : Add config support for database connections with experi-mental SQLAlchemy integration 
+
+23 A Framework for Evaluating Coding Agents on Sequential Software Evolution 
+
+(4) Config Bug Fix : Fix global config environment variable handling in global_config_dir() 
+
+(5) Functional Testing : Add comprehensive tests for database import functionality These features work together to enable DVC to import and track data from various database platforms using dbt adapters for authentication and SQLAlchemy for direct connections. 
+
+2. Context Summary 
+
+DVC Architecture Overview 
+
+Commands Layer ( dvc/commands/ )
+
+• Each command has a class extending CmdBase /CmdBaseNoRepo 
+
+• Commands registered in dvc/cli/parser.py via add_parser() function 
+
+• Commands delegate to repository methods 
+
+Repository Layer ( dvc/repo/ )
+
+• Repo class imports methods from individual files (e.g., from dvc.repo.imp import imp )
+
+• Import logic: imp() → imp_url() → creates Stage with dependencies 
+
+• Locking via @locked decorator ensures thread safety 
+
+Stage Layer ( dvc/stage/ )
+
+• Stage class represents pipeline stages and data operations 
+
+• Properties: is_import , is_repo_import , is_versioned_import , is_partial_import 
+
+• Stage operations: update() , save() , run() , etc. 
+
+• Import helpers: update_import() , sync_import() in stage/imports.py 
+
+Dependency Layer ( dvc/dependency/ )
+
+• Dependency extends Output class 
+
+• RepoDependency : Imports from other repos (uses DVCFileSystem) 
+
+• ParamsDependency : Parameter tracking 
+
+• Factory pattern in __init__.py : _get() creates appropriate dependency type 
+
+• Schema defined in SCHEMA dict 
+
+Config Layer ( dvc/config.py , dvc/config_schema.py )
+
+• Config levels: system, global, repo, local 
+
+• Schema validation with voluptuous 
+
+• dirs.py provides config directory locations 
+
+Filesystem Layer ( dvc/fs/ )
+
+• GitFileSystem : Git repository access 
+
+• DVCFileSystem : DVC repository access 
+
+• Version-aware filesystems for imports 
+
+Current Import Flow 
+
+(1) Command: dvc import <url> <path> → CmdImport.run() 
+
+(2) Repo: repo.imp() → repo.imp_url() 
+
+(3) Stage Creation: repo.stage.create() with deps=[url] , outs=[path] 
+
+(4) Graph Check: repo.check_graph() validates stage (5) Execution: Stage runs, downloads data via dependency (6) Save: Stage dumps to .dvc file 
+
+Key Issues to Address 
+
+Issue 1: Config Bug 
+
+• global_config_dir() in dvc/dirs.py incorrectly uses DVC_SYSTEM_CONFIG_DIR instead of 
+
+DVC_GLOBAL_CONFIG_DIR 
+
+Issue 2: LFS Pointers 
+
+• Git-LFS tracked files are read as pointer text instead of actual content 
+
+• Need to pre-fetch LFS objects before GitFileSystem reads them . . . 
+
+24

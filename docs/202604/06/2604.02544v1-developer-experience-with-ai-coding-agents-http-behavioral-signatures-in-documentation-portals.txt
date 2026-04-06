@@ -1,0 +1,225 @@
+Title: Developer Experience with AI Coding Agents: HTTP Behavioral Signatures in Documentation Portals
+
+URL Source: https://arxiv.org/pdf/2604.02544v1
+
+Published Time: Mon, 06 Apr 2026 00:12:01 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Developer Experience with AI Coding Agents: HTTP Behavioral Signatures in Documentation Portals ∗
+
+# Oleksii Borysenko 
+
+borysenko@cisco.com Cisco DevNet 
+
+## Abstract 
+
+The rapid adoption of AI coding agents and AI assistant web services is fundamentally changing how developers discover, consume, and interact with technical documentation. This paper studies that transformation across three interconnected dimensions: documentation accessibility, content analytics, and feedback systems. We present an empirical study of HTTP request fingerprints from nine AI coding agents (Aider, Antigravity, Claude Code, Cline, Cursor, Junie, OpenCode, VS Code, and Windsurf) and six AI assistant services (ChatGPT, Claude, Google Gemini, Google NotebookLM, MistralAI, and Perplexity) accessing a live developer documentation endpoint, revealing identifiable behavioral signatures in HTTP runtime environments, pre-fetch strategies, User-Agent strings, and header patterns. Our study shows that AI agent access compresses multi-page navigation into a single or two requests, making traditional engagement metrics—session depth, time-on-page, click path, and bounce rate— unreliable indicators of actual documentation consumption. We discuss practical adaptations for developer portal teams, including tokenomics-aware documentation design, adoption of emerging machine-readable standards ( AGENTS.md , llms.txt , skill.md ,
+
+agent-permissions.json ), MCP server–based feedback channels, and analytics instrumentation for AI referral traffic. 
+
+## CCS Concepts 
+
+• Software and its engineering → Software maintenance tools .
+
+## Keywords 
+
+developer experience, AI coding agents, documentation accessi-bility, content analytics, feedback systems, HTTP fingerprinting, developer portals, tokenomics 
+
+## 1 Introduction 
+
+Developers gain experience working with documentation, APIs, SDKs, and MCP servers. For many developers, interaction with developer-oriented documentation now primarily occurs within AI coding agents and IDEs with AI features. AI coding agents use tools such as web search that allow them to stay within the IDE perimeter alongside other coding assistants. Developer experience has shifted significantly: users now spend more time with AI assistants and coding agents—according to the Stack Overflow Developer Survey, 51% of professional developers use AI tools daily [ 1]. As a result, developer attention that was previously directed toward documen-tation and code examples is increasingly mediated through the interfaces of AI assistants. 
+
+> ∗arXiv subject classification: cs.SE (Software Engineering).
+
+Documentation for open-source or proprietary products can be accessible via AI tools as part of an MCP server or as part of model training datasets. As a general rule, publicly accessible pages on sites that don’t block AI crawlers in their robots.txt files are crawled by AI agent crawlers and incorporated into model training data. The problem is that this data can become outdated rapidly—for example, when a company releases a new API version or deprecates endpoints. Updates are not automatically propagated to related LLMs or AI assistants; some update cycles take months. Each model has a knowledge cut-off date. Cheng et al. [ 2] demonstrate that LLMs’ effective knowledge cut-offs often diverge significantly from their reported training dates, meaning documentation ingested during training may be far more outdated than vendors claim. This is why AI assistants and agents also rely on retrieval tools such as web search to obtain the latest information directly from source websites. Open-source projects like Context7 [ 3] help pull up-to-date, version-specific documentation and code examples straight from the source. Writing code is one of the primary niches where Generative AI providers and AI coding agent companies address enterprise needs. Companies still seek to quantify efficiency and return on investment, since developers’ time spent guiding coding agents incurs a cost. Brandebusemeyer et al. [ 4 ] found in an empirical field study at SAP that moderate use of GenAI improves efficiency and reduces perceived workload, while excessive or combined use of multiple interaction types diminishes these benefits. Developer Experience (DevX) is now being formally recognized as a research discipline. Combemale [ 5] argues that DevX “pro-foundly influences critical development activities and overall pro-ductivity, especially as development becomes increasingly collab-orative and diverse in terms of application domains.” This paper explores how these shifts manifest specifically in the context of AI coding agents, where documentation accessibility, content analytics, and feedback systems may require fundamental rethinking. AI bot activity has surged. Cloudflare [ 6] measured the volume of requests from AI crawlers, identifying Bytespider, Amazonbot, ClaudeBot, and GPTBot as the highest-volume sources. Bilal et al. [ 7 ] cite an 18% year-over-year increase in non-human web traffic, with GPTBot requests alone growing more than 300% as AI systems progressively replace human web consumption. 
+
+## 2 Developer Documentation in the AI Agent Era 
+
+Portals and websites that host developer and engineering informa-tion are likely to experience significant declines in organic search traffic [ 8 ] while seeing increased visits from AI crawlers [ 9] and bots. Users will consume content on the platforms they are ac-customed to—coding agents, AI assistants, and IDEs. Some SaaS documentation platforms and hosted portals are adding features 
+
+> 1
+> arXiv:2604.02544v1 [cs.SE] 2 Apr 2026
+
+to ensure every developer-oriented page is discoverable by both humans and AI alike: content is automatically indexed by search engines, and AI agents receive pages in clean Markdown rather than raw HTML, making them faster to process and more token-efficient. Developers can view the Markdown source of any page themselves by appending .md to its URL [ 10 ]. If the content cov-ers API or MCP documentation, it should be easily accessible for copying or downloading via a single stable link. 
+
+## 2.1 Platforms Where Developers Consume Content 
+
+There are many platforms where users can now consume developer-oriented content outside of IDEs and coding agents—developer guides, demo use cases, technology overviews, and tool introduc-tions. Users select the platforms they prefer. For example, a de-veloper might summarize text, convert a developer-oriented blog post into audio using NotebookLM [ 11 ], or convert audio and video into searchable, interactive transcripts. Developers choose different modalities for consuming developer-oriented content. An important consideration for developer portal analytics and maintainers is that when users copy or consume content on an external platform, they are more likely to continue interacting with that external platform and to ask follow-up questions or report is-sues there. In this case, critical portal analytics data—time on page, UI interaction events, and link clicks—becomes unavailable. Gather-ing developers’ comments and feedback becomes correspondingly harder. An example of this single-fetch retrieval is shown in Fig-ure 1. 
+
+Figure 1: Cursor AI coding agent retrieving developer doc-umentation from a developer portal in a single fetch. The prompt “Get developer documentation from this URL” trig-gers one HTTP request that pulls the entire page, replacing multi-step human navigation with a single machine-readable response. 
+
+## 3 HTTP Request Fingerprints of AI Coding Agents and Assistants 3.1 Experimental Setup 
+
+HTTP fingerprint data were collected using a custom Node.js/Express server (“Developer Portal”) that provided developer-oriented content and API documentation. The server was configured with robots.txt (permitting all crawlers) and 
+
+llms.txt to replicate production portal conditions and determine whether agents accessed these discovery files before retrieving content. All inbound HTTP requests were captured exclusively through server-side middleware. The Express layer recorded the complete header set, the User-Agent string, the HTTP method and version, the requested URL, the client IP address, and the round-trip response time for each request. No client-side JavaScript instrumentation was employed; consequently, the logged data represent the raw HTTP traffic generated by each agent, independent of any browser-layer interaction. Each AI coding agent under investigation received the identical prompt: “Get developer documentation from this URL (. . . )”. 
+
+AI assistant web services were evaluated by submitting the same prompt and URL directly through each service’s chat interface. Each agent was tested in three independent trials conducted over a three-week period (February to March 2026). Trials were performed both within the same local network and across external networks. No systematic differences in header signatures were observed across network conditions, and the fingerprints reported in Tables 1 and 2 are representative of all trials. New approaches to documentation consumption mean that an-alytics and maintainers may now observe only one or two HTTP requests per AI agent session—including a possible /robots.txt 
+
+fetch [ 12 , 13 ]—before the agent retrieves all content on the page. In this model, analytics no longer captures how users browse the site, their click patterns, or their scrolling behavior. Figure 2 illustrates these lost client-side events. 1 click 
+
+2 scroll-tag 
+
+3 page_view 
+
+4 sign_up 
+
+5 tutorial_begin 
+
+6 tutorial_complete 
+
+7 view_search_results 
+
+8 login 
+
+9 search 
+
+10 select_content 
+
+Figure 2: Developer portal analytics event types that become invisible when an AI coding agent retrieves documentation in a single server-side request, bypassing all client-side in-strumentation. 
+
+> 2
+
+## 3.2 AI Coding Agents 
+
+Table 1 summarizes the HTTP request characteristics of nine AI coding agents retrieving developer documentation. The table shows the HTTP runtime used by each agent (e.g., Headless Chromium via Playwright, Go net/http , Node.js/Axios, curl, Node.js/got), the pre-fetch behaviour (on-demand GET, HEAD probe, OpenAPI/Swagger discovery sweep, sequential multi-page GET), the User-Agent string sent, and the presence of Accept and Sec-Fetch-* request headers. An agent that probes robots.txt before fetching content [ 12 ,14 ] shows greater compliance with established web norms. Since an agent—rather than a human—is pulling information from the page, if website creators have not adapted their robots.txt to allow or restrict specific content, users may receive irrelevant or stale data through the agent’s interface.    
+
+> Observation. Of the agents examined, Aider and OpenCode stand out as the only two that rely on Headless Chromium (instantiated via Playwright) as their HTTP runtime. The remaining agents employ considerably lighter clients: Go net/http (Antigravity), Node.js/Axios (Claude Code), curl (Cline, Junie), Node.js/got (Cursor), and Go/Colly (Windsurf). The practical distinction is non-trivial: whereas these lightweight clients issue raw HTTP requests, a Playwright-driven headless browser fully evaluates JavaScript prior to resolving the fetch. In practice, Aider and OpenCode are better positioned to retrieve documentation from client-side-rendered portals, whereas the remaining lightweight HTTP clients receive only the static HTML delivered by the server and do not execute JavaScript. This approach results in increased resource consumption and slower request completion compared to lightweight clients. VS Code occupies a somewhat anomalous position in this landscape. Al-though its application runtime is built on Electron/Chromium, and its outbound requests therefore carry Chromium-style User-Agent strings, HTTP calls originate from the extension host layer rather than from full browser navigations. The result is a hybrid fingerprint: Chromium iden-tity signals are present, yet the requests bypass the complete JavaScript rendering pipeline characteristic of a dedicated headless browser session.
+
+## 3.3 AI Assistant Web Services 
+
+Table 2 presents the same fingerprint analysis for six AI assistant web services, captured when a URL was shared inside the chat interface, triggering a server-side fetch by the respective service backend. 
+
+## 4 Consequences for Developer Portals 4.1 Feedback Channels in the Agent Era 
+
+As documentation consumption shifts into AI agents and assistants, the accessibility of existing support channels becomes a more con-sequential aspect of developer experience. High-friction reporting mechanisms, such as complex registration flows, multi-step forms, or channels reachable only through traditional web navigation, may reduce the likelihood that users submit issues or feedback when their primary working environment is an IDE or coding agent. One emerging response is the creation of public MCP server-based feed-back channels for documentation [ 15 ], which allow users to submit feedback through the same interface through which they consume content and to summarize the problems they encounter without leaving their working environment. 
+
+## 4.2 Tokenomics and Documentation Design 
+
+The token counts observed in this study indicate that token eco-nomics has become a critical consideration for developer portal teams. Generative AI is standard in development: 51% of profes-sional developers use AI tools daily [ 1]. More than 1.1 million public repositories use an LLM SDK, with 693,867 of these projects created in just the past 12 months alone (+178% year-over-year), and 80% of new developers on GitHub use Copilot in their first week [ 16 ]. Cisco DevNet portal users actively use direct links to related OpenAPI documents, copy them, and use them as input for an AI agent or as part of a RAG pipeline [ 17 ]. One implication of these observations is that exposing token counts for documentation pages may help both users and agents manage context-window usage and retrieval cost. For example, the Secure Firewall Management Center REST API Quick Start Guide, Version 10.0 [ 18 ] is 193,217 tokens (717,993 char-acters) long—exceeding the context window of many AI coding agents or approaching their limit, which displaces earlier context. Surfacing documentation size in tokens and characters helps de-velopers and agents decide whether to open a fresh chat session, apply token compression, or use chunking for retrieval. 
+
+## 4.3 Documentation Standards for AI Discovery 
+
+Documentation platforms are introducing machine-readable stan-dards that go beyond traditional sitemaps and robots.txt . The 
+
+llms.txt specification acts as a directory listing all documenta-tion pages with descriptions so that AI agents know where to find information, while skill.md files provide structured capabil-ity summaries that tell agents what they can accomplish with a product, what inputs they need, and what constraints apply [ 10 ]. Complementing these discovery mechanisms, Marro et al. [ 19 ] pro-pose agent-permissions.json —a lightweight, robots.txt -style permission manifest that allows websites to declaratively specify which automated interactions are allowed, including rate limits, human-in-the-loop requirements, and preferred API endpoints. To-gether, these emerging standards form a layered governance stack: 
+
+llms.txt guides content discovery, skill.md describes product capabilities, and agent-permissions.json governs how AI agents may interact with web resources. 
+
+AGENTS.md [ 20 ] is becoming the de facto standard for guiding AI coding agents within software projects. When a developer opens a project in an AI coding agent, the agent automatically searches for an AGENTS.md file in the root directory and, if found, incorporates its instructions and context into every subsequent task and reasoning step. To improve the developer experience for AI-assisted workflows, Cisco DevNet introduced AGENTS.md as the default file in the GitHub template for open-source projects [ 21 ]. Under this template, newly created projects include an AGENTS.md file populated with project-specific content, including direct links to OpenAPI documentation, DevNet sandboxes [ 22 ], and test environments. A well-structured AGENTS.md improves the experience of working with open-source projects using AI coding agents by surfacing project structure, dependencies, and relevant resources directly within the agent’s context. 
+
+> 3
+
+Table 1: HTTP request fingerprints of AI coding agents observed during active fetch sessions. Agents are listed alphabetically. 
+
+✓ = header present; — = absent. a Full User-Agent strings are available in the accompanying session data.              
+
+> Agent HTTP Runtime Pre-fetch Behaviour User-Agent aHeader Signals Accept Sec-Fetch-*
+> Aider Headless Chromium (Playwright) On-demand GET Mozilla/5.0 ([platform]) AppleWebKit/[ver] (KHTML, like Gecko) Chrome/145.x Safari/[ver] Aider/0.86.2 +https://aider.chat/
+
+✓ ✓    
+
+> Antigravity Go net/http HEAD probe
+
+→ GET Go-http-client/2.0 — —Claude Code Node.js / Axios On-demand GET axios/1.8.4 ✓ —Cline curl GET + OpenAPI/ Swagger sweep  
+
+> curl/8.4.0
+
+✓ —Cursor Node.js / got HEAD probe → GET got (https://github.com/sindresorhus/got) — —Junie curl Sequential multi-page GET  
+
+> curl/8.4.0
+
+✓ —OpenCode Headless Chromium (Playwright) On-demand GET Mozilla/5.0 ([platform]) AppleWebKit/[ver] (KHTML, like Gecko) Chrome/143.x Safari/[ver] 
+
+✓ —VS Code Electron / Chromium On-demand GET Mozilla/5.0 ([platform]) AppleWebKit/[ver] (KHTML, like Gecko) Code/1.111.x Chrome/142.x Electron/39.x Safari/[ver] 
+
+✓ ✓    
+
+> Windsurf Go / Colly On-demand GET colly - https://github.com/gocolly/colly
+
+✓ —
+
+Table 2: HTTP request fingerprints of six AI assistant web services observed when a URL was shared in the chat interface (server-side fetch). Assistants are listed alphabetically. ✓ = header present; — = absent. a Full User-Agent strings are available in the accompanying session data. b MistralAI issues two distinct requests: a lightweight robot probe and a separate browser-mode fetch.         
+
+> Assistant HTTP Runtime Pre-fetch Behaviour User-Agent aHeader Signals Accept Sec-Fetch-*
+> ChatGPT Custom HTTP (Envoy) On-demand GET Mozilla/5.0 AppleWebKit/537.36 (. . . ; ChatGPT-User/1.0; +https://openai.com/bot)
+
+✓ —Claude Custom HTTP client Parallel GET /robots.txt +    
+
+> /(separate IPs)
+> Mozilla/5.0 AppleWebKit/537.36 (. . . ; Claude-User/1.0; +Claude-User@anthropic.com)
+
+✓ —Google Gemini Custom HTTP client On-demand GET Google ✓ —Google Note-bookLM Custom HTTP client On-demand GET Google-NotebookLM — —MistralAI b Custom HTTP + Headless Chromium       
+
+> robots.txt probe; browser-mode GET /MistralAI-User /Mozilla/5.0 AppleWebKit/537.36 (. . . ; MistralAI-User/1.0; +https://docs.mistral.ai/robots)
+
+✓ ✓      
+
+> Perplexity Custom HTTP client On-demand GET Mozilla/5.0 AppleWebKit/537.36 (. . . ; PerplexityUser/1.0; +https://perplexity.ai/perplexity-user)
+> ——
+
+The Copy for AI button is one practical feature that documen-tation maintainers and Developer Relations teams are already im-plementing [ 23 ]. It allows copying a page in Markdown or plain text and pasting it directly into an AI agent prompt, reducing the prompt token count and delivering all necessary information with-out HTML tags or JavaScript. The main trade-off is that it still requires developers to leave their IDE environment and manually copy the needed content. 
+
+## 4.4 Developer Analytics in the AI Era 
+
+When AI agents consume developer portal content, portal maintain-ers typically observe only one or two requests per session (Table 1), as agents pull information in a single fetch and guide users to con-tinue interacting within the agent’s own environment. In analytics reports, this appears as a dramatically higher bounce rate, and user path analysis becomes less useful. All links mentioned in the agent’s response are processed by the agent, but UTM parameters in those links are stripped. The developer portal is no longer the primary source of traffic attribution; the AI agent environment is. Traffic on the developer portal no longer represents the entire audience: a single AI crawler visit can substitute for many individual user visits, since end users consume content through coding agents or AI assistants. Traffic distribution has shifted from organic search and referral sources toward AI assistant referrals and single-request AI agent sessions. One practical step is to monitor web analytics for the following AI referral traffic sources: 
+
+• labs.perplexity.ai / referral 
+
+• chatgpt.com / (none) 
+
+• chatgpt.com / organic 
+
+• link.edgepilot.com / referral 
+
+• platform.openai.com / referral 
+
+• perplexity / (not set) 
+
+• claude.ai / referral 
+
+• copilot.microsoft.com / referral 
+
+• gemini.google.com / referral 
+
+• chatgpt.com / (not set) 
+
+• perplexity.ai / referral 
+
+> 4
+
+## 5 Transforming Developer Experience 5.1 AI as an Emerging Content Consumer 
+
+Developers are no longer the only personas consuming documen-tation; AI agents do so as well. In agent mode, many assistants proceed through documentation and tasks involving minimal hu-man interaction beyond approving an action. However, Kumar et al. [ 24 ] found that developers who actively collaborated with the agent using an incremental strategy resolved 83% of real-world issues, compared to only 38% with a one-shot delegation approach, indicating that effective developer–agent collaboration still calls for substantial human involvement. Kuo et al. [ 25 ] found that de-velopers are most receptive to proactive AI assistance at natural workflow boundaries, while mid-task interventions are dismissed 62% of the time, suggesting that documentation and suggestions surfaced by AI agents must correspond to the developer’s cognitive context. More and more users complete their tasks inside an AI assistant interface or an IDE, spending more time there. These findings sug-gest that portal maintainers may benefit from rebalancing resources away from visual UI optimization and toward Answer Engine Opti-mization (AEO), Generative Engine Optimization (GEO), AI-native features, and MCP servers for documentation. Aggarwal et al. [ 26 ]show that optimising content for generative engines can boost source visibility by up to 40%, whereas traditional SEO tactics, such as keyword stuffing, perform 10% worse than an unoptimized base-line in AI-generated responses. The concept of who consumes developer content is expanding beyond human individuals. Combemale [ 5] notes that the devel-oper community now includes “scientists, domain experts, and even non-programmers—often referred to as ‘citizen developers’— increasingly engaging in programming to advance their fields or solve domain-specific problems.” AI agents represent the next fron-tier of this expanding audience, acting as autonomous consumers of documentation on behalf of human developers. 
+
+## 5.2 Emerging Roles in Developer Relations 
+
+In developer relations, professionals are currently responsible for community communication and gathering developer feedback. The traffic shifts documented here imply that new specialist roles, such as Agentic Engine Optimization engineers and AI DevRel managers, are likely to emerge in developer relations organizations. Such roles would likely focus on monitoring which content is consumed by AI coding agents and assistants and on ensuring that content remains visible, accurate, and well-structured within those environments. 
+
+## 5.3 UX and UI Transformation 
+
+The UX and design of documentation and developer guides are becoming secondary concerns as activity migrates to IDEs and AI agents. Developers and engineers increasingly cannot access the information they need through traditional site navigation; they rely instead on AI tools to retrieve and synthesize it. AI browsers such as Perplexity Comet, Google Chrome with Gemini, and Chat-GPT’s browsing mode, as well as AI crawlers, are changing how developers consume content. Developers interact with developer portals via free-text fields embedded in AI browsers or agents; as a result, the observed single-request access patterns suggest that traditional A/B testing and UI interaction measurement approaches may require fundamental rethinking in AI-agent-dominated traffic environments. Users do not need to notice individual UI elements; AI browsers read HTML text, including button alt text. Button color and placement become secondary to content structure and machine-readability. 
+
+## 6 Limitations 
+
+Our study has a number of limitations that should be kept in mind when interpreting the results. First, we restricted our agent corpus to tools that were freely available, open source, or offered a free/trial tier at the time of data collection; proprietary agents without public access were excluded. Whether the behavioral signatures we report generalize to closed commercial deployments therefore remains an open question. Second, several open-source agents relied on third-party LLM providers or external web search services to han-dle documentation retrieval. In those cases, the HTTP traffic we captured reflects the joint behavior of the agent and its upstream de-pendencies, making it difficult to attribute individual observations to the agent alone. Third, our measurements are point-in-time snap-shots tied to specific software versions. Given the pace at which AI coding agents are being updated, characteristics such as User-Agent headers, pre-fetch strategies, and header patterns may shift sub-stantially across releases. Longitudinal monitoring of agent HTTP behavior, as well as expansion of the corpus to agents available only under enterprise licensing, are natural directions for future work. In addition, the measurements were collected against a single documentation endpoint, so agent behavior may differ for portals with alternative rendering strategies, authentication requirements, or anti-bot protections. 
+
+## 7 Conclusion 
+
+The proliferation of AI coding agents and assistants is fundamen-tally reshaping how developers discover, consume, and evaluate documentation. This paper has examined the transformation across three interconnected dimensions: documentation accessibility, con-tent analytics, and feedback systems. Our empirical analysis of HTTP request characteristics from nine AI coding agents (Table 1) and six AI assistants (Table 2) reveals identifiable behavioral signatures—runtime environments, pre-fetch strategies, User-Agent strings, and header patterns—that developer portal maintainers can leverage to detect and classify AI-driven traffic directly from web server logs. A defining feature of AI agent access is the compression of multi-page navigation into one or two requests, which renders traditional engagement metrics such as session depth, time-on-page, click-path, and bounce rate unreliable indicators of actual documentation consumption. The tokenomics of documentation emerge as a critical yet un-derexplored dimension of developer experience. As documenta-tion scales beyond the context window limits of many AI agents— exemplified by the 193,217-token Cisco Firewall Management Cen-ter REST API guide—developers and agents must actively decide on chunking, retrieval, and context management. Surfacing token 
+
+> 5
+
+counts alongside documentation entry points appears to be a prac-tical way to support context management for both developers and agents. The emerging standards ecosystem— llms.txt for content discovery, skill.md for capability description, and agent-permissions.json for interaction governance—provides portal teams with structured mechanisms to restore visibility and control over how content is discovered and consumed by autonomous agents. Pairing these standards with MCP server–based feedback channels and analytics instrumented for AI referral sources enables a more complete picture of developer engagement in the agent era. The implications affect developer relations practice. As a growing share of documentation consumption migrates to AI agent environ-ments and IDEs, these results indicate that portal maintainers may benefit from rebalancing investment from visual UI optimization toward Agentic Engine Optimization (AEO), Generative Engine Op-timization (GEO), and AI-native content structures. As Aggarwal et al. [ 26 ] show, this change can boost source visibility by up to 40%. These shifts may also give rise to new specialist roles, including Agentic Engine Optimization engineers and AI DevRel managers, responsible for maintaining content quality, discoverability, and feedback loop integrity across both human and agent audiences. Several practical responses emerge from these findings. Auditing 
+
+robots.txt files to verify that AI crawlers can reach the intended developer-oriented content, publishing llms.txt and stable Ope-nAPI specification endpoints, and surfacing token counts on large documentation pages represent low-friction steps consistent with the traffic patterns observed in this study. Instrumenting analyt-ics to recognize the AI referral sources identified in §4.4 provides visibility into agent-driven traffic that standard reporting does not capture. Future work should address standardized telemetry formats for AI-driven documentation traffic, longitudinal studies measuring how GEO-optimized content affects agent task completion rates, and the design of machine-readable feedback protocols that enable AI agents to report documentation quality signals on behalf of users. 
+
+Data Availability. The HTTP fingerprint data reported in this work were collected from a purpose-built developer documentation endpoint operated by the authors. The endpoint served developer-oriented content and was configured with both robots.txt and 
+
+llms.txt files to approximate the conditions of a production docu-mentation portal. Server-side access logs, which capture User-Agent strings, request headers, and pre-fetch interaction sequences, are held by the authors. Summary fingerprint data are given in Tables 1 and 2. Researchers seeking access to the raw log files may contact the corresponding author by email; any IP addresses or personally identifiable information incidentally recorded during data collec-tion will be removed prior to sharing, consistent with applicable privacy requirements. 
+
+## References 
+
+[1] Stack Overflow. The 2025 developer survey. https://survey.stackoverflow.co/ 2025/, 2025. [2] Joel Cheng, Marc Marone, Orion Weller, Dawn Lawrie, Daniel Khashabi, and Benjamin Van Durme. Dated data: Tracing knowledge cutoffs in large language models. In Proceedings of the First Conference on Language Modeling (COLM 2024) ,2024. arXiv:2403.12958 [cs.CL]. [3] Upstash. Context7: Up-to-date, version-specific documentation and code exam-ples for AI coding agents. https://github.com/upstash/context7, 2024. [4] Christoph Brandebusemeyer, Tobias Schimmer, and Bert Arnrich. Developers’ experience with generative AI: First insights from an empirical mixed-methods field study. In Proceedings of the IEEE/ACM International Conference on Software Engineering, Software Engineering in Practice (ICSE-SEIP) , 2026. arXiv:2512.19926. [5] Benoit Combemale. Towards a science of developer eXperience (DevX). Journal of Object Technology , 24(2), 2025. arXiv:2506.23715 [cs.SE]. [6] Cloudflare. Declare your independence: Block AI bots, scrapers, and crawlers with a single click. https://blog.cloudflare.com/declaring-your-aindependence-block-ai-bots-scrapers-and-crawlers-with-a-single-click/, 2024. [7] Muhammad Bilal, Zafar Qazi, and Marco Canini. Toward an AI-native internet: Rethinking the web architecture for semantic retrieval, 2025. arXiv:2511.18354 [cs.NI]. [8] Vasyl Kuryatnik. 2025 organic traffic crisis: Zero-click and AI impact analysis report. https://thedigitalbloom.com/learn/2025-organic-traffic-crisis-analysis-report/, 2025. [9] Eric Liu, Ethan Luo, Shawn Shan, Geoffrey M. Voelker, Ben Y. Zhao, and Stefan Savage. Somesite I used to crawl: Awareness, agency and efficacy in protecting content creators from AI crawlers. In Proceedings of the 2025 ACM Internet Measurement Conference (IMC ’25) . ACM, 2025. [10] Mintlify. AI-native documentation. https://www.mintlify.com/docs/ai-native, 2024. [11] Emanuele Tufino. NotebookLM: An LLM with RAG for active learning and collaborative tutoring, 2025. arXiv:2504.09720v1 [physics.ed-ph]. [12] palewire. Who blocks OpenAI, Google AI and Common Crawl? https://palewi. re/docs/news-homepages/openai-gptbot-robotstxt.html, 2025. [13] Michael Sullivan. AI companies ignoring robots.txt. https://mjtsai.com/blog/ 2024/06/24/ai-companies-ignoring-robots-txt/, 2024. [14] Anthropic. Does Anthropic crawl data from the web, and how can site owners block the crawler? https://privacy.anthropic.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler, 2024. [15] The state of docs report 2026: AI and documentation consumption. https://www. stateofdocs.com/2026/ai-and-documentation-consumption, 2026. [16] GitHub. Octoverse 2025: A new developer joins GitHub every second as AI leads TypeScript to number 1. https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/, 2025. [17] Cisco. Cisco API documentations is now adapted for Gen AI technolo-gies. https://blogs.cisco.com/developer/cisco-api-documentations-is-now-adapted-for-gen-ai-technologies, 2024. [18] Cisco. Secure firewall management center REST API quick start guide, version 10.0. https://www.cisco.com/c/en/us/td/docs/security/firepower/10-0/API/REST/firepower_management_center_rest_api_quick_start_guide_10_ 0/Objects_In_The_REST_API.html, 2024. [19] Samuele Marro et al. Permission manifests for web agents, 2026. Lightweight Agent Standards Working Group (LAS-WG). arXiv:2601.02371v2 [cs.CY]. [20] AGENTS.md: The standard for AI agent instructions. https://agents.md/, 2026. Accessed: 2026-04-20. [21] Cisco DevNet. Template for creating a new open source project in the CiscoDe-vNet GitHub organization. https://github.com/CiscoDevNet/devnet-template, 2026. [22] Cisco. Cisco DevNet sandboxes. https://developer.cisco.com/site/sandbox/, 2026. Accessed: 2026-04-20. [23] Palo Alto Networks. Copy for AI: Getting started documentation. https://pan. dev/access/docs/insights/getting_started-10/, 2024. [24] Aman Kumar et al. Sharp tools: How developers wield agentic AI in real software engineering tasks, 2025. arXiv:2506.12347v2 [cs.SE]. [25] Nicole Kuo, Agnia Sergeyuk, Vicky Chen, and Moshir Izadi. Developer inter-action patterns with proactive AI: A five-day field study. In Proceedings of the 31st International Conference on Intelligent User Interfaces (IUI ’26) , 2026. arXiv:2601.10253. [26] Pranjal Aggarwal et al. GEO: Generative engine optimization, 2023. arXiv:2311.09735 [cs.IR].

@@ -1,0 +1,808 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-06T20:26:28.191120+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 14,
+    "deep_cap": 7,
+    "deep_selected": 8,
+    "quick_candidates": 15,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2604.00073v2",
+      "title": "Terminal Agents Suffice for Enterprise Automation",
+      "abstract": "There has been growing interest in building agents that can interact with digital platforms to execute meaningful enterprise tasks autonomously. Among the approaches explored are tool-augmented agents built on abstractions such as Model Context Protocol (MCP) and web agents that operate through graphical interfaces. Yet, it remains unclear whether such complex agentic systems are necessary given their cost and operational overhead. We argue that a coding agent equipped only with a terminal and a filesystem can solve many enterprise tasks more effectively by interacting directly with platform APIs. We evaluate this hypothesis across diverse real-world systems and show that these low-level terminal agents match or outperform more complex agent architectures. Our findings suggest that simple programmatic interfaces, combined with strong foundation models, are sufficient for practical enterprise automation.",
+      "authors": [
+        "Patrice Bechard",
+        "Orlando Marquez Ayala",
+        "Emily Chen",
+        "Jordan Skelton",
+        "Sagar Davasam",
+        "Srinivas Sunkara",
+        "Vikas Yadav",
+        "Sai Rajeswar"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-31T14:14:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.00073v2",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "terminal-based coding agents for enterprise automation",
+      "llm_evidence_cn": "用于企业自动化的终端代码智能体",
+      "llm_evidence": "用于企业自动化的终端代码智能体",
+      "canonical_evidence": "用于企业自动化的终端代码智能体",
+      "llm_tldr_en": "Shows terminal-equipped coding agents match or outperform complex agent architectures for enterprise tasks.",
+      "llm_tldr_cn": "证明配备终端的代码智能体在企业任务中匹配或超越复杂智能体架构。",
+      "llm_tldr": "证明配备终端的代码智能体在企业任务中匹配或超越复杂智能体架构。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.01527v2",
+      "title": "ProdCodeBench: A Production-Derived Benchmark for Evaluating AI Coding Agents",
+      "abstract": "Benchmarks that reflect production workloads are better for evaluating AI coding agents in industrial settings, yet existing benchmarks differ from real usage in programming language distribution, prompt style and codebase structure. This paper presents a methodology for curating production-derived benchmarks, illustrated through ProdCodeBench, a benchmark sourced from real developer-agent sessions. We detail our data collection and curation practices including LLM-based task classification, test relevance validation, and multi-run stability checks which address challenges in constructing reliable evaluation signals from monorepo environments. Each curated sample consists of a verbatim prompt, a committed code change and fail-to-pass tests spanning seven programming languages. Our systematic analysis of four foundation models yields solve rates ranging from 53.2% to 72.2%. We demonstrate how these offline evaluation signals drive practical decisions around model selection and harness design, while noting that offline benchmarks provide directional signal that we complement with online A/B testing for production deployment decisions. We share our methodology and lessons learned to enable other organizations to construct similar production-derived benchmarks.",
+      "authors": [
+        "Smriti Jha",
+        "Matteo Paltenghi",
+        "Chandra Maddila",
+        "Vijayaraghavan Murali",
+        "Shubham Ugare",
+        "Satish Chandra"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-02T01:52:55+00:00",
+      "link": "https://arxiv.org/pdf/2604.01527v2",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark for evaluating AI coding agents from production sessions",
+      "llm_evidence_cn": "源自生产环境的AI编程智能体评估基准",
+      "llm_evidence": "源自生产环境的AI编程智能体评估基准",
+      "canonical_evidence": "源自生产环境的AI编程智能体评估基准",
+      "llm_tldr_en": "Presents ProdCodeBench, a production-derived benchmark for evaluating AI coding agents.",
+      "llm_tldr_cn": "提出ProdCodeBench，源自生产环境的AI编程智能体评估基准。",
+      "llm_tldr": "提出ProdCodeBench，源自生产环境的AI编程智能体评估基准。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.02544v1",
+      "title": "Developer Experience with AI Coding Agents: HTTP Behavioral Signatures in Documentation Portals",
+      "abstract": "The rapid adoption of AI coding agents and AI assistant web services is fundamentally changing how developers discover, consume, and interact with technical documentation. This paper studies that transformation across three interconnected dimensions: documentation accessibility, content analytics, and feedback systems. We present an empirical study of HTTP request fingerprints from nine AI coding agents (Aider, Antigravity, Claude Code, Cline, Cursor, Junie, OpenCode, VS Code, and Windsurf) and six AI assistant services (ChatGPT, Claude, Google Gemini, Google NotebookLM, MistralAI, and Perplexity) accessing a live developer documentation endpoint, revealing identifiable behavioral signatures in HTTP runtime environments, pre-fetch strategies, User-Agent strings, and header patterns. Our study shows that AI agent access compresses multi-page navigation into a single or two requests, making traditional engagement metrics - session depth, time-on-page, click path, and bounce rate - unreliable indicators of actual documentation consumption. We discuss practical adaptations for developer portal teams, including tokenomics-aware documentation design, adoption of emerging machine-readable standards (AGENTS.md, llms.txt, skill.md, agent-permissions.json), MCP server-based feedback channels, and analytics instrumentation for AI referral traffic.",
+      "authors": [
+        "Oleksii Borysenko"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-02T21:54:07+00:00",
+      "link": "https://arxiv.org/pdf/2604.02544v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "empirical study of nine AI coding agents",
+      "llm_evidence_cn": "九种AI代码智能体的实证研究",
+      "llm_evidence": "九种AI代码智能体的实证研究",
+      "canonical_evidence": "九种AI代码智能体的实证研究",
+      "llm_tldr_en": "Study analyzes HTTP behavioral signatures of AI coding agents like Cursor, Claude Code, and Windsurf accessing developer documentation.",
+      "llm_tldr_cn": "研究分析Cursor、Claude Code等AI代码智能体访问开发者文档的HTTP行为特征。",
+      "llm_tldr": "研究分析Cursor、Claude Code等AI代码智能体访问开发者文档的HTTP行为特征。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.02547v1",
+      "title": "Beyond Resolution Rates: Behavioral Drivers of Coding Agent Success and Failure",
+      "abstract": "Coding agents represent a new paradigm in automated software engineering, combining the reasoning capabilities of Large Language Models (LLMs) with tool-augmented interaction loops. However, coding agents still have severe limitations. Top-ranked LLM-based coding agents still fail on over 20% of benchmarked problems. Yet, we lack a systematic understanding of why (i.e., the causes) agents fail, and how failure unfolds behaviorally. We present a large-scale empirical study analyzing 9,374 trajectories from 19 agents (8 coding agent frameworks, 14 LLMs) on 500 tasks. We organize our analysis around three research questions. First, we investigate why agents fail on specific tasks and find that patch complexity alone does not explain difficulty: 12 never-solved tasks require only simple patches and were considered easy by human annotators, yet all agents fail due to gaps in architectural reasoning and domain knowledge. Second, we examine how behavioral patterns differentiate success from failure. The widely reported correlation between trajectory length and failure reverses direction once task difficulty is controlled, revealing it as a confound. Instead, trajectory structure discriminates consistently: agents that gather context before editing and invest in validation succeed more often, and these strategies are agent-determined rather than task-adaptive. Third, we disentangle LLM capability from framework design and find that the LLM is the primary driver of both outcome and behavior: agents sharing the same LLM agree on far more tasks than agents sharing the same framework, and the framework performance gap shrinks with each generation of LLM improvement. Framework prompts do influence agent tactics, but this influence diminishes with stronger LLMs.",
+      "authors": [
+        "Tural Mehtiyev",
+        "Wesley Assunção"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-02T21:56:23+00:00",
+      "link": "https://arxiv.org/pdf/2604.02547v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Large-scale empirical study analyzing coding agent behaviors across frameworks",
+      "llm_evidence_cn": "跨框架分析编码智能体行为的大规模实证研究",
+      "llm_evidence": "跨框架分析编码智能体行为的大规模实证研究",
+      "canonical_evidence": "跨框架分析编码智能体行为的大规模实证研究",
+      "llm_tldr_en": "Analyzes 9374 trajectories from 19 coding agents to understand behavioral drivers of success and failure.",
+      "llm_tldr_cn": "分析19个编码智能体的9374条轨迹以理解成功与失败的行为驱动因素。",
+      "llm_tldr": "分析19个编码智能体的9374条轨迹以理解成功与失败的行为驱动因素。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.02971v1",
+      "title": "InfoSeeker: A Scalable Hierarchical Parallel Agent Framework for Web Information Seeking",
+      "abstract": "Recent agentic search systems have made substantial progress by emphasising deep, multi-step reasoning. However, this focus often overlooks the challenges of wide-scale information synthesis, where agents must aggregate large volumes of heterogeneous evidence across many sources. As a result, most existing large language model agent systems face severe limitations in data-intensive settings, including context saturation, cascading error propagation, and high end-to-end latency. To address these challenges, we present \\framework, a hierarchical framework based on principle of near-decomposability, containing a strategic \\textit{Host}, multiple \\textit{Managers} and parallel \\textit{Workers}. By leveraging aggregation and reflection mechanisms at the Manager layer, our framework enforces strict context isolation to prevent saturation and error propagation. Simultaneously, the parallelism in worker layer accelerates the speed of overall task execution, mitigating the significant latency. Our evaluation on two complementary benchmarks demonstrates both efficiency ($ 3-5 \\times$ speed-up) and effectiveness, achieving a $8.4\\%$ success rate on WideSearch-en and $52.9\\%$ accuracy on BrowseComp-zh. The code is released at https://github.com/agent-on-the-fly/InfoSeeker",
+      "authors": [
+        "Ka Yiu Lee",
+        "Yuxuan Huang",
+        "Zhiyuan He",
+        "Huichi Zhou",
+        "Weilin Luo",
+        "Kun Shao",
+        "Meng Fang",
+        "Jun Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-03T11:19:17+00:00",
+      "link": "https://arxiv.org/pdf/2604.02971v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "hierarchical agent framework for web information seeking",
+      "llm_evidence_cn": "用于网络信息搜索的分层智能体框架",
+      "llm_evidence": "用于网络信息搜索的分层智能体框架",
+      "canonical_evidence": "用于网络信息搜索的分层智能体框架",
+      "llm_tldr_en": "Presents InfoSeeker, a hierarchical parallel agent framework for scalable web information seeking and synthesis.",
+      "llm_tldr_cn": "提出InfoSeeker，一种用于可扩展网络信息搜索与合成的分层并行智能体框架。",
+      "llm_tldr": "提出InfoSeeker，一种用于可扩展网络信息搜索与合成的分层并行智能体框架。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.03035v1",
+      "title": "Beyond Isolated Tasks: A Framework for Evaluating Coding Agents on Sequential Software Evolution",
+      "abstract": "Existing datasets for coding agents evaluate performance on isolated, single pull request (PR) tasks in a stateless manner, failing to capture the reality of real-world software development where code changes accumulate, technical debt accrues, and test suites grow over time. To bridge this gap, we introduce an automated coding task generation framework, which helps generate our dataset SWE-STEPS, that evaluates coding agents on long-horizon tasks through two realistic settings mirroring actual developer workflows: Conversational coding with iterative requests, and single-shot Project Requirement document (PRD)-based coding. Unlike existing datasets that evaluate agents on disjointed Pull Requests (PRs), our framework assesses performance across chains of dependent PRs, enabling evaluation of sequential execution, regression verification, and long-term repository health. We discover that widely used isolated PR evaluations yield inflated success rates, w.r.t. our settings - overshooting performance by as much as 20 percentage points - because they ignore the ``spillover'' effects of previous inefficient or buggy code. Furthermore, our analysis reveals that even when agents successfully resolve issues, they degrade repository health by generating code with higher cognitive complexity and technical debt compared to human developers, underscoring the necessity for multidimensional evaluation.",
+      "authors": [
+        "KN Ajay Shastry",
+        "Ganesh Senrayan",
+        "Shrey Satapara",
+        "Pranoy Panda",
+        "Chaitanya Devaguptapu"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-04-03T13:44:40+00:00",
+      "link": "https://arxiv.org/pdf/2604.03035v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Framework for evaluating coding agents on sequential tasks",
+      "llm_evidence_cn": "评估编程智能体的框架",
+      "llm_evidence": "评估编程智能体的框架",
+      "canonical_evidence": "评估编程智能体的框架",
+      "llm_tldr_en": "Introduces framework and dataset for evaluating coding agents on long-horizon sequential software evolution tasks.",
+      "llm_tldr_cn": "提出评估编程智能体在长时序软件演化任务上的框架和数据集。",
+      "llm_tldr": "提出评估编程智能体在长时序软件演化任务上的框架和数据集。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.03081v1",
+      "title": "Supply-Chain Poisoning Attacks Against LLM Coding Agent Skill Ecosystems",
+      "abstract": "LLM-based coding agents extend their capabilities via third-party agent skills distributed through open marketplaces without mandatory security review. Unlike traditional packages, these skills are executed as operational directives with system-level privileges, so a single malicious skill can compromise the host. Prior work has not examined whether supply-chain attacks can directly hijack an agent's action space, such as file writes, shell commands, and network requests, despite existing safeguards. We introduce Document-Driven Implicit Payload Execution (DDIPE), which embeds malicious logic in code examples and configuration templates within skill documentation. Because agents reuse these examples during normal tasks, the payload executes without explicit prompts. Using an LLM-driven pipeline, we generate 1,070 adversarial skills from 81 seeds across 15 MITRE ATTACK categories. Across four frameworks and five models, DDIPE achieves 11.6% to 33.5% bypass rates, while explicit instruction attacks achieve 0% under strong defenses. Static analysis detects most cases, but 2.5% evade both detection and alignment. Responsible disclosure led to four confirmed vulnerabilities and two fixes.",
+      "authors": [
+        "Yubin Qu",
+        "Yi Liu",
+        "Tongcheng Geng",
+        "Gelei Deng",
+        "Yuekang Li",
+        "Leo Yu Zhang",
+        "Ying Zhang",
+        "Lei Ma"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-03T14:58:58+00:00",
+      "link": "https://arxiv.org/pdf/2604.03081v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "security analysis of LLM coding agent skill ecosystems",
+      "llm_evidence_cn": "LLM代码智能体技能生态系统的安全分析",
+      "llm_evidence": "LLM代码智能体技能生态系统的安全分析",
+      "canonical_evidence": "LLM代码智能体技能生态系统的安全分析",
+      "llm_tldr_en": "Analyzes supply-chain poisoning attacks against LLM coding agents via malicious skill documentation.",
+      "llm_tldr_cn": "分析通过恶意技能文档对LLM代码智能体进行供应链投毒攻击。",
+      "llm_tldr": "分析通过恶意技能文档对LLM代码智能体进行供应链投毒攻击。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.03196v1",
+      "title": "From Industry Claims to Empirical Reality: An Empirical Study of Code Review Agents in Pull Requests",
+      "abstract": "Autonomous coding agents are generating code at an unprecedented scale, with OpenAI Codex alone creating over 400,000 pull requests (PRs) in two months. As agentic PR volumes increase, code review agents (CRAs) have become routine gatekeepers in development workflows. Industry reports claim that CRAs can manage 80% of PRs in open source repositories without human involvement. As a result, understanding the effectiveness of CRA reviews is crucial for maintaining developmental workflows and preventing wasted effort on abandoned pull requests. However, empirical evidence on how CRA feedback quality affects PR outcomes remains limited. The goal of this paper is to help researchers and practitioners understand when and how CRAs influence PR merge success by empirically analyzing reviewer composition and the signal quality of CRA-generated comments. From AIDev's 19,450 PRs, we analyze 3,109 unique PRs in the commented review state, comparing human-only versus CRA-only reviews. We examine 98 closed CRA-only PRs to assess whether low signal-to-noise ratios contribute to abandonment. CRA-only PRs achieve a 45.20% merge rate, 23.17 percentage points lower than human-only PRs (68.37%), with significantly higher abandonment. Our signal-to-noise analysis reveals that 60.2% of closed CRA-only PRs fall into the 0-30% signal range, and 12 of 13 CRAs exhibit average signal ratios below 60%, indicating substantial noise in automated review feedback. These findings suggest that CRAs without human oversight often generate low-signal feedback associated with higher abandonment. For practitioners, our results indicate that CRAs should augment rather than replace human reviewers and that human involvement remains critical for effective and actionable code review.",
+      "authors": [
+        "Kowshik Chowdhury",
+        "Dipayan Banik",
+        "K M Ferdous",
+        "Shazibul Islam Shamim"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-03T17:15:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.03196v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Empirical study of code review agents in pull requests",
+      "llm_evidence_cn": "代码审查智能体的实证研究",
+      "llm_evidence": "代码审查智能体的实证研究",
+      "canonical_evidence": "代码审查智能体的实证研究",
+      "llm_tldr_en": "Empirically studies code review agents effectiveness in managing pull requests and their impact on PR outcomes.",
+      "llm_tldr_cn": "实证研究代码审查智能体在PR管理中的有效性及其对PR结果的影响。",
+      "llm_tldr": "实证研究代码审查智能体在PR管理中的有效性及其对PR结果的影响。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.00920v1",
+      "title": "GPT-NL Public Corpus: A Permissively Licensed, Dutch-First Dataset for LLM Pre-training",
+      "abstract": "We present the GPT-NL Public Corpus, the biggest permissively licensed corpus of Dutch language resources. The GPT-NL Public Corpus contains 21 Dutch-only collections totalling 36B preprocessed Dutch tokens not present in any other LLM pretraining corpus. Additionally, the corpus includes roughly 207B English, 232B Code, and 48B German/Danish tokens taken from existing sets which we further curated for compliance. This corpus includes curated data from large existing corpora like Common Corpus and Common Crawl, as well as newly created Dutch-specific collections. Most newly created Dutch collections consist of content collected in collaboration with organisations or synthetically augmented content. All data is collected and evaluated with the aim of facilitating the creation of (commercial) language models that are lawful, useful and non-harmful. All data included in the GPT-NL Public Corpus is sourced from datasets with permissive licensing and is curated and redistributed under a CC-BY license. The full dataset is publicly available on the Hugging Face Hub.",
+      "authors": [
+        "Jesse van Oort",
+        "Frank Brinkkemper",
+        "Erik de Graaf",
+        "Bram Vanroy",
+        "Saskia Lensink"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-01T14:00:53+00:00",
+      "link": "https://arxiv.org/pdf/2604.00920v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "large-scale corpus for LLM pre-training with 36B Dutch tokens",
+      "llm_evidence_cn": "用于LLM预训练的大规模语料库含360亿荷兰语词元",
+      "llm_evidence": "用于LLM预训练的大规模语料库含360亿荷兰语词元",
+      "canonical_evidence": "用于LLM预训练的大规模语料库含360亿荷兰语词元",
+      "llm_tldr_en": "GPT-NL Public Corpus provides the largest permissively licensed Dutch-first dataset for LLM pre-training.",
+      "llm_tldr_cn": "GPT-NL公共语料库提供最大许可荷兰语优先LLM预训练数据集。",
+      "llm_tldr": "GPT-NL公共语料库提供最大许可荷兰语优先LLM预训练数据集。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.00706v1",
+      "title": "AfrIFact: Cultural Information Retrieval, Evidence Extraction and Fact Checking for African Languages",
+      "abstract": "Assessing the veracity of a claim made online is a complex and important task with real-world implications. When these claims are directed at communities with limited access to information and the content concerns issues such as healthcare and culture, the consequences intensify, especially in low-resource languages. In this work, we introduce AfrIFact, a dataset that covers the necessary steps for automatic fact-checking (i.e., information retrieval, evidence extraction, and fact checking), in ten African languages and English. Our evaluation results show that even the best embedding models lack cross-lingual retrieval capabilities, and that cultural and news documents are easier to retrieve than healthcare-domain documents, both in large corpora and in single documents. We show that LLMs lack robust multilingual fact-verification capabilities in African languages, while few-shot prompting improves performance by up to 43% in AfriqueQwen-14B, and task-specific fine-tuning further improves fact-checking accuracy by up to 26%. These findings, along with our release of the AfrIFact dataset, encourage work on low-resource information retrieval, evidence retrieval, and fact checking.",
+      "authors": [
+        "Israel Abebe Azime",
+        "Jesujoba Oluwadara Alabi",
+        "Crystina Zhang",
+        "Iffat Maab",
+        "Atnafu Lambebo Tonja",
+        "Tadesse Destaw Belay",
+        "Folasade Peace Alabi",
+        "Salomey Osei",
+        "Saminu Mohammad Aliyu",
+        "Nkechinyere Faith Aguobi",
+        "Bontu Fufa Balcha",
+        "Blessing Kudzaishe Sibanda",
+        "Davis David",
+        "Mouhamadane Mboup",
+        "Daud Abolade",
+        "Neo Putini",
+        "Philipp Slusallek",
+        "David Ifeoluwa Adelani",
+        "Dietrich Klakow"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-01T10:08:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.00706v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "dataset for fact-checking with information retrieval across African languages",
+      "llm_evidence_cn": "非洲语言事实核查与信息检索数据集",
+      "llm_evidence": "非洲语言事实核查与信息检索数据集",
+      "canonical_evidence": "非洲语言事实核查与信息检索数据集",
+      "llm_tldr_en": "Introduces AfrIFact dataset covering information retrieval, evidence extraction, and fact-checking for African languages.",
+      "llm_tldr_cn": "发布AfrIFact数据集，覆盖非洲语言的信息检索、证据提取和事实核查。",
+      "llm_tldr": "发布AfrIFact数据集，覆盖非洲语言的信息检索、证据提取和事实核查。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02329v1",
+      "title": "Generative World Renderer",
+      "abstract": "Scaling generative inverse and forward rendering to real-world scenarios is bottlenecked by the limited realism and temporal coherence of existing synthetic datasets. To bridge this persistent domain gap, we introduce a large-scale, dynamic dataset curated from visually complex AAA games. Using a novel dual-screen stitched capture method, we extracted 4M continuous frames (720p/30 FPS) of synchronized RGB and five G-buffer channels across diverse scenes, visual effects, and environments, including adverse weather and motion-blur variants. This dataset uniquely advances bidirectional rendering: enabling robust in-the-wild geometry and material decomposition, and facilitating high-fidelity G-buffer-guided video generation. Furthermore, to evaluate the real-world performance of inverse rendering without ground truth, we propose a novel VLM-based assessment protocol measuring semantic, spatial, and temporal consistency. Experiments demonstrate that inverse renderers fine-tuned on our data achieve superior cross-dataset generalization and controllable generation, while our VLM evaluation strongly correlates with human judgment. Combined with our toolkit, our forward renderer enables users to edit styles of AAA games from G-buffers using text prompts.",
+      "authors": [
+        "Zheng-Hui Huang",
+        "Zhixiang Wang",
+        "Jiaming Tan",
+        "Ruihan Yu",
+        "Yidan Zhang",
+        "Bo Zheng",
+        "Yu-Lun Liu",
+        "Yung-Yu Chuang",
+        "Kaipeng Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-02T17:59:53+00:00",
+      "link": "https://arxiv.org/pdf/2604.02329v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Large-scale dataset for generative world rendering",
+      "llm_evidence_cn": "用于生成式世界渲染的大规模数据集",
+      "llm_evidence": "用于生成式世界渲染的大规模数据集",
+      "canonical_evidence": "用于生成式世界渲染的大规模数据集",
+      "llm_tldr_en": "Introduces 4M-frame dataset from AAA games for inverse and forward rendering.",
+      "llm_tldr_cn": "引入来自AAA游戏的400万帧数据集用于双向渲染。",
+      "llm_tldr": "引入来自AAA游戏的400万帧数据集用于双向渲染。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02580v1",
+      "title": "VoxelCodeBench: Benchmarking 3D World Modeling Through Code Generation",
+      "abstract": "Evaluating code generation models for 3D spatial reasoning requires executing generated code in realistic environments and assessing outputs beyond surface-level correctness. We introduce a platform VoxelCode, for analyzing code generation capabilities for 3D understanding and environment creation. Our platform integrates natural language task specification, API-driven code execution in Unreal Engine, and a unified evaluation pipeline supporting both automated metrics and human assessment. To demonstrate its utility, we construct VoxelCodeBench, a benchmark of voxel manipulation tasks spanning three reasoning dimensions: symbolic interpretation, geometric construction, and artistic composition. Evaluating leading code generation models, we find that producing executable code is far easier than producing spatially correct outputs, with geometric construction and multi-object composition proving particularly challenging. By open-sourcing our platform and benchmark, we provide the community with extensible infrastructure for developing new 3D code generation benchmarks and probing spatial reasoning in future models.",
+      "authors": [
+        "Yan Zheng",
+        "Florian Bordes"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-04-02T23:33:58+00:00",
+      "link": "https://arxiv.org/pdf/2604.02580v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "benchmarking 3D world modeling through code generation",
+      "llm_evidence_cn": "通过代码生成评估3D世界建模",
+      "llm_evidence": "通过代码生成评估3D世界建模",
+      "canonical_evidence": "通过代码生成评估3D世界建模",
+      "llm_tldr_en": "Introduces VoxelCodeBench, a benchmark for evaluating code generation models on 3D world modeling tasks.",
+      "llm_tldr_cn": "引入VoxelCodeBench，用于评估代码生成模型在3D世界建模任务上的基准。",
+      "llm_tldr": "引入VoxelCodeBench，用于评估代码生成模型在3D世界建模任务上的基准。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.02073v1",
+      "title": "PLUME: Latent Reasoning Based Universal Multimodal Embedding",
+      "abstract": "Universal multimodal embedding (UME) maps heterogeneous inputs into a shared retrieval space with a single model. Recent approaches improve UME by generating explicit chain-of-thought (CoT) rationales before extracting embeddings, enabling multimodal large language models to better infer complex query intent. However, explicit CoT incurs substantial inference overhead and can compress rich multimodal evidence into a narrow textual bottleneck. We propose PLUME, a latent reasoning framework that advances UME by replacing verbalized CoT with a short autoregressive rollout of continuous latent states. To support diverse multimodal queries, PLUME further introduces a semantic-anchor-guided transition adapter that steers latent rollout along different reasoning trajectories under the same fixed computation budget. To stabilize training, PLUME adopts a progressive explicit-to-latent curriculum that uses verbalized reasoning only as a temporary training scaffold and gradually transfers this behavior into hidden-state computation, eliminating explicit CoT at inference. On the 78-task MMEB-v2 benchmark, PLUME outperforms strong explicit-CoT UME baselines while reducing reasoning from hundreds of generated tokens to fewer than 10 latent steps, delivering over 30x faster inference. PLUME is especially well suited to retrieval settings where relevant evidence is dense, structurally complex, and difficult to organize through verbalized intermediate rationales, such as video and visual document retrieval. These results show that structured latent computation can preserve the benefits of intermediate reasoning without the overhead of explicit rationale generation, providing a stronger and more efficient paradigm for practical retrieval systems.",
+      "authors": [
+        "Chenwei He",
+        "Xiangzhao Hao",
+        "Tianyu Yang",
+        "Yuxiang Ma",
+        "Yuheng Jia",
+        "Lingxiang Wu",
+        "Chaoyang Zhao",
+        "Haiyun Guo",
+        "Jinqiao Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-02T14:04:53+00:00",
+      "link": "https://arxiv.org/pdf/2604.02073v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "multimodal embedding for retrieval and query intent inference",
+      "llm_evidence_cn": "用于检索和查询意图推断的多模态嵌入",
+      "llm_evidence": "用于检索和查询意图推断的多模态嵌入",
+      "canonical_evidence": "用于检索和查询意图推断的多模态嵌入",
+      "llm_tldr_en": "PLUME enables efficient multimodal retrieval via latent reasoning instead of explicit chain-of-thought.",
+      "llm_tldr_cn": "PLUME通过潜在推理替代显式思维链实现高效多模态检索。",
+      "llm_tldr": "PLUME通过潜在推理替代显式思维链实现高效多模态检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02431v1",
+      "title": "SelRoute: Query-Type-Aware Routing for Long-Term Conversational Memory Retrieval",
+      "abstract": "Retrieving relevant past interactions from long-term conversational memory typically relies on large dense retrieval models (110M-1.5B parameters) or LLM-augmented indexing. We introduce SelRoute, a framework that routes each query to a specialized retrieval pipeline -- lexical, semantic, hybrid, or vocabulary-enriched -- based on its query type. On LongMemEval_M (Wu et al., 2024), SelRoute achieves Recall@5 of 0.800 with bge-base-en-v1.5 (109M parameters) and 0.786 with bge-small-en-v1.5 (33M parameters), compared to 0.762 for Contriever with LLM-generated fact keys. A zero-ML baseline using SQLite FTS5 alone achieves NDCG@5 of 0.692, already exceeding all published baselines on ranking quality -- a gap we attribute partly to implementation differences in lexical retrieval. Five-fold stratified cross-validation confirms routing stability (CV gap of 1.3-2.4 Recall@5 points; routes stable for 4/6 query types across folds). A regex-based query-type classifier achieves 83% effective routing accuracy, and end-to-end retrieval with predicted types (Recall@5 = 0.689) still outperforms uniform baselines. Cross-benchmark evaluation on 8 additional benchmarks spanning 62,000+ instances -- including MSDialog, LoCoMo, QReCC, and PerLTQA -- confirms generalization without benchmark-specific tuning, while exposing a clear failure mode on reasoning-intensive retrieval (RECOR Recall@5 = 0.149) that bounds the claim. We also identify an enrichment-embedding asymmetry: vocabulary expansion at storage time improves lexical search but degrades embedding search, motivating per-pipeline enrichment decisions. The full system requires no GPU and no LLM inference at query time.",
+      "authors": [
+        "Matthew McKee"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-02T18:02:59+00:00",
+      "link": "https://arxiv.org/pdf/2604.02431v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Query-type-aware routing framework for retrieval",
+      "llm_evidence_cn": "查询类型感知的路由框架",
+      "llm_evidence": "查询类型感知的路由框架",
+      "canonical_evidence": "查询类型感知的路由框架",
+      "llm_tldr_en": "Introduces SelRoute framework that routes queries to specialized retrieval pipelines based on query type for long-term conversational memory.",
+      "llm_tldr_cn": "提出SelRoute框架，根据查询类型将查询路由到专门的检索管道。",
+      "llm_tldr": "提出SelRoute框架，根据查询类型将查询路由到专门的检索管道。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02714v1",
+      "title": "ExploreVLA: Dense World Modeling and Exploration for End-to-End Autonomous Driving",
+      "abstract": "End-to-end autonomous driving models based on Vision-Language-Action (VLA) architectures have shown promising results by learning driving policies through behavior cloning on expert demonstrations. However, imitation learning inherently limits the model to replicating observed behaviors without exploring diverse driving strategies, leaving it brittle in novel or out-of-distribution scenarios. Reinforcement learning (RL) offers a natural remedy by enabling policy exploration beyond the expert distribution. Yet VLA models, typically trained on offline datasets, lack directly observable state transitions, necessitating a learned world model to anticipate action consequences. In this work, we propose a unified understanding-and-generation framework that leverages world modeling to simultaneously enable meaningful exploration and provide dense supervision. Specifically, we augment trajectory prediction with future RGB and depth image generation as dense world modeling objectives, requiring the model to learn fine-grained visual and geometric representations that substantially enrich the planning backbone. Beyond serving as a supervisory signal, the world model further acts as a source of intrinsic reward for policy exploration: its image prediction uncertainty naturally measures a trajectory's novelty relative to the training distribution, where high uncertainty indicates out-of-distribution scenarios that, if safe, represent valuable learning opportunities. We incorporate this exploration signal into a safety-gated reward and optimize the policy via Group Relative Policy Optimization (GRPO). Experiments on the NAVSIM and nuScenes benchmarks demonstrate the effectiveness of our approach, achieving a state-of-the-art PDMS score of 93.7 and an EPDMS of 88.8 on NAVSIM. The code and demo will be publicly available at https://zihaosheng.github.io/ExploreVLA/.",
+      "authors": [
+        "Zihao Sheng",
+        "Xin Ye",
+        "Jingru Luo",
+        "Sikai Chen",
+        "Liu Ren"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-03T04:14:13+00:00",
+      "link": "https://arxiv.org/pdf/2604.02714v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Dense world modeling for autonomous driving with VLA",
+      "llm_evidence_cn": "用于自动驾驶的密集世界建模",
+      "llm_evidence": "用于自动驾驶的密集世界建模",
+      "canonical_evidence": "用于自动驾驶的密集世界建模",
+      "llm_tldr_en": "Unified world model framework for end-to-end autonomous driving exploration.",
+      "llm_tldr_cn": "用于端到端自动驾驶探索的统一世界模型框架。",
+      "llm_tldr": "用于端到端自动驾驶探索的统一世界模型框架。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.02648v1",
+      "title": "GBQA: A Game Benchmark for Evaluating LLMs as Quality Assurance Engineers",
+      "abstract": "The autonomous discovery of bugs remains a significant challenge in modern software development. Compared to code generation, the complexity of dynamic runtime environments makes bug discovery considerably harder for large language models (LLMs). In this paper, we take game development as a representative domain and introduce the Game Benchmark for Quality Assurance (GBQA), a benchmark containing 30 games and 124 human-verified bugs across three difficulty levels, to evaluate whether LLMs can autonomously detect software bugs. The benchmark is constructed using a multi-agent system that develops games and injects bugs in a scalable manner, with human experts in the loop to ensure correctness. Moreover, we provide a baseline interactive agent equipped with a multi-round ReAct loop and a memory mechanism, enabling long-horizon exploration of game environments for bug detection across different LLMs. Extensive experiments on frontier LLMs demonstrate that autonomous bug discovery remains highly challenging: the best-performing model, Claude-4.6-Opus in thinking mode, identifies only 48.39% of the verified bugs. We believe GBQA provides an adequate testbed and evaluation criterion, and that further progress on it will help close the gap in autonomous software engineering.",
+      "authors": [
+        "Shufan Jiang",
+        "Chios Chen",
+        "Zhiyang Chen"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-04-03T02:23:50+00:00",
+      "link": "https://arxiv.org/pdf/2604.02648v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Multi-agent system for game development and bug detection",
+      "llm_evidence_cn": "用于游戏开发和错误检测的多智能体系统",
+      "llm_evidence": "用于游戏开发和错误检测的多智能体系统",
+      "canonical_evidence": "用于游戏开发和错误检测的多智能体系统",
+      "llm_tldr_en": "Introduces GBQA benchmark with 30 games and 124 bugs to evaluate LLMs as QA engineers using multi-agent construction and interactive agents.",
+      "llm_tldr_cn": "引入GBQA基准，包含30个游戏和124个错误，使用多智能体构建评估LLM作为QA工程师。",
+      "llm_tldr": "引入GBQA基准，包含30个游戏和124个错误，使用多智能体构建评估LLM作为QA工程师。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02640v1",
+      "title": "Overcoming the \"Impracticality\" of RAG: Proposing a Real-World Benchmark and Multi-Dimensional Diagnostic Framework",
+      "abstract": "Performance evaluation of Retrieval-Augmented Generation (RAG) systems within enterprise environments is governed by multi-dimensional and composite factors extending far beyond simple final accuracy checks. These factors include reasoning complexity, retrieval difficulty, the diverse structure of documents, and stringent requirements for operational explainability. Existing academic benchmarks fail to systematically diagnose these interlocking challenges, resulting in a critical gap where models achieving high performance scores fail to meet the expected reliability in practical deployment.   To bridge this discrepancy, this research proposes a multi-dimensional diagnostic framework by defining a four-axis difficulty taxonomy and integrating it into an enterprise RAG benchmark to diagnose potential system weaknesses.",
+      "authors": [
+        "Kenichirou Narita",
+        "Siqi Peng",
+        "Taku Fukui",
+        "Moyuru Yamada",
+        "Satoshi Munakata",
+        "Satoru Takahashi"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-03T02:10:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.02640v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multi-dimensional diagnostic framework for RAG evaluation",
+      "llm_evidence_cn": "RAG评估的多维诊断框架",
+      "llm_evidence": "RAG评估的多维诊断框架",
+      "canonical_evidence": "RAG评估的多维诊断框架",
+      "llm_tldr_en": "Proposes a four-axis diagnostic framework for evaluating RAG systems in enterprise environments beyond simple accuracy metrics.",
+      "llm_tldr_cn": "提出四轴诊断框架，用于企业环境中RAG系统的多维评估。",
+      "llm_tldr": "提出四轴诊断框架，用于企业环境中RAG系统的多维评估。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02911v1",
+      "title": "Learning Task-Invariant Properties via Dreamer: Enabling Efficient Policy Transfer for Quadruped Robots",
+      "abstract": "Achieving quadruped robot locomotion across diverse and dynamic terrains presents significant challenges, primarily due to the discrepancies between simulation environments and real-world conditions. Traditional sim-to-real transfer methods often rely on manual feature design or costly real-world fine-tuning. To address these limitations, this paper proposes the DreamTIP framework, which incorporates Task-Invariant Properties learning within the Dreamer world model architecture to enhance sim-to-real transfer capabilities. Guided by large language models, DreamTIP identifies and leverages Task-Invariant Properties, such as contact stability and terrain clearance, which exhibit robustness to dynamic variations and strong transferability across tasks. These properties are integrated into the world model as auxiliary prediction targets, enabling the policy to learn representations that are insensitive to underlying dynamic changes. Furthermore, an efficient adaptation strategy is designed, employing a mixed replay buffer and regularization constraints to rapidly calibrate to real-world dynamics while effectively mitigating representation collapse and catastrophic forgetting. Extensive experiments on complex terrains, including Stair, Climb, Tilt, and Crawl, demonstrate that DreamTIP significantly outperforms state-of-the-art baselines in both simulated and real-world environments. Our method achieves an average performance improvement of 28.1% across eight distinct simulated transfer tasks. In the real-world Climb task, the baseline method achieved only a 10\\ success rate, whereas our method attained a 100% success rate. These results indicate that incorporating Task-Invariant Properties into Dreamer learning offers a novel solution for achieving robust and transferable robot locomotion.",
+      "authors": [
+        "Junyang Liang",
+        "Yuxuan Liu",
+        "Yabin Chang",
+        "Junfan Lin",
+        "Junkai Ji",
+        "Hui Li",
+        "Changxin Huang",
+        "Jianqiang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-04-03T09:27:36+00:00",
+      "link": "https://arxiv.org/pdf/2604.02911v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Dreamer world model architecture for robot policy transfer",
+      "llm_evidence_cn": "用于机器人策略迁移的Dreamer世界模型架构",
+      "llm_evidence": "用于机器人策略迁移的Dreamer世界模型架构",
+      "canonical_evidence": "用于机器人策略迁移的Dreamer世界模型架构",
+      "llm_tldr_en": "Proposes DreamTIP using Dreamer world model for quadruped robot sim-to-real transfer.",
+      "llm_tldr_cn": "提出DreamTIP利用Dreamer世界模型实现四足机器人虚实迁移。",
+      "llm_tldr": "提出DreamTIP利用Dreamer世界模型实现四足机器人虚实迁移。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.02690v1",
+      "title": "AnnoRetrieve: Efficient Structured Retrieval for Unstructured Document Analysis",
+      "abstract": "Unstructured documents dominate enterprise and web data, but their lack of explicit organization hinders precise information retrieval. Current mainstream retrieval methods, especially embedding-based vector search, rely on coarse-grained semantic similarity, incurring high computational cost and frequent LLM calls for post-processing. To address this critical issue, we propose AnnoRetrieve, a novel retrieval paradigm that shifts from embeddings to structured annotations, enabling precise, annotation-driven semantic retrieval. Our system replaces expensive vector comparisons with lightweight structured queries over automatically induced schemas, dramatically reducing LLM usage and overall cost. The system integrates two synergistic core innovations: SchemaBoot, which automatically generates document annotation schemas via multi-granularity pattern discovery and constraint-based optimization, laying a foundation for annotation-driven retrieval and eliminating manual schema design, and Structured Semantic Retrieval (SSR), the core retrieval engine, which unifies semantic understanding with structured query execution; by leveraging the annotated structure instead of vector embeddings, SSR achieves precise semantic matching, seamlessly completing attribute-value extraction, table generation, and progressive SQL-based reasoning without relying on LLM interventions. This annotation-driven paradigm overcomes the limitations of traditional vector-based methods with coarse-grained matching and heavy LLM dependency and graph-based methods with high computational overhead. Experiments on three real-world datasets confirm that AnnoRetrieve significantly lowers LLM call frequency and retrieval cost while maintaining high accuracy. AnnoRetrieve establishes a new paradigm for cost-effective, precise, and scalable document analysis through intelligent structuring.",
+      "authors": [
+        "Teng Lin",
+        "Yuyu Luo",
+        "Nan Tang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-03T03:34:19+00:00",
+      "link": "https://arxiv.org/pdf/2604.02690v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "structured retrieval paradigm for document analysis",
+      "llm_evidence_cn": "用于文档分析的结构化检索范式",
+      "llm_evidence": "用于文档分析的结构化检索范式",
+      "canonical_evidence": "用于文档分析的结构化检索范式",
+      "llm_tldr_en": "AnnoRetrieve enables efficient semantic retrieval via structured annotations instead of vector search.",
+      "llm_tldr_cn": "AnnoRetrieve通过结构化标注替代向量搜索实现高效语义检索。",
+      "llm_tldr": "AnnoRetrieve通过结构化标注替代向量搜索实现高效语义检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02979v1",
+      "title": "Not All Frames Deserve Full Computation: Accelerating Autoregressive Video Generation via Selective Computation and Predictive Extrapolation",
+      "abstract": "Autoregressive (AR) video diffusion models enable long-form video generation but remain expensive due to repeated multi-step denoising. Existing training-free acceleration methods rely on binary cache-or-recompute decisions, overlooking intermediate cases where direct reuse is too coarse yet full recomputation is unnecessary. Moreover, asynchronous AR schedules assign different noise levels to co-generated frames, yet existing methods process the entire valid interval uniformly. To address these AR-specific inefficiencies, we present SCOPE, a training-free framework for efficient AR video diffusion. SCOPE introduces a tri-modal scheduler over cache, predict, and recompute, where prediction via noise-level Taylor extrapolation fills the gap between reuse and recomputation with explicit stability controls backed by error propagation analysis. It further introduces selective computation that restricts execution to the active frame interval. On MAGI-1 and SkyReels-V2, SCOPE achieves up to 4.73x speedup while maintaining quality comparable to the original output, outperforming all training-free baselines.",
+      "authors": [
+        "Hanshuai Cui",
+        "Zhiqing Tang",
+        "Zhi Yao",
+        "Fanshuai Meng",
+        "Weijia Jia",
+        "Wei Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-03T11:34:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.02979v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Video generation acceleration framework",
+      "llm_evidence_cn": "视频生成加速框架",
+      "llm_evidence": "视频生成加速框架",
+      "canonical_evidence": "视频生成加速框架",
+      "llm_tldr_en": "SCOPE framework accelerates autoregressive video diffusion via selective computation and predictive extrapolation.",
+      "llm_tldr_cn": "SCOPE框架通过选择性计算加速自回归视频扩散生成。",
+      "llm_tldr": "SCOPE框架通过选择性计算加速自回归视频扩散生成。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

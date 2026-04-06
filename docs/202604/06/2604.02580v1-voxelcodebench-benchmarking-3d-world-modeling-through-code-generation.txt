@@ -1,0 +1,276 @@
+Title: VoxelCodeBench: Benchmarking 3D World Modeling Through Code Generation
+
+URL Source: https://arxiv.org/pdf/2604.02580v1
+
+Published Time: Mon, 06 Apr 2026 00:21:56 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# VoxelCodeBench: Benchmarking 3D World Modeling Through Code Generation 
+
+Yan Zheng 1,2,∗, Florian Bordes 11FAIR at Meta, 2The University of Texas at Austin 
+
+> ∗
+
+Work done at Meta 
+
+Evaluating code generation models for 3D spatial reasoning requires executing generated code in realistic environments and assessing outputs beyond surface-level correctness. We introduce a platform VoxelCode, for analyzing code generation capabilities for 3D understanding and environment creation. Our platform integrates natural language task specification, API-driven code execution in Unreal Engine, and a unified evaluation pipeline supporting both automated metrics and human assessment. To demonstrate its utility, we construct VoxelCodeBench, a benchmark of voxel manipulation tasks spanning three reasoning dimensions: symbolic interpretation, geometric construction, and artistic composition. Evaluating leading code generation models, we find that producing executable code is far easier than producing spatially correct outputs, with geometric construction and multi-object com-position proving particularly challenging. By open-sourcing our platform and benchmark, we provide the community with extensible infrastructure for developing new 3D code generation benchmarks and probing spatial reasoning in future models.  
+
+> Date:
+
+April 6, 2026  
+
+> Correspondence:
+
+Florian Bordes at fbordes@meta.com  
+
+> Code:
+
+https://github.com/facebookresearch/voxelcodebench 
+
+# 1 Introduction 
+
+Code generation has emerged as a compelling paradigm for measuring and advancing language model capabilities (Chen et al., 2021; Li et al., 2022). While existing benchmarks predominantly evaluate algorithmic problem-solving (Austin et al., 2021) or general programming tasks (Zheng et al., 2024), they do not assess spatial reasoning—the ability to understand, manipulate, and compose 3D geometric structures. This gap is particularly significant as spatial intelligence underlies critical applications including robotics (Tellex et al., 2011), embodied AI (Manolis Savva* et al., 2019), and interactive content creation (Wu et al., 2023). We argue that code generation for API-driven 3D manipulation provides a principled framework for evaluating spatial reasoning in language models. Unlike end-to-end neural approaches (Poole et al., 2022; Lin et al., 2023), such as text-to-3D generative models that work as black boxes, code-based methods expose the reasoning process through explicit symbolic manipulation, enabling fine-grained analysis of geometric understanding, compositional thinking, and creative problem-solving. Moreover, API-based evaluation reflects realistic software engineering scenarios where models must learn and apply domain-specific interfaces from documentation and examples. Lastly, in addition to better analysis, leveraging code as an intermediate step for 3D generation allows users to have more control over the output. In this work, we introduce VoxelCode, a rendering API, built with Unreal Engine(EpicGames) and the Voxel Plugin 2.0(Careil, 2025), that takes code as input and produces real-time 3D rendering as output. This platform allows users to instruct a Large Language Model (LLM) to generate 3D objects using code. A key feature is the ability to manipulate a virtual camera, enabling the generation of multiple screenshots from various viewpoints. This functionality makes VoxelCode an excellent tool for directly comparing the coding abilities of different LLMs by visualizing and assessing their performance in terms of visual consistency and quality when working with simple 3D primitives. Using VoxelCode, we developed VoxelCodeBench , a comprehensive benchmark for systematically evaluating 1  
+
+> arXiv:2604.02580v1 [cs.LG] 2 Apr 2026 Figure 1 VoxelCodeBench evaluation pipeline. Given API documentation and a natural language task specification (left), models generate Python code manipulating voxels in 3D space (center). The generated code is executed within VoxelCode, an Unreal Engine based rendering server equipped with the Voxel Plugin 2.0(Careil, 2025), producing visual outputs that can be evaluated by human annotators (right). Our benchmark spans three complexity tiers—from basic geometric primitives to compositional artistic scenes—enabling systematic assessment of spatial reasoning through code generation.
+
+code generation models on 3D voxel manipulation tasks. Our benchmark addresses three core research questions: (RQ1) Can contemporary code generation models learn to use specialized 3D manipulation APIs from documentation and examples? (RQ2) How do model capabilities scale across symbolic, geometric, and artistic reasoning dimensions? (RQ3) What are the relative strengths of general-purpose LLMs versus code-specialized models for spatial reasoning tasks? 
+
+VoxelCodeBench comprises 220 carefully designed tasks organized along three axes of increasing complexity: 
+
+• Symbolic reasoning (80 tasks): Coordinate-based primitive placement, testing fundamental API comprehen-sion and spatial coordinate mapping 
+
+• Geometric construction (50 tasks): Procedural shape generation with boolean operations, evaluating compositional geometric thinking 
+
+• Artistic composition (90 tasks): Multi-object scene creation with aesthetic constraints, measuring creative spatial reasoning and thematic coherence 
+
+Key contributions. 
+
+1. We introduce VoxelCode , an unreal-engine based platform that render 3D objects from simple python code using an API that leverage only basic geometries. 2. We introduce VoxelCodeBench , a systematic benchmark for evaluating 3D spatial reasoning through API-driven code generation, comprising 200+ tasks with standardized evaluation protocols and comprehensive human annotations. 3. Through extensive experiments across models, we establish quantitative baselines and identify systematic performance patterns across spatial reasoning dimensions. 4. We release our complete benchmark infrastructure—including task dataset, rendering environment, and evaluation tools—to facilitate future research in code-based spatial reasoning. Our findings reveal that while contemporary models demonstrate robust API learning capabilities, significant gaps remain in compositional geometric reasoning and creative spatial composition. These insights have implications for both improving code generation models and designing effective human-AI collaboration systems for 3D content creation. 22 Related Work 
+
+Benchmarks for code generation. Recent benchmarks for evaluating code generation models primarily focus on algorithmic problem-solving and general programming tasks. HumanEval (Chen et al., 2021) and MBPP (Austin et al., 2021) assess function-level code generation from natural language descriptions, while CodeContests (Li et al., 2022) targets competitive programming problems. APPS (Hendrycks et al., 2021) introduces more complex programming challenges but still emphasizes algorithmic reasoning over domain-specific API usage. More recent work has explored domain-specific code generation for data science (Lai et al., 2022) and API usage (Li et al., 2023), but these benchmarks do not assess spatial reasoning or 3D manipulation capabilities. Other works, such as SceneCraft (Hu et al., 2024), utilize LLMs to synthesize novel scenes by generating Blender code. Similarly, (Du et al., 2024) also focuses on computer-aided design using language models. 
+
+3D generation and evaluation. Text-to-3D generation has seen rapid progress through neural rendering approaches including NeRF optimization (Jain et al., 2022), diffusion-based methods (Poole et al., 2022; Lin et al., 2023; Wang et al., 2023), and 3D Gaussian splatting (Tang et al., 2024). While these methods produce high-quality visual outputs, evaluation typically focuses on single-object generation quality (Wu et al., 2023; Deitke et al., 2022) rather than compositional reasoning or procedural construction capabilities. Recent benchmarks like T3Bench (He et al., 2024) evaluate compositional text-to-3D generation but through end-to-end neural systems rather than explicit code generation. Our benchmark complements this line of work by providing a code-based evaluation framework that enables analysis of compositional spatial reasoning through interpretable symbolic manipulation. 
+
+CSG-based shape program synthesis. Recent work explores inferring programmatic representations from 3D shapes. MeshCoder (Dai et al., 2025) trains a multimodal LLM to translate point clouds into Blender scripts, while PrimitiveAnything (Ye et al., 2025) learns primitive decomposition from human-annotated assemblies. However, these methods solve the inverse problem (shape →code) and require category-specific training data, limiting generalization. In contrast, VoxelCodeBench evaluates the forward problem (language →code →shape) in a zero-shot setting, testing whether pretrained LLMs can generalize to novel 3D tasks without domain-specific training. 
+
+Spatial reasoning in language models. Prior work has explored spatial reasoning capabilities in language models through various modalities. Early work focused on textual spatial descriptions (Mirzaee et al., 2021; Liu et al., 2023), while recent efforts incorporate visual grounding (Zhang et al., 2025; Yang et al., 2023). Embodied AI benchmarks like ALFRED (Shridhar et al., 2020) and Habitat (Manolis Savva* et al., 2019) evaluate spatial reasoning through interactive navigation and manipulation but do not assess code generation capabilities. Most relevant to our work, recent studies examine LLM spatial reasoning through code generation for robotics (Liang et al., 2022; Singh et al., 2023) and interactive environments (Wang et al., 2024). 
+
+Voxel-based representations. Voxel representations provide discrete, regular grids for 3D data and have been widely adopted in computer vision (Maturana and Scherer, 2015; Riegler et al., 2017; Choy et al., 2016) and graphics (Laine and Karras, 2010). Recent work explores learning-based voxel generation through GANs (Wu et al., 2015) and diffusion models (Skorokhodov et al., 2023). In the context of LLM applications, voxel-based environments like Minecraft have been used for studying embodied agents (Fan et al., 2022; Wang et al., 2024) but without systematic benchmarking of code generation for spatial reasoning. Our work leverages voxel representations as an intuitive substrate for evaluating API-driven spatial manipulation, providing discrete building blocks amenable to programmatic construction while supporting complex geometric operations through boolean algebra. 
+
+# 3 VoxelCode 
+
+Our first contribution is VoxelCode, an environment built with Unreal Engine that takes Python code as input and executes it to manipulate voxels. Figure 1 illustrates the overall pipeline: given API documentation 3Figure 2 Example outputs using VoxelCode. Representative 3D voxel constructions generated by models across our benchmark, including characters and symbols, geometric and mathematical shapes, artistic animals, objects, vehicles, and natural objects, ranging from simple geometric primitives to complex multi-component objects. 
+
+and a natural language prompt, a model generates Python code that VoxelCode executes to produce rendered 3D scenes. To build VoxelCode, we leverage VoxelPlugin 2.0 (Careil, 2025), which allows for the precise manipulation of voxels within Unreal Engine environments. In contrast to many traditional 3D rendering software, such as the easily accessible PyVista (Sullivan and Kaszynski, 2019) which comes with extensive examples and documentations, the Voxel Plugin 2.0 source code is not publicly available and requires a custom license. Using a tool that is not widely accessible is crucial for ensuring that large language models (LLMs) are indeed generalizing and not over-fitting on their training data. The Voxel Plugin is compiled within VoxelCode, making its source code inaccessible. The only way to communicate with the Voxel Plugin when using VoxelCode is by leveraging a simple API we made, in which we only present some header function definitions and python examples scripts that a model can leverage. In addition to licensing Unreal Engine and the Voxel Plugin 2.0, we also licensed materials data that a model can use to improve its rendering. VoxelCode runs on Linux servers using the Vulkan API and professional gaming GPUs such as the Nvidia L40 or Nvidia RTX 6000. Alongside VoxelCode, we provide a web-interface that allows users to write code and visualize the code execution in real-time through WebRTC. Figure 2 shows representative outputs spanning characters, geometric shapes, animals, vehicles, and architectural structures—ranging from simple primitives to complex multi-component objects. 44 VoxelCodeBench Design 
+
+We design VoxelCodeBench to enable systematic, reproducible evaluation of spatial reasoning through code generation. Our benchmark architecture consists of three core components: (1) a task specification framework providing API documentation and natural language prompts, (2) a VoxelCode execution infrastructure, and (3) multi-dimensional assessment protocols. Figure 1 illustrates this pipeline end-to-end. 
+
+4.1 Evaluation Framework 
+
+Each task in VoxelCodeBench provides models with three components: (1) minimal API documentation, (2) minimal working examples, and (3) natural language task specification. 
+
+API documentation. We provide documentation for a voxel manipulation API comprising 47 functions orga-nized into four categories: primitive placement (individual voxel operations), geometric shapes (parameterized 3D primitives), boolean operations (set-theoretic combinations), and surface utilities (mesh generation and smoothing). Each function includes type signatures, parameter descriptions, coordinate system specifications, and constraint documentation. This mirrors realistic software engineering scenarios where models must learn domain-specific APIs from available documentation. 
+
+Working examples. For each task category, we provide 2-3 minimal working examples demonstrating correct API usage patterns, parameter specification, and common idioms. These examples use the same functions required for task completion but solve simpler problems, testing models’ ability to generalize from demonstrations. 
+
+Task specifications. Natural language descriptions specify desired 3D entities with varying levels of detail and constraint. Specifications range from precise geometric descriptions ( "Create a red cube with side length 5 centered at origin" ) to open-ended creative prompts ( "Build a medieval castle with towers and defensive walls" ). This variation enables assessment across the spectrum from instruction-following to creative problem-solving. 
+
+4.2 Task Taxonomy 
+
+VoxelCodeBench organizes 220 tasks along three axes representing distinct facets of spatial reasoning: 
+
+Symbolic reasoning (80 tasks). These tasks evaluate fundamental API comprehension and coordinate mapping capabilities. Subtasks include: (i) discrete placement (placing individual voxels at specified coordinates), (ii) 
+
+pattern reconstruction (recreating 2D patterns and character shapes in 3D space), (iii) primitive instantiation 
+
+(generating basic shapes with specified parameters), (iv) simple arrangements (spatial configurations of multiple primitives), (v) molecular models (ball-and-stick representations of chemical compounds), and (vi) 
+
+writing systems (rendering text, characters, and symbols from various scripts). Success on symbolic tasks indicates models can parse API documentation, map natural language specifications to function calls, and perform basic coordinate calculations. 
+
+Geometric construction (50 tasks). These tasks assess procedural shape generation and compositional reasoning. Subtasks include: (i) parameterized primitives (creating complex geometric forms like arches, spirals, helices), (ii) boolean composition (combining shapes through set operations), (iii) iterative construction 
+
+(building structures through loops and recursion), and (iv) surface generation (creating smooth meshes from voxel data). Success requires understanding geometric principles, spatial composition, and algorithmic construction strategies. 
+
+Artistic composition (90 tasks). These tasks measure creative spatial reasoning and aesthetic judgment. Subtasks include: (i) thematic scenes (multi-object environments with stylistic coherence), (ii) functional structures (buildings, vehicles, objects with purpose), (iii) natural forms (organic shapes like trees, animals), and (iv) abstract compositions (artistic arrangements emphasizing visual balance). Success demands integration 5of geometric skills with creative problem-solving and world knowledge about object appearance and spatial relationships. 
+
+4.3 VoxelCode Environment 
+
+Generated code is executed through the VoxelCode library. The execution pipeline: (1) validates code syntax and imports, (2) initializes clean scene state, (3) executes generated code with 60-second timeout, (4) captures execution logs and error messages, (5) renders final scene from multiple viewpoints (front, side, top, perspective), and (6) exports geometric data for automated analysis. This infrastructure ensures reproducible evaluation across models while providing rich feedback for error analysis. 
+
+4.4 Multi-Dimensional Assessment 
+
+To comprehensively evaluate model performance, VoxelCodeBench combines automated metrics with human evaluation, providing both objective correctness measures and subjective quality assessments. 
+
+Automated metrics. We first apply two automated checks to filter obvious failures. The execution success 
+
+metric verifies that generated code runs without syntax or runtime errors, while API compliance detection identifies common violations such as invalid parameters and constraint violations. 
+
+Human evaluation. While automated metrics catch clear errors, they cannot assess whether the generated 3D scene actually matches the intended specification. We therefore conduct systematic human evaluation using a custom annotation interface (Figure 3). For each generated output, annotators evaluate five key aspects: whether any visible 3D object is present ( Has Object ), whether objects are accurately placed at specified coordinates ( Position Correctness ), whether specified materials and colors are correctly applied ( Material Correctness ), whether the generated geometry aligns with the specification ( Shape Correctness ), and the overall aesthetic quality on a 0–10 scale ( Visual Quality ). This design allows us to disentangle different aspects of the generation task—distinguishing, for instance, between models that create the right shape in the wrong location versus those that fail at shape generation entirely. 
+
+Task completion criterion. We treat Shape Correctness as our primary success metric, since it most directly captures whether models can accurately translate language into 3D geometry. We use Visual Quality as a secondary metric to assess aesthetic aspects beyond binary correctness. 
+
+# 5 Experiments and results 
+
+We evaluate eight state-of-the-art large language models across three major families: three models from OpenAI’s GPT family (GPT-5, GPT-5 Mini, and GPT-5 Chat), four from Anthropic’s Claude series (Claude Sonnet 4.5, Claude Opus 4, Claude 3.5 Sonnet, and Claude 3 Opus), and Gemini 3 Pro from Google. This selection allows us to compare both across and within model families, examining how different capability tiers and training approaches affect performance on spatial reasoning tasks. We access all models through their respective APIs under identical evaluation conditions. Each model receives the same input consisting of complete API documentation, working code examples, and the natural language task specification, ensuring that performance differences reflect genuine capability gaps rather than variations in available context. 
+
+5.1 Evaluation Protocol 
+
+Human annotation. We developed a custom annotation interface (Figure 3) to evaluate model outputs across five dimensions: Has Object, Position Correct, Material Correct, Shape Correct, and Visual Quality (0–10). The interface displays task metadata, the original prompt, and rendered outputs from four viewpoints, enabling systematic assessment of each generation. 6Figure 3 Human annotation interface. Annotators view the prompt and rendered outputs from multiple viewpoints, then rate five dimensions: Has Object, Position Correct, Material Correct, Shape Correct, and Visual Quality (0–10). 
+
+Metrics. Our primary metric is Shape Correct : the percentage of tasks where the generated shape matches the specification. We additionally report Position Correct, Material Correct, and Visual Quality scores to provide fine-grained analysis of model capabilities. For each task, generated code is executed in VoxelCode, which renders the scene from 4 viewpoints at 1920 ×1080 resolution. The rendered images are then passed to our annotation interface for human evaluation. 
+
+5.2 Results 
+
+Table 1 summarizes model performance across VoxelCodeBench , evaluating whether outputs contain visible objects ( HasObj ), the correctness of position, material, and shape attributes, and overall visual quality ( Look ,scored 0–10). Figure 4 provides qualitative examples spanning all models, task categories, and difficulty levels. GPT-5 achieves the strongest overall performance, reaching 87.9% shape correctness with the highest visual quality score of 5.71 out of 10. Claude Sonnet 4.5 and GPT-5 Mini follow closely, both achieving 80.4% shape correctness, though GPT-5 Mini slightly edges ahead on visual quality. The results reveal interesting patterns within model families. The GPT series demonstrates relatively consistent performance across capability tiers, with even the smallest variant (GPT-5 Mini) maintaining strong results. The Claude family exhibits more substantial variation—Claude Sonnet 4.5 performs comparably to top GPT models at 80.4%, while Claude 3 Opus lags significantly behind at just 45.2% shape correctness, a 35-point gap within the same family. Gemini Pro presents a stark outlier, achieving only 19.5% shape correctness and a visual quality score of 1.36. This 68-point gap compared to GPT-5 suggests fundamental difficulties with the voxel manipulation API that go beyond mere performance degradation. The model appears to struggle with basic API comprehension, potentially failing to properly parse the documentation or generalize from the provided examples. 7Table 1 Main results on VoxelCodeBench. Performance metrics (%) across models. HasObj : output contains visible object.        
+
+> Pos/Mat/Shape : position, material, shape correctness. Look : average visual quality score (0–10). Best results in bold .
+> Model HasObj Pos Mat Shape Look
+
+GPT-5 88.6 88.6 87.9 87.9 5.71 
+
+GPT-5 Mini 85.8 85.8 82.4 80.4 4.86 Claude Sonnet 4.5 86.7 86.7 84.6 80.4 5.01 GPT-5 Chat 77.9 77.9 75.9 69.7 3.66 Claude Opus 4 74.1 72.8 72.1 69.4 4.13 Claude 3.5 Sonnet 71.0 70.3 70.3 66.9 3.30 Claude 3 Opus 59.5 59.5 54.8 45.2 3.40 Gemini Pro 20.1 20.1 18.8 19.5 1.36    
+
+> Table 2 Performance by task category. Shape correctness (%) and visual quality (Look, 0–10) across three reasoning dimensions. Best per category in bold .
+
+Symbolic Geometric Artistic Model Shape Look Shape Look Shape Look GPT-5 87.5 6.81 66.7 6.56 97.5 4.90 
+
+Claude Sonnet 4.5 90.3 6.77 52.8 5.28 89.5 4.16 Claude Opus 4 75.0 6.25 40.0 3.83 80.0 3.41 Gemini Pro 15.2 1.55 23.7 2.08 19.2 0.92 
+
+Breaking down performance by task category (Table 2) reveals that different models excel at different types of spatial reasoning. For symbolic tasks requiring precise API usage and spatial coordinates, Claude Sonnet 4.5 slightly outperforms GPT-5 (90.3% vs. 87.5%), though both achieve visual quality scores above 6.8. Gemini Pro’s collapse to 15.2% on these tasks reinforces the API comprehension hypothesis—symbolic reasoning requires faithful adherence to documentation, where Gemini Pro consistently fails. Geometric construction emerges as the most challenging category across all models. Even GPT-5, the overall leader, drops to 66.7% shape correctness—a 21-point decline from its symbolic performance. Claude Sonnet 4.5 falls more sharply to 52.8%. Digging into the subcategories reveals an intriguing divergence in spatial reasoning strategies. GPT-5 excels at geometry operations like unions and subtractions (84.2%) but struggles with parameterized primitives such as spheres and cylinders (54.5%). Claude Sonnet 4.5 exhibits precisely the opposite pattern, achieving 54.5% on parameterized primitives but only 42.1% on geometry operations. This suggests the models have developed fundamentally different internal representations of 3D space—GPT-5 appears stronger at relational reasoning between objects, while Claude Sonnet 4.5 handles individual object parameterization more reliably. Surprisingly, artistic composition tasks yield the strongest results for top-tier models. GPT-5 achieves 97.5% shape correctness, reaching perfect 100% success on both animals and everyday objects. Claude Sonnet 4.5 maintains strong performance at 89.5%. This pattern likely reflects the interpretive flexibility inherent in artistic tasks—unlike symbolic or geometric challenges with strict specifications, artistic prompts (e.g., "create a cat") allow models to produce plausible representations without exact dimensional requirements. Gemini Pro remains weak at 19.2%, particularly struggling with vehicles (9.7%), suggesting its difficulties extend beyond rigid specifications to general spatial understanding. 
+
+5.3 Human Evaluation Analysis 
+
+Using the multi-dimensional annotation scheme shown in Figure 3, we analyze model performance across five evaluation axes. While GPT-5 and Claude Sonnet 4.5 achieve similar shape correctness (87.9% vs. 80.4%), GPT-5 demonstrates higher visual quality scores (5.71 vs. 5.01), suggesting better aesthetic judgment in output generation. The strong correlation between Has Object and Shape Correct metrics (difference <3% for most models) indicates that when models produce visible output, they typically generate correct shapes. 8Figure 4 Qualitative comparison across models, categories, and difficulty levels. Rows correspond to eight evaluated models; columns span three task categories (Symbolic, Geometric, Artistic) at Easy, Medium, and Hard difficulty. Empty cells indicate cases where code execution failed, resulting in no visible output due to errors in the model-generated code. 
+
+Gemini Pro’s consistently low performance across all metrics (Has Object: 20.1%, Shape: 19.5%, Look: 1.36) points to systematic failure rather than partial success—the model frequently generates code that either fails to execute or produces empty outputs. 
+
+5.4 Ablation: Effect of Additional Working Examples 
+
+We investigate whether providing additional working examples in the prompt improves model performance. Our baseline prompt includes 2–3 minimal examples demonstrating API usage, while the extended prompt includes 5+ comprehensive examples covering more API functions and edge cases. Table 3 reveals a surprising pattern: additional examples help low-performing models but hurt high-performing ones. Gemini Pro shows the largest improvement (+24.8pp), suggesting that its baseline failures stem partly from insufficient API understanding. However, Claude 3.5 Sonnet ( −34.8pp), GPT-5 Chat ( −33.4pp), and Claude Sonnet 4.5 ( −17.5pp) show substantial degradation with more examples, likely due to context dilution or example overfitting. GPT-5 remains stable ( −1.4pp), suggesting robustness to prompt length variation. 9Table 3 Ablation: Effect of additional working examples. Shape correctness (%) on artistic composition tasks comparing baseline (2–3 examples) vs. extended prompts (5+ examples). ∆ indicates percentage point change.    
+
+> Model Baseline More Ex.
+
+∆
+
+GPT-5 97.5 96.2 −1.4 GPT-5 Mini 92.5 96.2 +3.7 GPT-5 Chat 94.9 61.5 −33.4 Claude Sonnet 4.5 89.5 72.0 −17.5 Claude 3.5 Sonnet 84.8 50.0 −34.8 Gemini Pro 19.2 44.0 +24.8       
+
+> Table 4 Error type distribution. Common errors encountered during code execution. Error rate shows percentage of submissions with errors for each model.
+> Error Type GPT-5 Claude Son. 4.5 Gemini Pro Total
+
+Invalid API Attribute 6 8 15 89 Execution Timeout/Crash 2 10 1 55 Type Unpacking Error 0 0 12 15 Syntax Error 0 0 14 15  
+
+> Error Rate
+
+0.8% 1.6% 5.6% –
+
+5.5 Error Analysis 
+
+To understand the failure modes of different models, we manually analyzed execution logs. As shown in Table 4, we identified four primary error categories with notably different distributions across models. The most frequent failures stem from invalid API usage, accounting for nearly 40% of all errors. Models frequently hallucinate plausible-sounding but non-existent function names—for instance, calling EVoxel-BooleanOperation.Intersection or .Subtraction instead of the correct API names. This pattern suggests models are extrapolating from general programming knowledge rather than carefully following the provided documentation. The second major category is execution timeouts and rendering crashes, which make up about a quarter of failures. These occur when generated code is syntactically valid but produces computationally infeasible operations, such as infinite loops or degenerate geometric constructions. Interestingly, Claude Sonnet 4.5 is particularly prone to this failure mode—over half of its errors (10 out of 19) fall into this category, while GPT-5 and Gemini Pro rarely encounter it. This suggests Claude generates syntactically correct code that nonetheless misunderstands computational constraints. The error profiles reveal striking differences in model reliability. GPT-5 achieves the lowest error rate at 0.8%, with failures almost exclusively in the API hallucination category. In contrast, Gemini Pro exhibits a 5.6% error rate with failures spanning all categories, including 14 basic syntax errors—suggesting fundamental difficulties with code generation. Claude Sonnet 4.5 falls between these extremes, producing mostly valid syntax but occasionally generating computationally problematic code. 
+
+# 6 Conclusion 
+
+We introduce VoxelCodeBench , a benchmark for evaluating spatial reasoning through API-driven 3D voxel manipulation. Built on Unreal Engine and Voxel Plugin 2.0, our open-source VoxelCode platform enables real-time rendering of LLM-generated code, providing researchers with extensible infrastructure for studying code-based 3D generation. Our experiments reveal a key finding: voxel-based representations serve as an effective interface for LLMs to externalize their geometric knowledge. Models successfully generate diverse objects by composing primitives through boolean operations, demonstrating that pretrained world knowledge can generalize to 3D structure synthesis without domain-specific training. We release VoxelCode and all evaluation tools to support future research in code-based 3D generation and spatial reasoning. 10 Impact Statement 
+
+This work aims to advance the understanding of spatial reasoning capabilities in large language models through systematic benchmarking. We discuss potential societal implications below. 
+
+Positive impacts. VoxelCodeBench may benefit the research community by providing a standardized evalua-tion framework for measuring progress in code-based 3D generation, an area lacking systematic benchmarks. The code-based approach offers interpretability advantages over end-to-end neural methods, as generated programs expose the reasoning process for analysis and debugging. Our open-source release of benchmark infrastructure—including tasks, rendering environment, and evaluation tools—lowers barriers for researchers studying spatial reasoning. In application contexts, improved code generation for 3D manipulation could facilitate human-AI collaboration in content creation, architectural visualization, and educational tools, potentially democratizing access to 3D modeling capabilities. 
+
+Potential risks and limitations. We identify several considerations. First, benchmark performance should not be over-interpreted as evidence of general spatial intelligence; our evaluation measures specific API-driven tasks that may not transfer to broader 3D reasoning scenarios. Second, advances in automated 3D content generation could potentially be misused to create misleading visualizations, though the voxel-based outputs in our benchmark are stylized rather than photorealistic, limiting this concern. Third, the computational resources required for large-scale model evaluation carry environmental costs, which we partially mitigate by focusing on API-based inference rather than training. Finally, while our benchmark evaluates existing model capabilities, we do not anticipate that this evaluation-focused work directly enables harmful applications beyond those already possible with current systems. 11 References 
+
+Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, and Charles Sutton. Program synthesis with large language models, 2021. 
+
+https://arxiv.org/abs/2108.07732 .Victor Careil. Voxel plugin 2.0. https://voxelplugin.com/ , 2025. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. Evaluating large language models trained on code. 2021. Christopher B Choy, Danfei Xu, JunYoung Gwak, Kevin Chen, and Silvio Savarese. 3d-r2n2: A unified approach for single and multi-view 3d object reconstruction. In Proceedings of the European Conference on Computer Vision (ECCV) , 2016. Bingquan Dai, Li Ray Luo, Qihong Tang, Jie Wang, Xinyu Lian, Hao Xu, Minghan Qin, Xudong Xu, Bo Dai, Haoqian Wang, et al. Meshcoder: Llm-powered structured mesh code generation from point clouds. arXiv preprint arXiv:2508.14879 , 2025. Matt Deitke, Dustin Schwenk, Jordi Salvador, Luca Weihs, Oscar Michel, Eli VanderBilt, Ludwig Schmidt, Kiana Ehsani, Aniruddha Kembhavi, and Ali Farhadi. Objaverse: A universe of annotated 3d objects, 2022. https: //arxiv.org/abs/2212.08051 .Yuhao Du, Shunian Chen, Wenbo Zan, Peizhao Li, Mingxuan Wang, Dingjie Song, Bo Li, Yan Hu, and Benyou Wang. Blenderllm: Training large language models for computer-aided design with self-improvement, 2024. 
+
+https://arxiv.org/abs/2412.14203 .EpicGames. https://www.unrealengine.com . Unreal Engine is a copyright of Epic Games, Inc. and its affiliates (collectively, “Epic”). Any use of images, datasets, or other content made available by Epic, including without limitation through the Unreal Engine Marketplace, Fab or the Epic Games Launcher, in connection with your use of VoxelCode and VoxelCodeBench we’ve outlined in this paper and released publicly in connection hereto (the “VoxelCode and VoxelCodeBench”) or otherwise, is subject to the Epic Content License Agreement available at 
+
+https://www.unrealengine.com/en-US/eula/content or other agreement between you and Epic. Linxi Fan, Guanzhi Wang, Yunfan Jiang, Ajay Mandlekar, Yuncong Yang, Haoyi Zhu, Andrew Tang, De-An Huang, Yuke Zhu, and Anima Anandkumar. Minedojo: Building open-ended embodied agents with internet-scale knowledge. In Thirty-sixth Conference on Neural Information Processing Systems Datasets and Benchmarks Track , 2022. 
+
+https://openreview.net/forum?id=rc8o_j8I8PX .Yuze He, Yushi Bai, Matthieu Lin, Wang Zhao, Yubin Hu, Jenny Sheng, Ran Yi, Juanzi Li, and Yong-Jin Liu. T 3bench: Benchmarking current progress in text-to-3d generation, 2024. https://arxiv.org/abs/2310.02977 .Dan Hendrycks, Steven Basart, Saurav Kadavath, Mantas Mazeika, Akul Arora, Ethan Guo, Collin Burns, Samir Puranik, Horace He, Dawn Song, and Jacob Steinhardt. Measuring coding challenge competence with apps. NeurIPS ,2021. Ziniu Hu, Ahmet Iscen, Aashi Jain, Thomas Kipf, Yisong Yue, David A Ross, Cordelia Schmid, and Alireza Fathi. SceneCraft: An LLM agent for synthesizing 3D scenes as blender code. In Ruslan Salakhutdinov, Zico Kolter, Katherine Heller, Adrian Weller, Nuria Oliver, Jonathan Scarlett, and Felix Berkenkamp, editors, Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research ,pages 19252–19282. PMLR, 21–27 Jul 2024. https://proceedings.mlr.press/v235/hu24g.html .Ajay Jain, Ben Mildenhall, Jonathan T. Barron, Pieter Abbeel, and Ben Poole. Zero-shot text-guided object generation with dream fields, 2022. https://arxiv.org/abs/2112.01455 .Yuhang Lai, Chengxi Li, Yiming Wang, Tianyi Zhang, Ruiqi Zhong, Luke Zettlemoyer, Scott Wen tau Yih, Daniel Fried, Sida Wang, and Tao Yu. Ds-1000: A natural and reliable benchmark for data science code generation. ArXiv ,abs/2211.11501, 2022. 
+
+12 Samuli Laine and Tero Karras. Efficient sparse voxel octrees. In Proceedings of the 2010 ACM SIGGRAPH Symposium on Interactive 3D Graphics and Games , I3D ’10, page 55–63, New York, NY, USA, 2010. Association for Computing Machinery. ISBN 9781605589398. doi: 10.1145/1730804.1730814. https://doi.org/10.1145/1730804.1730814 .Minghao Li, Yingxiu Zhao, Bowen Yu, Feifan Song, Hangyu Li, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li. Api-bank: A comprehensive benchmark for tool-augmented llms, 2023. https://arxiv.org/abs/2304.08244 .Yujia Li, David Choi, Junyoung Chung, Nate Kushman, Julian Schrittwieser, Rémi Leblond, Tom Eccles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de Masson d’Autume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey Cherepanov, James Molloy, Daniel J. Mankowitz, Esme Sutherland Robson, Pushmeet Kohli, Nando de Freitas, Koray Kavukcuoglu, and Oriol Vinyals. Competition-level code generation with alphacode. Science , 378(6624):1092–1097, December 2022. ISSN 1095-9203. doi: 10.1126/science.abq1158. http://dx.doi.org/10.1126/science.abq1158 .Jacky Liang, Wenlong Huang, Fei Xia, Peng Xu, Karol Hausman, Brian Ichter, Pete Florence, and Andy Zeng. Code as policies: Language model programs for embodied control. In arXiv preprint arXiv:2209.07753 , 2022. Chen-Hsuan Lin, Jun Gao, Luming Tang, Towaki Takikawa, Xiaohui Zeng, Xun Huang, Karsten Kreis, Sanja Fidler, Ming-Yu Liu, and Tsung-Yi Lin. Magic3d: High-resolution text-to-3d content creation. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2023. Fangyu Liu, Guy Emerson, and Nigel Collier. Visual spatial reasoning. Transactions of the Association for Computational Linguistics , 11:635–651, 2023. doi: 10.1162/tacl_a_00566. https://aclanthology.org/2023.tacl-1.37/ .Manolis Savva*, Abhishek Kadian*, Oleksandr Maksymets*, Yili Zhao, Erik Wijmans, Bhavana Jain, Julian Straub, Jia Liu, Vladlen Koltun, Jitendra Malik, Devi Parikh, and Dhruv Batra. Habitat: A Platform for Embodied AI Research. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2019. Daniel Maturana and Sebastian Scherer. Voxnet: A 3d convolutional neural network for real-time object recognition. In 2015 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 922–928, 2015. doi: 10.1109/IROS.2015.7353481. Roshanak Mirzaee, Hossein Rajaby Faghihi, Qiang Ning, and Parisa Kordjamshidi. SPARTQA: A textual question answering benchmark for spatial reasoning. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 4582–4598, Online, June 2021. Association for Computational Linguistics. doi: 10.18653/v1/2021.naacl-main.364. https://aclanthology.org/ 2021.naacl-main.364 .Ben Poole, Ajay Jain, Jonathan T. Barron, and Ben Mildenhall. Dreamfusion: Text-to-3d using 2d diffusion. arXiv ,2022. Gernot Riegler, Ali Osman Ulusoy, and Andreas Geiger. Octnet: Learning deep 3d representations at high resolutions, 2017. https://arxiv.org/abs/1611.05009 .Mohit Shridhar, Jesse Thomason, Daniel Gordon, Yonatan Bisk, Winson Han, Roozbeh Mottaghi, Luke Zettlemoyer, and Dieter Fox. ALFRED: A Benchmark for Interpreting Grounded Instructions for Everyday Tasks. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. https://arxiv.org/abs/1912.01734 .Ishika Singh, Valts Blukis, Arsalan Mousavian, Ankit Goyal, Danfei Xu, Jonathan Tremblay, Dieter Fox, Jesse Thomason, and Animesh Garg. Progprompt: Generating situated robot task plans using large language models. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 11523–11530, 2023. doi: 10.1109/ICRA48891.2023.10161317. Ivan Skorokhodov, Aliaksandr Siarohin, Yinghao Xu, Jian Ren, Hsin-Ying Lee, Peter Wonka, and Sergey Tulyakov. 3d generation on imagenet. In International Conference on Learning Representations , 2023. https://openreview.net/ forum?id=U2WjB9xxZ9q .Bane Sullivan and Alexander Kaszynski. PyVista: 3D plotting and mesh analysis through a streamlined interface for the Visualization Toolkit (VTK). Journal of Open Source Software , 4(37):1450, May 2019. doi: 10.21105/joss.01450. 
+
+https://doi.org/10.21105/joss.01450 .Jiaxiang Tang, Jiawei Ren, Hang Zhou, Ziwei Liu, and Gang Zeng. Dreamgaussian: Generative gaussian splatting for efficient 3d content creation. In The Twelfth International Conference on Learning Representations , 2024. 
+
+https://openreview.net/forum?id=UyNXMqnN3c .
+
+13 Stefanie Tellex, Thomas Kollar, Steven Dickerson, Matthew R. Walter, Ashis Gopal Banerjee, Seth Teller, and Nicholas Roy. Understanding natural language commands for robotic navigation and mobile manipulation. In Proceedings of the Twenty-Fifth AAAI Conference on Artificial Intelligence , AAAI’11, page 1507–1514. AAAI Press, 2011. Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandkumar. Voyager: An open-ended embodied agent with large language models. Transactions on Machine Learning Research ,2024. ISSN 2835-8856. https://openreview.net/forum?id=ehfRiF0R3a .Zhengyi Wang, Cheng Lu, Yikai Wang, Fan Bao, Chongxuan Li, Hang Su, and Jun Zhu. Prolificdreamer: High-fidelity and diverse text-to-3d generation with variational score distillation. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. Tong Wu, Jiarui Zhang, Xiao Fu, Yuxin Wang, Liang Pan Jiawei Ren, Wayne Wu, Lei Yang, Jiaqi Wang, Chen Qian, Dahua Lin, and Ziwei Liu. Omniobject3d: Large-vocabulary 3d object dataset for realistic perception, reconstruction and generation. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023. Z. Wu, S. Song, A. Khosla, F. Yu, L. Zhang, X. Tang, and J. Xiao. 3d shapenets: A deep representation for volumetric shapes. In Computer Vision and Pattern Recognition , 2015. Zhengyuan Yang, Linjie Li, Kevin Lin, Jianfeng Wang, Chung-Ching Lin, Zicheng Liu, and Lijuan Wang. The dawn of lmms: Preliminary explorations with gpt-4v(ision), 2023. https://arxiv.org/abs/2309.17421 .Jingwen Ye, Yuze He, Yanning Zhou, Yiqin Zhu, Kaiwen Xiao, Yong-Jin Liu, Wei Yang, and Xiao Han. Primitiveany-thing: Human-crafted 3d primitive assembly generation with auto-regressive transformer. In Proceedings of the Special Interest Group on Computer Graphics and Interactive Techniques Conference Conference Papers , pages 1–12, 2025. Shilong Zhang, Peize Sun, Shoufa Chen, Min Xiao, Wenqi Shao, Wenwei Zhang, Yu Liu, Kai Chen, and Ping Luo. Gpt4roi: Instruction tuning large language model on region-of-interest. In European Conference on Computer Vision ,pages 52–70. Springer, 2025. Qinkai Zheng, Xiao Xia, Xu Zou, Yuxiao Dong, Shan Wang, Yufei Xue, Zihan Wang, Lei Shen, Andi Wang, Yang Li, Teng Su, Zhilin Yang, and Jie Tang. Codegeex: A pre-trained model for code generation with multilingual benchmarking on humaneval-x, 2024. https://arxiv.org/abs/2303.17568 .
+
+14 Appendix 
+
+# A Task Examples 
+
+This appendix provides representative examples from each task category in VoxelCodeBench .
+
+A.1 Symbolic Reasoning Tasks 
+
+Example 1: Primitive Instantiation 
+
+Task: Create a sphere with radius 5 centered at position (10, 0, 10). Expected API calls: sphere = MakeSphereNode( Radius=5.0, Transform=FTransform(Location=(10, 0, 10)) )MakeStampFromNode(sphere, SurfaceType, Layer, Transform) 
+
+Example 2: Multiple Primitives 
+
+Task: Place a torus above a cube, both centered at the origin. Expected API calls: cube = MakeCubeNode( Size=FVector(10, 10, 10), Roundness=0.0, Transform=FTransform(Location=(0, 0, 5)) )torus = MakeTorusNode( MajorRadius=8.0, MinorRadius=2.0, Transform=FTransform(Location=(0, 0, 15)) )UnionShapes(Stamp=stamp, Shapes=[cube, torus], Smoothness=0.0) 
+
+A.2 Geometric Construction Tasks 
+
+Example 3: Boolean Composition 
+
+Task: Create a cube with side length 10, then carve out a sphere with radius 4 from its center. Expected approach using boolean subtraction: cube = MakeCubeNode( Size=FVector(10, 10, 10), Roundness=0.0, Transform=FTransform() )sphere = MakeSphereNode(Radius=4.0, Transform=FTransform()) SubtractShapes( Stamp=stamp, BaseShape=cube, 
+
+15 ShapesToSubtract=[sphere], Smoothness=2.0, Transform=FTransform() )
+
+Example 4: Iterative Construction 
+
+Task: Create a spiral staircase with 8 steps, each rotated 45 degrees and elevated by 2 units. Expected approach involves loops: steps = [] for i in range(8): angle = i * 45 height = i * 2 step = MakeCubeNode( Size=FVector(20, 50, 5), Roundness=0.0, Transform=FTransform( Location=(0, 0, height), Rotation=(0, 0, angle) ))steps.append(step) UnionShapes(Stamp=stamp, Shapes=steps, Smoothness=0.0) 
+
+Example 5: Curved Geometry 
+
+Task: Create a curved pipe connecting two points with smooth bends. Expected approach using Hermite curves: pipe = MakeHermitePipeNode( StartPosition=FVector(0, 0, 0), StartVelocity=FVector(100, 0, 0), EndPosition=FVector(200, 100, 50), EndVelocity=FVector(100, 0, 0), PipeOuterRadius=5.0, PipeInnerRadius=3.0, bClosedPipeEnds=True, NumSegments=20, Smoothness=10.0, Transform=FTransform() )
+
+A.3 Artistic Composition Tasks 
+
+Example 6: Thematic Scene 
+
+Task: Build a small medieval castle with four corner towers and a central keep. This open-ended task requires creative problem-solving. A solution might combine: - MakeHouseNode for the central keep structure - MakeCylinderNode for cylindrical towers 
+
+16 - MakeCubeNode for walls and battlements - MakePyramidNode for conical tower roofs - UnionShapes to combine all components The model must determine appropriate dimensions, positions, and proportions to create a coherent architectural composition. 
+
+Example 7: Natural Forms 
+
+Task: Create a simple tree with trunk and foliage. Expected approach combining primitives: trunk = MakeCylinderNode( Radius=3.0, HalfHeight=20.0, Transform=FTransform(Location=(0, 0, 20)) )foliage = MakeSphereNode( Radius=15.0, Transform=FTransform(Location=(0, 0, 50)) )UnionShapes(Stamp=stamp, Shapes=[trunk, foliage], Smoothness=5.0) 
+
+# B Structured Geometric Detail Generation 
+
+A key advantage of code-based 3D generation is the ability to produce objects with coherent internal structures. As shown in Figure 5, our approach generates geometries that can be inspected from multiple viewpoints, including interior views. For example, the grain silo includes an internal ladder structure, the luxury yacht features a detailed cabin interior, and the shopping mall has distinct floor layouts visible from inside. This capability arises because LLM-generated Python code constructs objects through logical composition of geometric primitives and boolean operations, naturally producing consistent internal geometry. In contrast, diffusion-based 3D generation methods typically produce surface-only representations optimized for external appearance, making it difficult to generate meaningful internal structures or fine-grained geometric details such as mounted weapons or architectural interiors. 
+
+# C Qualitative Analysis of Model Behavior 
+
+Beyond aggregate metrics, our detailed examination of model outputs reveals nuanced patterns in geometric reasoning and API usage that illuminate both capabilities and limitations of current LLMs. 
+
+Geometric concept understanding. Models exhibit significant variation in understanding geometric termi-nology. For instance, only GPT-5 and Claude Sonnet 4.5 correctly interpret “frustum” (a truncated cone or pyramid), while other models produce unrelated shapes. Similarly, only Claude Sonnet 4.5 correctly generates a “prism” shape—other models confuse it with pyramids or cuboids. For “capsule” shapes, we observe diverse misinterpretations: Claude Sonnet 4.5 produces an ellipse, Claude 3 Opus generates a cylinder, while Claude Opus 4 succeeds. These findings suggest that geometric vocabulary understanding varies substantially across model families and does not consistently correlate with overall benchmark performance. 
+
+Compositional reasoning for complex shapes. When generating shapes not directly available as API primitives (e.g., paraboloids, hyperboloids, heart shapes), models employ different compositional strategies. Some models (GPT-5, Claude Sonnet 4.5) leverage the MakeMeshNode API to construct surfaces from vertex data, while others (Gemini Pro, Claude 3 Opus) attempt to approximate shapes by stacking cylinders or combining 17 primitives. Notably, even simple shapes like hearts prove challenging—models repeatedly fail despite multiple attempts, suggesting that certain geometric forms require spatial reasoning capabilities that current LLMs lack. 
+
+Boolean operation challenges. Boolean operations (union, intersection, subtraction) present particular difficulty. For tasks requiring cylinder intersections, only GPT-5 produces correct results across multiple test cases. Similarly, for cone-cylinder joins at their bases, only GPT-5 consistently succeeds. This pattern suggests that reasoning about volumetric set operations and spatial relationships between multiple objects remains a significant challenge. 
+
+Reproducibility and consistency. A striking observation is the inconsistency of model performance across similar tasks. The same model may succeed on one instance of a shape (e.g., crescent, dome, pentagonal prism) but fail on another instance with slightly different parameters or phrasing. For example: 
+
+• GPT-5 correctly generates a crescent in one task but fails on a similar crescent task 
+
+• GPT-5 Chat succeeds on one pentagonal prism task but fails on another 
+
+• GPT-5 generates correct domes in some cases but incorrect ones in others This inconsistency suggests that model performance is sensitive to prompt variations and may not reflect robust geometric understanding. 
+
+API hallucination patterns. Models frequently hallucinate plausible-sounding but non-existent API functions. Common hallucinations include: 
+
+• EVoxelBooleanOperation.Difference / .Subtraction / .Intersection (incorrect enum names) 
+
+• MakePrismNode , MakeConeNode (non-existent functions) 
+
+• SetStampWithSurface , log_error (invalid method calls) These hallucinations suggest models rely on general programming knowledge and naming conventions rather than faithfully following the provided API documentation. This behavior is particularly pronounced in Gemini Pro, which exhibits the highest rate of API-related errors. 
+
+Implications. These observations highlight that current LLMs, while capable of impressive code generation, exhibit brittle geometric reasoning. Performance on individual tasks does not reliably predict performance on similar tasks, and models frequently substitute plausible guesses for careful API adherence. Future work on improving spatial reasoning should address both geometric concept grounding and robust API comprehension from documentation. 18 Figure 5 Structured geometric detail generation. Code-based generation produces objects with consistent internal structures (interior views) and fine-grained details (ladders, weapons, floor layouts) that are difficult to achieve with surface-based neural 3D generation methods. 
+
+19
