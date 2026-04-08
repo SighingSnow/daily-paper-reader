@@ -1,0 +1,181 @@
+Title: SEAL: An Open, Auditable, and Fair Data Generation Framework for AI-Native 6G Networks
+
+URL Source: https://arxiv.org/pdf/2604.02128v1
+
+Published Time: Fri, 03 Apr 2026 01:16:18 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# SEAL: An Open, Auditable, and Fair Data Generation Framework for AI-Native 6G Networks 
+
+Sunder Ali Khowaja ∗, Kapal Dev †, Engin Zeydan κ, Madhusanka Liyanage ‡∗CONNECT Centre,School of Computing, Dublin City University, Ireland 
+
+> †
+
+CONNECT Centre, Munster Technological University, Ireland  
+
+> κ
+
+Centre Tecnològic de Telecomunicacions de Catalunya (CTTC/CERCA), Castelldefels, Spain 
+
+> ‡
+
+CONNECT Centre, School of Computer Science, University College Dublin, Ireland Email: sunderali.khowaja@dcu.ie, kapal.dev@mtu.ie, engin.zeydan@cttc.cat, madhusanka@ucd.ie 
+
+Abstract —AI-native 6G networks promise to transform the telecom industry by enabling dynamic resource allocation, predic-tive maintenance, and ultra-reliable low-latency communications across all layers, which are essential for applications such as smart cities, autonomous vehicles, and immersive XR. However, the deployment of 6G systems results in severe data scarcity, hindering the training of efficient AI models. Synthetic data gen-eration is extensively used to fill this gap; however, it introduces challenges related to dataset bias, auditability, and compliance with regulatory frameworks. In this regard, we propose the Synthetic Data Generation with Ethics Audit Loop (SEAL) framework, which extends baseline modular pipelines with an Ethical and Regulatory Compliance by Design (ERCD) module and a Federated Learning (FL) feedback system. The ERCD integrates fairness, bias detection, and standardized audit trails for regulatory mapping, while the FL enables privacy-preserving calibration using aggregated insights from real testbeds to close the reality-simulation gap. Results show that the SEAL frame-work outperforms existing methods in terms of Frechet Inception Distance, equalized odds, and accuracy. These results validate the framework’s ability to generate auditable and bias-mitigated synthetic data for responsible AI-native 6G development. 
+
+Index Terms —AI-native 6G, synthetic data generation, dataset auditability, data governance, Audit trails. 
+
+I. I NTRODUCTION 
+
+Wireless communication networks have evolved since the inception of artificial intelligence; however, fifth-generation (5G) systems have paved the way for seamless integration of AI with communication networks. 5G is currently evolving into AI-native sixth-generation (6G) communication systems, which integrate AI across all layers to enable intelligent, adaptive, and autonomous operations [1], [2]. This paradigm shift has been driven by several factors, including exponential growth in data traffic, the proliferation of Internet of Things (IoT) devices, the demand for ultra-reliable low-latency com-munications (URLLC), and massive machine-type communi-cations (MMTC), that enable applications such as autonomous vehicles, smart cities, and immersive extended reality (XR). Currently, 6G systems cannot be tested in real time, as they are mostly deployed as testbeds or during standardization processes, therefore, the 6G systems heavily on synthetic data generation to train AI models [3]. For the aforementioned applications, synthetic data generation allows researchers and operators to prototype and validate AI algorithms without re-lying on limited empirical data. It also facilitates the transition from theoretical designs to practical implementation across diverse scenarios, including urban mobility and interference dynamics, making data generation essential for realizing the full potential of AI-native 6G. Existing studies highlight the importance of synthetic data generation, but rarely address the auditability of these tech-niques. In AI-native 6G networks, auditability concerns the trustworthiness and ethical deployment of intelligent systems within telecommunication infrastructure. The problem with synthetic data generation is that it cannot be determined whether the datasets and resulting AI models are transparent, verifiable, and free from biases unless they are audited. Bias and lack of transparency can result in discriminatory outcomes, such as uneven service quality across demographics [4], [5]. Therefore, auditing datasets and AI models is essential. Au-ditability, which includes provenance tracking and compliance mapping to regulatory standards, also fosters trust among stakeholders when implementing applications for high-risk systems under EU AI Act guidelines [6]. It is important to understand that, if not properly au-dited, synthetic generation could inadvertently propagate er-rors or spurious correlations, compromising network reliability and security in scenarios involving edge computing for au-tonomous systems [7]. Therefore, integrating these elements is crucial for sustainable 6G ecosystems that balance innova-tion with accountability. Recently, significant interdisciplinary attention has focused on advancements in AI-native 6G, syn-thetic data generation, and auditability. For AI-native 6G, studies such as [8], [9] examine the integration of machine learning for network orchestration, emphasizing federated learning (FL) to enable privacy-preserving model training in distributed environments, while the study [10] addresses the introduction of Agentic AI techniques in communication systems. Researchers have also explored various methods to improve synthetic data generation, including [11], which uses ray-tracing simulations to generate channel datasets for 6G physical layer research, and [12], which leverages OpenRAN Gym for real-time data synthesis in disaggregated RANs. Auditability in 6G networks has been addressed only through 
+
+> arXiv:2604.02128v1 [cs.AI] 2 Apr 2026
+
+checklists or static methods, as proposed in [4] and [5]. These studies introduce fairness tools such as AIF360, which was adopted for 6G bias detection, and datasheets for dataset transparency [6]. Although the advancements proposed in existing works are promising, gaps still persists, particularly in frameworks that integrate synthetic data generation, auditability, and adaptive calibration in AI-native 6G. Many studies on synthetic data generation [11], [12] prioritize realism but overlook ethical safeguards such as causal bias detection or regulatory com-pliance, which can result in potentially discriminatory models [13]. Auditability efforts [4], [5], [6], on the other hand, pro-vide metrics but lack integration with dynamic 6G simulations, where distribution shifts can undermine model stability. FL-based approaches [8], [14] address privacy concerns but often ignore the simulation-to-reality gap, resulting in suboptimal performance in real deployments [15]. Furthermore, existing works and architectures treat ethics as a post hoc or secondary check rather than integrating them as a design principle, which limits adoption in regulated telecom sectors 1.In this regard, we propose a formalized closed-loop frame-work for auditable synthetic data in AI-native 6G, integrating Ethical and Regulatory Compliance by Design (ERCD) for ethical compliance and FL for continuous realism enhance-ment. By addressing challenges such as bias propagation and simulation-to-real-world discrepancies through adversarial suites, causal discovery, audit trails, and federated insights from testbeds, the proposed framework ensures responsible innovation in AI-native 6G 2. The proposed framework is intended to serve as a foundation for standards bodies to promote safe and lawful AI-native 6G adoption. The specific contributions of this study include:  
+
+> •
+
+We propose a layered architecture with ERCD compo-nents for regulatory-aligned data pipelines.  
+
+> •
+
+We propose a novel FL calibration to dynamically refine simulations and improving fidelity.  
+
+> •
+
+We propose method for generating benchmark datasets with enhanced fairness.  
+
+> •
+
+We perform the experiments that validate the usability of proposed method on standard hardware. II. P ROPOSED FRAMEWORK 
+
+In this section, we present the details for the proposed closed-loop framework, i.e. Synthetic data generation with Ethics Audit Loop (SEAL) in AI-native 6G networks. The rationale for this work is to overcome issues concerning data scarcity, ethical safeguards, and the simulation-to-reality gap in AI-native 6G. The SEAL framework is proposed to be method-agnostic that allows flexibility in the choice of specific simulation techniques, bias detection algorithms, and FL aggregation methods. The proposed SEAL framework comprises of five layers, i.e. Data Generation Layer, ERCD Module, FL feedback layer, Audit and Validation layer, and 
+
+> 1https://www.nist.gov/itl/ai-risk-management-framework
+> 2https://artificialintelligenceact.eu/
+
+Governance layer. The SEAL framework is designed to be an integrated pipeline that processes inputs from simulation parameters to produce auditable and refined synthetic datasets that are suitable for training AI models in the context of AI-native 6G systems [1]. Let us denote the simulation parameters with θ, which is fed into the data generation layer (DGL) to generate the initial synthetic dataset D while capturing 6G-specific scenarios. The D is then fed to the ERCD module that transforms the synthetically generated data into an augmented dataset D′ by enriching it with test suites, bias metadata, and compliance annotations. To address real-world alignment, the FL feedback layer (FLFL) analyzes the discrepancies between D′ and aggregated insights from real deployments while computing updates to θ. The audit and validation layer (AVL) then assesses the refined D′ against the quality metrics that can potentially trigger further FL cycles if thresholds are unmet. Lastly, the Governance layer (GL) oversees the entire process while ensuring regulatory compliance across iterations, including FL’s privacy-preserving operations. We explain each of the layers in the SEAL framework in subse-quent subsections. 
+
+A. Data Generation Layer 
+
+Synthetic data generation in the SEAL framework is per-formed at DGL, which emulates the dynamics of AI-native 6G networks. We use a modular, method-agnostic approach for DGL to enable flexible configuration of simulation com-ponents while preserving interdependencies across protocol stacks, thus aligning with the need for scalable and realistic synthetic data in emerging 6G ecosystems [11]. The generation process in DGL can be formalized as D = G(θ, M), where 
+
+D denotes the synthetic dataset. The dataset D containing n
+
+samples can be represented as D = {d1, d 2, . . . , d n}, where each di is a multidimensional tuple of features such as signal strength, user location, timestamp, and so on. The θ in the formalization denotes the set of tunable simulation parameters, such as distribution hyperparameters for traffic intensity or mobility speed. Lastly, M encapsulates the modular models themselves, which can be selectable functions or processes such as stochastic distributions or physical simulations. These functions define how the network elements are represented and how they interact to produce the data. For example, in traffic modeling, M could include a Poisson process to simulate packet arrivals, reflecting realistic workload fluctuations in vertical-aware applications such as IoT or XR. The equation for the Poisson process is λ(t) = λ0 + PKk=1 αksin (2 πf kt +
+
+ϕk), where λ(t) is time-varying arrival rate used to generate packet timestamps in di. In this case, θ = {λ0, α k, f k, ϕ k|k =1, ..., K }. The encapsulation M is the Poisson framework that applies the λ(t) to sample inter-arrival times exponentially that contributes to features in D.Anomalies can also be injected in DGL through probabilis-tic perturbations, i.e., ˆdi = di +ϵ, where ϵ ∼ N (0 , σ 2) models the noise with σ ∈ θ and the normal distribution is part of M.This introduction of anomalies allows the synthetic data gener-ation to represent faults such as interference. The outputs from Fig. 1: The network evolution from 5G to AI-native 6G embedded with auditable synthetic data. 
+
+Fig. 2: The proposed SEAL framework as a layered architecture for auditable and fair synthetic data generation. DGL include metadata for traceability, facilitating integration with downstream layers and supporting ethical, auditable data pipelines in accordance with regulatory requirements [15]. 
+
+B. Ethical and Regulatory Compliance by Design Module 
+
+The proposed ERCD module in the SEAL framework is designed to integrate ethical and regulatory safeguards directly into the data pipeline. The ERCD module augments the initial dataset D from the DGL to produce an enhanced D′. The enhanced dataset includes checks for fairness, robustness, and transparency. This module is designed to ensure proactive compliance with frameworks such as the EU AI Act and NIST RMF, thereby preventing bias propagation in AI-native 6G applications. Notably, the ERCD module is method-agnostic, meaning that various analytical tools can be used or adopted to align synthetic data generation with real-world representation and the socio-technical trust imperative. We formally represent the augmentation as D′ = D∪T ∪B∪
+
+A, where T corresponds to adversarial test suites, B represents bias metadata, and A refer to the audit trails. The generation for adversarial test suites is shown in (1). 
+
+Tr = {ϕ(di)|di ∈ S ⊂ D} (1) where r refers to the regulatory target, e.g., fairness, S is a sampled subset, and ϕ refers to a transformation function. The function ϕ(di) = di + ϵ, where ϵ ∼ P (η). The above expression the P is a perturbation distribution parameterized by η, such as Gaussian for noise. The transformation function tests the model’s stability under shifts, as suggested in [3]. The ERCD module also checks for fairness by resampling demographics: ˆd ∼ p(x|g), where g is a group attribute (such as urban/rural or another group), and p ensures balanced conditional distributions. For bias detection, the ERCD module adapts causal scoring by constructing a graph G = (V, E ), where vertices V
+
+represent the features or parameters and edges E correspond to inference via independence tests. The scoring function used to evaluate spurious correlations is shown in (2). 
+
+Score = |P (Y |X) − P (Y |X, do (Z)) | (2) In (2), Y refers to an outcome such as fault prediction, 
+
+X refers to a protected attribute (e.g., location), and Z
+
+corresponds to the confounding variable. The notation do (Z)
+
+denotes intervention according to Pearl’s do-calculus, which identifies whether generation parameters create discriminatory links 3. We suggest setting the thresholds through bootstrap-ping. The ERCD module then maps the compliance audit trials through the function shown in (3). 
+
+A = {(cj , m j |j = 1 , ..., J } (3) where cj is a regulatory clause (e.g., EU AI Act Article 10) and mj correspond to a dataset metric such as bias scores. We suggest to perform this structured mapping with JSON to ensure traceability. The outputs of the ERCD module are fed into FL for refinement, which will maintain the coherence by elevating auditability from technical perspective to ethical perspective, which we believe, is desperately needed for 6G’s critical infrastructure. 
+
+C. Closed-Loop Federated Learning Feedback Layer 
+
+The FLFL task is to calibrate the proposed SEAL framework adaptively by incorporating privacy-preserving insights from real 6G testbeds. This calibration will help refine simulation parameters θ to close the simulation-reality gap [15]. The FLFL uses the augmented D′ from ERCD and calculates discrepancies with real data aggregates while updating θ. This process ensures that the subsequent datasets D and D′ achieve greater realism without compromising privacy ethics in 6G distributed environments. Let CL be the number of clients (e.g., testbeds), each with local insights LI CL . Discrepancies can be formalized as shown in (4). 
+
+δCL = 1
+
+m
+
+> m
+
+X
+
+> i=1
+
+∥fθ (xi) − yi∥2 (4) where fθ is the simulation model predicting states, xi cor-respond to the inputs from D′, yi refers to the real obser-vations from LI CL , and m refers to the sample size. Local 
+
+> 3https://www.nist.gov/itl/ai-risk-management-framework
+
+gradients gCL = ∇θ δCL are aggregated centrally as g =PCL i=1  
+
+> nCL
+> N
+
+gCL , where the fraction term in the aforementioned formula refers to the FedAvg [16]. Updates are performed 
+
+θt+1 = θt − ηg , where η is the learning rate. The SEAL framework ensures the differential privacy by adding noise, i.e. v ∼ N (0 , σ 2I) to gCL , with σ calibrated for 
+
+(ϵ, δ ) − DP , in order to balance utility and protection [16], [9], [14]. In the context of 6G, parameters are refined through this process, such as in channel variance: θ′ = θchan + ∆ ,where ∆ corresponds to the parameter that minimizes reality-simulation mismatches. The loop is integrated with audit by providing updated D′ for validation and governance during aggregation (e.g., consent checks). 
+
+D. Audit and Validation Layer 
+
+The AVL in the SEAL framework evaluates the refined dataset D′ after calibration by FLFL to ensure that D′ meets realism, ethical, and quality criteria before release. The AVL is responsible for providing quantitative checkpoints, if needed for triggering iterations, and supporting governance through the generation of validation reports. The AVL assesses realism using the Frechet Inception Distance (FID) [17] with the formulation shown in (5). 
+
+F ID = ∥μreal −μsim ∥2+T r (Σ real +Σ sim −2(Σ real Σsim )1/2)
+
+(5) where μreal , Σreal are mean and covariance of real features, 
+
+μsim , Σsim of synthetic D′, and T r is the trace that measures distributional similarity. We evaluate the ethical fairness using equalized odds [18] such that ∆ = |P ( ˆY = 1 |Y = 0 , A =0) − P ( ˆY = 1 |Y = 1 , A = 1) | + |P ( ˆY = 1 |Y = 1 , A =0) − P ( ˆY = 1 |Y = 1 , A = 1 |), with ˆY being the predictions, 
+
+Y being the true labels, and A being the protected attributes, to ensure non-discrimination. We compute adversarial accuracy to validate robustness in AVL as shown in equation 6 
+
+Acc = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+I(f (ϕ(di)) = f (di)) (6) where I is the indicator, f is a test model, and ϕ is from the ERCD suites. The thresholds can be set, for instance F ID < 
+
+0.1, ∆ < 0.05 to determine pass/fail, which will then signal the FLFL to run the calibration again or not. 
+
+E. Governance Layer 
+
+The GL oversees the entire framework and enforces policies on data sovereignty, lifecycle management, and regulatory alignment. By enforcing these policies, the GL advances a sustainable and collaborative 6G data ecosystem. The GL incorporates trustworthy data practices by integrating previous components, including ERCD’s compliance trails, FL’s privacy mechanisms, and audit validations, to maintain ethical integrity across iterations. The GL manages access controls and dissem-ination, following established data governance principles such as those in the GDPR. We formalize the authorization function in the governance as shown in (7). Auth (u, D′) = Λ Ll=1 Eval (pm l, u, M) (7) where the notation Auth is a boolean function that determines if the user u (e.g., a researcher or operator) is granted access to the augmented dataset D′. The notation pm l refers to the policy mapping such that P M = {pm l|l = 1 , ..., L }.The set of policies can be either role-based rules or consent requirements. The notation M is the metadata from D′, the 
+
+Eval function corresponds to the evaluation of each policy 
+
+pm l against u and M that returns true of the compliance is met. Lastly, the operator Λ denotes the logical AND opera-tion suggested that the access is granted only if all policies are satisfied simultaneously. The Auth function ensures that multi-criteria checks are performed to verify user credentials and data certifications, preventing unauthorized exposure in shared 6G environments [19]. In GL, we achieve the traceability through lifecycle state management, i.e. St+1 = T rans (St, At), where St, At repre-sent the dataset’s state at time t (e.g., "generated", "validated", "archived"), and the action performed (e.g., FL update or audit pass), respectively. The T rans function is the transition function that records changes with timestamps and the actors involved. Lifecycle state management uses provenance meta-data from the DGL and ERCD trails to create an immutable audit log, enabling reconstruction of the dataset’s history for compliance audits or dispute resolution [20]. We can also ap-ply differential privacy in the Governance layer by integrating a privacy budget into the loss function. Lastly, dissemination, that is, the sharing of datasets in GL, is managed through the function Share (D′) = Enc (D′, key ), indicating that if Auth 
+
+succeeds and certification from the audit is valid, the data can be shared in encrypted form Enc using the encryption key 
+
+key . Encrypted sharing of the dataset supports interoperability across organizations while enforcing data sovereignty. III. E XPERIMENTAL SETUP AND ANALYSIS 
+
+To evaluate the proposed SEAL framework, we conducted experiments on a single PC equipped with an NVIDIA RTX 4090 GPU to demonstrate that the proposed framework is fea-sible for individual researchers without relying on distributed computing resources. We used GPU acceleration for tasks such as dataset generation, causal graph computation, and FL simulations. In this paper, we intentionally used open-source tools and libraries to promote reproducibility and compliance. For example, we used Python as the programming language, PyTorch for tensor operations and model training, NetworkX 4
+
+for causal discovery graphs, AIF360 5 for fairness metrics, and Sionna for ray-tracing-based channel simulations [11]. The evaluation was conducted on synthetic data generation using DFL in the context of 6G scenarios. To generate the synthetic dataset D, we simulated a 6G network slice with 100 users over a 1 km 2 urban area, pro-ducing 10,000 samples per run. The features in the synthetic 
+
+> 4https://networkx.org/en/
+> 5https://aif360.readthedocs.io/en/latest/index.html
+
+dataset included traffic loads (Poisson-distributed with λ = 5 
+
+packets/second), mobility (random waypoint with speeds of 1–10 m/s), and channels (ray-traced with mmWave frequencies at 28 GHz). We injected anomalies such as distribution shifts, for example, a 20% traffic surge, to mimic real-world variabil-ity. The synthetic dataset D was augmented using the ERCD module to obtain D′ by incorporating adversarial suites (e.g., 20% perturbed samples via additional noise), bias scoring, and audit trails. For the FL calibration, we simulated a federated environ-ment with five virtual clients, running ten rounds of FedAvg with differential privacy noise set to 1.0. Real-world insights were emulated by adding noise to the baseline data, specifi-cally 15% interference, to ensure privacy-preserving updates to the parameters θ. Hyperparameters such as learning rate, batch size, and FL rounds were selected empirically through grid search on a held-out validation set. Selection was based on convergence speed and metric stability. Early stopping was applied if the validation loss did not improve for three epochs. For downstream evaluation, we trained a simple deep neural network with three layers, 128 units, and ReLU activation for resource allocation. The network was trained using the Adam optimizer and cross-entropy loss. All experiments were repeated five times to assess statistical significance. We used the FID metric to evaluate realism, Equalized Odds (EO) to assess fairness, and accuracy to measure task performance, which was computed post-audit in AVL. The experimental results indicate that the proposed SEAL framework improves dataset quality and downstream model performance in AI-native 6G simulation, while also integrating ethical compliance and FL calibration. The results are shown in Table I. We compare these results to baselines, including Sionna [11], OpenRAN Gym [12], and AI-driven frameworks [8], [21]. We also include the work in projects such as 6Garrow 6 in the comparison to provide context for FL and ethics. It should be noted that although we made a direct comparison, the comparisons were adapted due to differing scopes. It should also be noted that we report an estimated value for 6GArrow based on their statements and figures on their project website, which is between Sionna (0.12) and a recent work [22] (0.10). We also want to highlight that although improvements in results are observable, they are constrained by the simulated nature of "real-world" insights and the scale of experiments, thus, they best define early-stage 6G prototyping [1] rather than a full-scale development. TABLE I: Comparative analysis of FID, EO, and Acc for the proposed method with existing works                                                    
+
+> Method FID EO Acc Sionna 0.12 ±0.03 N/A 85 ±3
+> OpenRAN Gym 0.15 ±0.04 0.70 ±0.05 88 ±2
+> [8] N/A 0.78 ±0.04 95.5 ±1
+> [21] N/A 0.82 ±0.03 90 ±2
+> 6GArrow 0.11 ±0.03 (est) 0.80 ±0.04 91 ±2
+> SEAL 0.09 ±0.02 0.85 ±0.03 92 ±2
+> 6https://www.6gflagship.com/news/towards-ai-native-6g-networks/
+
+The key findings show that the proposed SEAL framework reduces FID by 25% compared to the uncalibrated baselines, highlighting the effectiveness of FL refinements in improv-ing realism. However, the results are only 10–15% better compared to Sionna’s pure simulations. The proposed SEAL framework improves EO by 20% while mitigating biases through causal detection. The results show that the SEAL framework outperforms AIF360 standalone [4] by 12% but performs similarly to the study [21]. The SEAL framework reports a task accuracy of 92%, representing a 10% gain over baselines that do not use ERCD. However, the proposed work achieves a lower performance score compared to the study [8], primarily due to the privacy noise. Therefore, the proposed SEAL framework represents a modest trade-off in privacy, ethics, and computation. It is also important to note that the strength of the SEAL framework lies in its holistic integration, including the addition of an ethical module to achieve auditability, which is absent in many baselines. IV. C ONCLUSION 
+
+This paper proposes the SEAL framework for generating auditable synthetic data in AI-native 6G networks, extending baseline simulation pipelines while ensuring compliance with ethics and regulations. We formalize a layered architecture that integrates data generation, ethical augmentation, adaptive calibration, audit validation, and governance, all of which are critical challenges associated with 6G development. The framework also addresses issues related to data scarcity, the simulation-to-reality gap, and proactive compliance with the EU AI Act or NIST RMF. We emphasize that the proposed framework is method-agnostic and therefore flexible in im-plementation. Experimental results show that the proposed framework improves the FID, which represents the simulation-to-reality gap; fairness, which corresponds to bias; and task ac-curacy, which demonstrates the ability to produce high-quality datasets. We show that the proposed framework achieves better results compared to existing works. Although the advantages are clear, we also want to high-light the limitations of the SEAL framework, particularly its reliance on emulated real-world insights. Performance may vary when integrated with actual 6G testbeds or when scaled to larger federations. Therefore, as future work, we plan to extend this study by integrating the SEAL framework with 6G testbeds and increasing the number of devices in the federation to more than 100. Apart from its limitations, we believe that the SEAL framework provides a foundation for the safe, lawful, and ethical evolution of synthetic data generation for AI-native 6G systems. REFERENCES [1] M. Giordani, M. Polese, M. Mezzavilla, S. Rangan, and M. Zorzi, “To-ward 6g networks: Use cases and technologies,” IEEE Communications Magazine , vol. 58, no. 3, pp. 55–61, 2020. [2] A. Fayad, T. Cinkler, and J. Rak, “Toward 6g optical fronthaul: A survey on enabling technologies and research perspectives,” IEEE Communica-tions Surveys & Tutorials , vol. 27, no. 1, pp. 629–666, 2025. [3] W. Saad, M. Bennis, and M. Chen, “A vision of 6g wireless systems: Applications, trends, technologies, and open research problems,” IEEE Network , vol. 34, no. 3, pp. 134–142, 2020. [4] R. K. E. Bellamy, K. Dey, M. Hind, S. C. Hoffman, S. Houde, K. Kannan, P. Lohia, J. Martino, S. Mehta, A. Mojsilovi´ c, S. Nagar, K. N. Ramamurthy, J. Richards, D. Saha, P. Sattigeri, M. Singh, K. R. Varshney, and Y. Zhang, “Ai fairness 360: An extensible toolkit for detecting and mitigating algorithmic bias,” IBM Journal of Research and Development , vol. 63, no. 4/5, pp. 4:1–4:15, 2019. [5] S. Guo, Y. Zhong, Z. Feng, S. Kang, and J. Chen, “Towards transparent 6g ai-ran: A survey on explainable deep reinforcement learning for intelligent network slicing,” Journal of Information and Intelligence ,vol. Early Access, pp. 1–15, 2025. [6] T. Gebru, J. Morgenstern, B. Vecchione, J. W. Vaughan, H. Wallach, H. Daume’III, and K. Crawford, “Datasheets for datasets,” Communica-tions of the ACM , vol. 64, no. 12, pp. 86–92, 2021. [7] B. D. Son, N. T. Hoa, T. V. Chien, W. Khalid, M. A. Ferrag, W. Choi, and M. Debbah, “Adversarial attacks and defenses in 6g network-assisted iot systems,” IEEE Internet of Things Journal , vol. 11, no. 11, pp. 19 168– 19 187, 2024. [8] W. Y. B. Lim, N. C. Luong, D. T. Hoang, Y. Jiao, Y.-C. Liang, Q. Yang, D. Niyato, and C. Miao, “Federated learning in mobile edge networks: A comprehensive survey,” IEEE Communications Surveys & Tutorials ,vol. 22, no. 3, pp. 2031–2063, 2020. [9] C. Zhang, X. Ren, W. Zhang, Y. Yuan, Z. Xiong, C. Li, and L. Zhu, “Privacy-preserving federated learning for data heterogeneity in 6g mobile networks,” IEEE Network , vol. 39, no. 2, pp. 134–141, 2025. [10] K. Dev, S. A. Khowaja, E. Zeydan, K. Singh, and M. Debbah, “Advanced architectures integrated with agentic ai for next-generation wireless networks,” IEEE Communications Standards Magazine , pp. 1–8, 2025. [11] J. Hoydis, S. Cammerer, F. A. Aoudia, A. Vem, N. Binder, G. Marcus, and A. Keller, “Sionna: An open-source library for next-generation physical layer research,” 2023. [Online]. Available: https://arxiv.org/abs/2203.11854 [12] L. Bonati, M. Polese, S. D’Oro, S. Basagni, and T. Melodia, “Openran gym: Ai/ml development, data collection, and testing for o-ran on pawr platforms,” Computer Networks , vol. 220, p. 109502, 2023. [13] J. M. Mooij, J. Peters, D. Janzing, J. Zscheischler, and B. Schölkopf, “Distinguishing cause from effect using observational data: Methods and benchmarks,” Journal of Machine Learning Research , vol. 17, no. 32, pp. 1–102, 2016. [Online]. Available: http://jmlr.org/papers/v17/14-518.html [14] C. T. Dinh, N. H. Tran, M. N. H. Nguyen, C. S. Hong, W. Bao, A. Y. Zomaya, and V. Gramoli, “Federated learning over wireless networks: Convergence analysis and resource allocation,” IEEE/ACM Transactions on Networking , vol. 29, no. 1, pp. 398–409, 2021. [15] C. Ruah, H. Sifaou, O. Simeone, and B. M. Al-Hashimi, “How to bridge the sim-to-real gap in digital twin-aided telecommunication networks,” 2025. [Online]. Available: https://arxiv.org/abs/2507.07067 [16] B. McMahan, E. Moore, D. Ramage, S. Hampson, and B. A. y. Arcas, “Communication-Efficient Learning of Deep Networks from Decentralized Data,” in Proceedings of the 20th International Conference on Artificial Intelligence and Statistics , ser. Proceedings of Machine Learning Research, vol. 54. PMLR, 2017, pp. 1273–1282. [Online]. Available: https://proceedings.mlr.press/v54/mcmahan17a.html [17] M. Heusel, H. Ramsauer, T. Unterthiner, B. Nessler, and S. Hochreiter, “Gans trained by a two time-scale update rule converge to a local nash equilibrium,” in Advances in Neural Information Processing Systems ,2017, p. 30. [18] B. Chaudhari, H. Chaudhary, A. Agarwal, K. Meena, and T. Bhowmik, “Fairgen: Fair synthetic data generation,” 2022. [Online]. Available: https://arxiv.org/abs/2210.13023 [19] C. Sandeepa, B. Siniarski, N. Kourtellis, S. Wang, and M. Liyanage, “A survey on privacy of personal and non-personal data in b5g/6g networks,” ACM Computing Surveys , vol. 56, no. 10, pp. 1–37, 2024. [20] S. Longpre, R. Mahari, A. Chen, N. Obeng-Marnu, D. Sileo, W. Bran-non, N. Muennighoff, N. Khazam, J. Kabbara, K. Perisetla, X. Wu, E. Shippole, K. Bollacker, T. Wu, L. Villa, S. Pentland, and S. Hooker, “A large-scale audit of dataset licensing and attribution in ai,” Nature Machine Intelligence , vol. 6, pp. 975–987, 2024. [21] Y. Xiao, D. Zhao, X. Li, T. Li, R. Wang, and G. Wang, “A federated learning-based data augmentation method for privacy preservation under heterogeneous data,” IEEE Transactions on Mobile Computing , vol. 24, no. 9, pp. 8105–8118, 2025. [22] S. B. Chetty, D. Grace, S. Saunders, P. Harris, E. E. Tsiropoulou, T. Quek, and H. Ahmadi, “Sovereign ai for 6g: Towards the future of ai-native networks,” 2025. [Online]. Available: https: //arxiv.org/abs/2509.06700

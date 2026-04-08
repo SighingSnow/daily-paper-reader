@@ -1,0 +1,432 @@
+Title: Decision-Oriented Programming with Aporia
+
+URL Source: https://arxiv.org/pdf/2604.05203v1
+
+Published Time: Wed, 08 Apr 2026 00:15:08 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Decision-Oriented Programming with Aporia 
+
+# Saketh Ram Kasibatla *UC San Diego La Jolla, CA, USA skasibatla@ucsd.edu 
+
+# Raven Rothkopf *UC San Diego La Jolla, CA, USA rrothkopf@ucsd.edu 
+
+# Hila Peleg 
+
+Technion Haifa, Israel hilap@cs.technion.ac.il 
+
+# Benjamin C. Pierce 
+
+University of Pennsylvania Philadelphia, PA, USA bcpierce@cis.upenn.edu 
+
+# Sorin Lerner 
+
+Cornell University Ithaca, NY, USA sorin.lerner@cornell.edu 
+
+# Harrison Goldstein 
+
+University at Buffalo, SUNY Buffalo, NY, USA hgoldste@buffalo.edu 
+
+# Nadia Polikarpova 
+
+UC San Diego La Jolla, CA, USA npolikarpova@ucsd.edu 
+
+Figure 1: We describe Decision-Oriented Programming, a paradigm for supporting human decision-making in AI-assisted programming, and its instantiation in a system called Aporia . In Aporia , the programmer communicates with the agent via a structured representation of design decisions, called a Decision Bank . The agent elicits decisions from the programmer 1 , and the programmer responds and manages the decisions 2 . The agent then uses the Decision Bank to generate code 3 , and the programmer relies on the bank when validating the system behavior 4 .
+
+## Abstract 
+
+AI agents allow developers to express computational intent ab-stractly, reducing cognitive effort and helping achieve flow during programming. Increased abstraction, however, comes at a cost: de-velopers cede decision-making authority to agents, often without realizing that important design decisions are being made without them. We aim to bring these decisions to the foreground in a para-digm we dub decision-oriented programming . In DOP, (1) decisions are explicit and structured , serving as the shared medium between the programmer and the agent; (2) decisions are co-authored interac-tively , with the agent proactively eliciting them from the program-mer; and (3) each decision is traceable to code . As a step towards this vision, we have built Aporia , a design probe that tracks decisions in 
+
+> * Equal contribution.
+> Conference’17, Washington, DC, USA
+> 2026. ACM ISBN 978-x-xxxx-xxxx-x/YYYY/MM https://doi.org/10.1145/nnnnnnn.nnnnnnn
+
+a persistent, editable Decision Bank; elicits them by asking program-mers design questions; and encodes each decision as an executable test suite that can be used to validate the implementation. In a user study of 14 programmers, Aporia increased engagement 
+
+in the design process and scaffolded both exploration and validation. Participants also gained a more accurate understanding of their implementations, with their mental models 5𝑥 less likely to disagree with the code than a baseline coding agent. 
+
+## 1 Introduction 
+
+“A language that doesn’t affect the way you think about programming is not worth knowing.” Alan Perlis 
+
+AI is changing the way people think about programming. The transformation began with GitHub Copilot [ 28 ] in 2022; as of 2025, 84% of developers used AI tools, 47% daily [ 29 ]. Modern tools go far beyond auto-completion, with AI agents [15 , 30 , 44 ] autonomously modifying codebases, executing shell commands, etc.  
+
+> arXiv:2604.05203v1 [cs.HC] 6 Apr 2026 Conference’17, July 2017, Washington, DC, USA Kasibatla et al.
+
+Studies exploring developer use of these tools report that using natural language and letting AI deal with implementation details reduces cognitive effort [ 45 ] and that using agents can help develop-ers achieve flow states [ 18 , 45 ] and improve productivity [ 18 , 27 , 45 ]. These experiences demonstrate the potential of AI programming tools to further a fundamental design goal of programming lan-guages: to express computation at a level of abstraction that is closer to the way humans think and talk [24, 25]. The downside of expressing intent at a high level is that crucial details are left out. Without user intervention, agents fill in these details on their own, sometimes incorrectly. The default interaction model of today’s coding agents—prompt, generate, review—makes it easy to let the agent drive, and studies have found that “vibe coding” often means ceding decision-making authority to the agent altogether [ 45 ]. Researchers and practitioners are increasingly wor-ried about the resulting cognitive debt [9, 48 ]: the erosion of a team’s understanding and mental models of their own system. Professional developers resist this tendency, but doing so requires discipline and workarounds like restricting the scope of each agent change, re-viewing generated code line by line, and manually authoring plans and design documents [ 27 ]. In other words, developers who want to stay in control must work against the grain of their tools! How might we design the interaction model itself to support 
+
+programmer decision-making, rather than leaving developers to maintain control in spite of their assistant? The approach we explore is to reify programmer decisions as first-class objects, a program-ming paradigm we dub decision-oriented programming (DOP, Fig. 1), characterized by three design goals: 
+
+DG1 Decisions are explicit and structured . Rather than being buried in prompts, plans, or code, decisions are reified as first-class objects in a persistent, editable record; this record is the shared medium through which programmer and agent ne-gotiate the design. 
+
+DG2 Decisions are co-authored interactively . In particular, the agent proactively elicits design decisions from the program-mer, which keeps them engaged rather than passively re-viewing agent output. 
+
+DG3 Decisions are traceable to code . Each decision is formally connected to the implementation, giving programmers a concrete way to validate that the code reflects their intent. As a foray into decision-oriented programming, we have built a concrete design probe called Aporia ,1 embodying all three of the design goals above: (1) It tracks decisions in a Decision Bank : a persistent, structured record that programmers can view and edit at any time via a UI. (2) It elicits decisions by asking programmers design questions 
+
+about the software they are seeking to build. (3) It encodes each decision formally in a test suite , giving users an unambiguous interpretation of their decisions and pro-viding executable feedback that helps validate the agent’s implementation. To evaluate Aporia , we conducted a within-subjects user study with 𝑁 = 14 participants, which involved adding new features to  
+
+> 1From the socratic term referring to the suspension of views on a subject, accompanied by a continuous questioning in an effort to better understand.
+
+an existing codebase with the help of either Aporia or a baseline coding agent ( Claude Code ). The results show that DOP promoted 
+
+engagement in the design process: participants using Aporia articu-lated significantly more design decisions and exhibited continuous reflection throughout the development process. DOP also provided 
+
+scaffolding for the design process, helping programmers organize and track their decisions during both exploration and validation phases and giving them a more thorough and accurate understand-ing of their code, with 79% lower likelihood of mismatches between their mental model and the actual implementation compared to the baseline coding agent. In summary, our contributions are: (1) We articulate decision-oriented programming , a paradigm which supports programmer decision-making when working with AI coding agents. (2) We instantiate DOP with Aporia , a design probe that elicits decisions through questions and formalizes those decisions in test suites, giving programmers a concrete way to validate that their intent is reflected in the final product. (3) We evaluate Aporia through a user study, showing that DOP promotes programmer engagement in the design process and provides structure that helps scaffold both design and validation. 
+
+## 2 Related Work 
+
+Empirical studies of AI assistants. There are several studies ex-ploring how users interact with completion models. Grounded Copi-lot [ 6], found that programmers use GitHub Copilot in two main modes: exploration, where programmers consider their options, and acceleration, where programmers’ goal is clear. Expectation vs. experience [ 53 ] found that while users preferred using GitHub Copilot, it impeded their ability to complete tasks. Recent research has also examined how users interact with AI agents [ 46 ]. Pimenova et. al. [ 45 ] note that at their best, program-ming agents can support flow, but that agentic programming has many pain points, such as difficulty communicating intent. Fawzy et. al. [ 18 ] find that coding with agents has a speed-quality tradeoff, where developers use agents for enhanced flow, but overlook com-mon quality assurance practices. Sarkar and Drosos [ 47 ] identify an iterative process between prompting, reviewing, and manu-ally editing AI-generated code. They note a shift of programmer expertise to evaluating outputs and deciding when to transition between prompting and editing, rather than writing code from scratch. Huang et. al. [ 27 ] study how experienced developers use AI agents. They observe that developers adopt a variety of strategies to exercise agency while programming with AI, and suggest that carefully designed interfaces can help guide software developers to interact with agents more productively. We believe that DOP and Aporia can serve such a role, keeping agents’ benefits while mitigating the pitfalls described in these studies. 
+
+Eliciting and exploring design intent. A growing body of work tackles the challenge of helping users clarify and communicate their intent to AI systems. Several systems support intention formation by involving users in an interactive process of refining goals. CoLad-der [56 ] supports users generating code with LLMs by providing a UI for structuring prompts hierarchically. Stepwise [ 32 ] facilitates Decision-Oriented Programming with Aporia Conference’17, July 2017, Washington, DC, USA 
+
+data science practitioners using LLMs by providing opportunities for intervention and having AI state its assumptions at each step. 
+
+Cocoa [19 ] supports the development of research ideas. The tool centers around a plan document, which humans and AI collabora-tively draft and execute. These systems are in line with DG2 (Sec. 1), which emphasizes interactively co-authoring decisions. Other works focus on design space exploration . For natural lan-guage generation, PDC [ 20 ] and Luminate [ 49 ] help users organize and compare a range of different outputs from the same prompt. 
+
+HilDE [21 ] uses a code-completion style UI to highlight critical de-cisions to users, allowing them to explore alternatives and discover their implicit intent. Domain-specific tools such as Biscuit [12 ] and 
+
+DynaVis [ 51 ] provide a lightweight method to explore alternatives (e.g., multiple options with a color picker) by dynamically generat-ing UI widgets. In Aporia , instead of visualizing alternatives, users explore the design space through questions. The system closest to ours, Pail [57 ], focuses on general-purpose agent-assisted software development. Pail asks users design ques-tions, extracts and tracks requirements, and identifies implicit de-cisions made by the LLM. We view Pail as an instance of DOP, which shares the design goal of tracking decisions (DG1 in Sec. 1). But, they do not explicitly articulate the DOP paradigm, or prior-itize traceability to code as in Aporia . During their study, Pail ’s users struggled with information overload, confirming that eliciting intent without overwhelming users is a key challenge in DOP. 
+
+Structured intent representation. Eliciting intent is complemen-tary to representing intent in a form that is convenient to track and revise. Semantic Commit [52 ] presents a structured representation of agents’ “memories” as sets of atomic specifications, that users can reconcile when in conflict. We were inspired by this system when designing Aporia ’s Decision Bank. NeuroSync [58 ] external-izes the LLM’s task decomposition as a manipulable graph, giving users a visual representation of intent. The tools for hierarchical goal decomposition mentioned above [ 32 , 56 ] also feature a struc-tured user interface that the user can inspect and revise. Aporia 
+
+centers programming with AI agents around the Decision Bank, a structured representation of intent in the context of a codebase. 
+
+Testing strategies. In Test-driven development (TDD) [ 7, 8], ex-pected behavior of code is formalized in the form of tests before any code is written. Behavior-driven development (BDD) [ 17 ] is an evolution of TDD that focuses on higher-level concerns like over-all system behavior. Property-based testing (PBT) is a technique for testing executable properties of code with random inputs [ 13 ]. Inspired by PBT’s emphasis on properties, Aporia ’s tests are or-ganized into suites grouped by the decisions they validate rather than by components under test. These testing strategies have been explored as a means to improve correctness of AI programming agents [10, 22, 26, 36, 54], but not with developers in the loop. 
+
+TiCoder [ 16 ] formalizes user intent with LLMs by generating test cases and asking users to confirm or deny whether each matches their intention. Aporia also generates test cases with a human in the loop. However, Aporia does so using AI agents, which operate on the scale of a whole codebase rather than individual functions. 
+
+Design rationales. When articulating DOP, we drew on the tradi-tion of design rationale: structured representations of the reasoning 
+
+Figure 2: An example paper details page in NotCRP .
+
+behind design choices [ 34 , 38 , 42 ]. Specifically, Questions, Options, Criteria (QOC) notation [ 38 ] represents design spaces in terms of 
+
+Questions that identify key issues, Options that provide possible answers, and Criteria for evaluating those options. More broadly, the design rationale tradition argues for making design reason-ing explicit and persistent as a “coproduct of design” [ 38 ]. Aporia 
+
+elicits decisions with questions as an application of QOC. 
+
+## 3 Decision-Oriented Programming with Aporia 
+
+Our goal is to support human decision making in the context of general-purpose agentic programming. To this end, we imple-mented the Aporia programming assistant to explore the DOP par-adigm. This section demonstrates Aporia by example and describes the design considerations behind the tool and its implementation. 
+
+## 3.1 User Scenario 
+
+Frustrated with the poor usability of existing conference manage-ment systems, Nikos decided to build his own, dubbed NotCRP ,for a conference he’s running. Nikos has a basic Python web app already in place: Fig. 2 shows an example page from the app for displaying all the details of a chosen paper. He now wants to add access control to this page, restricting which users can see which details. Nikos starts by opening the Aporia sidebar in his editor, and typing in his high-level goal into the Goal Field at the top of the sidebar ( 1 in Fig. 3). 
+
+Eliciting decisions via question generation. In response, Aporia 
+
+generates yes/no questions meant to elicit design decisions relevant to the goal (in this case, about the access control policy); these appear as Question Bubbles ( 2 ) in the editor, inside an Aporia -managed plan file. Nikos can decide to engage with or dismiss any question. In this example, he clicks on the first question (“Should reviewer identities be hidden from authors?”), which opens the 
+
+Question Detail View ( 3 ) on the right, where he can see Aporia ’s rationale for answering “yes” vs. “no” underneath the Detail View header. (“In a blind review process, authors should not learn who Conference’17, July 2017, Washington, DC, USA Kasibatla et al. 
+
+Figure 3: Aporia is a VS Code extension that supports decision-oriented programming. Users enter their high-level goal into the Goal Field 1 , which prompts Aporia to generate design questions as Question Bubbles 2 . Clicking on a question opens the Question Detail View 3 , which includes Aporia ’s argument for the question, as well as references to relevant code. Users can answer the question with a yes/no response and an optional comment 4 . Decisions are accumulated in the Decision Bank 5 ,where they can be edited or revoked. Users can also add decisions that were not elicited by Aporia via the Custom Decision field 6 . Each decision is formally encoded in a test suite that validates the implementation against that decision 7 . Once users are satisfied with their design, they can click “Implement plan” 8 to prompt Aporia to implement the feature in the codebase. 
+
+reviewed their paper...”). The Detail View also contains clickable references to relevant code. Nikos likes the idea of making the review process blind; more-over, the question reminds him that in fact he wanted to enforce a double-blind review process, where reviewers also don’t learn author identities. He enters this as a comment into the response field ( 4 ) and clicks “yes” to answer the question positively. 
+
+Persistent decisions via the Decision Bank. Nikos’s decision to make the review process double-blind now appears in Aporia ’s 
+
+Decision Bank ( 5 ) below the goal. This allows Nikos to keep track of the decisions he’s made and easily change his mind later by clicking on the decision and editing his answer. He answers a few more questions, and his decisions accumulate in the Bank. At some point, it occurs to him that admins should be always able to see all the details of all papers; this is not something Aporia had asked about, but he can add this decision to the Bank via the Custom Decision field ( 6 ). 
+
+Traceability via test suites. Every time Nikos commits a decision to the Bank, Aporia generates a test suite to validate the (future) implementation against that decision. Fig. 3 ( 7 ) shows the test suite generated for the double-blind review decision. Nikos sees that each test case is preceded by a natural-language comment summarizing its inputs and outputs and can inspect any test case if he wants to see what exactly is being checked. 
+
+Implementation and validation. Re-reading the decisions in the Bank, Nikos feels that the design is now sufficiently well-defined, so he clicks the “Implement plan” code lens at the top of the plan file ( 8 ), which signals Aporia to modify the NotCRP codebase to implement the goal. During this process, Aporia automatically runs all its generated tests to validate the implementation against the user’s decisions. When it finishes, Nikos runs the app and evaluates its behavior manually, using the Decision Bank as a checklist of his desired access control policies. In the foregoing, we’ve seen Aporia embodying the three core design goals of DOP: (i) by accumulating decisions as editable entries in the Decision Bank, it makes them explicit and structured ;and (ii) by generating design questions, it actively engages the user in the design process and elicits decisions ; (iii) by generating test suites for each decision, it makes decisions traceable to code ,lowering the effort involved in validating the implementation. 
+
+Comparison with plan-oriented programming. In contrast to Apo-ria , state-of-the-art coding agents [ 15 , 30 , 44 ] typically organize their communication with users around natural-language plans .2
+
+Imagine that Nikos uses a plan-oriented agent instead of Aporia 
+
+for the same task. He prompts the agent with the same high-level    
+
+> 2Although some commercial agents also incorporate questions into their interaction model, questions do not play a central role; we describe a pure plan-oriented workflow here for the sake of comparison. Decision-Oriented Programming with Aporia Conference’17, July 2017, Washington, DC, USA
+
+goal and in response receives a plan: a linear document of natural language and pseudocode describing the design decisions the agent made—for example, “Reviewer identities should be hidden from authors to ensure a blind review process.” Nikos reviews the plan, but the design decisions are buried in a long document, and the easiest action is to accept the plan as-is. He thus doesn’t notice that the agent chose a single-blind review process—or even that single-
+
+vs. double-blind is something worth thinking about. 
+
+## 3.2 Design Considerations 
+
+As mentioned in Sec. 2, Aporia draws on QOC notation [ 38 ], which structures design rationale around Questions that identify key issues (our design questions), Options that provide possible answers (in our case just yes/no), and Criteria for evaluating those options (our arguments and relevant code in the Detail View). Through several pilot studies, we iterated on Aporia ’s design, identifying several key lessons. Binary questions reduce over-load: Early prototypes required participants to write responses to all design questions; pilots showed that yes/no questions with op-tional comments struck the right balance between expressiveness and cognitive cost. As noted in Sec. 2, binary responses are in line with QOC notation’s Options , which provide possible answers to questions. Progressive disclosure: Displaying too many questions at once overwhelmed our pilot participants, so we settled on five at a time. We also added a short summary of each test case’s inputs and outputs ( e.g., reviewer_a (assigned to papers 2 & 3) + GET /papers/3 -> 200 ) in a preceding comment. These sum-maries show the gist of what is being tested while test bodies are collapsed in the editor. Grounding in code: Programmers wanted to consider questions in the context of the codebase rather than in the abstract, which prompted us to include relevant code references in the Detail View. Relevant code references are in line with QOC which includes Criteria for evaluating possible answers. Parallel structure between questions, decisions, and test suites: To address observed difficulties connecting questions to their corre-sponding decisions, we introduced a consistent parallel structure across three levels of our interface. First, we rewrote decision titles to match the linguistic structure of the questions that produced them. Second, inspired by property-based testing [ 13 ], we reorga-nized tests into suites grouped by the decisions they validate rather than the components they test. Finally, we preceded each test suite with its corresponding question bubble, making it easier to trace the connections between the two. 
+
+## 3.3 Implementation 
+
+Aporia is implemented as an extension for Visual Studio Code [ 3 ]and is written in Typescript. All UI elements are implemented using React. The Aporia sidebar and Question Detail View are displayed in Webview s, while Question Bubbles are displayed in 
+
+WebviewEditorInset s (only available in the insiders’ build). 
+
+Aporia orchestrates three specialized agents—a questioner , a 
+
+planner , and an implementer —each an instance of Claude Code 
+
+controlled using the Agent Client Protocol [ 1]. The questioner gen-erates design questions and supporting arguments based on the goal; the planner formalizes decisions into test suites; and the im-plementer changes the codebase in line with the goal, decisions, and tests. Agents run concurrently, with Aporia managing asyn-chronous state updates by queueing and batching requests that are made while an agent is working. Agents communicate with the extension via a custom Model Con-text Protocol (MCP) [ 2] server featuring two tools. submit_argument 
+
+stores questions and arguments in a shared database, which the extension renders as Question Bubbles. submit_uuid_to_test_ suite_mapping , is used by the planner to map test suite names (e.g., TestReviewerAccess in Fig. 3) to decisions. The extension uses this mapping to render Question Bubbles for each decision next to its test suite ( e.g., the green Question Bubble in Fig. 3). 
+
+## 4 User Study 
+
+We describe the design of our user study, which was intended to answer two research questions: 
+
+RQ1 How does Aporia affect developers’ ability to discover and articulate the design decisions relevant to a given program-ming task? 
+
+RQ2 How does Aporia affect developers’ perceived and actual understanding of the agent’s implementation and their strate-gies for validating their understanding? 
+
+## 4.1 Participants 
+
+We recruited 14 participants, 8 self-identified as men and 6 as women. 2 were undergraduate students, 6 were graduate students, and 6 were professional software engineers. We required partici-pants to have at least some familiarity working with Python and AI agents. All reported moderate to high Python proficiency and said they used AI programming agents at least a few times a week. 
+
+## 4.2 Study Procedure 
+
+We conducted a comparative structured observation study [ 37 ], guiding participants to complete two programming tasks, one with 
+
+Aporia and one with our baseline, Claude Code [4 ], a state-of-the-art agentic coding tool which mainly follows the plan-oriented paradigm described in Sec. 3.1. (Although it can ask clarifying questions, it does so sporadically.) We ran a counterbalanced within-subjects study across two fac-tors, assistant order ( Aporia first vs. Claude Code first) and task order (Task A first vs. Task B first), resulting in four configurations. All studies were conducted remotely over Zoom and facilitated by one of the first two authors. Participants completed tasks in a browser-based code-server [14 ] VS Code IDE [ 41 ] running in an isolated Docker container [ 40 ]. Both assistants used the same underlying model, Claude Sonnet 4.6 [ 5 ], to isolate the effect of 
+
+Aporia ’s interface. Each session took approximately 90 minutes, and participants were compensated with a $35 Amazon gift card. Participants began their session by signing an informed consent form compliant with our IRB approval. They were then given a brief introduction and told they would be completing programming tasks with two different AI programming assistants, renamed Assistant-1 
+
+(Aporia ) and Assistant-2 (Claude Code ) to minimize bias. 
+
+4.2.1 Assistant tutorial. Before beginning each task, participants completed a 10-minute tutorial explaining their assigned assistant, Conference’17, July 2017, Washington, DC, USA Kasibatla et al. 
+
+Task A (Paper detail access control)                                                  
+
+> ÁSurvey Question: In your implementation, which users (admins, authors, reviewers, other users) can see what Paper data (pdf, status, paper authors, assigned reviewers, reviews) and when can they see it?
+> P12’s answer:
+> “Admins can see everything. Authors can see all paper details, except pending reviews. Reviewers can’t see author names, but they can see other reviewers’ submissions. Unrelated users can see nothing.”
+> "Encoded as: Description Grid
+> Adm. Auth. Rev. Unrel. PDF Yes Yes Yes No Status Yes Yes N/D No Authors Yes Yes No No Reviewers Yes Yes N/D No Reviews Yes No Yes No
+> Implementation Grid
+> Adm. Auth. Rev. Unrel. PDF Yes Yes Yes Yes Status Yes Yes Yes No Authors Yes Yes No No Reviewers Yes Yes Yes No Reviews Yes No Yes No
+
+Task B (Reviewer assignment algorithm)        
+
+> ÁSurvey Question: In your implementation, which users (admins, users) can be assigned to review which papers, and under what conditions (author/co-author/institutional conflicts, workload, already assigned, etc.) is assignment prevented?
+> P3’s answer:
+> “Authors can’t be assigned to the papers they submitted, but they can be assigned to papers from others; reviewers from the same university as the authors can’t be assigned to their papers.”
+> "Encoded as: Description Grid
+> Eligibility Ranking Not an author N/D Different institution
+> Implementation Grid
+> Eligibility Ranking Not an author Alphabetical Different institution Not author on other papers Not already assigned
+
+Figure 4: Sample correctness analysis of post-task survey responses from P12 (Task A, left) and P3 (Task B, right). Free-form answers are encoded into a Description Grid, which is then compared to the actual implementation encoded in the Implementation Grid. Policy alignment is classified into matches , mismatches , or not described (N/D). 
+
+illustrated with in-situ screenshots. The tutorial remained available to participants throughout the task for reference. 
+
+4.2.2 Programming task and post-task survey. Participants com-pleted a 25-minute programming task with each assistant, modify-ing the NotCRP conference management system (Sec. 3.1). Each task was intentionally open ended, involving multiple subjective design decisions: 
+
+Task A (Paper detail access control) : “Currently, any authenticated user can view every paper and all of its associated data. Modify the Paper detail page to add explicit access control for which users can view which paper’s information.” (This task inspired our user scenario in Sec. 3.1.) 
+
+Task B (Reviewer assignment algorithm) : “Currently, the reviewer assignment form requires conference admins to manually type in a reviewer’s username to assign them to a paper. Mod-ify the form to display a filtered and ranked list of eligible reviewers for admins to select from.” For each task, participants were given one of the task descriptions above, the NotCRP repository, a prepopulated database of users and papers for testing, and a running instance of NotCRP . After each task, participants completed a post-task survey that collected data as detailed in Sec. 4.3. 
+
+4.2.3 Post-study survey and semi-structured Interview. After finish-ing the two tasks and surveys, participants completed a post-study survey and a set of semi-structured interview questions asking them to reflect on their experience with both assistants. 
+
+## 4.3 Data Collection and Analysis 
+
+We now describe our methods for data collection and analysis, with our results to be found in Sec. 5. 
+
+4.3.1 Systematic mental review. In designing our post-task surveys, we were interested in how participants’ subjective confidence in their solutions varied after they were guided through a systematic mental review of their work. This review comprised a series of questions designed to probe aspects of their implementation that they might not have considered. Participants were asked to list up to three design decisions that shaped their solution and, for each, say (a) what helped them realize there was a decision to make and (b) who made the decision, from “entirely myself” (1) to “entirely the assistant” (5). We also asked a policy question (see the top part of Fig. 4), which prompted them to explain the access control policies they implemented for Task A and the reviewer eligibility policies they implemented for Task B; we then asked which strategies they used to validate that the code indeed implemented those policies. We assessed participants’ confidence that their implementation matched their intent both before and after this review. Critically, participants completed the surveys without access to their code or the app, so that responses reflected what they believed about their implementation, not what they were able to validate in the moment. We also measured cognitive load using NASA-TLX [23]. 
+
+4.3.2 Correctness analysis. We used the policy questions from the post-task survey to conduct a correctness analysis comparing par-ticipants’ descriptions of their implemented policies to the actual behavior of their code. Fig. 4 shows the full pipeline: starting from the participant’s natural-language description of the policies, we manually encoded it into a Description Grid, where each cell repre-sents an atomic policy. For Task A, an atomic policy states whether a given role (Admin, Author, Reviewer, Unrelated user) can view a given paper data (PDF, status, author names, reviewer names, reviews), marked as “Yes,” “No,” or “Conditional” for policies with temporal constraints ( e.g., “authors can see reviews only after a deci-sion has been made” ). Task B’s grid captures what properties make a reviewer eligible to review a paper and how reviewers are ranked. We then independently encoded each participant’s submitted code onto the same grid format (the Implementation grid) and com-pared the two. Each grid cell was classified as either: a match if the two grids had equivalent values, a mismatch if they conflicted, Decision-Oriented Programming with Aporia Conference’17, July 2017, Washington, DC, USA 
+
+or not described if a cell in the Implementation grid had no corre-sponding cell in the Description grid ( i.e., the behavior was present in the code but absent from the participant’s description ). 
+
+4.3.3 Decision categorization. After conducting the studies, we used telemetry to identify moments where participants actively made decisions with each tool. For Aporia , we considered answer-ing a question or entering a custom decision to be an active decision. For Claude Code , we manually separated participants’ messages and answers to questions into decisions of similar granularity to those made using Aporia , considering each to be a separate ac-tive decision. We also distinguished elicited decisions (i.e., decisions made in response to a question from Aporia or Claude Code ) from decisions overall, which included participants’ messages to Claude Code and custom decisions in Aporia .
+
+4.3.4 Quantitative analysis. To estimate the quantitative relation between the used assistant 𝑎 (0 for Claude Code , 1 for Aporia )and each of the performance metrics while accounting for possi-ble learning effects, we fit Generalized Linear Models (GLMs) [ 39 ]using pymer4 [31 ]. Each GLM uses a performance metric 𝑚 as out-come variable, 𝑎 as main predictor, and the task (Task A or Task B) and whether it occurred first or second as further covariate pre-dictors. For performance metrics that are count data ( e.g., number of elicited decisions), the model uses a Poisson distribution with log link function; for performance metrics that are ratios ( e.g., per-cent of described criteria that were successfully implemented), the model uses a Binomial distribution with log link function. After fitting each GLM on the experimental data, we report the mean, p-value, and 95% probability interval for the estimate of the coefficient of 𝑎 on the outcome scale (that is, after inverting the link function), which can be interpreted as an estimate of the effect of using Aporia over Claude Code on the performance metric. As is customary, we interpret a 𝑝 -value below 0.05 to denote a "significant" difference between the two sets of measures. 
+
+4.3.5 Thematic analysis. We recorded and transcribed each par-ticipant’s session and semi-structured interview. Participants were encouraged to think aloud while they completed each task, verbal-izing their problem-solving process, reactions to code suggestions, general feelings, etc. We used thematic analysis [ 11 , 50 ] to iden-tify themes from the task and interview transcripts. Two authors individually coded participant quotes from the transcripts related to our research questions and collaboratively grouped these codes into broader themes to present with our quantitative results. 
+
+## 5 Results 
+
+Our results show how Aporia helps developers make informed deci-sions and build a more accurate understanding of code. We present a qualitative and quantitative analysis answering two RQs (see Sec. 4). Overall, participants had positive general impressions of Apo-ria ’s various affordances (see Fig. 5). The Decision Bank was rated most favorably ( 𝑀 = 4.4/5), with all but one participant agreeing or strongly agreeing that it was useful. The question bubbles were sim-ilarly well-received ( 𝑀 = 4.1/5). Participants were more divided on the test suites ( 𝑀 = 3.3/5): three disagreed and seven were neutral, a finding we explore further in Sec. 5.2.3.                   
+
+> Á(Post-study) Survey Question: I found the following feature of Aporia useful:
+> Strongly Disagree Disagree Neutral Agree Strongly Agree Answering questions 465
+> The generated test suites 3723
+> The Decision Bank 177
+
+Figure 5: Distribution of participants’ post-study survey lik-ert responses after using Aporia .    
+
+> ÁSurvey Question: For each design decision you described, what helped you realize there was a decision to make there? (select up to two)
+> Aporia Claude Code *User-written response Prior knowledge or experience Assistant’s questions Read the generated plan Ran or tested the program Did not explicitly think about this decision Read the generated code
+> “Read the context/evidence the AI assistant gave me” *
+> “I let Claude think of the criteria all together” *
+> “I asked Claude to come up with a ranking strategy” *
+> 26
+> 6
+> 11
+> 9
+> 1
+> 1
+> 1
+> 15
+> 32
+> 4
+> 5
+> 2
+> 1
+> 1
+
+Figure 6: Participants’ self-reported decision-making strate-gies as described in Sec. 4.3.1 
+
+Using Wilcoxon signed-rank tests [ 55 ] to compare NASA-TLX scores revealed no significant differences between Aporia and 
+
+Claude Code across any of the five subscales. Participants re-ported similarly low levels of mental demand ( 𝑀 Aporia = 2.50 ,
+
+𝑀 Claude = 2.43 ), temporal demand ( 𝑀 Aporia = 2.64 , 𝑀 Claude = 2.64 ), effort ( 𝑀 Aporia = 1.86 , 𝑀 Claude = 2.14 ), and frustration ( 𝑀 Aporia =
+
+1.79 , 𝑀 Claude = 1.43 ), and similarly high levels of perceived suc-cess ( 𝑀 Aporia = 3.71 , 𝑀 Claude = 3.50 ). Task-level comparisons also showed no significant differences though Task B trended marginally toward higher effort ( 𝑀 𝐴 = 1.79 , 𝑀 𝐵 = 2.21 ; 𝑝 = 0.058 ). 
+
+## 5.1 RQ1: Discovering & articulating decisions 
+
+5.1.1 Aporia helped participants discover design considerations. 
+
+Nine participants (P1, P4, P7, P8, P9, P10, P11, P12, P16) noted that 
+
+Aporia surfaced considerations they had not thought of on their own. P4 reflected that the questions “made me realize . . . edge cases or . . . issues that a user could face while using the program,” and P1 remarked that without the questions, they would “miss at least 5 of [their decisions].” This observation is supported by participants’ self-reported decision-making strategies, as shown in Fig. 6. When asked “What helped you realize there was a decision to make here?” in the post-task survey, Aporia users most frequently reported that the assistant’s questions brought decisions to their attention, while Claude Code users had to rely mainly on their own prior knowledge or experience. 
+
+5.1.2 Aporia helped participants articulate design decisions. Even when participants were already (vaguely) aware of a design consid-eration, Aporia ’s questions made it easier for them to articulate Conference’17, July 2017, Washington, DC, USA Kasibatla et al. 
+
+and document their decisions. This is consistent with the principle of recognition over recall [ 43 ]: recognizing a question that aligns with your intent is easier than recalling and verbalizing that intent. We observed Aporia surfacing questions that resonated with the existing intuitions of six participants (P1, P4, P11, P12, P16, P19). For example, while answering questions, P19 remarked “I had a specific question in mind.” After reading a newly generated question, they followed with “Oh . . . okay, so that question is already generated.” 
+
+Reflecting on their task, P12 noted that “because [ Aporia ] kept lining up with things that I thought were appropriate, . . . I trust this process. It seems to be doing what I would have done anyway.” 
+
+As noted in Sec. 3.2, we chose to make Aporia ’s design question binary as opposed to open-ended. Five participants (P3, P7, P12, P16, P19) noted that this made it easier for them to quickly approve of decisions that were in line with their thinking. When asked if they found Aporia ’s questions useful, P12 said that they appreciated 
+
+“just being able to . . . say yes or no to something, as opposed to coming up with a question and then answering it.” 
+
+Aporia ’s questions were not always on the mark. P7, P8, P10, and P11 found some questions irrelevant, with P7 noting at dif-ferent moments that the questions were either “too detailed” or “too obvious.” When Aporia ’s questions resonated, however, they seemed to lighten the cognitive demand of programming. While the NASA-TLX scores did not reveal a significant difference in cog-nitive load between assistants, four participants (P3, P4, P9, P12) noted that they felt Aporia was less demanding to use than Claude Code . P4 said that Aporia required less effort because “it asked me questions about the decisions, and I didn’t really have to think about . . . are there decisions to make, and what are they?” .
+
+Claude Code comparison: In contrast, seven participants (P4, P7, P8, P10, P15, P16, P19) struggled to articulate their decisions when working with Claude Code . P8 reflected: “It’s kind of tricky, because [ Aporia ] broke it down into the design decisions for me, but for [ Aporia ], it’s more like everything together.” 
+
+While Claude Code occasionally asked questions of participants, it did not do so as frequently or systematically as Aporia : we found that on average, participants using Aporia made 13.5 times more elicited decisions (95% CI [10 .9, 16 .7], 𝑝 < 0.001 ) than those using 
+
+Claude Code . More interestingly, Aporia users also made 2.99 times more decisions overall (95% CI [2.69 , 3.32 ], 𝑝 < 0.001 )than Claude Code users. This suggests that elicited decisions are less costly to make than proactive ones, and that decision elicitation increases overall engagement with the design process. (We note the caveat that there is some subjectivity in how we counted non-elicited decisions with Claude Code ; see Sec. 4.3.3.) 
+
+5.1.3 Aporia helped participants make more informed decisions. 
+
+Five participants (P1, P4, P9, P11, P12) observed that Aporia ’s questions made them think deeper about decisions they had already been considering. P9, when reflecting on a decision about how admins should be ranked in the reviewer assignment, noted: “I was bringing in my own experience...the question the assistant asked me was. . . asking me to think deeper myself.” 
+
+When participants were unsure how to answer a question, Apo-ria ’s Question Detail View (Fig. 3, 3 ) provided the necessary con-text with rationale and code references. After seeing the Detail View, P3 noted that normally, when using Claude Code , they “explicitly asked [the agent] to think about the rationale before the decision. But here. . . I don’t need to explicitly ask.” Five participants (P4, P7, P9, P12, P19) used the relevant code references to ground their decisions in the codebase. In one case, P4 was directly influenced by seeing Aporia ’s reference to existing code that instantiated a three-reviewer limit on papers: “normally. . . I would have said no. . . but I guess since the code already has these constraints that it told me about. . . I’m gonna go with what it says.” 
+
+Together, questions and grounding helped participants reflect on their decisions in the context of the codebase. For example, P11 had never used a paper management system and initially assumed that 
+
+“There is, like a class of. . . admins. . . who are. . . the reviewers of all the papers” , but upon reflection, decided that: “Basically, anyone can probably be a reviewer, anyone can be a submitter, and then that’s completely separate from who’s an admin.” 
+
+We still observed instances where participants did not think deeply about their decisions or ground them in the codebase. P9 illustrated two failure modes: they made a custom decision to “Ex-clude people who provided mentorship and/or funding to the paper authors” despite no data about mentorship or funding existing in the codebase (no grounding) and later admitted “I was just kind of clicking yes on the assistant for some of them, . . . I wasn’t thinking, as deeply about all the questions” (no deeper thinking). 
+
+5.1.4 Aporia helped participants track and tweak their decisions. 
+
+Once participants articulated decisions, Aporia tracked them in the Decision Bank (Fig. 3, 5 ). The Bank was the most positively received of Aporia ’s affordances (Fig. 5); ten participants (P1, P3, P4, P7, P8, P9, P10, P11, P16, P17) specifically credited it with helping them keep track of what they had decided. P17 appreciated it as “a 
+
+quick mental map of the overarching decisions that we’ve made.” ,and P7 valued being able to “just go back to it at any time” .Participants took advantage of decisions being laid out in front of them in a variety of ways. P3 came back to the Bank to confirm that their decisions were not in conflict. After making a few decisions in quick succession, P11 used the Bank to step back and review. Participants also tweaked their decisions, in addition to tracking them. Four participants (P3, P4, P10, P16) appreciated the ability to revise decisions, and three (P3, P8, P17) did so during the study. Seconds after answering questions, P3 and P8 reversed their deci-sions to correct misunderstandings. P17 initially accepted a decision about displaying admin UI but later returned to add a caveat: “We don’t need to worry about it.” While these tweaks were not major revisions, they demonstrate that participants could correct course and keep the plan aligned with their intent. 
+
+Claude Code comparison: Five participants (P1, P3, P16, P17, P19) found Claude Code ’s unstructured chat history harder to understand than Aporia ’s Decision Bank. P16 noted that Aporia 
+
+“definitely felt more systematic. . . I felt more confident about what [Aporia ] was doing. . . reading through a plan on text is a lot of effort.” 
+
+In contrast, five participants (P4, P7, P8, P9, P16) struggled to recall key aspects of their Claude Code chats. P9 described “so much. . . chain of thought being generated. . . you just can’t really always see previous decisions,” and P3 noted that with everything mixed together in the chats, “it’s not easy for me to go back to find the information I need. . . . [ Aporia ] collects all the same type of information together, so it’s better.” Prior studies corroborate this Decision-Oriented Programming with Aporia Conference’17, July 2017, Washington, DC, USA 
+
+difficulty, finding that developers resort to organizing their thoughts in separate files to compensate for unstructured chat interfaces [ 27 ]. 
+
+## 5.2 RQ2: Perceived vs. actual understanding 
+
+5.2.1 Participants had a more accurate understanding of their code using Aporia . Through our correctness analysis described in Sec. 4.3.2 and illustrated in Fig. 4, we compared participants’ descriptions of their implementation (the Description grid) against the code they submitted (the Implementation grid). Participants described a similar number of policies (red or green cells in Fig. 4) with both assistants ( 𝑀 Aporia = 10 .93 , 𝑀 Claude = 10 .43 ; 𝑝 = 0.68 ), but their Description grids were more accurate with Aporia .For instance, P12 wrote that “unrelated users can see nothing,” for Task A, but their code lacked an access control check on the PDF endpoint, allowing unrelated users to bypass the policy—this was a mismatch at the PDF/Unrelated intersection in Fig. 4. Mismatches like these were 79% less likely with Aporia (𝑅𝑅 = 0.21 , 95% CI 
+
+[0.08 , 0.55 ], 𝑝 < 0.001 ). On average, 4.7% of described policies were mismatches with Aporia vs. 12.1% with Claude Code .P3 wrote that “reviewers from the same university as the authors can’t be assigned to their papers” and their code enforced this ( match at the Different institution cell in Fig. 4). Such matches were 
+
+14% more likely with Aporia (𝑅𝑅 = 1.14 , 95% CI [1.06 , 1.23 ],
+
+𝑝 < 0.001 ). On average, 94% of described policies were successfully implemented with Aporia vs. 88% with Claude Code .P3 did not mention a reviewer ranking strategy, but their code sorted them alphabetically ( not described at the Alphabetical cell in Fig. 4). Such undescribed policies were less common with Aporia ,though this difference was not statistically significant ( 𝑀 Aporia =
+
+1.71 , 𝑀 Claude = 2.57 ; 𝐼𝑅𝑅 = 0.67 , 95% CI [0.40 , 1.12 ], 𝑝 = 0.124 ). 
+
+5.2.2 Participants had a significantly more thorough understand-ing of their solutions with Aporia . As described in Sec. 4, participants rated their confidence twice: once before and once after completing the systematic mental review described in Sec. 4.3.1. We used the relationship between these two ratings (measured using Spearman rank-order correlation [ 33 ]) to assess whether reflection during the post-task surveys changed participants’ subjective assessment of their implementation. With Aporia , we found a significant posi-tive correlation between participants’ initial and final confidence (𝜌 = 0.70 , 𝑝 = 0.005 ), indicating that their confidence did not shift much during the systematic mental review. We attribute this stability to Aporia ’s emphasis on reflection during the whole im-plementation process; participants had already thought through their decisions before they were explicitly asked to. Qualitatively, participants (P1, P4, P12, P16, P19) remarked that the breadth of Aporia ’s questions led to more calibrated confidence, with P4 noting “because [ Aporia ] asked me all those questions and I made that decision, I would be pretty confident.” P1 described how the volume of questions facilitated a “pretty well-rounded implemen-tation” : “I would definitely stop after 5 or 6, but it kept generating, so I’m like, oh, maybe this is a good thing to think about too.” 
+
+Participants (P1, P3, P4, P7, P9, P10, P16, P17) also cited the Decision Bank as another key affordance, serving as what P9 called 
+
+“a trace of those decisions that were made” . We observed participants actively returning to the bank to reflect on their understanding during the tasks. For example, P8 walked through each decision     
+
+> ÁSurvey Question: What strategies did you use to validate your understanding of your implementation? (select up to two)
+> Aporia Claude Code *User-written response Manually tested the web app Read the generated plan Read the generated code Ran unit tests Read the generated tests Did not verify (trusted the agent)
+> “Asked the agent to sanity check my understanding of the tests” *
+> 12
+> 9
+> 4
+> 2
+> 1
+> 12
+> 2
+> 2
+> 4
+> 2
+> 1
+
+Figure 7: Participants’ self-reported validation strategies. Each bar indicates the number of responses for each strategy. 
+
+while waiting for Aporia ’s implementation to finish, rephrasing them in their own words: “Oh, so this is for admin, which we weren’t really clear on the policies... okay, this is kind of covering the thing that a person can have multiple roles... And this is for the PDF files? So, I think this is handling the ambiguity of what paper details covers.” 
+
+Claude Code comparison: For participants working with 
+
+Claude Code , the correlation between their initial and final confi-dence was not significant ( 𝜌 = 0.26 , 𝑝 = 0.37 ), indicating variability in their confidence upon reflection. For some participants, the post-task survey was the first time they reflected on their implementation at all, and seven (P3, P7, P8, P10, P16, P18, P19) verbalized doubts when having to describe their implementation (see Fig. 4). P3 noted mid-survey: “I’m thinking oh, the plan was not as good... because there’s so many statuses, like, before submission, after submission, and, for each role...I was not careful enough to approve the plan.” P8 echoed, “There’s some decisions I feel like I didn’t really get into ... I just [thought] of that when I was filling out the form.” P10 simply said, “I think I should have not, uh, I think I should have spent more time.” when questioning whether reviewers can see other reviews. This phenomenon was not observed with Aporia .
+
+5.2.3 Aporia scaffolded participants’ validation of their imple-mentation. As shown in Fig. 7, participants using both assistants reported in the post-task surveys that their primary strategy for checking that their NotCRP code aligned with their intent was manual testing. Their secondary strategies differed, though: Apo-ria participants tended to rely on test suites, while Claude Code 
+
+participants relied on reading the generated plan and code. We observed that Aporia ’s test suites often directly influenced how participants approached manual testing. Five participants (P4, P8, P12, P15, P17) mapped test suites back to the Decision Bank to validate that their intent was reflected. P4, while reviewing the generated tests, noted “Okay, yeah, these seem like they’re related to the answers I selected.” P15 similarly observed that “the comments are very clear about what’s happening... I can kind of map it back to the questions that I answered over here.” 
+
+Five participants (P3, P4, P8, P12, P16) used Aporia -generated test suites to identify what to validate . For example, before P12 began testing some new functionality in NotCRP , they said “What did I add since last time?... [reads test suite names aloud]... Okay, so I should go to the draft [page].” Afterwards, they reflected that the test suites “complement... looking at the website... if I want to check a Conference’17, July 2017, Washington, DC, USA Kasibatla et al. 
+
+specific decision... it’s nice to be able to pinpoint where this came from and why it exists ... and instead of looking at test names and kind of guessing what it is, it says...I did this for this reason.” 
+
+Despite these use cases, a majority of participants (P1, P3, P4, P7, P8, P9, P12, P15, P16, P17, P18) stated that they did not always engage with the test suites produced by either assistant. P17 put it most directly: it was “very useful that Aporia generated [test suites]. But I didn’t really use them.” P7 found the tests too verbose: “ it’s not so helpful [because I don’t] inspect [the tests] in. . . detail, and it’s hard to...verify...whether it is actually correct. Instead of using the test suites to aid in their own thought process, many saw the tests more as a “mechanized way for theagent to double-check itself” (P9). 
+
+Claude Code comparison: Participants using Claude Code 
+
+relied primarily on reading the generated plan and code to supple-ment manual testing, but as discussed in Sec. 5.1.4, many partici-pants expressed difficulty in locating and tracking their decisions within the plan. Claude Code only generated test suites for five participants (P4, P8, P12, P15, P18), and all but one had to explicitly prompt the agent to do so. As with Aporia , participants did not engage with the tests in detail— “I told [ Aporia ] to make tests, and then I didn’t really look at the tests” (P15)—but without traceability to the plan, the tests offered little scaffolding support for validation. 
+
+## 6 Discussion & Limitations 
+
+We structured our results in Sec. 5 around two research questions: how Aporia affected decision discovery and articulation (RQ1) and developers’ perceived vs. actual understanding of their code (RQ2). We further discuss two cross-cutting themes from our thematic analysis: how Aporia scaffolded participants’ workflows and how its interactivity promoted engagement with the design process. 
+
+## 6.1 Scaffolding 
+
+One common cross-cutting theme is that Aporia scaffolded partici-pants’ workflow around decisions at every phase. Question bubbles scaffolded intent formalization, surfacing decisions participants might have missed (Sec. 5.2.1). The Decision Bank scaffolded those decisions into a persistent, navigable record participants could return to (Sec. 5.1.4). And per-decision test suites scaffolded valida-tion, giving participants traceable anchors to the code(Sec. 5.2.3). Together, these affordances embody DG1 (Sec. 1) by providing a structured medium through which programmer and agent negotiate the design. This organization also reflects the parallel structure be-tween questions, decisions, and test suites we discussed in Sec. 3.2. Participants generally appreciated this structure. P3 preferred 
+
+Aporia ’s interface to Claude Code ’s conversational mode, noting that “things are organized in chunks...I feel psychologically more patient...” P16 noted that Aporia ’s organization helped them feel confident: “[I normally] just accept...what [coding agents] give me and then check after the fact...[with Aporia ] I feel more confident apriori , before the agent even does anything.” 
+
+However, participants also expressed frustrations with Aporia ’s organization. Some (P7, P11, P15) wanted more flexibility; P15 was nervous about changing their goal, saying “it feels like you can’t re-steer it too easily,” . This is in contrast to Claude Code ’s ability to handle mid-implementation changes. Others (P9, P10) were con-fused by the relationship between questions, tests, and code; P9 described being “confused about the state of the universe” as new questions appeared before previous decisions were implemented. These issues point to usability limitations of our probe, such as the lack of progress indicators for implementation state. Two participants (P7, P9), noted that they prefered Claude Code ’s “streamlined flow” (P9), aligning with other findings that programmers who execute predefined strategies view their work as more organized, yet more constrained [35]. 
+
+## 6.2 Engagement 
+
+A second common cross-cutting theme is that Aporia encouraged 
+
+active engagement from participants at every phase. Participants articulated three times as many decisions as with Claude Code ,leveraging both the Question Bubbles and custom decision input (Sec. 5.1.2). They maintained and revised their Decision Banks between rounds of implementation (Sec. 5.1.4, Sec. 5.2.2). They grounded their decisions in the codebase through the Question De-tail View’s relevant code references (Sec. 5.1.3). They later validated their implementations, mapping test suites back to decisions to guide integration testing (Sec. 5.2.3). Together, these interactions embody DG2 (Sec. 1), by demonstrating interactive co-authoring. Participants found this active participation empowering. P4 liked managing their Decision Bank, saying that “[ Aporia ] makes you think about things that the AI would have normally just made its own assumptions . . . [you never] would have had an opportunity to . . . make those decisions yourself.” And P17 enjoyed using the Decision Bank for code review, saying “It’s easier to review the code, which I think is a very important step for trusting the agent more automatically.” 
+
+In contrast, participants experienced a loss of agency with Claude Code . They struggled to identify and articulate their decisions (5.1.2), parsed through verbose plans (5.1.4), and felt like they missed key decisions (5.2.2). P1 summed this up, saying that “[ Aporia ] re-moves a lot of thinking, . . . I don’t think anymore. . . I just prompt ”.
+
+Aporia impeded participants’ engagement as well. Seven par-ticipants (P1, P3, P4, P7, P10, P12) commented that Aporia ’s high latency broke their flow. In P12’s words, “you sort of have this dead time of, . . . I’ve made all the decisions, and now I’m waiting” . Some (P4, P7, P8, P10) said that Aporia ’s UI was too complex, with P4 noting that “there are. . . too many panels you need to navigate” . P7 suggested merging the Decision Bank and test suites into a consoli-dated interface to remedy these usability issues. 
+
+## 6.3 Future Work 
+
+Some participants found aspects of Aporia ’s interface challenging, and their comments reveal productive directions for future work. Several participants said they did not know which questions to prioritize, and when they had answered “enough” of them to start implementing. These difficulties suggest that Aporia could organize questions hierarchically rather than linearly, flowing from high-level decisions down to lower-level details. Similarly, participants suggested a navigable “goal history” that clusters decisions under different goals, giving programmers an editable record of how their intent evolved while implementing a larger feature. Other participants wondered about a “saturation point” where most key decisions around a feature had been addressed, motivating a UI indicator that suggests transitions to related features. Decision-Oriented Programming with Aporia Conference’17, July 2017, Washington, DC, USA 
+
+We are also interested in helping participants assess decisions after they make them. Aporia occasionally discovered flaws in its tests, but we did not allow it to edit them in order to preserve user intent. Aporia could surface Question Bubbles at these moments to create opportunities for users to iterate on the interpretation of their decisions. Finally, we would like to explore other UI techniques for eliciting decisions beyond questions, such as selecting from a list of alternatives or inferring user intent from manual code edits. 
+
+## 7 Conclusion 
+
+In this work, we explored decision-oriented programming (DOP), a paradigm which seeks to support programmer decision-making by reifying decisions as first-class objects. We instantiated DOP in a design probe called Aporia , which elicits decisions with questions, tracks them, and encodes them as test suites. After evaluating Aporia in a user study, we found that tracking decisions helped participants externalize their mental model of the program design space; asking questions helped participants discover and articulate design decisions; and encoding decisions as test suites scaffolded participants’ validation process. Participants used Aporia to make more informed decisions and develop more accurate understandings of their code. Our experience building and evaluating Aporia indicates that DOP’s design goals have the potential to support programmer decision-making and promote agency while retaining many of agentic programming’s advantages. We are excited to continue exploring how best to instantiate decision-oriented programming in future research. 
+
+## Acknowledgments 
+
+This work was supported in part by the NSF under Grant No. CCF-2107397. This material is based upon work supported by the Na-tional Science Foundation Graduate Research Fellowship under Grant No. DGE-2038238. Any opinions, findings, and conclusions or recommendations expressed in this publication are those of the authors, and do not necessarily reflect the views of the sponsoring entities. We would like to thank Carlo Furia, Brian Hempel, Aaron Broukhim, Devamardeep Hayatpur, and Matthew Beaudouin-Lafon for their invaluable feedback. 
+
+## References 
+
+[1] [n. d.]. Agent Context Protocol. https://zed.dev/acp [2] [n. d.]. Model Context Protocol. https://modelcontextprotocol.io/ [3] [n. d.]. Visual Studio Code. https://code.visualstudio.com [4] Anthropic. 2026. Claude Code CLI . https://code.claude.com/docs/en/cli-reference [5] Anthropic. 2026. Introducing Claude Sonnet 4.6 . https://www.anthropic.com/ news/claude-sonnet-4-6 [6] Shraddha Barke, Michael B. James, and Nadia Polikarpova. 2023. Grounded Copilot: How Programmers Interact with Code-Generating Models. Proceedings of the ACM on Programming Languages 7, OOPSLA1 (April 2023), 85–111. doi:10. 1145/3586030 [7] Kent Beck. 2002. Test Driven Development. By Example . Addison-Wesley Longman, Amsterdam. [8] Kent Beck. 2015. Test-driven development: by example (20. printing ed.). Addison-Wesley, Boston. [9] Markus Borg, Dave Hewett, Nadim Hagatulah, Noric Couderc, Emma Söderberg, Donald Graham, Uttam Kini, and Dave Farley. 2026. Echoes of AI: Investi-gating the Downstream Effects of AI Assistants on Software Maintainability. arXiv:2507.00788 [cs.SE] https://arxiv.org/abs/2507.00788 [10] Dibyendu Brinto Bose. 2025. From prompts to properties: Rethinking llm code generation with property-based testing. In Proceedings of the 33rd ACM Interna-tional Conference on the Foundations of Software Engineering . 1660–1665. [11] Virginia Braun and Victoria Clarke. 2006. Using thematic analysis in psychology. 
+
+Qualitative research in psychology 3, 2 (2006), 77–101. [12] Ruijia Cheng, Titus Barik, Alan Leung, Fred Hohman, and Jeffrey Nichols. 2024. BISCUIT: Scaffolding LLM-Generated Code with Ephemeral UIs in Computational Notebooks. In 2024 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC) . 13–23. doi:10.1109/VL/HCC60511.2024.00012 [13] Koen Claessen and John Hughes. 2000. QuickCheck: a lightweight tool for random testing of Haskell programs. In Proceedings of the Fifth ACM SIGPLAN International Conference on Functional Programming (ICFP ’00), Montreal, Canada, September 18-21, 2000 , Martin Odersky and Philip Wadler (Eds.). ACM, 268–279. doi:10.1145/351240.351266 [14] Coder. 2026. code-server: VS Code in the browser . https://github.com/coder/code-server [15] Cursor. 2023. Cursor. https://cursor.com [16] Sarah Fakhoury, Aaditya Naik, Georgios Sakkas, Saikat Chakraborty, and Shu-vendu K. Lahiri. 2024. LLM-Based Test-Driven Interactive Code Generation: User Study and Empirical Evaluation. IEEE Transactions on Software Engineering 50, 9 (2024), 2254–2268. doi:10.1109/TSE.2024.3428972 [17] Muhammad Shoaib Farooq, Uzma Omer, Amna Ramzan, Mansoor Ahmad Rasheed, and Zabihullah Atal. 2023. Behavior Driven Development: A Sys-tematic Literature Review. IEEE Access 11 (2023), 88008–88024. doi:10.1109/ ACCESS.2023.3302356 [18] Ahmed Fawzy, Amjed Tahir, and Kelly Blincoe. 2025. Vibe Coding in Prac-tice: Motivations, Challenges, and a Future Outlook – a Grey Literature Review. arXiv:2510.00328 [cs.SE] https://arxiv.org/abs/2510.00328 [19] K. J. Kevin Feng, Kevin Pu, Matt Latzke, Tal August, Pao Siangliulue, Jonathan Bragg, Daniel S. Weld, Amy X. Zhang, and Joseph Chee Chang. 2026. Cocoa: Co-Planning and Co-Execution with AI Agents. arXiv:2412.10999 [cs.HC] https: //arxiv.org/abs/2412.10999 [20] Katy Ilonka Gero, Chelse Swoopes, Ziwei Gu, Jonathan K. Kummerfeld, and Elena L. Glassman. 2024. Supporting Sensemaking of Large Language Model Outputs at Scale. In Proceedings of the CHI Conference on Human Factors in Computing Systems, CHI 2024, Honolulu, HI, USA, May 11-16, 2024 , Florian ’Floyd’ Mueller, Penny Kyburz, Julie R. Williamson, Corina Sas, Max L. Wilson, Phoebe O. Toups Dugas, and Irina Shklovski (Eds.). ACM, 838:1–838:21. doi:10.1145/ 3613904.3642139 [21] Emmanuel Anaya González, Raven Rothkopf, Sorin Lerner, and Nadia Polikar-pova. 2025. HiLDE: Intentional Code Generation via Human-in-the-Loop Decod-ing. In 2025 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC) . 222–233. doi:10.1109/VL-HCC65237.2025.00032 [22] Kevin Han, Siddharth Maddikayala, Tim Knappe, Om Patel, Austen Liao, and Amir Barati Farimani. 2026. TDFlow: Agentic Workflows for Test Driven Development. In Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers) , Vera Demberg, Kentaro Inui, and Lluís Marquez (Eds.). Association for Computational Linguistics, Rabat, Morocco, 1511–1527. doi:10.18653/v1/2026.eacl-long.70 [23] Sandra G Hart and Lowell E Staveland. 1988. Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research. In Advances in psy-chology . Vol. 52. Elsevier, 139–183. [24] Grace Murray Hopper. 1952. The education of a computer. In Proceedings of the 1952 ACM National Meeting (Pittsburgh) (Pittsburgh, Pennsylvania) (ACM ’52) .Association for Computing Machinery, New York, NY, USA, 243–249. doi:10. 1145/609784.609818 [25] Grace Murray Hopper. 1969. Standardization of high-level languages. In Pro-ceedings of the May 14-16, 1969, Spring Joint Computer Conference (Boston, Mas-sachusetts) (AFIPS ’69 (Spring)) . Association for Computing Machinery, New York, NY, USA, 608–609. doi:10.1145/1476793.1476890 [26] Yiran Hu, Nan Jiang, Shanchao Liang, Yi Wu, and Lin Tan. 2025. TENET: Lever-aging Tests Beyond Validation for Code Generation. arXiv:2509.24148 [cs.SE] https://arxiv.org/abs/2509.24148 [27] Ruanqianqian Huang, Avery Reyna, Sorin Lerner, Haijun Xia, and Brian Hempel. 2025. Professional Software Developers Don’t Vibe, They Control: AI Agent Use for Coding in 2025. arXiv:2512.14012 [cs.SE] https://arxiv.org/abs/2512.14012 [28] GitHub Inc. 2022. GitHub Copilot. https://github.com/features/copilot [29] Stack Exchange Inc. [n. d.]. 2025 Stack Overflow Developer Survey. https: //survey.stackoverflow.co/2025 [30] Windsurf Inc. 2024. Windsurf. https://windsurf.com [31] Eshin Jolly. 2018. Pymer4: Connecting R and Python for linear mixed modeling. 
+
+Journal of Open Source Software 3, 31 (2018), 862. [32] Majeed Kazemitabaar, Jack Williams, Ian Drosos, Tovi Grossman, Austin Z. Hen-ley, Carina Negreanu, and Advait Sarkar. 2024. Improving Steering and Veri-fication in AI-Assisted Data Analysis with Interactive Task Decomposition. In 
+
+Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology (UIST ’24) . ACM. doi:10.1145/3654777.3676345 Conference’17, July 2017, Washington, DC, USA Kasibatla et al. 
+
+[33] Maurice George Kendall and Jean Dickinson Gibbons. 1962. Rank correlation methods. (1962). [34] Werner Kunz and Horst W. J. Rittel. 1970. Issues as Elements of Information Systems . Technical Report 131. Institute of Urban and Regional Development, University of California, Berkeley, California. [35] Thomas D. LaToza, Maryam Arab, Dastyni Loksa, and Amy J. Ko. 2020. Explicit programming strategies. Empir. Softw. Eng. 25, 4 (2020), 2416–2449. doi:10.1007/ S10664-020-09810-1 [36] Yunhao Liang, Ruixuan Ying, Shiwen Ni, and Zhe Cui. 2026. Scaling Test-Driven Code Generation from Functions to Classes: An Empirical Study. arXiv:2602.03557 [cs.SE] https://arxiv.org/abs/2602.03557 [37] Wendy E. Mackay and Joanna McGrenere. 2025. Comparative Structured Obser-vation. ACM Trans. Comput.-Hum. Interact. 32, 2, Article 14 (April 2025), 27 pages. doi:10.1145/3711838 [38] Allan MacLean, Richard M. Young, Victoria Bellotti, and Thomas P. Moran. 1991. Questions, Options, and Criteria: Elements of Design Space Analysis. Hum. Comput. Interact. 6, 3-4 (1991), 201–250. doi:10.1080/07370024.1991.9667168 [39] Richard McElreath. 2018. Statistical rethinking: A Bayesian course with examples in R and Stan . Chapman and Hall/CRC. [40] Dirk Merkel. 2014. Docker: lightweight linux containers for consistent develop-ment and deployment. Linux journal 2014, 239 (2014), 2. [41] Microsoft Corporation. 2026. Visual Studio Code . https://visualstudio.com Version 1.109. [42] Thomas P Moran and John M Carroll. 1996. Design rationale: Concepts, techniques, and use . CRC Press. [43] Jakob Neilsen. 1994. Heuristic Evaluation . John Wiley & Sons, Inc., USA. 25–62 pages. [44] Anthropic PBC. 2025. Claude Code. https://claude.com/product/claude-code [45] Veronica Pimenova, Sarah Fakhoury, Christian Bird, Margaret-Anne Storey, and Madeline Endres. 2025. Good Vibrations? A Qualitative Study of Co-Creation, Communication, Flow, and Trust in Vibe Coding. arXiv:2509.12491 [cs.SE] https: //arxiv.org/abs/2509.12491 [46] Kevin Pu, Daniel Lazaro, Ian Arawjo, Haijun Xia, Ziang Xiao, Tovi Grossman, and Yan Chen. 2025. Assistance or disruption? exploring and evaluating the design and trade-offs of proactive ai programming support. In Proceedings of the 2025 CHI conference on human factors in computing systems . 1–21. [47] Advait Sarkar and Ian Drosos. 2025. Vibe coding: programming through conver-sation with artificial intelligence. arXiv:2506.23253 [cs.HC] https://arxiv.org/ abs/2506.23253 [48] Margaret-Anne Storey. 2026. From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI. arXiv:2603.22106 [cs.SE] https://arxiv.org/abs/2603.22106 [49] Sangho Suh, Meng Chen, Bryan Min, Toby Jia-Jun Li, and Haijun Xia. 2024. Luminate: Structured Generation and Exploration of Design Space with Large Language Models for Human-AI Co-Creation. In Proceedings of the CHI Conference on Human Factors in Computing Systems, CHI 2024, Honolulu, HI, USA, May 11-16, 2024 , Florian ’Floyd’ Mueller, Penny Kyburz, Julie R. Williamson, Corina Sas, Max L. Wilson, Phoebe O. Toups Dugas, and Irina Shklovski (Eds.). ACM, 644:1–644:26. doi:10.1145/3613904.3642400 [50] Mojtaba Vaismoradi, Hannele Turunen, and Terese Bondas. 2013. Content analy-sis and thematic analysis: Implications for conducting a qualitative descriptive study. Nursing & health sciences 15, 3 (2013), 398–405. [51] Priyan Vaithilingam, Elena L. Glassman, Jeevana Priya Inala, and Chenglong Wang. 2024. DynaVis: Dynamically Synthesized UI Widgets for Visualization Editing. In Proceedings of the 2024 CHI Conference on Human Factors in Computing Systems (Honolulu, HI, USA) (CHI ’24) . Association for Computing Machinery, New York, NY, USA, Article 985, 17 pages. doi:10.1145/3613904.3642639 [52] Priyan Vaithilingam, Munyeong Kim, Frida-Cecilia Acosta-Parenteau, Daniel Lee, Amine Mhedhbi, Elena L. Glassman, and Ian Arawjo. 2025. Semantic Commit: Helping Users Update Intent Specifications for AI Memory at Scale. In Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology, UIST 2025, Busan, Korea, 28 September 2025 - 1 October 2025 , Andrea Bianchi, Elena L. Glassman, Wendy E. Mackay, Shengdong Zhao, Jeeeun Kim, and Ian Oakley (Eds.). ACM, 137:1–137:18. doi:10.1145/3746059.3747778 [53] Priyan Vaithilingam, Tianyi Zhang, and Elena L. Glassman. 2022. Expectation vs. Experience: Evaluating the Usability of Code Generation Tools Powered by Large Language Models. In CHI Conference on Human Factors in Computing Systems Ex-tended Abstracts . ACM, New Orleans LA USA, 1–7. doi:10.1145/3491101.3519665 [54] Vasudev Vikram, Caroline Lemieux, Joshua Sunshine, and Rohan Padhye. 2023. Can large language models write good property-based tests? arXiv preprint arXiv:2307.04346 (2023). [55] Frank Wilcoxon. 1992. Individual Comparisons by Ranking Methods . Springer New York, New York, NY, 196–202. doi:10.1007/978-1-4612-4380-9_16 [56] Ryan Yen, Jiawen Stefanie Zhu, Sangho Suh, Haijun Xia, and Jian Zhao. 2024. CoLadder: Manipulating Code Generation via Multi-Level Blocks. In Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology, UIST 2024, Pittsburgh, PA, USA, October 13-16, 2024 , Lining Yao, Mayank Goel, Alexandra Ion, and Pedro Lopes (Eds.). ACM, 11:1–11:20. doi:10.1145/3654777. 3676357 [57] J. D. Zamfirescu-Pereira, Eunice Jun, Michael Terry, Qian Yang, and Bjoern Hartmann. 2025. Beyond Code Generation: LLM-supported Exploration of the Program Design Space. In Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems, CHI 2025, YokohamaJapan, 26 April 2025- 1 May 2025 ,Naomi Yamashita, Vanessa Evers, Koji Yatani, Sharon Xianghua Ding, Bongshin Lee, Marshini Chetty, and Phoebe O. Toups Dugas (Eds.). ACM, 153:1–153:17. doi:10.1145/3706598.3714154 [58] Wenshuo Zhang, Leixian Shen, Shuchang Xu, Jindu Wang, Jian Zhao, Huamin Qu, and Linping Yuan. 2025. NeuroSync: Intent-Aware Code-Based Problem Solving via Direct LLM Understanding Modification. In Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology, UIST 2025, Busan, Korea, 28 September 2025 - 1 October 2025 , Andrea Bianchi, Elena L. Glassman, Wendy E. Mackay, Shengdong Zhao, Jeeeun Kim, and Ian Oakley (Eds.). ACM, 30:1–30:19. doi:10.1145/3746059.3747668

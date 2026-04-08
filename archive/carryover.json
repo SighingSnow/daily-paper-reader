@@ -1,6 +1,138 @@
 {
-  "generated_at": "2026-04-07T19:51:49.424685+00:00",
-  "updated_date": "20260407",
+  "generated_at": "2026-04-08T20:33:40.742662+00:00",
+  "updated_date": "20260408",
   "carryover_days": 9,
-  "items": []
+  "items": [
+    {
+      "id": "2604.05818v1",
+      "title": "WikiSeeker: Rethinking the Role of Vision-Language Models in Knowledge-Based Visual Question Answering",
+      "abstract": "Multi-modal Retrieval-Augmented Generation (RAG) has emerged as a highly effective paradigm for Knowledge-Based Visual Question Answering (KB-VQA). Despite recent advancements, prevailing methods still primarily depend on images as the retrieval key, and often overlook or misplace the role of Vision-Language Models (VLMs), thereby failing to leverage their potential fully. In this paper, we introduce WikiSeeker, a novel multi-modal RAG framework that bridges these gaps by proposing a multi-modal retriever and redefining the role of VLMs. Rather than serving merely as answer generators, we assign VLMs two specialized agents: a Refiner and an Inspector. The Refiner utilizes the capability of VLMs to rewrite the textual query according to the input image, significantly improving the performance of the multimodal retriever. The Inspector facilitates a decoupled generation strategy by selectively routing reliable retrieved context to another LLM for answer generation, while relying on the VLM's internal knowledge when retrieval is unreliable. Extensive experiments on EVQA, InfoSeek, and M2KR demonstrate that WikiSeeker achieves state-of-the-art performance, with substantial improvements in both retrieval accuracy and answer quality. Our code will be released on https://github.com/zhuyjan/WikiSeeker.",
+      "authors": [
+        "Yingjian Zhu",
+        "Xinming Wang",
+        "Kun Ding",
+        "Ying Wang",
+        "Bin Fan",
+        "Shiming Xiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-04-07T12:52:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.05818v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "VLMs as specialized agents for knowledge-based visual QA retrieval",
+      "llm_evidence_cn": "VLM作为知识视觉问答检索的专用智能体",
+      "llm_evidence": "VLM作为知识视觉问答检索的专用智能体",
+      "canonical_evidence": "VLM作为知识视觉问答检索的专用智能体",
+      "llm_tldr_en": "Introduces WikiSeeker framework using VLMs as Refiner and Inspector agents for multi-modal RAG.",
+      "llm_tldr_cn": "引入WikiSeeker框架，将VLM作为Refiner和Inspector智能体用于多模态RAG。",
+      "llm_tldr": "引入WikiSeeker框架，将VLM作为Refiner和Inspector智能体用于多模态RAG。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.05818v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2604.06126v1",
+      "title": "Gym-Anything: Turn any Software into an Agent Environment",
+      "abstract": "Computer-use agents hold the promise of assisting in a wide range of digital economic activities. However, current research has largely focused on short-horizon tasks over a limited set of software with limited economic value, such as basic e-commerce and OS-configuration tasks. A key reason is that creating environments for complex software requires significant time and human effort, and therefore does not scale. To address this, we introduce Gym-Anything, a framework for converting any software into an interactive computer-use environment. We frame environment creation itself as a multi-agent task: a coding agent writes setup scripts, downloads real-world data, and configures the software, while producing evidence of correct setup. An independent audit agent then verifies evidence for the environment setup against a quality checklist. Using a taxonomy of economically valuable occupations grounded in U.S. GDP data, we apply this pipeline to 200 software applications with broad occupational coverage. The result is CUA-World, a collection of over 10K long-horizon tasks spanning domains from medical science and astronomy to engineering and enterprise systems, each configured with realistic data along with train and test splits. CUA-World also includes CUA-World-Long, a challenging long-horizon benchmark with tasks often requiring over 500 steps, far exceeding existing benchmarks. Distilling successful trajectories from the training split into a 2B vision-language model outperforms models 2$\\times$ its size. We also apply the same auditing principle at test time: a separate VLM reviews completed trajectories and provides feedback on what remains, improving Gemini-3-Flash on CUA-World-Long from 11.5% to 14.0%. We release all code, infrastructure, and benchmark data to facilitate future research in realistic computer-use agents.",
+      "authors": [
+        "Pranjal Aggarwal",
+        "Graham Neubig",
+        "Sean Welleck"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-04-07T17:38:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.06126v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Framework for agent environments with coding agent and audit agent",
+      "llm_evidence_cn": "智能体环境框架，包含编程智能体和审计智能体",
+      "llm_evidence": "智能体环境框架，包含编程智能体和审计智能体",
+      "canonical_evidence": "智能体环境框架，包含编程智能体和审计智能体",
+      "llm_tldr_en": "Proposes a framework to convert any software into agent environments using multi-agent collaboration.",
+      "llm_tldr_cn": "提出一种框架，通过多智能体协作将任意软件转化为智能体环境。",
+      "llm_tldr": "提出一种框架，通过多智能体协作将任意软件转化为智能体环境。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.06126v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2604.05498v1",
+      "title": "JailWAM: Jailbreaking World Action Models in Robot Control",
+      "abstract": "The World Action Model (WAM) can jointly predict future world states and actions, exhibiting stronger physical manipulation capabilities compared with traditional models. Such powerful physical interaction ability is a double-edged sword: if safety is ignored, it will directly threaten personal safety, property security and environmental safety. However, existing research pays extremely limited attention to the critical security gap: the vulnerability of WAM to jailbreak attacks. To fill this gap, we define the Three-Level Safety Classification Framework to systematically quantify the safety of robotic arm motions. Furthermore, we propose JailWAM, the first dedicated jailbreak attack and evaluation framework for WAM, which consists of three core components: (1) Visual-Trajectory Mapping, which unifies heterogeneous action spaces into visual trajectory representations and enables cross-architectural unified evaluation; (2) Risk Discriminator, which serves as a high-recall screening tool that optimizes the efficiency-accuracy trade-off when identifying destructive behaviors in visual trajectories; (3) Dual-Path Verification Strategy, which first conducts rapid coarse screening via a single-image-based video-action generation module, and then performs efficient and comprehensive verification through full closed-loop physical simulation. In addition, we construct JailWAM-Bench, a benchmark for comprehensively evaluating the safety alignment performance of WAM under jailbreak attacks. Experiments in RoboTwin simulation environment demonstrate that the proposed framework efficiently exposes physical vulnerabilities, achieving an 84.2% attack success rate on the state-of-the-art LingBot-VA. Meanwhile, robust defense mechanisms can be constructed based on JailWAM, providing an effective technical solution for designing safe and reliable robot control systems.",
+      "authors": [
+        "Hanqing Liu",
+        "Songping Wang",
+        "Jiahuan Long",
+        "Jiacheng Hou",
+        "Jialiang Sun",
+        "Chao Li",
+        "Yang Yang",
+        "Wei Peng",
+        "Xu Liu",
+        "Tingsong Jiang",
+        "Wen Yao",
+        "Yao Mu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-04-07T06:41:41+00:00",
+      "link": "https://arxiv.org/pdf/2604.05498v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "World Action Model (WAM) for robot control with safety evaluation framework",
+      "llm_evidence_cn": "用于机器人控制的世界动作模型及安全评估框架",
+      "llm_evidence": "用于机器人控制的世界动作模型及安全评估框架",
+      "canonical_evidence": "用于机器人控制的世界动作模型及安全评估框架",
+      "llm_tldr_en": "Proposes JailWAM framework for jailbreak attacks and safety evaluation of World Action Models in robotics.",
+      "llm_tldr_cn": "提出JailWAM框架，用于机器人世界动作模型的越狱攻击与安全评估。",
+      "llm_tldr": "提出JailWAM框架，用于机器人世界动作模型的越狱攻击与安全评估。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.05498v1",
+      "carry_days": 1
+    }
+  ]
 }

@@ -6,91 +6,91 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-07
-- 运行时间：2026-04-07 20:14:36 UTC
+- 最新运行日期：2026-04-08
+- 运行时间：2026-04-08 20:58:41 UTC
 - 运行状态：成功
 - 本次总论文数：23
 - 精读区：11
 - 速读区：12
 
 ### 今日简报（AI）
-今日深度复盘23篇论文，满分研究揭示小模型如何通过“搜索”策略变身高效智能体。
-重点推荐关注“搜索而非猜测”的小模型智能体优化路径，以及具备复杂思考能力的工业级代码世界模型。
-建议开发者留意小模型智能体化趋势，普通读者可关注AI在自动驾驶与代码生成领域的最新突破。
-- 详情：[/202604/07/README](/202604/07/README)
+1) 今日研读23篇论文，深度聚焦世界模型安全风险与智能体记忆架构。
+2) 两篇9.0分论文重磅揭示世界模型认知风险，并探索记忆智能体的核心架构。
+3) 建议优先阅读高分论文，深入了解AI安全边界与智能体记忆能力的最新突破。
+- 详情：[/202604/08/README](/202604/08/README)
 
 ### 精读区论文标签
-1. [Search, Do not Guess: Teaching Small Language Models to Be Effective Search Agents](/202604/07/2604.04651v1-search-do-not-guess-teaching-small-language-models-to-be-effective-search-agents)  
-   标签：评分：10.0/10、query:agent
-   evidence：教导小语言模型成为有效的搜索智能体
-2. [InCoder-32B-Thinking: Industrial Code World Model for Thinking](/202604/07/2604.03144v1-incoder-32b-thinking-industrial-code-world-model-for-thinking)  
+1. [Safety, Security, and Cognitive Risks in World Models](/202604/08/2604.01346v2-safety-security-and-cognitive-risks-in-world-models)  
    标签：评分：9.0/10、query:wmodel
-   evidence：工业代码世界模型用于推理轨迹生成
-3. [Hierarchical Planning with Latent World Models](/202604/07/2604.03208v1-hierarchical-planning-with-latent-world-models)  
+   evidence：世界模型风险的全面分析
+2. [Memory Intelligence Agent](/202604/08/2604.04503v2-memory-intelligence-agent)  
+   标签：评分：9.0/10、query:agent
+   evidence：管理器-规划器-执行器框架的深度研究智能体
+3. [ROSClaw: A Hierarchical Semantic-Physical Framework for Heterogeneous Multi-Agent Collaboration](/202604/08/2604.04664v1-rosclaw-a-hierarchical-semantic-physical-framework-for-heterogeneous-multi-agent-collaboration)  
+   标签：评分：9.0/10、query:agent
+   evidence：异构多智能体协作的分层框架
+4. [Squeez: Task-Conditioned Tool-Output Pruning for Coding Agents](/202604/08/2604.04979v1-squeez-task-conditioned-tool-output-pruning-for-coding-agents)  
+   标签：评分：9.0/10、query:agent
+   evidence：代码智能体的工具输出剪枝
+5. [Architecture Without Architects: How AI Coding Agents Shape Software Architecture](/202604/08/2604.04990v1-architecture-without-architects-how-ai-coding-agents-shape-software-architecture)  
+   标签：评分：9.0/10、query:agent
+   evidence：AI编程智能体做出架构决策
+6. [Scaling Coding Agents via Atomic Skills](/202604/08/2604.05013v1-scaling-coding-agents-via-atomic-skills)  
+   标签：评分：9.0/10、query:agent
+   evidence：基于原子技能训练的LLM代码智能体
+7. [StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing](/202604/08/2604.05014v1-starvla-a-lego-like-codebase-for-vision-language-action-model-developing)  
+   标签：评分：9.0/10、query:agent
+   evidence：视觉-语言-动作模型开发框架
+8. [Spec Kit Agents: Context-Grounded Agentic Workflows](/202604/08/2604.05278v1-spec-kit-agents-context-grounded-agentic-workflows)  
+   标签：评分：9.0/10、query:agent
+   evidence：包含PM和开发者角色的多智能体SDD流水线
+9. [FLARE: Agentic Coverage-Guided Fuzzing for LLM-Based Multi-Agent Systems](/202604/08/2604.05289v1-flare-agentic-coverage-guided-fuzzing-for-llm-based-multi-agent-systems)  
+   标签：评分：9.0/10、query:agent
+   evidence：LLM多智能体系统的测试框架
+10. [CODESTRUCT: Code Agents over Structured Action Spaces](/202604/08/2604.05407v1-codestruct-code-agents-over-structured-action-spaces)  
+   标签：评分：9.0/10、query:agent
+   evidence：在结构化AST动作空间上操作的代码智能体
+11. [Toward Consistent World Models with Multi-Token Prediction and Latent Semantic Enhancement](/202604/08/2604.06155v1-toward-consistent-world-models-with-multi-token-prediction-and-latent-semantic-enhancement)  
    标签：评分：9.0/10、query:wmodel
-   evidence：用于分层规划和具身控制的潜在世界模型
-4. [ABTest: Behavior-Driven Testing for AI Coding Agents](/202604/07/2604.03362v1-abtest-behavior-driven-testing-for-ai-coding-agents)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于测试AI编程代理的行为驱动模糊测试框架
-5. [Inside the Scaffold: A Source-Code Taxonomy of Coding Agent Architectures](/202604/07/2604.03515v1-inside-the-scaffold-a-source-code-taxonomy-of-coding-agent-architectures)  
-   标签：评分：9.0/10、query:agent
-   evidence：代码智能体架构的源代码分类体系
-6. [AgenticFlict: A Large-Scale Dataset of Merge Conflicts in AI Coding Agent Pull Requests on GitHub](/202604/07/2604.03551v1-agenticflict-a-large-scale-dataset-of-merge-conflicts-in-ai-coding-agent-pull-requests-on-github)  
-   标签：评分：9.0/10、query:agent
-   evidence：AI代码智能体PR合并冲突大规模数据集
-7. [PRAISE: Prefix-Based Rollout Reuse in Agentic Search Training](/202604/07/2604.03675v1-praise-prefix-based-rollout-reuse-in-agentic-search-training)  
-   标签：评分：9.0/10、query:agent
-   evidence：用于多轮检索和推理的智能体搜索训练
-8. [Agentic Code Optimization via Compiler-LLM Cooperation](/202604/07/2604.04238v1-agentic-code-optimization-via-compiler-llm-cooperation)  
-   标签：评分：9.0/10、query:agent
-   evidence：通过编译器-LLM协作的智能体代码优化
-9. [Memory Intelligence Agent](/202604/07/2604.04503v1-memory-intelligence-agent)  
-   标签：评分：9.0/10、query:agent
-   evidence：具有搜索和分析能力的深度研究智能体
-10. [OpenWorldLib: A Unified Codebase and Definition of Advanced World Models](/202604/07/2604.04707v1-openworldlib-a-unified-codebase-and-definition-of-advanced-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：高级世界模型的统一框架和定义
-11. [A Frame is Worth One Token: Efficient Generative World Modeling with Delta Tokens](/202604/07/2604.04913v1-a-frame-is-worth-one-token-efficient-generative-world-modeling-with-delta-tokens)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：明确的生成式世界建模，提出DeltaTok分词器和DeltaWorld模型
+   evidence：多token预测的一致世界模型
 
 ### 速读区论文标签
-1. [Yet Even Less Is Even Better For Agentic, Reasoning, and Coding LLMs](/202604/07/2604.00824v3-yet-even-less-is-even-better-for-agentic-reasoning-and-coding-llms)  
+1. [Multilingual Prompt Localization for Agent-as-a-Judge: Language and Backbone Sensitivity in Requirement-Level Evaluation](/202604/08/2604.04532v1-multilingual-prompt-localization-for-agent-as-a-judge-language-and-backbone-sensitivity-in-requirement-level-evaluation)  
    标签：评分：8.0/10、query:agent
-   evidence：软件工程代理的训练框架与轨迹优化
-2. [Humans Integrate, Agents Fix: How Agent-Authored Pull Requests Are Referenced in Practice](/202604/07/2604.04059v1-humans-integrate-agents-fix-how-agent-authored-pull-requests-are-referenced-in-practice)  
+   evidence：Agent-as-a-Judge在代码基准上评估开发者智能体框架
+2. [Measuring the Permission Gate: A Stress-Test Evaluation of Claude Code's Auto Mode](/202604/08/2604.04978v1-measuring-the-permission-gate-a-stress-test-evaluation-of-claude-codes-auto-mode)  
    标签：评分：8.0/10、query:agent
-   evidence：协作软件开发中编程代理的实证研究
-3. [DriveVA: Video Action Models are Zero-Shot Drivers](/202604/07/2604.04198v1-driveva-video-action-models-are-zero-shot-drivers)  
-   标签：评分：8.0/10、query:wmodel
-   evidence：自动驾驶世界模型，联合解码视觉预测和动作序列
-4. [StatsClaw: An AI-Collaborative Workflow for Statistical Software Development](/202604/07/2604.04871v1-statsclaw-an-ai-collaborative-workflow-for-statistical-software-development)  
+   evidence：评估Claude Code自动模式的AI编码智能体权限系统
+3. [EvolveRouter: Co-Evolving Routing and Prompt for Multi-Agent Question Answering](/202604/08/2604.05149v1-evolverouter-co-evolving-routing-and-prompt-for-multi-agent-question-answering)  
    标签：评分：8.0/10、query:agent
-   evidence：用于统计软件代码生成的多代理架构
-5. [Learnability-Guided Diffusion for Dataset Distillation](/202604/07/2604.00519v1-learnability-guided-diffusion-for-dataset-distillation)  
+   evidence：多智能体问答框架与协同进化路由
+4. [SCMAPR: Self-Correcting Multi-Agent Prompt Refinement for Complex-Scenario Text-to-Video Generation](/202604/08/2604.05489v1-scmapr-self-correcting-multi-agent-prompt-refinement-for-complex-scenario-text-to-video-generation)  
+   标签：评分：8.0/10、query:agent
+   evidence：协调专业智能体的多智能体框架用于提示优化
+5. [The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages](/202604/08/2603.29244v1-the-thiomi-dataset-a-large-scale-multimodal-corpus-for-low-resource-african-languages)  
    标签：评分：7.0/10、query:wmodel
-   evidence：通过扩散蒸馏创建合成数据集
-6. [AgentHazard: A Benchmark for Evaluating Harmful Behavior in Computer-Use Agents](/202604/07/2604.02947v1-agenthazard-a-benchmark-for-evaluating-harmful-behavior-in-computer-use-agents)  
-   标签：评分：7.0/10、query:agent
-   evidence：评估计算机使用智能体安全性的基准
-7. [Querying Structured Data Through Natural Language Using Language Models](/202604/07/2604.03057v1-querying-structured-data-through-natural-language-using-language-models)  
-   标签：评分：7.0/10、query:agent
-   evidence：基于LLM的自然语言查询结构化数据系统
-8. [VidNum-1.4K: A Comprehensive Benchmark for Video-based Numerical Reasoning](/202604/07/2604.03701v1-vidnum-14k-a-comprehensive-benchmark-for-video-based-numerical-reasoning)  
+   evidence：大规模多模态数据集，包含文本和音频标注
+6. [The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages](/202604/08/2603.29244v2-the-thiomi-dataset-a-large-scale-multimodal-corpus-for-low-resource-african-languages)  
    标签：评分：7.0/10、query:wmodel
-   evidence：视频数值推理新基准数据集
-9. [How Well Do Agentic Skills Work in the Wild: Benchmarking LLM Skill Usage in Realistic Settings](/202604/07/2604.04323v1-how-well-do-agentic-skills-work-in-the-wild-benchmarking-llm-skill-usage-in-realistic-settings)  
+   evidence：涵盖十种非洲语言的大规模多模态数据集
+7. [Decision-Oriented Programming with Aporia](/202604/08/2604.05203v1-decision-oriented-programming-with-aporia)  
    标签：评分：7.0/10、query:agent
-   evidence：在真实场景中评估LLM智能体技能使用
-10. [Veo-Act: How Far Can Frontier Video Models Advance Generalizable Robot Manipulation?](/202604/07/2604.04502v1-veo-act-how-far-can-frontier-video-models-advance-generalizable-robot-manipulation)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：视频生成模型预测未来状态用于机器人操作，属于世界建模范畴
-11. [Optimizing RAG Rerankers with LLM Feedback via Reinforcement Learning](/202604/07/2604.02091v1-optimizing-rag-rerankers-with-llm-feedback-via-reinforcement-learning)  
+   evidence：面向AI编码智能体的决策导向编程范式
+8. [Foundations for Agentic AI Investigations from the Forensic Analysis of OpenClaw](/202604/08/2604.05589v1-foundations-for-agentic-ai-investigations-from-the-forensic-analysis-of-openclaw)  
+   标签：评分：7.0/10、query:agent
+   evidence：智能体AI系统的取证分析
+9. [SEAL: An Open, Auditable, and Fair Data Generation Framework for AI-Native 6G Networks](/202604/08/2604.02128v1-seal-an-open-auditable-and-fair-data-generation-framework-for-ai-native-6g-networks)  
    标签：评分：6.0/10、query:agent
-   evidence：用于优化RAG重排序器的强化学习框架
-12. [BridgeRAG: Training-Free Bridge-Conditioned Retrieval for Multi-Hop Question Answering](/202604/07/2604.03384v1-bridgerag-training-free-bridge-conditioned-retrieval-for-multi-hop-question-answering)  
+   evidence：面向AI原生6G网络的数据生成框架
+10. [Document Optimization for Black-Box Retrieval via Reinforcement Learning](/202604/08/2604.05087v1-document-optimization-for-black-box-retrieval-via-reinforcement-learning)  
    标签：评分：6.0/10、query:agent
-   evidence：用于多跳问答的无训练检索方法
+   evidence：使用强化学习和排序奖励优化检索文档
+11. [A Multi-Agent Framework for Automated Exploit Generation with Constraint-Guided Comprehension and Reflection](/202604/08/2604.05130v1-a-multi-agent-framework-for-automated-exploit-generation-with-constraint-guided-comprehension-and-reflection)  
+   标签：评分：6.0/10、query:agent
+   evidence：用于自动化漏洞利用生成的多智能体框架
+12. [DQA: Diagnostic Question Answering for IT Support](/202604/08/2604.05350v1-dqa-diagnostic-question-answering-for-it-support)  
+   标签：评分：6.0/10、query:agent
+   evidence：具有检索和查询重写的诊断问答系统
 
 
 <div class="dpr-home-promo-card">

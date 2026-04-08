@@ -1,0 +1,921 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-08T20:33:40.741233+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 18,
+    "deep_cap": 7,
+    "deep_selected": 11,
+    "quick_candidates": 18,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2604.01346v2",
+      "title": "Safety, Security, and Cognitive Risks in World Models",
+      "abstract": "World models - learned internal simulators of environment dynamics - are rapidly becoming foundational to autonomous decision-making in robotics, autonomous vehicles, and agentic AI. By predicting future states in compressed latent spaces, they enable sample-efficient planning and long-horizon imagination without direct environment interaction. Yet this predictive power introduces a distinctive set of safety, security, and cognitive risks. Adversaries can corrupt training data, poison latent representations, and exploit compounding rollout errors to cause significant degradation in safety-critical deployments. At the alignment layer, world model-equipped agents are more capable of goal misgeneralisation, deceptive alignment, and reward hacking. At the human layer, authoritative world model predictions foster automation bias, miscalibrated trust, and planning hallucination.   This paper surveys the world model landscape; introduces formal definitions of trajectory persistence and representational risk; presents a five-profile attacker taxonomy; and develops a unified threat model drawing on MITRE ATLAS and the OWASP LLM Top 10. We provide an empirical proof-of-concept demonstrating trajectory-persistent adversarial attacks on a GRU-based RSSM ($\\mathcal{A}_1 = 2.26\\times$ amplification, $-59.5\\%$ reward reduction under adversarial fine-tuning), validate architecture-dependence via a stochastic RSSM proxy ($\\mathcal{A}_1 = 0.65\\times$), and probe a real DreamerV3 checkpoint (non-zero action drift confirmed). We propose interdisciplinary mitigations spanning adversarial hardening, alignment engineering, NIST AI RMF and EU AI Act governance, and human-factors design, arguing that world models require the same rigour as flight-control software or medical devices.",
+      "authors": [
+        "Manoj Parmar"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-04-01T19:57:33+00:00",
+      "link": "https://arxiv.org/pdf/2604.01346v2",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "comprehensive analysis of world model risks",
+      "llm_evidence_cn": "世界模型风险的全面分析",
+      "llm_evidence": "世界模型风险的全面分析",
+      "canonical_evidence": "世界模型风险的全面分析",
+      "llm_tldr_en": "Analyzes safety, security and cognitive risks in world models for autonomous AI systems.",
+      "llm_tldr_cn": "分析自主AI系统中世界模型的安全、安保与认知风险。",
+      "llm_tldr": "分析自主AI系统中世界模型的安全、安保与认知风险。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.04503v2",
+      "title": "Memory Intelligence Agent",
+      "abstract": "Deep research agents (DRAs) integrate LLM reasoning with external tools. Memory systems enable DRAs to leverage historical experiences, which are essential for efficient reasoning and autonomous evolution. Existing methods rely on retrieving similar trajectories from memory to aid reasoning, while suffering from key limitations of ineffective memory evolution and increasing storage and retrieval costs. To address these problems, we propose a novel Memory Intelligence Agent (MIA) framework, consisting of a Manager-Planner-Executor architecture. Memory Manager is a non-parametric memory system that can store compressed historical search trajectories. Planner is a parametric memory agent that can produce search plans for questions. Executor is another agent that can search and analyze information guided by the search plan. To build the MIA framework, we first adopt an alternating reinforcement learning paradigm to enhance cooperation between the Planner and the Executor. Furthermore, we enable the Planner to continuously evolve during test-time learning, with updates performed on-the-fly alongside inference without interrupting the reasoning process. Additionally, we establish a bidirectional conversion loop between parametric and non-parametric memories to achieve efficient memory evolution. Finally, we incorporate a reflection and an unsupervised judgment mechanisms to boost reasoning and self-evolution in the open world. Extensive experiments across eleven benchmarks demonstrate the superiority of MIA.",
+      "authors": [
+        "Jingyang Qiao",
+        "Weicheng Meng",
+        "Yu Cheng",
+        "Zhihang Lin",
+        "Zhizhong Zhang",
+        "Xin Tan",
+        "Jingyu Gong",
+        "Kun Shao",
+        "Yuan Xie"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-04-06T07:59:52+00:00",
+      "link": "https://arxiv.org/pdf/2604.04503v2",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Deep research agents with Manager-Planner-Executor framework",
+      "llm_evidence_cn": "管理器-规划器-执行器框架的深度研究智能体",
+      "llm_evidence": "管理器-规划器-执行器框架的深度研究智能体",
+      "canonical_evidence": "管理器-规划器-执行器框架的深度研究智能体",
+      "llm_tldr_en": "Proposes MIA framework for deep research agents with memory systems and search capabilities.",
+      "llm_tldr_cn": "提出MIA框架，为深度研究智能体提供记忆系统与搜索能力。",
+      "llm_tldr": "提出MIA框架，为深度研究智能体提供记忆系统与搜索能力。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.04664v1",
+      "title": "ROSClaw: A Hierarchical Semantic-Physical Framework for Heterogeneous Multi-Agent Collaboration",
+      "abstract": "The integration of large language models (LLMs) with embodied agents has improved high-level reasoning capabilities; however, a critical gap remains between semantic understanding and physical execution. While vision-language-action (VLA) and vision-language-navigation (VLN) systems enable robots to perform manipulation and navigation tasks from natural language instructions, they still struggle with long-horizon sequential and temporally structured tasks. Existing frameworks typically adopt modular pipelines for data collection, skill training, and policy deployment, resulting in high costs in experimental validation and policy optimization. To address these limitations, we propose ROSClaw, an agent framework for heterogeneous robots that integrates policy learning and task execution within a unified vision-language model (VLM) controller. The framework leverages e-URDF representations of heterogeneous robots as physical constraints to construct a sim-to-real topological mapping, enabling real-time access to the physical states of both simulated and real-world agents. We further incorporate a data collection and state accumulation mechanism that stores robot states, multimodal observations, and execution trajectories during real-world execution, enabling subsequent iterative policy optimization. During deployment, a unified agent maintains semantic continuity between reasoning and execution, and dynamically assigns task-specific control to different agents, thereby improving robustness in multi-policy execution. By establishing an autonomous closed-loop framework, ROSClaw minimizes the reliance on robot-specific development workflows. The framework supports hardware-level validation, automated generation of SDK-level control programs, and tool-based execution, enabling rapid cross-platform transfer and continual improvement of robotic skills. Ours project page: https://www.rosclaw.io/.",
+      "authors": [
+        "Rongfeng Zhao",
+        "Xuanhao Zhang",
+        "Zhaochen Guo",
+        "Xiang Shao",
+        "Zhongpan Zhu",
+        "Bin He",
+        "Jie Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-04-06T13:16:24+00:00",
+      "link": "https://arxiv.org/pdf/2604.04664v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Hierarchical agent framework for heterogeneous multi-agent collaboration",
+      "llm_evidence_cn": "异构多智能体协作的分层框架",
+      "llm_evidence": "异构多智能体协作的分层框架",
+      "canonical_evidence": "异构多智能体协作的分层框架",
+      "llm_tldr_en": "Proposes ROSClaw framework bridging semantic understanding and physical execution for embodied agents.",
+      "llm_tldr_cn": "提出ROSClaw框架，连接具身智能体的语义理解和物理执行。",
+      "llm_tldr": "提出ROSClaw框架，连接具身智能体的语义理解和物理执行。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.04979v1",
+      "title": "Squeez: Task-Conditioned Tool-Output Pruning for Coding Agents",
+      "abstract": "Coding agents repeatedly consume long tool observations even though only a small fraction of each observation matters for the next step. We study task-conditioned tool-output pruning: given a focused query and one tool output, return the smallest verbatim evidence block the agent should inspect next. We introduce a benchmark of 11,477 examples built from SWE-bench repository interactions and synthetic multi-ecosystem tool outputs, with a manually curated 618-example test set. We fine-tune Qwen 3.5 2B with LoRA and compare it against larger zero-shot models and heuristic pruning baselines. Our model reaches 0.86 recall and 0.80 F1 while removing 92% of input tokens, outperforming zero-shot Qwen 3.5 35B A3B by 11 recall points and all heuristic baselines by a wide margin.",
+      "authors": [
+        "Ádám Kovács"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-04-04T18:52:44+00:00",
+      "link": "https://arxiv.org/pdf/2604.04979v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "tool-output pruning for coding agents",
+      "llm_evidence_cn": "代码智能体的工具输出剪枝",
+      "llm_evidence": "代码智能体的工具输出剪枝",
+      "canonical_evidence": "代码智能体的工具输出剪枝",
+      "llm_tldr_en": "Proposes task-conditioned pruning to reduce token consumption for coding agents while preserving evidence.",
+      "llm_tldr_cn": "提出任务条件剪枝方法，减少代码智能体的token消耗同时保留关键证据。",
+      "llm_tldr": "提出任务条件剪枝方法，减少代码智能体的token消耗同时保留关键证据。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.04990v1",
+      "title": "Architecture Without Architects: How AI Coding Agents Shape Software Architecture",
+      "abstract": "AI coding agents select frameworks, scaffold infrastructure, and wire integrations, often in seconds. These are architectural decisions, yet almost no one reviews them as such. We identify five mechanisms by which agents make implicit architectural choices and propose six prompt-architecture coupling patterns that map natural-language prompt features to the infrastructure they require. The patterns range from contingent couplings (structured output validation) that may weaken as models improve to fundamental ones (tool-call orchestration) that persist regardless of model capability. An illustrative demonstration confirms that prompt wording alone produces structurally different systems for the same task. We term the phenomenon vibe architecting, architecture shaped by prompts rather than deliberate design, and outline review practices, decision records, and tooling to bring these hidden decisions under governance.",
+      "authors": [
+        "Phongsakon Mark Konrad",
+        "Tim Lukas Adam",
+        "Riccardo Terrenzi",
+        "Serkan Ayvaz"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-04-05T07:32:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.04990v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "AI coding agents making architectural decisions",
+      "llm_evidence_cn": "AI编程智能体做出架构决策",
+      "llm_evidence": "AI编程智能体做出架构决策",
+      "canonical_evidence": "AI编程智能体做出架构决策",
+      "llm_tldr_en": "Studies how AI coding agents implicitly shape software architecture through framework and infrastructure choices.",
+      "llm_tldr_cn": "研究AI编程智能体如何通过框架选择隐式塑造软件架构。",
+      "llm_tldr": "研究AI编程智能体如何通过框架选择隐式塑造软件架构。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05013v1",
+      "title": "Scaling Coding Agents via Atomic Skills",
+      "abstract": "Current LLM coding agents are predominantly trained on composite benchmarks (e.g., bug fixing), which often leads to task-specific overfitting and limited generalization. To address this, we propose a novel scaling paradigm that shifts the focus from task-level optimization to atomic skill mastery. We first formalize five fundamental atomic skills, code localization, code editing, unit-test generation, issue reproduction, and code review, that serve as the basis vectors for complex software engineering tasks. Compared with composite coding tasks, these atomic skills are more generalizable and composable. Then, we scale coding agents by performing joint RL over atomic skills. In this manner, atomic skills are consistently improved without negative interference or trade-offs between them. Notably, we observe that improvements in these atomic skills generalize well to other unseen composite coding tasks, such as bug-fixing, code refactoring, machine learning engineering, and code security. The observation motivates a new scaling paradigm for coding agents by training with atomic skills. Extensive experiments demonstrate the effectiveness of our proposed paradigm. Notably, our joint RL improves average performance by 18.7% on 5 atomic skills and 5 composite tasks.",
+      "authors": [
+        "Yingwei Ma",
+        "Yue Liu",
+        "Xinlong Yang",
+        "Yanhao Li",
+        "Kelin Fu",
+        "Yibo Miao",
+        "Yuchong Xie",
+        "Zhexu Wang",
+        "Shing-Chi Cheung"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-04-06T16:36:21+00:00",
+      "link": "https://arxiv.org/pdf/2604.05013v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM coding agents trained on atomic skills for software engineering",
+      "llm_evidence_cn": "基于原子技能训练的LLM代码智能体",
+      "llm_evidence": "基于原子技能训练的LLM代码智能体",
+      "canonical_evidence": "基于原子技能训练的LLM代码智能体",
+      "llm_tldr_en": "Proposes atomic skill mastery paradigm to scale coding agents with better generalization.",
+      "llm_tldr_cn": "提出原子技能掌握范式以提升代码智能体的泛化能力",
+      "llm_tldr": "提出原子技能掌握范式以提升代码智能体的泛化能力",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05014v1",
+      "title": "StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing",
+      "abstract": "Building generalist embodied agents requires integrating perception, language understanding, and action, which are core capabilities addressed by Vision-Language-Action (VLA) approaches based on multimodal foundation models, including recent advances in vision-language models and world models. Despite rapid progress, VLA methods remain fragmented across incompatible architectures, codebases, and evaluation protocols, hindering principled comparison and reproducibility. We present StarVLA, an open-source codebase for VLA research. StarVLA addresses these challenges in three aspects. First, it provides a modular backbone--action-head architecture that supports both VLM backbones (e.g., Qwen-VL) and world-model backbones (e.g., Cosmos) alongside representative action-decoding paradigms, all under a shared abstraction in which backbone and action head can each be swapped independently. Second, it provides reusable training strategies, including cross-embodiment learning and multimodal co-training, that apply consistently across supported paradigms. Third, it integrates major benchmarks, including LIBERO, SimplerEnv, RoboTwin~2.0, RoboCasa-GR1, and BEHAVIOR-1K, through a unified evaluation interface that supports both simulation and real-robot deployment. StarVLA also ships simple, fully reproducible single-benchmark training recipes that, despite minimal data engineering, already match or surpass prior methods on multiple benchmarks with both VLM and world-model backbones. To our best knowledge, StarVLA is one of the most comprehensive open-source VLA frameworks available, and we expect it to lower the barrier for reproducing existing methods and prototyping new ones. StarVLA is being actively maintained and expanded; we will update this report as the project evolves. The code and documentation are available at https://github.com/starVLA/starVLA.",
+      "authors": [
+        "StarVLA Community"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-04-06T17:59:21+00:00",
+      "link": "https://arxiv.org/pdf/2604.05014v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Open-source framework for VLA model development",
+      "llm_evidence_cn": "视觉-语言-动作模型开发框架",
+      "llm_evidence": "视觉-语言-动作模型开发框架",
+      "canonical_evidence": "视觉-语言-动作模型开发框架",
+      "llm_tldr_en": "Presents StarVLA, a modular open-source codebase for developing vision-language-action models with world model support.",
+      "llm_tldr_cn": "提出模块化开源框架，支持视觉-语言-动作模型和世界模型开发。",
+      "llm_tldr": "提出模块化开源框架，支持视觉-语言-动作模型和世界模型开发。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05278v1",
+      "title": "Spec Kit Agents: Context-Grounded Agentic Workflows",
+      "abstract": "Spec-driven development (SDD) with AI coding agents provides a structured workflow, but agents often remain \"context blind\" in large, evolving repositories, leading to hallucinated APIs and architectural violations. We present Spec Kit Agents, a multi-agent SDD pipeline (with PM and developer roles) that adds phase-level, context-grounding hooks. Read-only probing hooks ground each stage (Specify, Plan, Tasks, Implement) in repository evidence, while validation hooks check intermediate artifacts against the environment. We evaluate 128 runs covering 32 features across five repositories. Context-grounding hooks improve judged quality by +0.15 on a 1-5 composite LLM-as-judge score (+3.0 percent of the full score; Wilcoxon signed-rank, p < 0.05) while maintaining 99.7-100 percent repository-level test compatibility. We further evaluate the framework on SWE-bench Lite, where augmentation hooks improve baseline by 1.7 percent, achieving 58.2 percent Pass@1.",
+      "authors": [
+        "Pardis Taghavi",
+        "Santosh Bhavani"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-04-07T00:26:49+00:00",
+      "link": "https://arxiv.org/pdf/2604.05278v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent SDD pipeline with PM and developer roles for coding",
+      "llm_evidence_cn": "包含PM和开发者角色的多智能体SDD流水线",
+      "llm_evidence": "包含PM和开发者角色的多智能体SDD流水线",
+      "canonical_evidence": "包含PM和开发者角色的多智能体SDD流水线",
+      "llm_tldr_en": "Spec Kit Agents: multi-agent framework with context-grounding hooks for spec-driven development workflows.",
+      "llm_tldr_cn": "Spec Kit Agents：带上下文锚定钩子的多智能体框架，用于规范驱动开发工作流。",
+      "llm_tldr": "Spec Kit Agents：带上下文锚定钩子的多智能体框架，用于规范驱动开发工作流。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05289v1",
+      "title": "FLARE: Agentic Coverage-Guided Fuzzing for LLM-Based Multi-Agent Systems",
+      "abstract": "Multi-Agent LLM Systems (MAS) have been adopted to automate complex human workflows by breaking down tasks into subtasks. However, due to the non-deterministic behavior of LLM agents and the intricate interactions between agents, MAS applications frequently encounter failures, including infinite loops and failed tool invocations. Traditional software testing techniques are ineffective in detecting such failures due to the lack of LLM agent specification, the large behavioral space of MAS, and semantic-based correctness judgment.   This paper presents FLARE, a novel testing framework tailored for MAS. FLARE takes the source code of MAS as input and extracts specifications and behavioral spaces from agent definitions. Based on these specifications, FLARE builds test oracles and conducts coverage-guided fuzzing to expose failures. It then analyzes execution logs to judge whether each test has passed and generates failure reports. Our evaluation on 16 diverse open-source applications demonstrates that FLARE achieves 96.9% inter-agent coverage and 91.1% intra-agent coverage, outperforming baselines by 9.5% and 1.0%. FLARE also uncovers 56 previously unknown failures unique to MAS.",
+      "authors": [
+        "Mingxuan Hui",
+        "Xinyue Li",
+        "Lu Wang",
+        "Chengcheng Wan",
+        "Yifan Wang",
+        "Yimian Wang",
+        "Feiyue Song",
+        "Beining Shi",
+        "Yixi Li",
+        "Yaxiao Li"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-07T00:47:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.05289v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "testing framework for LLM-based multi-agent systems",
+      "llm_evidence_cn": "LLM多智能体系统的测试框架",
+      "llm_evidence": "LLM多智能体系统的测试框架",
+      "canonical_evidence": "LLM多智能体系统的测试框架",
+      "llm_tldr_en": "Presents FLARE, a fuzzing framework for testing multi-agent LLM systems with coverage-guided exploration.",
+      "llm_tldr_cn": "提出FLARE，面向LLM多智能体系统的覆盖引导模糊测试框架。",
+      "llm_tldr": "提出FLARE，面向LLM多智能体系统的覆盖引导模糊测试框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05407v1",
+      "title": "CODESTRUCT: Code Agents over Structured Action Spaces",
+      "abstract": "LLM-based code agents treat repositories as unstructured text, applying edits through brittle string matching that frequently fails due to formatting drift or ambiguous patterns. We propose reframing the codebase as a structured action space where agents operate on named AST entities rather than text spans. Our framework, CODESTRUCT, provides readCode for retrieving complete syntactic units and editCode for applying syntax-validated transformations to semantic program elements. Evaluated on SWE-Bench Verified across six LLMs, CODESTRUCT improves Pass@1 accuracy by 1.2-5.0% while reducing token consumption by 12-38% for most models. Models that frequently fail to produce valid patches under text-based interfaces benefit most: GPT-5-nano improves by 20.8% as empty-patch failures drop from 46.6% to 7.2%. On CodeAssistBench, we observe consistent accuracy gains (+0.8-4.4%) with cost reductions up to 33%. Our results show that structure-aware interfaces offer a more reliable foundation for code agents.",
+      "authors": [
+        "Myeongsoo Kim",
+        "Joe Hsu",
+        "Dingmin Wang",
+        "Shweta Garg",
+        "Varun Kumar",
+        "Murali Krishna Ramanathan"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-04-07T03:58:10+00:00",
+      "link": "https://arxiv.org/pdf/2604.05407v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Code agents operating on structured AST action spaces",
+      "llm_evidence_cn": "在结构化AST动作空间上操作的代码智能体",
+      "llm_evidence": "在结构化AST动作空间上操作的代码智能体",
+      "canonical_evidence": "在结构化AST动作空间上操作的代码智能体",
+      "llm_tldr_en": "CODESTRUCT framework enables code agents to edit repositories via syntax-validated AST transformations.",
+      "llm_tldr_cn": "CODESTRUCT框架使代码智能体能通过语法验证的AST变换编辑代码库。",
+      "llm_tldr": "CODESTRUCT框架使代码智能体能通过语法验证的AST变换编辑代码库。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06155v1",
+      "title": "Toward Consistent World Models with Multi-Token Prediction and Latent Semantic Enhancement",
+      "abstract": "Whether Large Language Models (LLMs) develop coherent internal world models remains a core debate. While conventional Next-Token Prediction (NTP) focuses on one-step-ahead supervision, Multi-Token Prediction (MTP) has shown promise in learning more structured representations. In this work, we provide a theoretical perspective analyzing the gradient inductive bias of MTP, supported by empirical evidence, showing that MTP promotes the convergence toward internal belief states by inducing representational contractivity via gradient coupling. However, we reveal that standard MTP often suffers from structural hallucinations, where discrete token supervision encourages illegal shortcuts in latent space that violate environmental constraints. To address this, we propose a novel method Latent Semantic Enhancement MTP (LSE-MTP), which anchors predictions to ground-truth hidden state trajectories. Experiments on synthetic graphs and real-world Manhattan Taxi Ride show that LSE-MTP effectively bridges the gap between discrete tokens and continuous state representations, enhancing representation alignment, reducing structural hallucinations, and improving robustness to perturbations.",
+      "authors": [
+        "Qimin Zhong",
+        "Hao Liao",
+        "Haiming Qin",
+        "Mingyang Zhou",
+        "Rui Mao",
+        "Wei Chen",
+        "Naipeng Chao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-07T17:54:22+00:00",
+      "link": "https://arxiv.org/pdf/2604.06155v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Consistent world models with multi-token prediction",
+      "llm_evidence_cn": "多token预测的一致世界模型",
+      "llm_evidence": "多token预测的一致世界模型",
+      "canonical_evidence": "多token预测的一致世界模型",
+      "llm_tldr_en": "Analyzes how multi-token prediction promotes coherent internal world models in LLMs.",
+      "llm_tldr_cn": "分析多token预测如何促进LLM内部世界模型的收敛与一致性。",
+      "llm_tldr": "分析多token预测如何促进LLM内部世界模型的收敛与一致性。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.04532v1",
+      "title": "Multilingual Prompt Localization for Agent-as-a-Judge: Language and Backbone Sensitivity in Requirement-Level Evaluation",
+      "abstract": "Evaluation language is typically treated as a fixed English default in agentic code benchmarks, yet we show that changing the judge's language can invert backbone rankings. We localize the Agent-as-a-Judge prompt stack to five typologically diverse languages (English, Arabic, Turkish, Chinese, Hindi) and evaluate 55 DevAI development tasks across three developer-agent frameworks and six judge backbones, totaling 4950 judge runs. The central finding is that backbone and language interact: GPT-4o achieves the highest satisfaction in English (44.72\\%), while Gemini leads in Arabic (51.72\\%, $p<0.001$ vs.\\ GPT-4o) and Hindi (53.22\\%). No single backbone dominates across all languages, and inter-backbone agreement on individual requirement judgments is modest (Fleiss' $κ\\leq 0.231$). A controlled ablation further shows that localizing judge-side instructions, not just benchmark content, can be decisive: Hindi satisfaction drops from 42.8\\% to 23.2\\% under partial localization. These results indicate that language should be treated as an explicit evaluation variable in agentic benchmarks. Full requirement-level judgments and runtime statistics are released for reproducibility.",
+      "authors": [
+        "Alhasan Mahmood",
+        "Samir Abdaljalil",
+        "Hasan Kurban"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-04-06T08:54:16+00:00",
+      "link": "https://arxiv.org/pdf/2604.04532v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Agent-as-a-Judge evaluating developer-agent frameworks on code benchmarks",
+      "llm_evidence_cn": "Agent-as-a-Judge在代码基准上评估开发者智能体框架",
+      "llm_evidence": "Agent-as-a-Judge在代码基准上评估开发者智能体框架",
+      "canonical_evidence": "Agent-as-a-Judge在代码基准上评估开发者智能体框架",
+      "llm_tldr_en": "Studies language sensitivity in Agent-as-a-Judge for code evaluation across multilingual prompts and frameworks.",
+      "llm_tldr_cn": "研究Agent-as-a-Judge在多语言提示和框架下代码评估的语言敏感性。",
+      "llm_tldr": "研究Agent-as-a-Judge在多语言提示和框架下代码评估的语言敏感性。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.29244v1",
+      "title": "The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages",
+      "abstract": "We present the Thiomi Dataset, a large-scale multimodal corpus spanning ten African languages across four language families: Swahili, Kikuyu, Kamba, Kimeru, Luo, Maasai, Kipsigis, Somali (East Africa); Wolof (West Africa); and Fulani (West/Central Africa). The dataset contains over 601,000 approved sentence-level text annotations and over 385,000 audio recordings across nine languages, collected through a dedicated community data collection platform involving over 100 contributors. The Thiomi platform collected data for nine languages; Swahili data was supplemented with existing Common Voice recordings. A multi-tier quality assurance pipeline achieves 86-100% text approval rates for the six primary languages. To validate the dataset's utility, we train and evaluate ASR, MT, and TTS models, establishing baselines across all ten languages. Our best ASR system achieves 3.24% WER on Swahili (Common Voice), reducing prior academic SOTA from 8.3% to 3.24% (5.1 percentage point absolute, 61% relative reduction), and 4.3% WER on Somali. The dataset will be published on HuggingFace. We describe the collection platform, quality assurance workflows, and baseline experiments, and discuss implications for African language technology infrastructure.",
+      "authors": [
+        "Hillary Mutisya",
+        "John Mugane",
+        "Gavin Nyamboga",
+        "Brian Chege",
+        "Maryruth Gathoni"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-31T04:14:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.29244v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Large-scale multimodal dataset with text and audio annotations",
+      "llm_evidence_cn": "大规模多模态数据集，包含文本和音频标注",
+      "llm_evidence": "大规模多模态数据集，包含文本和音频标注",
+      "canonical_evidence": "大规模多模态数据集，包含文本和音频标注",
+      "llm_tldr_en": "Presents Thiomi, a large-scale multimodal corpus spanning ten low-resource African languages.",
+      "llm_tldr_cn": "发布Thiomi数据集，覆盖十种低资源非洲语言的大规模多模态语料库。",
+      "llm_tldr": "发布Thiomi数据集，覆盖十种低资源非洲语言的大规模多模态语料库。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02128v1",
+      "title": "SEAL: An Open, Auditable, and Fair Data Generation Framework for AI-Native 6G Networks",
+      "abstract": "AI-native 6G networks promise to transform the telecom industry by enabling dynamic resource allocation, predictive maintenance, and ultra-reliable low-latency communications across all layers, which are essential for applications such as smart cities, autonomous vehicles, and immersive XR. However, the deployment of 6G systems results in severe data scarcity, hindering the training of efficient AI models. Synthetic data generation is extensively used to fill this gap; however, it introduces challenges related to dataset bias, auditability, and compliance with regulatory frameworks. In this regard, we propose the Synthetic Data Generation with Ethics Audit Loop (SEAL) framework, which extends baseline modular pipelines with an Ethical and Regulatory Compliance by Design (ERCD) module and a Federated Learning (FL) feedback system. The ERCD integrates fairness, bias detection, and standardized audit trails for regulatory mapping, while the FL enables privacy-preserving calibration using aggregated insights from real testbeds to close the reality-simulation gap. Results show that the SEAL framework outperforms existing methods in terms of Frechet Inception Distance, equalized odds, and accuracy. These results validate the framework's ability to generate auditable and bias-mitigated synthetic data for responsible AI-native 6G development.",
+      "authors": [
+        "Sunder Ali Khowaja",
+        "Kapal Dev",
+        "Engin Zeydan",
+        "Madhusanka Liyanage"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-02T15:03:24+00:00",
+      "link": "https://arxiv.org/pdf/2604.02128v1",
+      "tags": [
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Data generation framework for AI-native 6G networks",
+      "llm_evidence_cn": "面向AI原生6G网络的数据生成框架",
+      "llm_evidence": "面向AI原生6G网络的数据生成框架",
+      "canonical_evidence": "面向AI原生6G网络的数据生成框架",
+      "llm_tldr_en": "Proposes SEAL framework for synthetic data generation with ethics audit loop in 6G networks.",
+      "llm_tldr_cn": "提出SEAL框架用于6G网络中的合成数据生成与伦理审计。",
+      "llm_tldr": "提出SEAL框架用于6G网络中的合成数据生成与伦理审计。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.04978v1",
+      "title": "Measuring the Permission Gate: A Stress-Test Evaluation of Claude Code's Auto Mode",
+      "abstract": "Claude Code's auto mode is the first deployed permission system for AI coding agents, using a two-stage transcript classifier to gate dangerous tool calls. Anthropic reports a 0.4% false positive rate and 17% false negative rate on production traffic. We present the first independent evaluation of this system on deliberately ambiguous authorization scenarios, i.e., tasks where the user's intent is clear but the target scope, blast radius, or risk level is underspecified. Using AmPermBench, a 128-prompt benchmark spanning four DevOps task families and three controlled ambiguity axes, we evaluate 253 state-changing actions at the individual action level against oracle ground truth.   Our findings characterize auto mode's scope-escalation coverage under this stress-test workload. The end-to-end false negative rate is 81.0% (95% CI: 73.8%-87.4%), substantially higher than the 17% reported on production traffic, reflecting a fundamentally different workload rather than a contradiction. Notably, 36.8% of all state-changing actions fall outside the classifier's scope via Tier 2 (in-project file edits), contributing to the elevated end-to-end FNR. Even restricting to the 160 actions the classifier actually evaluates (Tier 3), the FNR remains 70.3%, while the FPR rises to 31.9%. The Tier 2 coverage gap is most pronounced on artifact cleanup (92.9% FNR), where agents naturally fall back to editing state files when the expected CLI is unavailable. These results highlight a coverage boundary worth examining: auto mode assumes dangerous actions transit the shell, but agents routinely achieve equivalent effects through file edits that the classifier does not evaluate.",
+      "authors": [
+        "Zimo Ji",
+        "Zongjie Li",
+        "Wenyuan Jiang",
+        "Yudong Gao",
+        "Shuai Wang"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-04-04T17:56:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.04978v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluates Claude Code auto mode permission system for AI coding agents",
+      "llm_evidence_cn": "评估Claude Code自动模式的AI编码智能体权限系统",
+      "llm_evidence": "评估Claude Code自动模式的AI编码智能体权限系统",
+      "canonical_evidence": "评估Claude Code自动模式的AI编码智能体权限系统",
+      "llm_tldr_en": "First independent stress-test evaluation of Claude Code's permission gating for coding agents.",
+      "llm_tldr_cn": "首次独立压力测试评估Claude Code编码智能体的权限门控系统。",
+      "llm_tldr": "首次独立压力测试评估Claude Code编码智能体的权限门控系统。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.29244v2",
+      "title": "The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages",
+      "abstract": "We present the Thiomi Dataset, a large-scale multimodal corpus spanning ten African languages across four language families: Swahili, Kikuyu, Kamba, Kimeru, Luo, Maasai, Kipsigis, Somali (East Africa); Wolof (West Africa); and Fulani (West/Central Africa). The dataset contains over 601,000 approved sentence-level text annotations and over 385,000 audio recordings, collected through a dedicated community data collection platform involving over 100 contributors. To validate the dataset's utility, we train and evaluate ASR, MT, and TTS models, establishing baselines across all languages. Our best ASR system achieves 3.24% WER on Swahili (Common Voice), reducing prior academic SOTA from 8.3% to 3.24% (5.1 percentage point absolute, 61% relative reduction), and 4.3% WER on Somali. The dataset will be published on HuggingFace. We describe the collection platform, quality assurance workflows, and baseline experiments, and discuss implications for African language technology infrastructure.",
+      "authors": [
+        "Hillary Mutisya",
+        "John Mugane",
+        "Gavin Nyamboga",
+        "Brian Chege",
+        "Maryruth Gathoni"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-31T04:14:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.29244v2",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Large-scale multimodal dataset for ten African languages with text and audio",
+      "llm_evidence_cn": "涵盖十种非洲语言的大规模多模态数据集",
+      "llm_evidence": "涵盖十种非洲语言的大规模多模态数据集",
+      "canonical_evidence": "涵盖十种非洲语言的大规模多模态数据集",
+      "llm_tldr_en": "Presents large-scale multimodal corpus for ten low-resource African languages.",
+      "llm_tldr_cn": "发布涵盖十种低资源非洲语言的大规模多模态语料库。",
+      "llm_tldr": "发布涵盖十种低资源非洲语言的大规模多模态语料库。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.05087v1",
+      "title": "Document Optimization for Black-Box Retrieval via Reinforcement Learning",
+      "abstract": "Document expansion is a classical technique for improving retrieval quality, and is attractive since it shifts computation offline, avoiding additional query-time processing. However, when applied to modern retrievers, it has been shown to degrade performance, often introducing noise that obfuscates the discriminative signal. We recast document expansion as a document optimization problem: a language model or a vision language model is fine-tuned to transform documents into representations that better align with the expected query distribution under a target retriever, using GRPO with the retriever's ranking improvements as rewards. This approach requires only black-box access to retrieval ranks, and is applicable across single-vector, multi-vector and lexical retrievers. We evaluate our approach on code retrieval and visual document retrieval (VDR) tasks. We find that learned document transformations yield retrieval gains and in many settings enable smaller, more efficient retrievers to outperform larger ones. For example, applying document optimization to OpenAI text-embedding-3-small model improves nDCG5 on code (58.7 to 66.8) and VDR (53.3 to 57.6), even slightly surpassing the 6.5X more expensive OpenAI text-embedding-3-large model (66.3 on code; 57.0 on VDR). When retriever weights are accessible, document optimization is often competitive with fine-tuning, and in most settings their combination performs best, improving Jina-ColBERT-V2 from 55.8 to 63.3 on VDR and from 48.6 to 61.8 on code retrieval.",
+      "authors": [
+        "Omri Uzan",
+        "Ron Polonsky",
+        "Douwe Kiela",
+        "Christopher Potts"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-04-06T18:41:40+00:00",
+      "link": "https://arxiv.org/pdf/2604.05087v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Document optimization for retrieval using RL with ranking rewards",
+      "llm_evidence_cn": "使用强化学习和排序奖励优化检索文档",
+      "llm_evidence": "使用强化学习和排序奖励优化检索文档",
+      "canonical_evidence": "使用强化学习和排序奖励优化检索文档",
+      "llm_tldr_en": "RL-based document optimization method that fine-tunes LLMs to transform documents for better retrieval alignment.",
+      "llm_tldr_cn": "基于RL的文档优化方法，微调LLM使文档更好地对齐检索系统的查询分布。",
+      "llm_tldr": "基于RL的文档优化方法，微调LLM使文档更好地对齐检索系统的查询分布。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.05149v1",
+      "title": "EvolveRouter: Co-Evolving Routing and Prompt for Multi-Agent Question Answering",
+      "abstract": "Large language model agents often exhibit complementary strengths, making routing a promising approach for multi-agent question answering. However, existing routing methods remain limited in two important ways: they typically optimize over a fixed pool of agents without improving the agents themselves, and they often rely on rigid collaboration schemes that cannot adapt the number of participating agents to the query. We propose EvolveRouter, a trainable framework that addresses both limitations by jointly improving agent quality and collaboration structure. First, EvolveRouter couples graph-based query routing with targeted instruction refinement in a closed-loop co-evolution process, allowing router diagnostics to guide agent improvement while refined agents provide cleaner supervision for routing. Second, it introduces an adaptive inference strategy that dynamically determines the effective collaboration size for each query through router-weighted answer agreement. Together, these designs enable more capable and more efficient multi-agent reasoning. Experiments on five question answering benchmarks show that EvolveRouter consistently outperforms SOTA routing baselines in both F1 and exact match, while further analysis confirms the benefits of closed-loop refinement and adaptive collaboration.",
+      "authors": [
+        "Jiatan Huang",
+        "Zheyuan Zhang",
+        "Kaiwen Shi",
+        "Yanfang Ye",
+        "Chuxu Zhang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-06T20:24:54+00:00",
+      "link": "https://arxiv.org/pdf/2604.05149v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent QA framework with co-evolving routing",
+      "llm_evidence_cn": "多智能体问答框架与协同进化路由",
+      "llm_evidence": "多智能体问答框架与协同进化路由",
+      "canonical_evidence": "多智能体问答框架与协同进化路由",
+      "llm_tldr_en": "Proposes EvolveRouter, a trainable framework for multi-agent QA with joint routing and prompt optimization.",
+      "llm_tldr_cn": "提出多智能体问答框架EvolveRouter，联合优化路由与提示。",
+      "llm_tldr": "提出多智能体问答框架EvolveRouter，联合优化路由与提示。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.05203v1",
+      "title": "Decision-Oriented Programming with Aporia",
+      "abstract": "AI agents allow developers to express computational intent abstractly, reducing cognitive effort and helping achieve flow during programming. Increased abstraction, however, comes at a cost: developers cede decision-making authority to agents, often without realizing that important design decisions are being made without them. We aim to bring these decisions to the foreground in a paradigm we dub decision-oriented programming. In DOP, (1) decisions are explicit and structured, serving as the shared medium between the programmer and the agent; (2) decisions are co-authored interactively, with the agent proactively eliciting them from the programmer; and (3) each decision is traceable to code. As a step towards this vision, we have built Aporia, a design probe that tracks decisions in a persistent, editable Decision Bank; elicits them by asking programmers design questions; and encodes each decision as an executable test suite that can be used to validate the implementation.   In a user study of 14 programmers, Aporia increased engagement in the design process and scaffolded both exploration and validation. Participants also gained a more accurate understanding of their implementations, with their mental models 5x less likely to disagree with the code than a baseline coding agent.",
+      "authors": [
+        "Saketh Ram Kasibatla",
+        "Raven Rothkopf",
+        "Hila Peleg",
+        "Benjamin C. Pierce",
+        "Sorin Lerner",
+        "Harrison Goldstein",
+        "Nadia Polikarpova"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-04-06T22:02:01+00:00",
+      "link": "https://arxiv.org/pdf/2604.05203v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Decision-oriented programming paradigm for AI agents in coding tasks",
+      "llm_evidence_cn": "面向AI编码智能体的决策导向编程范式",
+      "llm_evidence": "面向AI编码智能体的决策导向编程范式",
+      "canonical_evidence": "面向AI编码智能体的决策导向编程范式",
+      "llm_tldr_en": "Introduces decision-oriented programming to make agent decisions explicit and traceable in code development.",
+      "llm_tldr_cn": "引入决策导向编程，使智能体决策在代码开发中显式可追溯。",
+      "llm_tldr": "引入决策导向编程，使智能体决策在代码开发中显式可追溯。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.05130v1",
+      "title": "A Multi-Agent Framework for Automated Exploit Generation with Constraint-Guided Comprehension and Reflection",
+      "abstract": "Open-source libraries are widely used in modern software development, introducing significant security vulnerabilities. While static analysis tools can identify potential vulnerabilities at scale, they often generate overwhelming reports with high false positive rates. Automated Exploit Generation (AEG) emerges as a promising solution to confirm vulnerability authenticity by generating an exploit. However, traditional AEG approaches based on fuzzing or symbolic execution face path coverage and constraint-solving problems. Although LLMs show great potential for AEG, how to effectively leverage them to comprehend vulnerabilities and generate corresponding exploits is still an open question.   To address these challenges, we propose Vulnsage, a multi-agent framework for AEG. Vulnsage simulates human security researchers' workflows by decomposing the complex AEG process into multiple specialized sub-agents: Code Analyzer Agent, Code Generation Agent, Validation Agent, and a set of Reflection Agents, orchestrated by a central supervisor through iterative cycles. Given a target program, the Code Analyzer Agent performs static analysis to identify potential vulnerabilities and collects relevant information for each one. The Code Generation Agent then utilizes an LLM to generate candidate exploits. The Validation Agent and Reflection Agents form a feedback-driven self-refinement loop that uses execution traces and runtime error analysis to either improve the exploit iteratively or reason about the false positive alert.   Experimental evaluation demonstrates that Vulnsage succeeds in generating 34.64\\% more exploits than state-of-the-art tools such as \\explodejs. Furthermore, Vulnsage has successfully discovered and verified 146 zero-day vulnerabilities in real-world scenarios, demonstrating its practical effectiveness for assisting security assessment in software supply chains.",
+      "authors": [
+        "Siyi Chen",
+        "Tianhan Luo",
+        "Shijian Wu",
+        "Xiangyu Liu",
+        "Yilin Zhou",
+        "Qi Li",
+        "Wenyuan Xu"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-06T19:47:17+00:00",
+      "link": "https://arxiv.org/pdf/2604.05130v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multi-agent framework for automated exploit generation",
+      "llm_evidence_cn": "用于自动化漏洞利用生成的多智能体框架",
+      "llm_evidence": "用于自动化漏洞利用生成的多智能体框架",
+      "canonical_evidence": "用于自动化漏洞利用生成的多智能体框架",
+      "llm_tldr_en": "Presents a multi-agent framework using LLMs for automated security exploit generation.",
+      "llm_tldr_cn": "提出一种利用大语言模型的多智能体框架用于自动化漏洞利用生成。",
+      "llm_tldr": "提出一种利用大语言模型的多智能体框架用于自动化漏洞利用生成。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.05489v1",
+      "title": "SCMAPR: Self-Correcting Multi-Agent Prompt Refinement for Complex-Scenario Text-to-Video Generation",
+      "abstract": "Text-to-Video (T2V) generation has benefited from recent advances in diffusion models, yet current systems still struggle under complex scenarios, which are generally exacerbated by the ambiguity and underspecification of text prompts. In this work, we formulate complex-scenario prompt refinement as a stage-wise multi-agent refinement process and propose SCMAPR, i.e., a scenario-aware and Self-Correcting Multi-Agent Prompt Refinement framework for T2V prompting. SCMAPR coordinates specialized agents to (i) route each prompt to a taxonomy-grounded scenario for strategy selection, (ii) synthesize scenario-aware rewriting policies and perform policy-conditioned refinement, and (iii) conduct structured semantic verification that triggers conditional revision when violations are detected. To clarify what constitutes complex scenarios in T2V prompting, provide representative examples, and enable rigorous evaluation under such challenging conditions, we further introduce {T2V-Complexity}, which is a complex-scenario T2V benchmark consisting exclusively of complex-scenario prompts. Extensive experiments on 3 existing benchmarks and our T2V-Complexity benchmark demonstrate that SCMAPR consistently improves text-video alignment and overall generation quality under complex scenarios, achieving up to 2.67\\% and 3.28 gains in average score on VBench and EvalCrafter, and up to 0.028 improvement on T2V-CompBench over 3 State-Of-The-Art baselines.",
+      "authors": [
+        "Chengyi Yang",
+        "Pengzhen Li",
+        "Jiayin Qi",
+        "Aimin Zhou",
+        "Ji Wu",
+        "Ji Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-04-07T06:33:01+00:00",
+      "link": "https://arxiv.org/pdf/2604.05489v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent framework coordinating specialized agents for prompt refinement",
+      "llm_evidence_cn": "协调专业智能体的多智能体框架用于提示优化",
+      "llm_evidence": "协调专业智能体的多智能体框架用于提示优化",
+      "canonical_evidence": "协调专业智能体的多智能体框架用于提示优化",
+      "llm_tldr_en": "SCMAPR is a self-correcting multi-agent framework that coordinates specialized agents for complex-scenario text-to-video prompt refinement.",
+      "llm_tldr_cn": "SCMAPR是自校正多智能体框架，协调专业智能体优化复杂场景文本到视频提示。",
+      "llm_tldr": "SCMAPR是自校正多智能体框架，协调专业智能体优化复杂场景文本到视频提示。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.05589v1",
+      "title": "Foundations for Agentic AI Investigations from the Forensic Analysis of OpenClaw",
+      "abstract": "Agentic Al systems are increasingly deployed as personal assistants and are likely to become a common object of digital investigations. However, little is known about how their internal state and actions can be reconstructed during forensic analysis. Despite growing popularity, systematic forensic approaches for such systems remain largely unexplored. This paper presents an empirical study of OpenClaw a widely used single-agent assistant. We examine OpenClaw's technical design via static code analysis and apply differential forensic analysis to identify recoverable traces across stages of the agent interaction loop. We classify and correlate these traces to assess their investigative value in a systematic way. Based on these observations, we propose an agent artifact taxonomy that captures recurring investigative patterns. Finally, we highlight a foundational challenge for agentic Al forensics: agent-mediated execution introduces an additional layer of abstraction and substantial nondeterminism in trace generation. The large language model (LLM), the execution environment, and the evolving context can influence tool choice and state transitions in ways that are largely absent from rule-based software. Overall, our results provide an initial foundation for the systematic investigation of agentic Al and outline implications for digital forensic practice and future research.",
+      "authors": [
+        "Jan Gruber",
+        "Jan-Niclas Hilgert"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-04-07T08:35:22+00:00",
+      "link": "https://arxiv.org/pdf/2604.05589v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "forensic analysis of agentic AI systems",
+      "llm_evidence_cn": "智能体AI系统的取证分析",
+      "llm_evidence": "智能体AI系统的取证分析",
+      "canonical_evidence": "智能体AI系统的取证分析",
+      "llm_tldr_en": "Empirical study of forensic traces in single-agent assistant OpenClaw for digital investigations.",
+      "llm_tldr_cn": "对单智能体助手OpenClaw进行取证分析的实证研究。",
+      "llm_tldr": "对单智能体助手OpenClaw进行取证分析的实证研究。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.05350v1",
+      "title": "DQA: Diagnostic Question Answering for IT Support",
+      "abstract": "Enterprise IT support interactions are fundamentally diagnostic: effective resolution requires iterative evidence gathering from ambiguous user reports to identify an underlying root cause. While retrieval-augmented generation (RAG) provides grounding through historical cases, standard multi-turn RAG systems lack explicit diagnostic state and therefore struggle to accumulate evidence and resolve competing hypotheses across turns. We introduce DQA, a diagnostic question-answering framework that maintains persistent diagnostic state and aggregates retrieved cases at the level of root causes rather than individual documents. DQA combines conversational query rewriting, retrieval aggregation, and state-conditioned response generation to support systematic troubleshooting under enterprise latency and context constraints. We evaluate DQA on 150 anonymized enterprise IT support scenarios using a replay-based protocol. Averaged over three independent runs, DQA achieves a 78.7% success rate under a trajectory-level success criterion, compared to 41.3% for a multi-turn RAG baseline, while reducing average turns from 8.4 to 3.9.",
+      "authors": [
+        "Vishaal Kapoor",
+        "Mariam Dundua",
+        "Sarthak Ahuja",
+        "Neda Kordjazi",
+        "Evren Yortucboylu",
+        "Vaibhavi Padala",
+        "Derek Ho",
+        "Jennifer Whitted",
+        "Rebecca Steinert"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-04-07T02:42:32+00:00",
+      "link": "https://arxiv.org/pdf/2604.05350v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "diagnostic QA with retrieval and query rewriting",
+      "llm_evidence_cn": "具有检索和查询重写的诊断问答系统",
+      "llm_evidence": "具有检索和查询重写的诊断问答系统",
+      "canonical_evidence": "具有检索和查询重写的诊断问答系统",
+      "llm_tldr_en": "Introduces DQA framework for IT support with conversational query rewriting and retrieval aggregation.",
+      "llm_tldr_cn": "引入DQA框架，支持IT诊断的对话查询重写和检索聚合。",
+      "llm_tldr": "引入DQA框架，支持IT诊断的对话查询重写和检索聚合。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
