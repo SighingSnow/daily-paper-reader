@@ -1,0 +1,157 @@
+Title: Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench
+
+URL Source: https://arxiv.org/pdf/2604.03455v1
+
+Published Time: Tue, 07 Apr 2026 00:15:21 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench 
+
+Prakhar Bansal 
+
+prakharb13@gmail.com 
+
+Shivangi Agarwal 
+
+shivangia@iiitd.ac.in 
+
+Abstract 
+
+Retrieval-Augmented Generation pipelines span a wide range of retrieval strategies that differ substantially in token cost and capability. Selecting the right strategy per query is a practical efficiency problem, yet no routing classifiers have been trained on RAGRouter-Bench (Wang et al., 2026), a recently released benchmark of 7, 727 
+
+queries spanning four knowledge domains, each annotated with one of three canonical query types: factual, reasoning, and sum-marization. We present the first systematic evaluation of lightweight classifier-based routing on this benchmark. Five classical classifiers are evaluated under three feature regimes, namely, TF-IDF, MiniLM sentence embeddings (Reimers and Gurevych, 2019), and hand-crafted structural features, yield-ing 15 classifier feature combinations. Our best configuration, TF-IDF with an SVM, achieves a macro-averaged F1 of 0.928 and an accuracy of 93 .2%, while simulating 
+
+28 .1% token savings relative to always us-ing the most expensive paradigm. Lexical TF-IDF features outperform semantic sen-tence embeddings by 3.1 macro-F1 points, suggesting that surface keyword patterns are strong predictors of query-type com-plexity. Domain-level analysis reveals that medical queries are hardest to route and legal queries most tractable. These results establish a reproducible query-side baseline and highlight the gap that corpus-aware routing must close. 
+
+1 Introduction 
+
+RAG has become the dominant approach for grounding LLM outputs in external knowl-edge (Lewis et al., 2020), but the design space spans multiple retrieval paradigms with very different cost profiles. A simple dense-retrieval step ( NaiveRAG ) is fast and cheap; an itera-tive pipeline ( IterativeRAG ) that alternates retrieval and generation can handle complex queries but costs 3.5 × more in tokens (Wang et al., 2026). Most deployed systems apply one paradigm uniformly to every query. Routing each query to the cheapest suffi-cient paradigm has clear precedent. Jeong et al. (2024) trained a classifier to predict question complexity and route among three retrieval strategies, showing that lightweight routing can match always-expensive baselines. The broader LLM routing literature shows similar results when routing among model sizes (Ong et al., 2025; Hu et al., 2024; Ding et al., 2024; Chen et al., 2024). Wang et al. (2026) recently released RAGRouter-Bench, the first benchmark de-signed specifically for RAG routing research. It provides 7, 727 queries across four domains, each annotated with one of three canoni-cal query types (factual, reasoning, summa-rization), alongside evaluations of five RAG paradigms. Importantly, the benchmark estab-lishes that paradigm applicability is shaped by 
+
+query-corpus interactions , not query type alone. To our knowledge as of April 2026 , no classifier has been trained on this benchmark. We fill that gap, establishing the first query-side clas-sification baselines and quantifying how much of the routing signal is captured by query text features before corpus-side signals are incorpo-rated. Our contributions are: (i) 15 classifier– feature baselines on RAGRouter-Bench using query text alone; (ii) a cross-domain breakdown identifying where lightweight routing is most and least reliable; and (iii) a post-hoc cost simu-lation showing that the best high-accuracy con-figuration achieves 28 .1% token savings, with an analysis of how cost and accuracy trade off across feature regimes. 1
+
+> arXiv:2604.03455v1 [cs.IR] 3 Apr 2026
+
+2 Background 
+
+2.1 RAGRouter-Bench 
+
+RAGRouter-Bench (Wang et al., 2026) com-prises four corpora: MuSiQue (Wikipedia, 
+
+3, 356 queries), QuALITY (literature, 1, 200 
+
+queries), UltraDomain (legal, 1, 277 queries), and GraphRAG-Bench (medical, 1, 896 
+
+queries). The benchmark annotates each query with one of three canonical query types: factual 
+
+(single-step fact lookup), reasoning (multi-hop cross-document inference), and summarization 
+
+(corpus-level aggregation), encoded in the dataset as single_hop , multi_hop , and 
+
+summary respectively. The label distribution is imbalanced: factual queries account for 52 .9% 
+
+of all queries, summarization for 30 .0% , and reasoning for 17 .1% . Five RAG paradigms are evaluated with reported relative token costs: LLM-Only (1.0×), NaiveRAG (1.4×), 
+
+GraphRAG (2.1×), HybridRAG (2.8×), and IterativeRAG (3.5×). The paper’s central finding is that no sin-gle paradigm universally dominates: optimal paradigm selection is driven by query-corpus interactions , with both query type and struc-tural or semantic corpus properties shaping which paradigm performs best (Wang et al., 2026). This motivates our work as a query-side baseline study— establishing what is achiev-able from query text alone, before corpus-side signals are incorporated. 
+
+2.2 Related Work Adaptive retrieval: Adaptive-RAG (Jeong et al., 2024) trains a T5-Large classifier on au-tomatically derived complexity labels to route among three retrieval strategies, and demon-strates that a three-class query-complexity router can match always-expensive baselines with substantially lower cost. Our work ex-tends this approach to RAGRouter-Bench with lighter classifiers, a richer domain spread, and a comparison of feature types. Self-RAG (Asai et al., 2024) embeds retrieval decisions in the generation process via reflection tokens; FLARE (Jiang et al., 2023) uses generation probabilities as a retrieval trigger; Probing-RAG (Baek et al., 2025) reads LLM hidden states to make binary retrieve-or-not decisions. SKR (Wang et al., 2023) routes based on the model’s apparent self-knowledge; CRAG (Yan et al., 2024) applies a post-retrieval corrector. None of these train a multi-strategy query-type router on a publicly labeled benchmark. 
+
+LLM routing: RouteLLM (Ong et al., 2025) and FrugalGPT (Chen et al., 2024) show that lightweight classifiers can halve API costs when routing between strong and weak models. RouterBench (Hu et al., 2024) demonstrates that KNN and MLP routers on sentence embed-dings are competitive, and Hybrid LLM (Ding et al., 2024) cuts large-model calls by 40% with no quality loss using a DeBERTa router. We ap-ply the same classifier-based paradigm to RAG 
+
+strategy selection rather than model selection. 
+
+3 Method 
+
+3.1 Routing Label and Paradigm Mapping 
+
+We use the query type annotation from RAGRouter-Bench as the routing target: 
+
+single_hop (factual), multi_hop (reasoning), and summary (summarization). To simulate cost savings, we map each predicted query type to a recommended paradigm following Jeong et al. (2024), who show that factual questions are well-served by single-step retrieval, multi-hop questions benefit from richer retrieval, and summarization queries require itera-tive retrieval: single_hop →NaiveRAG ,
+
+multi_hop →HybridRAG , sum-mary →IterativeRAG .We stress that this mapping is a literature-motivated simplification for cost estimation only. The benchmark paper itself shows that optimal paradigm selection requires both query type and corpus-side signals (Wang et al., 2026); our classifiers operate on query text alone, mak-ing corpus-side effects a limitation we address in Section 6. 
+
+3.2 Feature Sets 
+
+All features are extracted from query text at routing time, requiring no retrieval or LLM calls. 
+
+Lexical (TF-IDF): Unigram and bigram TF-IDF with sublinear term-frequency scaling, a 3,000-feature vocabulary ceiling, and mini-mum document frequency of 2. 
+
+Semantic (MiniLM Embeddings): Each query is encoded with all-MiniLM-L6-v2 
+
+2(Reimers and Gurevych, 2019), producing 384-dimensional dense vectors. This 22M-parameter model runs on CPU with no GPU required. 
+
+Structural (Hand-crafted): Twenty-three features: query length, character count, av-erage word length, question-word type (one-hot: who / what / when / where / why / how / which), presence of negation, approximate named-entity count, clause count, and binary flags for comparative, temporal, aggregation, causal, and procedural patterns. Question-word type has been shown to correlate with retrieval complexity by Jeong et al. (2024). 
+
+3.3 Classifiers and Evaluation 
+
+Five classifiers are trained on each feature set: Logistic Regression (L2, C=1.0), SVM (RBF, 
+
+γ=scale), Random Forest (200 trees), KNN (k=7, cosine), and MLP (256–128 units, early stopping). Dense feature sets are z-score stan-dardized before training. We report macro-averaged F1 (macro-F1) as the primary metric to account for label imbalance, with accuracy alongside it. All results are from 5-fold strati-fied cross-validation. 
+
+Cost simulation: We use the paradigm cost ratios reported by Wang et al. (2026) to com-pute token savings post-hoc, without any LLM calls. Savings are relative to always routing to 
+
+IterativeRAG :Savings = CIterativeRAG − Crouter 
+
+CIterativeRAG 
+
+× 100% ,
+
+where Crouter = PNi=1 c( ˆyi) is the sum over all N queries of the cost ratio of the pre-dicted paradigm c( ˆyi), pooled across all cross-validation folds. CIterativeRAG = 3 .5N .The perfect-label reference assumes every query is routed to its ground-truth type’s paradigm: Cref = PNi=1 c(yi) = 0 .529 N (1 .4) + 0.171 N (2 .8) + 0 .300 N (3 .5) = 2 .269 N , giving reference savings of (3 .5 − 2.269) /3.5 ≈ 35 .2% .This methodology follows RouteLLM (Ong et al., 2025) and RouterBench (Hu et al., 2024). 
+
+4 Results 
+
+4.1 Routing Performance 
+
+Table 1 reports routing accuracy and macro-F1 for all 15 combinations. TF-IDF with SVM 
+
+Table 1: Routing accuracy (Acc, %) and macro-F1 under 5-fold cross-validation. Best result per metric in bold . Majority baseline always predicts 
+
+single_hop (52.9%).                                          
+
+> TF-IDF MiniLM Structural Classifier Acc F1 Acc F1 Acc F1 Logistic Reg. 92.1 0.918 86.8 0.864 78.1 0.763 SVM 93.2 0.928 90.3 0.897 79.1 0.774 Random Forest 91.9 0.914 80.7 0.784 77.8 0.752 KNN 85.4 0.855 79.3 0.775 78.3 0.762 MLP 92.7 0.923 90.1 0.896 80.3 0.788
+> Majority class 52.9 / 0.231 ——
+
+Table 2: Simulated token savings vs. always rout-ing to IterativeRAG . Paradigm cost ratios from Wang et al. (2026); type-to-paradigm mapping from Jeong et al. (2024). Perfect-label reference assumes correct type prediction for every query; it is not an upper bound on savings.             
+
+> Configuration Savings (%) Macro-F1
+> TF-IDF + SVM 28.1 0.928 MiniLM + SVM 27.4 0.897 Structural + MLP 30.2 0.788 Majority class 60.0 0.231 Perfect-label ref. 35.2 1.000
+
+achieves the best overall result (Acc=93.2%, F1=0.928), outperforming all structural and semantic configurations. 
+
+4.2 Simulated Cost Savings 
+
+Table 2 reports simulated token savings for the best configuration per feature set, and for reference baselines. All classifiers trained on text features achieve savings well above zero, with macro-F1 ranging from 0.788 to 0.928. The majority-class baseline (60.0% sav-ings, F1=0.231) and the perfect-label reference (35.2%) together define the cost–accuracy trade-off landscape: higher savings are achievable at low accuracy, while high-accuracy routers settle in the 25–30% range. 
+
+4.3 Domain Breakdown 
+
+Table 3 shows macro-F1 by domain for the best classifier under each feature set. Routing is consistently hardest on medical queries and easiest on legal queries across all three feature regimes. 3Table 3: Domain-level macro-F1, best classifier per feature set. Wiki=MuSiQue, Lit=QuALITY, Leg=UltraDomain, Med=GraphRAG-Bench.                  
+
+> Bold indicates best score per column.
+> Feature Set Wiki Lit Leg Med
+> TF-IDF (SVM) 0.926 0.951 0.967 0.803
+> MiniLM (SVM) 0.891 0.912 0.946 0.727 Structural (MLP) 0.708 0.853 0.855 0.645
+
+5 Analysis 
+
+Lexical features outperform semantic em-beddings: TF-IDF achieves 0.928 macro-F1, outperforming MiniLM (0.897) by 3.1 points and structural features (0.788) by 14.0 points. Query type in this benchmark is strongly sig-naled by surface keywords: question-word type, domain terminology, and patterns such as sum-marize or compare appear sufficient to dis-tinguish factual, reasoning, and summariza-tion queries without semantic encoding. That MiniLM underperforms TF-IDF likely reflects that dense embeddings conflate surface-similar but type-different queries from different do-mains, while sparse TF-IDF weights retain vocabulary signals that differ systematically across query types. 
+
+The cost-accuracy tradeoff: The perfect-label reference achieves 35.2% savings un-der the assumed type-to-paradigm mapping. High-accuracy classifiers (TF-IDF+SVM at 28.1%, MiniLM+SVM at 27.4%) recover 78– 80% of these reference savings while maintain-ing strong routing quality. Structural+MLP achieves 30.2% savings at a lower F1 of 0.788: the reduced routing accuracy shifts some multi-hop and summary queries toward NaiveRAG ,which lowers average cost but degrades answer quality on complex queries. The majority-class baseline makes this dynamic extreme: always predicting single_hop and routing every query to NaiveRAG achieves 60.0% savings at a macro-F1 of only 0.231—the highest savings of any configuration and the lowest accuracy. This illustrates why cost savings and macro-F1 must be reported jointly: optimising savings in isolation simply collapses routing to the cheap-est paradigm, a finding directly reinforced by Wang et al. (2026)’s argument against treating routing as cost minimisation alone. 
+
+Domain routing difficulty: Routing is hardest on GraphRAG-Bench (medical), with TF-IDF+SVM reaching only 0.803 macro-F1, compared to 0.967 on UltraDomain (legal). The medical corpus in RAGRouter-Bench consists of a single long document, making all query types draw from the same source; surface vo-cabulary alone may be less discriminative when corpus structure is homogeneous. Legal queries follow more formulaic patterns across diverse documents, producing cleaner lexical signals for type prediction. The 0.164 gap between the easiest and hardest domain underscores the benchmark’s finding that routing is a query-corpus interaction problem, not a query-only problem (Wang et al., 2026). 
+
+6 Limitations 
+
+All classifiers operate on query text alone. Wang et al. (2026) show experimentally that optimal paradigm selection depends on query-corpus interactions : structural corpus prop-erties (connectivity, density, clustering coef-ficient) and semantic properties (intrinsic di-mension, hubness, dispersion) jointly shape which paradigm performs best. Our query-side baselines deliberately exclude these signals, making them a floor rather than a ceiling for routing performance on this benchmark. The type-to-paradigm mapping used for cost simu-lation is a literature-motivated simplification; at the query-corpus interaction level, the best paradigm for a multi_hop query may differ substantially across corpora. The perfect-label reference does not represent an upper bound on savings: a routing policy that ignores la-bel fidelity can achieve higher savings (as the majority-class baseline demonstrates at 60.0%) at the expense of answer quality. Finally, all models are evaluated within RAGRouter-Bench’s four domains; out-of-distribution gen-eralisation is untested. 
+
+7 Conclusion 
+
+We present the first query-type routing classi-fier baselines on RAGRouter-Bench, evaluating 15 classifier–feature combinations for paradigm selection. TF-IDF with an SVM achieves 0.928 macro-F1 and 93.2% accuracy, simulating 28.1% token savings versus always using the most expensive paradigm—79% of the 35.2% 4savings achievable under perfect type-faithful routing. Lexical features outperform sentence embeddings by 3.1 macro-F1 points, showing that surface keyword patterns are strong rout-ing signals for this benchmark. A joint analy-sis of cost and accuracy reveals that optimis-ing savings alone is misleading: the majority-class baseline achieves 60.0% token savings at a macro-F1 of only 0.231 by routing every query to the cheapest paradigm regardless of complex-ity. These baselines quantify the routing signal available from query text alone, and the gap to the perfect-label reference highlights the value of incorporating corpus-side signals in future work. 
+
+References 
+
+Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, and Hannaneh Hajishirzi. 2024. Self-RAG: Learning to retrieve, generate, and critique through self-reflection. In The Twelfth Interna-tional Conference on Learning Representations .Ingeol Baek, Hwan Chang, ByeongJeong Kim, Jimin Lee, and Hwanhee Lee. 2025. Probing-RAG: Self-probing to guide language models in selective document retrieval. In Findings of the Association for Computational Linguistics: NAACL 2025 , pages 3287–3304. Association for Computational Linguistics. Lingjiao Chen, Matei Zaharia, and James Zou. 2024. FrugalGPT: How to use large language models while reducing cost and improving per-formance. Transactions on Machine Learning Research . Originally posted as arXiv:2305.05176, 2023. Dujian Ding, Ankur Mallick, Chi Wang, Robert Sim, Subhabrata Mukherjee, Victor Rühle, Laks V. S. Lakshmanan, and Ahmed Hassan Awadal-lah. 2024. Hybrid LLM: Cost-efficient and quality-aware query routing. In The Twelfth International Conference on Learning Represen-tations .Qitian Jason Hu, Jacob Bieker, Xiuyu Li, Nan Jiang, Benjamin Keigwin, Gaurav Ranganath, Kurt Keutzer, and Shriyash Kaustubh Upad-hyay. 2024. RouterBench: A benchmark for multi-LLM routing system. arXiv preprint arXiv:2403.12031 .Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. 2024. Adaptive-RAG: Learning to adapt retrieval-augmented large language models through ques-tion complexity. In Proceedings of the 2024 Con-ference of the North American Chapter of the Association for Computational Linguistics: Hu-man Language Technologies , pages 7036–7050. Association for Computational Linguistics. Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, and Graham Neubig. 2023. Active re-trieval augmented generation. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pages 7969–7992, Singapore. Association for Computational Lin-guistics. Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. 2020. Retrieval-augmented gen-eration for knowledge-intensive NLP tasks. In 
+
+Advances in Neural Information Processing Sys-tems , volume 33, pages 9459–9474. Isaac Ong, Amjad Almahairi, Vincent Wu, Wei-Lin Chiang, Tianhao Wu, Joseph E. Gonza-lez, M. Waleed Kadous, and Ion Stoica. 2025. RouteLLM: Learning to route LLMs from pref-erence data. In The Thirteenth International Conference on Learning Representations .Nils Reimers and Iryna Gurevych. 2019. Sentence-BERT: Sentence embeddings using siamese BERT-networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Process-ing , pages 3982–3992. Association for Computa-tional Linguistics. Yile Wang, Peng Li, Maosong Sun, and Yang Liu. 2023. Self-knowledge guided retrieval augmenta-tion for large language models. In Findings of the Association for Computational Linguistics: EMNLP 2023 , pages 10303–10315. Association for Computational Linguistics. Ziqi Wang, Xi Zhu, Shuhang Lin, Haochen Xue, Minghao Guo, and Yongfeng Zhang. 2026. RAGRouter-Bench: A dataset and benchmark for adaptive RAG routing. arXiv preprint arXiv:2602.00296 .Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. 2024. Corrective retrieval augmented generation. arXiv preprint arXiv:2401.15884 .
+
+5

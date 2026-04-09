@@ -6,91 +6,79 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-08
-- 运行时间：2026-04-08 20:58:41 UTC
+- 最新运行日期：2026-04-09
+- 运行时间：2026-04-09 20:32:33 UTC
 - 运行状态：成功
-- 本次总论文数：23
-- 精读区：11
+- 本次总论文数：19
+- 精读区：7
 - 速读区：12
 
 ### 今日简报（AI）
-1) 今日研读23篇论文，深度聚焦世界模型安全风险与智能体记忆架构。
-2) 两篇9.0分论文重磅揭示世界模型认知风险，并探索记忆智能体的核心架构。
-3) 建议优先阅读高分论文，深入了解AI安全边界与智能体记忆能力的最新突破。
-- 详情：[/202604/08/README](/202604/08/README)
+1) 今日精读7篇力作，聚焦Agent环境通用化与报告生成的可信度突破。
+2) 重点推荐将任意软件转为Agent环境的通用方案，以及具备置信度校准的可信报告生成技术。
+3) 建议关注Agent落地中的环境适配难题与生成内容的可信度验证。
+- 详情：[/202604/09/README](/202604/09/README)
 
 ### 精读区论文标签
-1. [Safety, Security, and Cognitive Risks in World Models](/202604/08/2604.01346v2-safety-security-and-cognitive-risks-in-world-models)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：世界模型风险的全面分析
-2. [Memory Intelligence Agent](/202604/08/2604.04503v2-memory-intelligence-agent)  
+1. [Towards Trustworthy Report Generation: A Deep Research Agent with Progressive Confidence Estimation and Calibration](/202604/09/2604.05952v1-towards-trustworthy-report-generation-a-deep-research-agent-with-progressive-confidence-estimation-and-calibration)  
    标签：评分：9.0/10、query:agent
-   evidence：管理器-规划器-执行器框架的深度研究智能体
-3. [ROSClaw: A Hierarchical Semantic-Physical Framework for Heterogeneous Multi-Agent Collaboration](/202604/08/2604.04664v1-rosclaw-a-hierarchical-semantic-physical-framework-for-heterogeneous-multi-agent-collaboration)  
+   evidence：用于自动报告生成的深度研究智能体
+2. [Gym-Anything: Turn any Software into an Agent Environment](/202604/09/2604.06126v1-gym-anything-turn-any-software-into-an-agent-environment)  
    标签：评分：9.0/10、query:agent
-   evidence：异构多智能体协作的分层框架
-4. [Squeez: Task-Conditioned Tool-Output Pruning for Coding Agents](/202604/08/2604.04979v1-squeez-task-conditioned-tool-output-pruning-for-coding-agents)  
+   evidence：包含编码代理和审计代理的框架用于环境创建
+3. [MTA-Agent: An Open Recipe for Multimodal Deep Search Agents](/202604/09/2604.06376v1-mta-agent-an-open-recipe-for-multimodal-deep-search-agents)  
    标签：评分：9.0/10、query:agent
-   evidence：代码智能体的工具输出剪枝
-5. [Architecture Without Architects: How AI Coding Agents Shape Software Architecture](/202604/08/2604.04990v1-architecture-without-architects-how-ai-coding-agents-shape-software-architecture)  
+   evidence：工具增强的多模态深度搜索智能体
+4. [Learning to Search: A Decision-Based Agent for Knowledge-Based Visual Question Answering](/202604/09/2604.07146v1-learning-to-search-a-decision-based-agent-for-knowledge-based-visual-question-answering)  
    标签：评分：9.0/10、query:agent
-   evidence：AI编程智能体做出架构决策
-6. [Scaling Coding Agents via Atomic Skills](/202604/08/2604.05013v1-scaling-coding-agents-via-atomic-skills)  
+   evidence：用于知识型视觉问答的决策式搜索智能体
+5. [ReCodeAgent: A Multi-Agent Workflow for Language-agnostic Translation and Validation of Large-scale Repositories](/202604/09/2604.07341v1-recodeagent-a-multi-agent-workflow-for-language-agnostic-translation-and-validation-of-large-scale-repositories)  
    标签：评分：9.0/10、query:agent
-   evidence：基于原子技能训练的LLM代码智能体
-7. [StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing](/202604/08/2604.05014v1-starvla-a-lego-like-codebase-for-vision-language-action-model-developing)  
-   标签：评分：9.0/10、query:agent
-   evidence：视觉-语言-动作模型开发框架
-8. [Spec Kit Agents: Context-Grounded Agentic Workflows](/202604/08/2604.05278v1-spec-kit-agents-context-grounded-agentic-workflows)  
-   标签：评分：9.0/10、query:agent
-   evidence：包含PM和开发者角色的多智能体SDD流水线
-9. [FLARE: Agentic Coverage-Guided Fuzzing for LLM-Based Multi-Agent Systems](/202604/08/2604.05289v1-flare-agentic-coverage-guided-fuzzing-for-llm-based-multi-agent-systems)  
-   标签：评分：9.0/10、query:agent
-   evidence：LLM多智能体系统的测试框架
-10. [CODESTRUCT: Code Agents over Structured Action Spaces](/202604/08/2604.05407v1-codestruct-code-agents-over-structured-action-spaces)  
-   标签：评分：9.0/10、query:agent
-   evidence：在结构化AST动作空间上操作的代码智能体
-11. [Toward Consistent World Models with Multi-Token Prediction and Latent Semantic Enhancement](/202604/08/2604.06155v1-toward-consistent-world-models-with-multi-token-prediction-and-latent-semantic-enhancement)  
-   标签：评分：9.0/10、query:wmodel
-   evidence：多token预测的一致世界模型
+   evidence：用于自主仓库级代码翻译的多智能体工作流
+6. [Reimagining RAN Automation in 6G: An Agentic AI Framework with Hierarchical Online Decision Transformer](/202604/09/2604.03908v1-reimagining-ran-automation-in-6g-an-agentic-ai-framework-with-hierarchical-online-decision-transformer)  
+   标签：评分：8.0/10、query:agent
+   evidence：智能体AI框架协调多个AI代理池并由超级代理编排
+7. [AgentOpt v0.1 Technical Report: Client-Side Optimization for LLM-Based Agent](/202604/09/2604.06296v1-agentopt-v01-technical-report-client-side-optimization-for-llm-based-agent)  
+   标签：评分：8.0/10、query:agent
+   evidence：LLM智能体优化框架含代码智能体
 
 ### 速读区论文标签
-1. [Multilingual Prompt Localization for Agent-as-a-Judge: Language and Backbone Sensitivity in Requirement-Level Evaluation](/202604/08/2604.04532v1-multilingual-prompt-localization-for-agent-as-a-judge-language-and-backbone-sensitivity-in-requirement-level-evaluation)  
+1. [JailWAM: Jailbreaking World Action Models in Robot Control](/202604/09/2604.05498v1-jailwam-jailbreaking-world-action-models-in-robot-control)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：用于机器人控制的世界动作模型及安全框架
+2. [Action Images: End-to-End Policy Learning via Multiview Video Generation](/202604/09/2604.06168v1-action-images-end-to-end-policy-learning-via-multiview-video-generation)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：世界动作模型用于机器人策略
+3. [SkillTrojan: Backdoor Attacks on Skill-Based Agent Systems](/202604/09/2604.06811v1-skilltrojan-backdoor-attacks-on-skill-based-agent-systems)  
    标签：评分：8.0/10、query:agent
-   evidence：Agent-as-a-Judge在代码基准上评估开发者智能体框架
-2. [Measuring the Permission Gate: A Stress-Test Evaluation of Claude Code's Auto Mode](/202604/08/2604.04978v1-measuring-the-permission-gate-a-stress-test-evaluation-of-claude-codes-auto-mode)  
-   标签：评分：8.0/10、query:agent
-   evidence：评估Claude Code自动模式的AI编码智能体权限系统
-3. [EvolveRouter: Co-Evolving Routing and Prompt for Multi-Agent Question Answering](/202604/08/2604.05149v1-evolverouter-co-evolving-routing-and-prompt-for-multi-agent-question-answering)  
-   标签：评分：8.0/10、query:agent
-   evidence：多智能体问答框架与协同进化路由
-4. [SCMAPR: Self-Correcting Multi-Agent Prompt Refinement for Complex-Scenario Text-to-Video Generation](/202604/08/2604.05489v1-scmapr-self-correcting-multi-agent-prompt-refinement-for-complex-scenario-text-to-video-generation)  
-   标签：评分：8.0/10、query:agent
-   evidence：协调专业智能体的多智能体框架用于提示优化
-5. [The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages](/202604/08/2603.29244v1-the-thiomi-dataset-a-large-scale-multimodal-corpus-for-low-resource-african-languages)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：大规模多模态数据集，包含文本和音频标注
-6. [The Thiomi Dataset: A Large-Scale Multimodal Corpus for Low-Resource African Languages](/202604/08/2603.29244v2-the-thiomi-dataset-a-large-scale-multimodal-corpus-for-low-resource-african-languages)  
-   标签：评分：7.0/10、query:wmodel
-   evidence：涵盖十种非洲语言的大规模多模态数据集
-7. [Decision-Oriented Programming with Aporia](/202604/08/2604.05203v1-decision-oriented-programming-with-aporia)  
+   evidence：基于技能的智能体系统，支持技能组合
+4. [INSPATIO-WORLD: A Real-Time 4D World Simulator via Spatiotemporal Autoregressive Modeling](/202604/09/2604.07209v1-inspatio-world-a-real-time-4d-world-simulator-via-spatiotemporal-autoregressive-modeling)  
+   标签：评分：8.0/10、query:wmodel
+   evidence：基于时空建模的实时4D世界模拟器
+5. [OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data](/202604/09/2604.02444v1-omnitqa-a-cost-aware-system-for-hybrid-query-processing-over-semi-structured-data)  
    标签：评分：7.0/10、query:agent
-   evidence：面向AI编码智能体的决策导向编程范式
-8. [Foundations for Agentic AI Investigations from the Forensic Analysis of OpenClaw](/202604/08/2604.05589v1-foundations-for-agentic-ai-investigations-from-the-forensic-analysis-of-openclaw)  
+   evidence：成本感知的混合查询处理框架
+6. [Are LLM-Based Retrievers Worth Their Cost? An Empirical Study of Efficiency, Robustness, and Reasoning Overhead](/202604/09/2604.03676v1-are-llm-based-retrievers-worth-their-cost-an-empirical-study-of-efficiency-robustness-and-reasoning-overhead)  
    标签：评分：7.0/10、query:agent
-   evidence：智能体AI系统的取证分析
-9. [SEAL: An Open, Auditable, and Fair Data Generation Framework for AI-Native 6G Networks](/202604/08/2604.02128v1-seal-an-open-auditable-and-fair-data-generation-framework-for-ai-native-6g-networks)  
+   evidence：LLM检索系统的实证研究
+7. [GROUNDEDKG-RAG: Grounded Knowledge Graph Index for Long-document Question Answering](/202604/09/2604.04359v1-groundedkg-rag-grounded-knowledge-graph-index-for-long-document-question-answering)  
+   标签：评分：7.0/10、query:agent
+   evidence：用于长文档问答的RAG系统
+8. [WikiSeeker: Rethinking the Role of Vision-Language Models in Knowledge-Based Visual Question Answering](/202604/09/2604.05818v1-wikiseeker-rethinking-the-role-of-vision-language-models-in-knowledge-based-visual-question-answering)  
+   标签：评分：7.0/10、query:agent
+   evidence：具有VLM智能体角色的多模态RAG框架
+9. [Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench](/202604/09/2604.03455v1-lightweight-query-routing-for-adaptive-rag-a-baseline-study-on-ragrouter-bench)  
    标签：评分：6.0/10、query:agent
-   evidence：面向AI原生6G网络的数据生成框架
-10. [Document Optimization for Black-Box Retrieval via Reinforcement Learning](/202604/08/2604.05087v1-document-optimization-for-black-box-retrieval-via-reinforcement-learning)  
+   evidence：RAG管道的查询路由与分类器策略选择
+10. [Preserving Forgery Artifacts: AI-Generated Video Detection at Native Scale](/202604/09/2604.04634v1-preserving-forgery-artifacts-ai-generated-video-detection-at-native-scale)  
+   标签：评分：6.0/10、query:wmodel
+   evidence：用于AI生成视频检测的综合数据集
+11. [Generating Synthetic Doctor-Patient Conversations for Long-form Audio Summarization](/202604/09/2604.06138v1-generating-synthetic-doctor-patient-conversations-for-long-form-audio-summarization)  
+   标签：评分：6.0/10、query:wmodel
+   evidence：用于训练和评估的合成数据生成管道
+12. [ZitPit: Consumer-Side Admission Control for Agentic Software Intake](/202604/09/2604.06241v1-zitpit-consumer-side-admission-control-for-agentic-software-intake)  
    标签：评分：6.0/10、query:agent
-   evidence：使用强化学习和排序奖励优化检索文档
-11. [A Multi-Agent Framework for Automated Exploit Generation with Constraint-Guided Comprehension and Reflection](/202604/08/2604.05130v1-a-multi-agent-framework-for-automated-exploit-generation-with-constraint-guided-comprehension-and-reflection)  
-   标签：评分：6.0/10、query:agent
-   evidence：用于自动化漏洞利用生成的多智能体框架
-12. [DQA: Diagnostic Question Answering for IT Support](/202604/08/2604.05350v1-dqa-diagnostic-question-answering-for-it-support)  
-   标签：评分：6.0/10、query:agent
-   evidence：具有检索和查询重写的诊断问答系统
+   evidence：代码智能体和AI IDE的安全系统
 
 
 <div class="dpr-home-promo-card">

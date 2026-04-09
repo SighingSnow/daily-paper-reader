@@ -1,0 +1,1187 @@
+Title: OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data
+
+URL Source: https://arxiv.org/pdf/2604.02444v1
+
+Published Time: Mon, 06 Apr 2026 00:06:52 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+# OmniTQA : A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data 
+
+## Nima Shahbazi 
+
+Megagon Labs Mountain View, USA nima@megagon.ai 
+
+## Seiji Maekawa 
+
+Megagon Labs Mountain View, USA seiji@megagon.ai 
+
+## Nikita Bhutani 
+
+Megagon Labs Mountain View, USA nikita@megagon.ai 
+
+## Estevam Hruschka 
+
+Megagon Labs Mountain View, USA estevam@megagon.ai 
+
+## ABSTRACT 
+
+While recent advances in large language models have significantly improved Text-to-SQL and table question answering systems, most existing approaches assume that all query-relevant information is explicitly represented in structured schemas. In practice, many enterprise databases contain hybrid schemas where structured at-tributes coexist with free-form textual fields, requiring systems to reason over both types of information. To address this challenge, we introduce OmniTQA , a cost-aware hybrid query processing frame-work that operates over both structured and semi-structured data. 
+
+OmniTQA treats semantic reasoning as a first-class query operator, seamlessly integrating LLM-based semantic operations with classi-cal relational operators into an executable directed acyclic graph. To manage the high latency and cost of LLM inference, it extends classi-cal query optimization with data-aware planning, combining atomic query decomposition and operator reordering to minimize semantic workload. The framework also features a dual-engine execution architecture that dynamically routes tasks between a relational data-base and an LLM module, using operator-aware batching to scale efficiently. Extensive experiments across a diverse suite of struc-tured and semi-structured table question answering benchmarks demonstrate that OmniTQA consistently outperforms existing sym-bolic, semantic, and hybrid baselines in both accuracy and cost efficiency. These gains are particularly pronounced for complex queries, large tables and multi-relation schemas. 
+
+PVLDB Reference Format: 
+
+Nima Shahbazi, Seiji Maekawa, Nikita Bhutani, and Estevam Hruschka. 
+
+OmniTQA : A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data. PVLDB, 14(1): XXX-XXX, 2020. doi:XX.XX/XXX.XX 
+
+PVLDB Artifact Availability: 
+
+The source code, data, and/or other artifacts have been made available at https://github.com/megagonlabs/OmniTQA. 
+
+## 1 INTRODUCTION 
+
+Recent advances in large language models (LLMs) have signifi-cantly improved Text-to-SQL and table question answering sys-tems, making them a key component of modern data access in-terfaces [ 15 , 21 , 41 ]. These systems achieve strong performance 
+
+> This work is licensed under the Creative Commons BY-NC-ND 4.0 International License. Visit https://creativecommons.org/licenses/by-nc-nd/4.0/ to view a copy of this license. For any use beyond those covered by this license, obtain permission by emailing info@vldb.org. Copyright is held by the owner/author(s). Publication rights licensed to the VLDB Endowment. Proceedings of the VLDB Endowment, Vol. 14, No. 1 ISSN 2150-8097. doi:XX.XX/XXX.XX
+
+when queries can be mapped to structured schemas and executed using relational operators. However, these approaches rely on a key assumption: all query-relevant information is explicitly represented in structured attributes. In practice, this assumption rarely holds. Many real-world datasets contain hybrid schemas where structured attributes coexist with free-form text fields that implicitly encode entities, predicates, or relational references not materialized as ex-plicit columns. Consequently, answering even simple queries may require extracting latent structure from text before performing relational reasoning. This mismatch introduces a key challenge for natural language query processing. In fully structured databases, answering a ques-tion reduces to mapping predicates to schema attributes and exe-cuting relational operations such as selection, join, and aggrega-tion. In contrast, when relevant information is embedded in textual fields, systems must interleave semantic reasoning (e.g., extract-ing entities, resolving predicates, performing fuzzy matching) with symbolic relational processing. This requires jointly reasoning over heterogeneous data representations while maintaining efficiency and scalability. The following example illustrates this contrast. 
+
+Example 1: Consider the NCAA Soccer database with relations College 
+
+and Tryout , shown on the left side of Figure 1. Suppose a user poses a query: “What is the tryout ID and the state of the college where a goalie player was successfully accepted?” 
+
+In this structured setting, a Text-to-SQL system can directly map the NL query to a SQL query with a selection operation over the Tryout 
+
+table followed by a join operation with the College table and a projection operation over the requested attributes. 
+
+Example 2: Consider the semi-structured instance of the same database shown on the right side of Figure 1. Here, key attributes such as position, decision, and state are embedded within textual descriptions. Answering the same query now requires several semantic reasoning steps: (i) identifying tuples in Tryout mentioning both the goalie position and a successful admission, (ii) extracting the college name from the text, (iii) matching this entity with the College relation, and (iv) extracting the state from the text before producing the final projection. 
+
+Existing approaches fall short in this setting. Text-to-SQL sys-tems are tightly coupled to explicit schema attributes and cannot operate when predicates or join keys are implicitly encoded in text [ 45 ]. LLM-based table question answering methods [ 8, 40 ] treat tables as serialized text and reason directly over it. While effective for small tables or single relations, these approaches scale poorly to large datasets and multi-table schemas and incur substantial inference cost [ 43 ]. Recent hybrid systems [ 1, 6, 17 , 29 ] combine relational execution with LLM-based semantic operators to enable more flexible query processing such as semantic filtering and aggre-gation. However, these approaches typically assume that schema ID  Description                                       
+
+> 10001 A no decision was made by LSU for the goalie role.
+> 20002 ASU has made a yes decision regarding the goalie position.
+> 30003 The striker position at FSU was given a yes decision.
+> 40004 OU has made a no decision regarding the mid position.
+> 50005 A no decision was made by ASU for the goalie role.
+> 60006 For the mid position, LSU decided no.
+> Description
+> LSU, based in LA, has a student enrollment of 18000.
+> ASU, based in AZ, has a student enrollment of 12000.
+> With 22000 students, OU is a college in OK.
+> The college FSU in FL reports an enrollment of 19000 students.
+> College Tryout
+> College State Enroll
+> LSU LA 18000
+> ASU AZ 12000
+> OU OK 22000
+> FSU FL 19000
+> ID College Position Decision
+> 10001 LSU goalie no
+> 20002 ASU goalie yes
+> 30003 FSU striker yes
+> 40004 OU mid no
+> 50005 ASU goalie no
+> 60006 LSU mid no
+> College Tryout
+> Structured Schema DB Hybrid Schema DB
+
+Figure 1: Two instances of NCAA Soccer database with distinct schema representations: (left) structured; (right) semi-structured. 
+
+attributes are well-defined and apply semantic operators only to interpret or match values within individual columns. They are less suited for scenarios where a single textual field conflates multiple latent attributes and relational references that would otherwise be represented as separate columns. In such cases, query-relevant structure is not explicitly materialized and cannot be recovered through schema resolution alone. Instead, the system must recon-struct this structure from entangled textual descriptions prior to applying relational operations. Enabling this requires a tighter inte-gration of semantic reasoning with query planning and execution. Table 1 provides a high-level picture of how existing approaches handle key challenges such as long tables, multi-table reasoning, complex queries, and implicit schema. To address these limitations, we introduce Semi-structured Table Question Answering ( SSTQA ), a setting where natural language queries operate over relational databases containing both structured attributes and textual columns. In SSTQA , predicates, entities, and join attributes may be explicitly represented in the schema, implicitly embedded within textual fields, or not materialized as standalone attributes at all. Solving SSTQA therefore requires more than executing queries over existing schema elements. It must identify, extract, align, and compose missing structural signals from unstructured textual fields during query processing. In response, we present OmniTQA , a hybrid query processing system for SSTQA that treats semantic reasoning as a first-class query operator within a relational execution model. It translates NL queries into executable directed acyclic graphs (DAGs) of atomic operators, where each node corresponds to either a relational or an LLM-based semantic operator. This atomic operator-centric design enables fine-grained decomposition, tight integration of symbolic and semantic reasoning, and execution plans with explicit seman-tics. Building on this abstraction, OmniTQA performs data-aware planning and cost-efficient execution over hybrid schemas. It incor-porates optimization strategies such as relational pruning, operator reordering, and query-aware data reduction to explicitly account for the asymmetry between inexpensive relational operations and costly semantic operators. To execute these plans efficiently, OmniTQA introduces a dual-engine execution architecture that dynamically routes operators to either a relational database engine or an LLM-based reasoning mod-ule. It further incorporates operator-aware batching , partitioning intermediate relations and executing semantic operations in paral-lel. Together, these mechanisms enable scalable semantic reasoning over large datasets while respecting LLM context constraints and controlling inference cost. Beyond augmenting structured queries, 
+
+OmniTQA reconstructs latent attributes, predicates, and relation-ships directly from textual fields during query execution. 
+
+Table 1: Comparison of existing TQA approaches vs. Om-niTQA . ✗ denotes settings that are not natively supported, although limited or indirect handling may still be feasible.                          
+
+> Challenge NL2SQL Direct-LLM Hybrid OmniTQA (Ours)
+> Long tables ✓✗✗✓
+> Multi-table ✓✓✗✓
+> Complex queries ✓✗✗✓
+> Textual columns ✗✓✓✓
+> Implicit schema ✗✓✗✓
+
+We evaluate OmniTQA across a diverse suite of table question answering benchmarks spanning structured, semi-structured, and multi-table settings. Experimental results demonstrate that it con-sistently outperforms existing symbolic, semantic, and hybrid base-lines in both accuracy and cost efficiency, particularly for complex queries involving large tables and multi-relation schemas. Our main contributions are as follows: 
+
+• We introduce Semi-structured Table Question Answering ( SSTQA ), a new problem setting where query-relevant may be explicitly represented, embedded in textual fields, or not materialized as standalone schema attributes. 
+
+• We propose a hybrid query processing framework for SSTQA that integrates relational and LLM-based semantic operators within executable DAG-based query plans, enabling unified reasoning over structured and textual data. 
+
+• We develop data-aware planning and optimization techniques that support complex queries over large and multi-relation datasets by minimizing expensive semantic computation via relational pruning, operator reordering, and query-aware data reduction. 
+
+• We design a dual-engine execution framework with operator-aware batching strategies for scalable processing of long tables and efficient handling of hybrid workloads. 
+
+• We conduct an extensive empirical evaluation across 12 bench-mark datasets and 3 LLMs, demonstrating substantial improve-ments in both accuracy and cost-efficiency over state-of-the-art symbolic, semantic, and hybrid baselines. 
+
+## 2 PRELIMINARIES 2.1 Data Model 
+
+Let S = {T 1, . . . , T𝑛 } be a relational schema where each relation 
+
+T𝑖 is defined over attributes A𝑖 = {𝐴 𝑖, 1, . . . , 𝐴 𝑖,𝑚 𝑖 }. We denote the global attribute set as A =⋃︁ 𝑖 A𝑖 . To model heterogeneous data, we partition attributes into structured and unstructured subsets, 
+
+A = A𝑆 ∪ A 𝑈 with A𝑆 ∩ A 𝑈 = ∅. Structured attributes A𝑆 
+
+admit standard relational operations (e.g., numeric, categorical, 
+
+> 2
+
+temporal), while unstructured attributes A𝑈 contain free-form textual content. A relation may therefore contain attributes from both subsets, forming a hybrid schema. A database instance over 
+
+S is denoted by D = {𝑅 1, . . . , 𝑅 𝑛 }, where each 𝑅 𝑖 is a finite set of tuples conforming to T𝑖 .
+
+## 2.2 Table Question Answering 
+
+We first review the classical TQA setting, where database schemas contain only structured attributes ( A = A𝑆 ). Query answering therefore reduces to executing relational operations over the data. 
+
+Definition 1 (Table Question Answering — TQA ). Let S be a relational schema such that A = A𝑆 (i.e., A𝑈 = ∅). Given a natural language question Q and a database instance D defined over S, the 
+
+TQA problem concerns computing an answer Y such that 
+
+𝑓 : (Q , D) → Y ,
+
+where Y is a set of tuples, a projection thereof, or an aggregate value derived solely through relational operations over A𝑆 .
+
+In this setting, TQA reduces to constructing and executing a query plan composed of classical operators (e.g., 𝜎 , 𝜋 ,⋈︁ , 𝛾 ). 
+
+## 2.3 Problem Formulation 
+
+We now formally define our problem of interest. 
+
+Definition 2 (Semi-structured Table Question Answering — SSTQA ). Let S be a hybrid relational schema over A = A𝑆 ∪A𝑈 attributes. Given a natural language question Q and a database instance D defined over S, the goal of SSTQA is to compute an answer 
+
+Y that satisfies the information need expressed in Q.
+
+𝑓 : (Q , D) → Y ,
+
+where Y belongs to a well-defined answer domain (e.g., a set of tuples, a projection thereof, or an aggregate value derived from D). 
+
+Unlike traditional Text-to-SQL, which assumes reasoning ex-clusively over structured attributes A𝑆 , SSTQA requires hybrid execution across both attribute types: (1) Symbolic Reasoning: applying relational operators (e.g., 𝜎 , 𝜋 ,⋈︁ 
+
+, 𝛾 ) over attributes in A 𝑆 .(2) Semantic Reasoning: performing semantic retrieval, match-ing, information extraction, semantic joins or aggregates over textual content in attributes in A𝑈 to derive predicates, rele-vance scores, or extracted structured signals. (3) Joint Processing: integrating symbolic and semantic reasoning steps within a unified execution pipeline. The core challenge of SSTQA lies in the principled integration of relational query processing with semantic text understanding, enabling efficient end-to-end reasoning over hybrid schemas. 
+
+## 3 SYSTEM OVERVIEW 
+
+The SSTQA setting requires integrating two fundamentally differ-ent forms of computation: scalable relational query processing and semantic interpretation of textual attributes. Relational operators provide efficient data filtering and joining, while LLM-based reason-ing enables extraction and interpretation of information embedded in text. A practical system must therefore combine these capabil-ities while minimizing the cost of expensive semantic reasoning. To address this challenge, we design OmniTQA , a hybrid query processing system that unifies relational execution and semantic operators within a single query planning and execution framework. Figure 2 shows the overall architecture of OmniTQA . Given a natural language query and a database instance, it produces a structured result through three stages: (1) Pre-processing , which prepares schema and data context for query planning. (2) Planning and Optimization , which translates the query into an executable hybrid plan and applies cost-aware optimization. (3) Execution , which evaluates the plan using both relational and semantic operators. 
+
+Pre-processing: The preprocessing stage prepares the database context used during planning. It resolves structural inconsistencies, eliminates irrelevant tables and attributes, augments the schema with light-weight data profiles and constructs query-aware data preview consisting of semantically relevant rows and representa-tive samples. These artifacts provide the planner with grounded information about the schema and underlying data distribution. 
+
+Planning and Optimization: In the planning stage, OmniTQA 
+
+decomposes the NL query into a DAG of atomic operators. Each operator corresponds to a relational operation executed by the data-base engine or a semantic operation executed by an LLM-based module. This representation enables unified symbolic and semantic reasoning within a single interpretable execution plan. Atomic steps maximize delegation to the efficient relational engine and reduce LLM non-determinism by constraining the output space. To address schema ambiguity in tables and LLM variance, OmniTQA gener-ates multiple candidate plans under a fixed computation budget. Given the high cost of semantic operations, it applies cost-aware optimization to minimize their usage. It pushes relational filters and projections toward data sources to prune irrelevant tuples before invoking semantic reasoning. 
+
+Execution: The execution stage evaluates optimized plans using a dual-engine architecture, with multiple plans evaluated in parallel. Relational operators are executed as SQL queries, while seman-tic operators are handled by the LLM-based module. To scale to large datasets, semantic operations are batched over partitioned intermediate results and executed in parallel. 
+
+Consolidation: After executing all candidate plans, OmniTQA 
+
+selects the most appropriate result using a set of practical plan-selection strategies, or delegates this decision to a human expert. The following sections describe each stage in detail. In summary, OmniTQA is guided by three key design princi-ples: (i) treating semantic reasoning as a first-class operator to enable unified planning, (ii) minimizing expensive semantic com-putation through data-aware optimization, and (iii) leveraging plan diversification to mitigate schema ambiguity in tables. These prin-ciples jointly enable robust and scalable query processing over semi-structured data. 
+
+## 4 PREPROCESSING 
+
+The initial stage of OmniTQA involves a comprehensive preprocess-ing of the database instance. This procedure is partitioned into two       
+
+> 3Pre-process Planner Executor
+> Clean Data Preview Plan Generation Plan Optimization LLM Reasoner
+> Text-to-SQL
+> Consolidation
+> k-Plans
+
+Figure 2: End-to-end overview of the OmniTQA framework. Table 2: Data Profiling for Schema Augmentation                
+
+> Attribute Relational Extracted Profile Category Type Binding Summaries Numeric {int, float }Min, Max, Average, Variance
+> Categorical {string, enum }Cardinality, Top-𝑘 frequent values
+> Textual {varchar, text }Min/Max length, unique count, sample snip-pets, semantic summaries
+> Temporal {date, timestamp }Range [ 𝑡 start , 𝑡 end ], Granularity (e.g., year, day)
+> Relational {PK, FK }Referential constraints, join key mappings, ta-ble dependencies
+
+components: a query-agnostic phase that normalizes and augments the database schema, and a query-aware phase that constructs a query-specific view of the data. 
+
+## 4.1 Query-agnostic Preprocessing 
+
+The query-agnostic step is executed once per database instance to ensure structural integrity and reduce noise before any planning begins. This phase focuses on three key areas: 
+
+• Table Cleaning and Normalization: Enterprise schemas often contain structural inconsistencies such as duplicate attributes, malformed columns, or noisy fields. OmniTQA first performs normalization and cleaning to resolve such issues and ensure that downstream SQL execution remains reliable. 
+
+• Heuristic Schema Pruning: Many real-world schemas contain attributes that provide little semantic value for query processing (e.g., hash strings, identifiers with constant values, or columns dominated by NULL values). To reduce planning complexity and token overhead, OmniTQA eliminates columns where: (i) NULL values exceed a 95% threshold, (ii) a single constant value dominates the attribute, or (iii) values contain non-informative content such as password hashes, Base64 strings, or code blocks. 
+
+• Schema Augmentation: To improve schema grounding dur-ing planning, the system augments the cleaned schema with lightweight data profiles (summarized in Table 2). These include inferred attribute types, statistical summaries, and relational constraints such as primary and foreign keys. 
+
+## 4.2 Query-aware Preprocessing 
+
+While the previous phase improves schema quality, the planner still requires examples of the underlying data to accurately map natural language predicates to schema attributes. This is particu-larly important for semi-structured tables where explicit attribute information may be unavailable. OmniTQA therefore constructs a query-aware data preview tailored to the input question Q. This refinement is centered on two key primitives: 
+
+• Semantic Schema Pruning: This step employs an LLM-based reasoning pass to identify and retain only those attributes likely relevant to the query intent. The goal is to significantly reduce the token overhead and minimize the potential for “distraction” during the subsequent phases. 
+
+• Query-Aware Data Preview: This step constructs a hybrid pre-view ˆ𝑅 Q of the database content consisting of two components: (i) Semantic Search , which retrieves the top-𝑘 1 rows most relevant to the question’s predicates, and (ii) Random Sampling , which includes 𝑘 2 random tuples to illustrate the general format and diversity of the relation. This combination ensures that the plan-ner receives both query-relevant examples and representative samples of the database structure, improving its ability to resolve predicates and attribute mappings. The output of this stage consists of a refined and context-augmented database instance D Q and a query-aware data preview ˆ𝑅 Q , which together serve as input for the planning and execution phases. 
+
+## 5 PLANNING 
+
+The planning phase consists of three main components: schema grounding , atomic step decomposition , and plan optimization. Fig-ure 3 illustrates the system components using a toy example. In the following, we dive into the details of each component. 
+
+## 5.1 Schema Grounding 
+
+The first step is to map the entities and predicates expressed in Q to elements of the refined database schema. It operates at two levels: 
+
+• Relation-Level: The system first identifies the subset of re-lations T𝑖 ∈ S required to answer Q. Using the query-aware schema representation produced during preprocessing, the plan-ner prunes irrelevant tables and retains only those that are likely to participate in the query plan. 
+
+• Attribute-Level: Within the resolved relations, the planner maps NL descriptors to specific attributes 𝐴 ∈ A . This step heavily leverages the query-aware data preview ˆ𝑅 Q to bridge lexical gaps (e.g., mapping the phrase “customer feedback” to a specific column named usr_cmnt ). By grounding query expressions in concrete schema elements, the planner reduces hallucinations and ensures that the generated execution steps remain consistent with the database schema. 
+
+## 5.2 Atomic Step Decomposition 
+
+Once the relevant schema elements are identified, the planner de-composes Q into a sequence of atomic reasoning steps. Each step 𝑠 
+
+represents a minimal executable unit that transforms one or more 
+
+> 4
+
+Pr e-pr ocess Planner Executor              
+
+> Clean Data Pr eview Plan Generation Plan Optimization LLM Reasoner
+> Text-to-SQL
+> Consolidation
+> k-Plans
+> " Player " " 2021 "
+> season year
+> eteam of the best player of
+> 1win
+> champio nship ?
+> Attribute-level Mapping
+> " UCL "league
+
+Gr ounding Plan Diversification Decomposition Optimization        
+
+> Strategies
+> (1...K)
+> Relational Semantic
+> Filter
+> Pr oject
+> Join
+> ...
+> Filter
+> Map
+> Join
+> Aggr .
+> Operators Atomic Decomposition
+> i-th Strategy
+> Return r ows fr om League wher eleague
+> is 'UCL'.
+> Validator
+> Operator Reordering Cost Model
+> Pr edicate/pr oject
+> pushdown
+> σ, π
+> Join Reordering
+
+⋈
+
+> Semantic Deferral
+
+~                             
+
+> Achievements
+> amed UEF AMen's Player of the Year; scored 0 goals
+> in UCL but controlled midfield in the final.
+> op scorer in Bundesliga with 41 goals; scored 5 goals
+> in 6 UCL appearances.
+> Won 7th Ballon d'Or; scored a total of 35 goals in the
+> league and was named the top scorer .
+> Performance
+> ournament Champions; defeated Manchester City 1-0
+> in the final.
+> Tournament Champions; maintained a 100% win
+> record throughout the season.
+> Finished 2nd in the league; reached UCL semi-finals.
+> League
+> Plan A
+> ExtractthegoalcountfromthePlayer
+> table'sdescription.
+> Plan B
+> Plan C Optimized Plan A
+> Optimized Plan B
+> Optimized Plan C
+> Player
+> ...
+> ...
+> "Team "
+> mL.team
+> achievements
+> " Best Player "
+> chievements
+> hamptionhsip "
+> Relation-level
+> Gr ounding
+> " Player " name " 2021 "
+> season year
+> Q: Did the player who achieved the
+> UEF AMen's Player of the Year 2021 win
+> the UCL championship ?
+> Attribute-level Mapping
+> " UCL "league
+
+Schema Gr ounding Plan Diversification Decomposition Optimization       
+
+> Strategies
+> (1...K)
+> Relational Semantic
+> Filter
+> Pr oject
+> Join
+> ...
+> Filter
+> Map
+> Join
+> Aggr .
+> Operators
+> Atomic Decomposition
+> i-th Strategy
+> Return r ows fr om League wher eleague
+> is 'UCL'.
+> Validator
+> Operator Reordering Cost Model
+> Pr edicate/pr oject
+> pushdown
+> σ, π
+> Join Reordering
+
+⋈
+
+> Semantic Deferral
+
+~                                                        
+
+> Name Team Year Remark Description
+> Jor ginho Chelsea 2021 Named UEF AMen's Player of the Year; scored 0 goals
+> in UCL but controlled midfield in the final.
+> He was born on December 20, 1991 and stands
+> 5'1 1" tall and weighs approximately 64 kg .
+> Robert
+> Lewandowski Bayern 2021 Top scorer in Bundesliga with 41 goals; scored 5 goals
+> in 6 UCL appearances.
+> He was born on August 21, 1988 , and stands
+> 6'1" tall and weighs approximately 81 kg .
+> Lionel Messi PSG 2021 Won 7th Ballon d'Or; scored a total of 35 goals in the
+> league and was named the top scorer .
+> He was born on June 24, 1987 , and stands 5'7" tall
+> and weighs approximately 72 kg .
+> Team League Season Performance
+> Chelsea UCL 2021 Tournament Champions; defeated Manchester City 1-0 in the final.
+> Bayern
+> München UCL 2020 Tournament Champions; maintained a 100% win record throughout the season.
+> Paris Saint-
+> Germain Ligue 1 2021 Finished 2nd in the league; reached UCL semi-finals.
+> League
+> ExtractthegoalcountfromthePlayer
+> table'sdescription.
+> Plan A
+> Plan B
+> Optimized Plan A
+> Optimized Plan B
+> Player
+> ... ... ... ...
+> ... ... ... ...
+> " win "
+> P.team L.team
+> remark
+> " UEF AMen's ... "
+> performance
+> " championship "
+> description
+
+Figure 3: Illustration of the OmniTQA planning phase for the UEFA Soccer database and the query “Did the player who achieved the UEFA Men’s Player of the Year 2021 win the UCL championship?” . OmniTQA first constructs a query-aware data preview ˆ𝑅 Q (shown in blue) to ground natural-language intents to schema attributes. The planner then generates and optimizes multiple candidate logical plans to resolve the schema ambiguity over which column encodes the UEFA Men’s Player of the Year information. For example, Plan A assumes the information is stored in column “Remark”, whereas Plan B assumes it is stored in column “Description”, yielding different execution outputs. 
+
+input relations into a new intermediate relation. To simplify execu-tion and optimization, each atomic step satisfies two constraints: 
+
+• It contains at most one logical condition (e.g., 𝜎 𝑐𝑜𝑙𝜃 𝑣𝑎𝑙 where 
+
+𝜃 ∈ { =, <, >, . . . }). 
+
+• The condition involves a single column or variable. This ensures that complex queries can be expressed as compositions of simple operations that are easier to interpret and optimize. The planner leverages statistical summaries and sample snippets within the preview ˆ𝑅 Q to resolve filter constants, identify valid join keys, and determine the mapping logic for semantic operators. The resulting steps are organized as DAG, denoted by 𝐺 = (𝑉 , 𝐸 )
+
+where 𝑉 represent the set of atomic steps and 𝐸 represents directed dependencies between relations. A directed edge (𝑢, 𝑣 ) ∈ 𝐸 implies a strict precedence constraint where step 𝑢 must be successfully completed before step 𝑣 can be initiated. This provides two advan-tages. First, it allows independent steps to be executed in parallel. Second, it provides an interpretable lineage of intermediate results that can be inspected or verified by users. The planner then ap-plies topological sort 𝐺 to transform the DAG into a valid execution sequence. In the process, any plans with cycles are dropped and group of nodes that can be executed in parallel are also identified. 
+
+## 5.3 Hybrid Operator Model 
+
+Each atomic step corresponds to an operator drawn from a pre-defined set of relational and semantic operators 𝑂 (depicted in Table 3) . This hybrid operator model extends classical relational query processing by incorporating semantic reasoning capabilities. Relational operators correspond to traditional database operations. These operators are executed directly by the database engine and provide efficient data filtering and transformation. Semantic opera-tors perform reasoning over textual attributes and are executed by an LLM-based reasoning module. These operators include semantic filtering (e.g., based on natural language condition), semantic map-ping (e.g., derives structured values from textual fields), semantic joins (e.g., using fuzzy entity matching) and semantic aggregation (e.g., to summarize textual content). Each step in the execution plan is represented as an object consisting of the following fields: 
+
+• ID: A unique identifier that serves as the symbolic name for the resultant relation 𝑅 ID produced by the step. 
+
+• Operator: Specifies the operator name and class to be applied. 
+
+• Instruction: The grounded instantiation of the operator’s in-struction template , tailored to the specific attributes 𝐴 ∈ A and predicates cond required by the step. 
+
+• Parents: A list of antecedent step IDs representing the data de-pendencies within the DAG; these provide the input relations 
+
+𝑅 𝑎 , 𝑅 𝑏 for the current operation. Unlike prior systems where semantic operators act over prede-fined schema attributes, in OmniTQA these operators also serve to recover latent relational structure from textual data, enabling subsequent symbolic processing. 
+
+## 5.4 Plan Optimization 
+
+The execution plan generated by the planner may not be cost-efficient, particularly when semantic operators are involved. Om-niTQA extends classical relational query optimization techniques [ 13 ,30 ] to account for the asymmetry between inexpensive relational operations and expensive semantic reasoning. Specifically, we adopt predicate migration as a cost-aware semantic placement strategy. While semantic operators are deferred to later stages to minimize unnecessary LLM calls, the optimizer evaluates the cardinality im-pact of downstream relational operators. If a join or set operation is expected to significantly increase the number of tuples, semantic filters are applied earlier on smaller base relations to avoid costly expansion. The optimizer applies the following transformations: 
+
+• Selection Pushing: When possible, relational filters are pushed toward the base relations to eliminate irrelevant tuples early in the plan. 
+
+5Table 3: The OmniTQA Operator Universe                                                                                                                                  
+
+> Class Operator Function Instruction Template Description Relational
+> SCAN 𝜎 (𝑅 )“Return rows from 𝑅 .” Retrieve base relation instance 𝑅 𝑖 ∈ D Q.
+> FILTER 𝜎 cond (𝑅 )“Return rows from 𝑅 where 𝐴 [Op] 𝑉 .” Select tuples 𝑟 ∈𝑅 where 𝐴 ∈ A 𝑆 meets a condition.
+> PROJECT 𝜋 𝐴 1,...,𝐴 𝑘 (𝑅 )“Return {𝐴 1, . . . , 𝐴 𝑘 }of 𝑅 .” Projection over a subset of attributes {𝐴 𝑗 } ⊆ A 𝑖 .
+> AGGREGATE 𝛾 f(𝐴 ),G(𝑅 )“Return f (𝐴 )grouped by G from 𝑅 .” Deterministic reductions for 𝐴 ∈ A 𝑆 grouped by G.
+> JOIN 𝑅 𝑎 ⊲⊳ 𝜃 𝑅 𝑏 “Return combined rows from 𝑅 𝑎 , 𝑅 𝑏 via 𝜃 .” Join operation based on exact key matching 𝜃 .
+> SORT 𝜏 𝐴 (𝑅 )“Return 𝑅 sorted by 𝐴 .” Reorder tuples 𝑟 ∈𝑅 by scalar values of attribute 𝐴 ∈ A 𝑆 .
+> LIMIT 𝜆 𝑛 (𝑅 )“Return the top 𝑛 rows from 𝑅 .” Truncate the instance to the first 𝑛 tuples.
+> SET_OP 𝑅 𝑎 {∪ ,∩,\} 𝑅 𝑏 “Return the [Op] of 𝑅 𝑎 and 𝑅 𝑏 .” Standard set operations between compatible relations.
+> Semantic  MAP ˜𝜋 cond (𝑅 )“Return 𝑅 with new col derived from A𝑈 by cond.” Row-wise transform (e.g., sentiment or entity extraction from 𝐴 ∈ A 𝑈 ).
+> FILTER ˜𝜎 cond (𝑅 )“Return rows from 𝑅 satisfying cond.” Probabilistic tuple selection based on fuzzy NL intent.
+> JOIN 𝑅 𝑎 ˜⊲⊳ cond 𝑅 𝑏 “Join 𝑅 𝑎 , 𝑅 𝑏 via matching logic: cond.” Fuzzy entity resolution across relations via semantic similarity.
+> AGGREGATE ˜𝛾 f(𝐴 ),G(𝑅 )“Return summary of A𝑈 grouped by Gfrom 𝑅 via cond.” Synthesis or summarization of textual content in A𝑈 .
+
+• Projection Pruning: Unnecessary attributes are removed once they are no longer required by downstream operations. This re-duces the width of intermediate relations and memory footprint. 
+
+• Join Reordering: Join operations are reordered to prioritize high-selectivity joins and minimize intermediate relation sizes. 
+
+• Adaptive Semantic Deferral: Semantic steps are deferred un-til relational pruning is complete, unless a relational operator threatens to expand the result set, in which case the semantic step is prioritized to act as a pre-filter. To formalize these heuristics, we define our join reordering strat-egy within the optimization framework shown in Algorithm 1. For join reordering ( ReorderJoins ), we employ a threshold-based hy-brid strategy that balances optimality and scalability. When the number of base relations is small ( |R| ≤ 𝜏 ), we use dynamic pro-gramming to search the space of left-deep join trees and obtain the cost-optimal plan. For larger queries, we fall back to a greedy heuris-tic that iteratively selects the relation minimizing intermediate join cost. To guide semantic operator placement, we define a cost model that captures both relational execution cost and LLM inference cost. For a query plan DAG G, the total estimated execution cost is: 
+
+𝐶𝑜𝑠𝑡 (G) =∑︂  
+
+> 𝑜 ∈ G
+
+(︂ 
+
+𝑤 𝑠𝑦𝑠 · 𝐶 𝑠𝑦𝑠 (𝑜 ) + 𝑤 𝑙𝑙𝑚 · 𝐶 𝑙𝑙𝑚 (𝑜 ))︂ 
+
+where 𝑤 𝑠𝑦𝑠 and 𝑤 𝑙𝑙𝑚 are weighting factors. For relational operators, 
+
+𝐶 𝑙𝑙𝑚 (𝑜 ) = 0, and the system cost 𝐶 𝑠𝑦𝑠 (𝑜 ) is defined by traditional I/O and CPU estimates: 
+
+𝐶 𝑠𝑦𝑠 (𝑜 ) = 𝛾 𝑖𝑛 (𝑜 ) · 𝑐 𝑐𝑝𝑢 + 𝑝𝑎𝑔𝑒𝑠 (𝑜 ) · 𝑐 𝑖𝑜 
+
+where 𝛾 𝑖𝑛 (𝑜 ) denotes the estimated input cardinality for operator 
+
+𝑜 . For a set operation like UNION ( 𝐴 ∪ 𝐵 ), the output cardinality 
+
+𝛾 𝑜𝑢𝑡 is simply the additive sum of its inputs ( |𝐴 | + | 𝐵 |). For a join operator 𝐴 ⊲⊳ 𝐵 , the input cardinality is the sum of the sizes of the two relations ( |𝐴 | + | 𝐵 |), while the output cardinality 𝛾 𝑜𝑢𝑡 (which becomes the input 𝛾 𝑖𝑛 for subsequent operators) is estimated using the selectivity of the join key: 
+
+𝛾 𝑜𝑢𝑡 = |𝐴 | · | 𝐵 |
+
+max (| 𝜋 𝑘𝑒𝑦 (𝐴 )| , |𝜋 𝑘𝑒𝑦 (𝐵 )|) 
+
+where |𝜋 𝑘𝑒𝑦 (𝑅 )| represents the number of distinct values of the join attribute in relation 𝑅 . This value is typically maintained in the system catalog, estimated via HyperLogLog sketches during data ingestion or periodic statistics updates [ 5, 24 ]. The parameters 𝑐 𝑐𝑝𝑢 
+
+is the calibrated unit costs for CPU cycles per tuple, 𝑐 𝑖𝑜 is I/O disk page fetches and 𝑝𝑎𝑔𝑒𝑠 (𝑜 ) is total data volume in memory pages required for the operation. For semantic operators, the dominant cost arises from LLM in-ference. We model this as: 
+
+𝐶 𝑙𝑙𝑚 (𝑜 ) = 𝛾 𝑖𝑛 (𝑜 ) · (︂ 𝑐 𝑐𝑎𝑙𝑙 + 𝛼 · E[| 𝑡𝑜𝑘𝑒𝑛𝑠 (𝐴 )|] )︂ 
+
+where 𝑐 𝑐𝑎𝑙𝑙 denotes the base API latency, 𝛼 is the marginal process-ing cost per token, and E[| 𝑡𝑜𝑘𝑒𝑛𝑠 (𝐴 )|] is the expected token length of the evaluated attributes. This formulation motivates Adaptive Semantic Deferral : minimizing the input cardinality 𝛾 𝑖𝑛 (𝑜 ) through relational pruning directly reduces the LLM inference cost 𝐶 𝑙𝑙𝑚 (𝑜 ).Rather than computing exact costs for every placement, the opti-mizer relies on a calibrated threshold 𝜀 that captures the break-even point between relational data expansion and expensive LLM in-ference. It further considers the cardinality impact of downstream operators. Let Δ𝛾 = 𝛾 𝑜𝑢𝑡 /𝛾 𝑖𝑛 denote the ratio between the estimated output cardinality of a downstream operator and the input cardinal-ity of the semantic branch. If Δ𝛾 > 𝜀 (where 𝜀 ≥ 1), the downstream join or set operation acts as a data multiplier. In such cases, execut-ing the semantic filter earlier on the smaller base relation prevents a multiplicative increase in LLM token consumption. The cost model parameters are obtained through a lightweight calibration phase. Relational parameters ( 𝑐 𝑐𝑝𝑢 , 𝑐 𝑖𝑜 ) are estimated using synthetic workloads, while semantic parameters ( 𝑐 𝑐𝑎𝑙𝑙 , 𝛼 ) are measured from LLM API latency and token statistics. Expected token lengths are maintained in the system metadata catalog. In summary, Algorithm 1 rewrites an initial logical plan into a cost-optimized physical plan. It first applies rule-based transfor-mations such as filter and projection pushdown, then performs hybrid join reordering, and finally determines semantic operator placement using the cost-aware deferral heuristic. While our cost model provides a practical approximation of hybrid execution cost, it is not intended to be fully precise. Instead, it serves as a lightweight decision mechanism to guide operator placement and plan optimization. Empirically, we observe that even coarse-grained estimates are sufficient to achieve significant cost reductions, suggesting that precise modeling of LLM behavior may not be necessary for effective optimization. 
+
+> 6
+
+Algorithm 1 Heuristic-Based Plan Optimization of OmniTQA 
+
+Input: Plan G, Thresholds 𝜀, 𝜏 
+
+Output: Optimized Plan G∗ 
+
+> 1:
+
+function OptimizePlan (G, 𝜀, 𝜏 ) 
+
+> 2:
+
+G𝑝𝑢𝑠ℎ𝑒𝑑 ← PushSelections ( G)  
+
+> 3:
+
+G𝑝𝑟𝑢𝑛𝑒𝑑 ← PruneProjections ( G 𝑝𝑢𝑠ℎ𝑒𝑑 ) 
+
+> 4:
+
+G𝑜𝑟𝑑𝑒𝑟𝑒𝑑 ← ReorderJoins ( G 𝑝𝑟𝑢𝑛𝑒𝑑 , 𝜏 ) 
+
+> 5:
+
+for each semantic node 𝑣 𝑠𝑒𝑚 ∈ G do  
+
+> 6:
+
+𝑣 𝑑𝑜𝑤𝑛 ← GetNext (𝑣 𝑠𝑒𝑚 ) 
+
+> 7:
+
+if 𝑣 𝑑𝑜𝑤𝑛 is a JOIN 𝐴 ⊲⊳ 𝑘 𝐵 then  
+
+> 8:
+
+𝛾 𝑜𝑢𝑡 ← ( | 𝐴 | · | 𝐵 | )/ max ( | 𝜋 𝑘𝑒𝑦 (𝐴 ) | , |𝜋 𝑘𝑒𝑦 (𝐵 ) | )  
+
+> 9:
+
+else if 𝑣 𝑑𝑜𝑤𝑛 is a UNION 𝐴 ∪ 𝐵 then  
+
+> 10:
+
+𝛾 𝑜𝑢𝑡 ← | 𝐴 | + | 𝐵 | 
+
+> 11:
+
+if 𝑣 𝑑𝑜𝑤𝑛 is a JOIN or UNION then  
+
+> 12:
+
+Δ𝛾 ← 𝛾 𝑜𝑢𝑡 /𝛾 𝑖𝑛 (𝑣 𝑠𝑒𝑚 ) 
+
+> 13:
+
+if Δ𝛾 > 𝜀 then  
+
+> 14:
+
+G ← Elevate (𝑣 𝑠𝑒𝑚 , 𝑣 𝑑𝑜𝑤𝑛 ) 
+
+> 15:
+
+else  
+
+> 16:
+
+G ← Defer (𝑣 𝑠𝑒𝑚 ) 
+
+> 17:
+
+G∗ ← G 𝑜𝑟𝑑𝑒𝑟𝑒𝑑  
+
+> 18:
+
+return G∗ 
+
+> 19:
+
+function ReorderJoins (G, 𝜏 ) 
+
+> 20:
+
+R ← G .S 
+
+> 21:
+
+if | R | ≤ 𝜏 then  
+
+> 22:
+
+G.join_tree ← DP ( R )  
+
+> 23:
+
+else  
+
+> 24:
+
+G.join_tree ← Greedy ( R )  
+
+> 25:
+
+return G 
+
+> 26:
+
+function Greedy (R) 
+
+> 27:
+
+( T 𝑖 , T𝑗 ) ← arg min T𝑥 ,T𝑦 ∈R Cost ( T 𝑥 ⊲⊳ T𝑦 ) 
+
+> 28:
+
+𝑃𝑙𝑎𝑛 ← T 𝑖 ⊲⊳ T𝑗 ; R ← R \ { T 𝑖 , T𝑗 } 
+
+> 29:
+
+while R ≠ ∅ do  
+
+> 30:
+
+T𝑛𝑒𝑥𝑡 ← arg min T𝑘 ∈R Cost (𝑃𝑙𝑎𝑛 ⊲⊳ T𝑘 ) 
+
+> 31:
+
+𝑃𝑙𝑎𝑛 ← 𝑃𝑙𝑎𝑛 ⊲⊳ T𝑛𝑒𝑥𝑡 ; R ← R \ { T 𝑛𝑒𝑥𝑡 } 
+
+> 32:
+
+return 𝑃𝑙𝑎𝑛  
+
+> 33:
+
+function DP (R) 
+
+> 34:
+
+𝑂𝑝𝑡 ← ∅  
+
+> 35:
+
+for each T𝑖 ∈ R do  
+
+> 36:
+
+𝑂𝑝𝑡 [ { T 𝑖 } ] ← T 𝑖  
+
+> 37:
+
+for 𝑠𝑖𝑧𝑒 ← 2 to | R | do  
+
+> 38:
+
+for each subset 𝑆 ⊆ R where |𝑆 | = 𝑠𝑖𝑧𝑒 do  
+
+> 39:
+
+𝑂𝑝𝑡 [𝑆 ] ← arg min T ∈ 𝑆 Cost (𝑂𝑝𝑡 [𝑆 \ { T } ] ⊲⊳ T )  
+
+> 40:
+
+return 𝑂𝑝𝑡 [ R ]  
+
+> 41:
+
+function Cost (𝐴 ⊲⊳ 𝐵 ) 
+
+> 42:
+
+𝛾 𝑖𝑛 ← | 𝐴 | + | 𝐵 |; 𝑝𝑎𝑔𝑒𝑠 ← EstimatePages (𝐴, 𝐵 ) 
+
+> 43:
+
+return 𝛾 𝑖𝑛 · 𝑐 𝑐𝑝𝑢 + 𝑝𝑎𝑔𝑒𝑠 · 𝑐 𝑖𝑜 
+
+## 5.5 Plan Diversification 
+
+Although the optimizer identifies the cost-optimal plan under a given interpretation, natural language ambiguity in schemas and the probabilistic behavior of LLM-based semantic operators in-troduce a risk of semantic invalidity . A plan may be structurally correct yet misaligned with the table semantics due to ambigu-ous schema mappings or model interpretation. To mitigate this, 
+
+OmniTQA employs a Plan Diversification strategy. Instead of com-mitting to a single execution path, the planner generates a set of candidate plans P = {G ∗ 
+
+> 1
+
+, . . . , G∗ 
+
+> 𝑘
+
+} that explore alternative schema mappings and operator configurations. This allows the system to hedge against incorrect assumptions during planning and resolve ambiguity through cross-plan comparison or user-guided refine-ment. We generate diversified plans along four dimensions: 
+
+• Schema Mapping Diversity: We map an ambiguous query term (e.g., ‘return player’) to multiple candidate attributes (e.g., 
+
+player_id vs. player_name ). 
+
+• Risk-Profile Variations: We generate strict plans that priori-tize deterministic relational operators, and fuzzy plans that use semantic operators to capture subjective predicates. 
+
+• Operator Substitution: We explore equivalent logical trans-formations (e.g., semantic FILTER vs. semantic MAP followed by relational filtering). 
+
+• Semantic Intent Modeling: We interpret vague expressions (e.g., “top player”) using alternative semantic criteria (e.g., scored goals vs. player of the match). 
+
+## 6 EXECUTION 
+
+After generating the diversified plan set P, OmniTQA executes each plan G∗ ∈ P according to the precedence constraints of the plan DAG, routing operators to the appropriate execution engine. To maximize throughput, OmniTQA exploits two levels of parallelism: 
+
+inter-plan parallelism, which executes the 𝐾 candidate plans con-currently, and intra-plan parallelism, which schedules independent DAG nodes simultaneously. The following sections describe the execution of relational and semantic operators. 
+
+## 6.1 SQL-based Execution 
+
+Relational operators are executed by the SQL-based execution en-gine . Given a grounded operator instruction, the engine translates it into an executable SQL query using schema metadata and data previews ˆ𝑅 Q from predecessor relations, and executes it on the host database. To improve robustness against translation errors, 
+
+OmniTQA incorporates an automated refinement loop. If execu-tion fails, the SQL query, error message, and logical instruction are passed to a refinement module that rewrites the query. This process repeats until execution succeeds or a retry limit is reached. Successful outputs are materialized as intermediate relations. 
+
+## 6.2 LLM-based Execution 
+
+Semantic operators are executed by the LLM-based reasoning engine .A naive approach would pass the entire relation to the LLM, which does not scale due to context limits, while row-wise execution in-curs excessive API calls. To balance reasoning quality and execution efficiency, OmniTQA employs an operator-aware batching strategy that partitions input relations into manageable chunks. Batches are processed in parallel. This enables scalable semantic reasoning over large datasets while controlling token usage and latency. Un-like prior work [ 29 ], OmniTQA robustly integrates this approach directly into the physical execution of its hybrid operator model. 
+
+> 7
+
+## 6.3 Operator-driven Batching 
+
+The execution engine treats semantic operators as block-based primitives and dynamically determines an effective batch size 𝛽 
+
+based on a user-defined token budget and estimated schema width. If the token footprint of a batch exceeds the budget, 𝛽 is reduced to prevent context overflow. This chunking strategy enables substan-tial intra-operator parallelism by dispatching multiple LLM calls concurrently. Depending on the operator type, the engine applies one of three batching strategies: 
+
+• Semantic MAP & FILTER : These operators evaluate tuples inde-pendently. Input relations are partitioned into chunks processed asynchronously. To reduce output tokens, the LLM returns only derived values (for MAP ) or row indices satisfying the predicate (for FILTER ), which are then applied to the original relation. 
+
+• Semantic JOIN : To avoid loading the full Cartesian product into a single context window, OmniTQA performs a block nested-loop join over LLM calls. Input relations are streamed in blocks of size 
+
+𝛽 , and each block pair is evaluated independently in parallel. 
+
+• Semantic AGGREGATE : For operators requiring global context, 
+
+OmniTQA employs a recursive map-reduce strategy. Relations larger than 𝛽 are partitioned into chunks, partial aggregations are computed in parallel, and intermediate results are recursively reduced until a final aggregation is produced. Algorithm 2 outlines the complete batched execution logic em-ployed by the LLM-based reasoning engine of OmniTQA .
+
+## 6.4 Plan Consolidation 
+
+Since OmniTQA generates 𝐾 candidate execution plans exploring alternative reasoning paths, the final stage consolidates their out-puts into a single result relation. Depending on user preferences for transparency, cost, and accuracy, OmniTQA supports three con-solidation strategies: 
+
+• LLM-as-a-Judge Consensus [ 12 ]: An independent LLM evalu-ates candidate outputs by comparing them against the original query and representative samples of each plan’s results. Using few-shot examples to calibrate the evaluation, the judge selects the output that best aligns with the user’s intent. 
+
+• Semantic Majority Voting [ 3 ]: An ensemble-based strategy that treats each materialized relation as a vote and selects the result that appears most frequently across independent plans. 
+
+• User-Centric Delegation: All 𝐾 result relations are returned to the user along with execution metadata (e.g., token usage and reasoning trace). This is useful in exploratory settings where the “correct” semantic transformation is subjective. 
+
+## 7 EXPERIMENTAL EVALUATION 
+
+We evaluate OmniTQA along two dimensions: effectiveness (answer accuracy) and efficiency (token usage). We further conduct abla-tion studies to quantify the impact of key components and design choices. Our evaluation addresses the following research questions: 
+
+• RQ1: How does OmniTQA perform across diverse tasks and varying levels of query complexity? 
+
+• RQ2: How does OmniTQA compare to baselines in terms of token cost? 
+
+• RQ3: How do key hyperparameters affect performance? 
+
+Algorithm 2 Batching Semantic Operators                                                                                                                                                                                                                                   
+
+> Input: Operator 𝑂𝑝 , Instruction 𝐼 , Input Relation 𝑅 , Token Budget 𝐵 𝑚𝑎𝑥 ,Base Batch Size 𝑏 , Token Cost per Row 𝑡 𝑟𝑜𝑤
+> Output: Result Relation 𝑅 𝑜𝑢𝑡
+> 1: function ExecuteSemantic (𝑂𝑝, 𝐼, 𝑅, 𝐵 𝑚𝑎𝑥 , 𝑏, 𝑡 𝑟𝑜𝑤 )
+> 2: 𝛽 ←min (︂ 𝑏, ⌊𝐵 𝑚𝑎𝑥 /𝑡 𝑟𝑜𝑤 ⌋)︂ ;𝑅 𝑜𝑢𝑡 ← ∅
+> 3: if 𝑂𝑝 =MAP then
+> 4: for 𝑖 ←0to |𝑅 | − 1step 𝛽 do
+> 5: 𝐶 ←𝑅 [𝑖 :𝑖 +𝛽 ];𝐶𝑜𝑙 𝑛𝑒𝑤 ←Map (𝐼, 𝐶 )
+> 6: 𝑅 𝑜𝑢𝑡 ←𝑅 𝑜𝑢𝑡 ∪ { 𝐶 [𝑗 ] ⊕ 𝐶𝑜𝑙 𝑛𝑒𝑤 [𝑗 ] | 𝑗 ∈ { 0, . . . , |𝐶 | − 1} }
+> 7: else if 𝑂𝑝 =FILTER then
+> 8: for 𝑖 ←0to |𝑅 | − 1step 𝛽 do
+> 9: 𝐶 ←𝑅 [𝑖 :𝑖 +𝛽 ];𝐼𝑛𝑑𝑖𝑐𝑒𝑠 ←Filter (𝐼, 𝐶 )
+> 10: 𝑅 𝑜𝑢𝑡 ←𝑅 𝑜𝑢𝑡 ∪ { 𝐶 [𝑗 ] | 𝑗 ∈𝐼𝑛𝑑𝑖𝑐𝑒𝑠 }
+> 11: else if 𝑂𝑝 =JOIN then
+> 12: for 𝑖 ←0to |𝑅 | − 1step 𝛽 do
+> 13: 𝐶 𝐴 ←𝑅 [𝑖 :𝑖 +𝛽 ]
+> 14: for 𝑗 ←0to |𝑅 𝐵 | − 1step 𝛽 do
+> 15: 𝐶 𝐵 ←𝑅 𝐵 [𝑗 :𝑗 +𝛽 ];𝑟𝑒𝑠 ←Join (𝐼, 𝐶 𝐴 , 𝐶 𝐵 )
+> 16: 𝑅 𝑜𝑢𝑡 ←𝑅 𝑜𝑢𝑡 ∪𝑟𝑒𝑠
+> 17: else if 𝑂𝑝 =AGGREGATE then
+> 18: 𝑅 𝑜𝑢𝑡 ←Reduce (𝐼, 𝑅, 𝛽, 0)
+> 19: return 𝑅 𝑜𝑢𝑡
+> 20: function Reduce (𝐼, 𝑅, 𝛽, 𝑑𝑒𝑝𝑡ℎ )
+> 21: if |𝑅 | ≤ 𝛽 or 𝑑𝑒𝑝𝑡ℎ >𝑀𝐴𝑋 _𝐷𝐸𝑃𝑇 𝐻 then
+> 22: return Aggregate (𝐼, 𝑅 )
+> 23: 𝑅 𝑝𝑎𝑟𝑡𝑖𝑎𝑙 ← ∅
+> 24: for 𝑖 ←0to |𝑅 | − 1step 𝛽 do
+> 25: 𝐶 ←𝑅 [𝑖 :𝑖 +𝛽 ];𝑟𝑒𝑠 ←Aggregate (𝐼, 𝐶 )
+> 26: 𝑅 𝑝𝑎𝑟𝑡𝑖𝑎𝑙 ←𝑅 𝑝𝑎𝑟𝑡𝑖𝑎𝑙 ∪𝑟𝑒𝑠
+> 27: return Reduce (𝐼, 𝑅 𝑝𝑎𝑟𝑡𝑖𝑎𝑙 , 𝛽, 𝑑𝑒𝑝𝑡ℎ +1)
+
+• RQ4: What is the impact of individual design components on effectiveness and efficiency? 
+
+## 7.1 Datasets 
+
+To evaluate OmniTQA in realistic settings, we use a diverse suite of table question answering datasets that span a wide range of challenges, including variations in table size (short vs. long), query complexity (lookup vs. compositional), schema quality (clean vs. noisy), database structure (single vs. multi-table), and data repre-sentation (structured vs. semi-structured). We include the following real-world datasets: 
+
+• RepairTQA [ 43 ]: A diagnostic benchmark with seven subsets covering simple lookups (S1), compositional queries (S3), long tables (S4, S5), and multi-table reasoning (M1, M2). 
+
+• WikiSQL [ 44 ]: A foundational large-scale dataset of NL questions paired with SQL queries over single tables. 
+
+• WikiTableQuestions [ 28 ]: A dataset of complex questions over semi-structured Wikipedia tables requiring multi-step reasoning, such as comparison and aggregation. 
+
+• FeTaQA [25 ]: A free-form table QA dataset that requires gener-ating descriptive answers based on retrieved information. 
+
+• HybridQA [ 4]: A multi-hop QA dataset that requires integrating information from structured tables and linked unstructured text. 
+
+> 8
+
+• TAT-QA [ 46 ]: A financial domain dataset requiring complex nu-merical reasoning from hybrid contexts of tables and text. For datasets containing unstructured text ( FeTaQA , HybridQA ,
+
+TAT-QA ), we convert them into a semi-structured format by ap-pending the associated text as an additional column to each row. We evaluate on 100 samples per dataset, except for RepairTQA -M2 ,where we use 50 samples. To manage cost, we run all effectiveness experiments using Gemini-3-Flash-Preview , and evaluate addi-tional models on a challenging subset of RepairTQA . All datasets include gold-standard annotations used for evaluation. 
+
+## 7.2 Baselines 
+
+We evaluate OmniTQA against three baseline categories: purely LLM-based, Text-to-SQL, and hybrid approaches. 
+
+• Direct-LLM : Directly prompts an LLM to generate answers without explicit intermediate reasoning or structured execution. 
+
+• NL2SQL : A two-stage pipeline where an LLM generates a SQL query from the question and schema, which is then executed by a database engine. 
+
+• Plan-of-SQLs [26 ]: Decomposes complex queries into sequential natural language steps, each translated into executable SQL, with intermediate results guiding subsequent steps. 
+
+• H-Star [ 1]: A hybrid approach that routes operations between SQL and LLMs based on task type (e.g., numerical vs. semantic). It assumes explicit schema attributes and does not support multi-table reasoning. 
+
+• Weaver [ 17 ]: A hybrid method that interleaves SQL execu-tion with LLM reasoning in a stepwise pipeline. It relies on explicit schemas and does not generalize to multi-table or semi-structured settings. 
+
+## 7.3 Experiment Settings 
+
+OmniTQA is implemented in Python 3.11. All experiments were con-ducted on a high-performance server equipped with an AMD EPYC 7R32 (48-core CPU), 192GB of RAM, and eight NVIDIA A100 GPUs. We evaluated multiple LLMs, including Gemini-3-Flash-Preview ,
+
+GPT-5-Mini , and Qwen3:30B ; with the latter deployed locally via 
+
+Ollama . Embeddings are generated using the all-MiniLM-L6-v2 
+
+encoder and cosine similarity was used for retrieval during the query-aware preprocessing step. In the default configuration, we set the number of plans to 𝐾 = 6 and the batch size to 𝛽 = 100 .We study sensitivity by varying 𝐾 ∈ [ 1, 6] and 𝛽 ∈ [ 10 , 1000 ].Unless otherwise stated, Gemini-3-Flash-Preview is used for all experiments. For fair comparison, all methods use the same un-derlying LLMs. We detail prompts utilized across OmniTQA in the supplemental technical report [31]. We evaluate outputs using an LLM-based judge, following Re-pairTQA [ 43 ], instead of exact string matching. This approach ac-counts for variations in ordering, formatting (e.g., lists vs. tuples), and minor textual differences, and is well-suited for free-form out-puts with semantically equivalent answers. 
+
+Summary of results: OmniTQA consistently achieves best per-formance across challenging settings, including large tables, com-plex compositional queries, and multi-relation schemas. It matches or exceeds state-of-the-art baselines on simpler tasks, while main-taining competitive token efficiency among hybrid approaches. These gains are consistent across different underlying LLMs. 
+
+## 7.4 RQ1: Effectiveness Results 
+
+We compare OmniTQA against all baselines under four config-urations: Acc@6, Acc@1, Majority Voting, and LLM-as-a-Judge. Figures 4, 5, and 6, show that OmniTQA consistently outperforms baselines, with the largest gains observed on challenging tasks. 
+
+Direct LLM methods: These methods performs competitively on simpler tasks involving small tables and look up queries (e.g., 
+
+RepairTQA-S1 , WikiSQL , WikiTableQuestions , FeTaQA , and Hy-bridQA 2. However, its performance degrades significantly as task difficulty increases with long tables ( RepairTQA-S4 ), complex queries (RepairTQA-S3 , RepairTQA-S5 ), and multi-table settings ( RepairTQA-M1 , RepairTQA-M2 ). While effective for unstructured reasoning, it struggles with scale and multi-hop integration. 
+
+Text-to-SQL methods: NL2SQL and Plan-of-SQLs underperform on most benchmarks, except WikiSQL , where schemas are simple and well-structured. Their limitations stem from an inability to reason over unstructured text and relying on basic string-matching operators native in SQL. 
+
+Hybrid baselines: H-Star and Weaver achieve moderate perfor-mance but lack native support for semi-structured inputs. They remain competitive on structured datasets but exhibit sensitivity to the underlying LLM. We also observed that the performance does not consistently generalize across benchmarks. 
+
+OmniTQA : OmniTQA consistently achieves the best performance across all semi-structured datasets. Under LLM-as-a-Judge, it ranks first in 6/9 settings and remains within a small margin in the re-maining cases. Gains over the next-best method are substantial, reaching up to 48% on RepairTQA-M2 and 39% on RepairTQA-S5 .On structured datasets, OmniTQA performs on par with leading baselines (within ∼3%). These trends remain consistent across dif-ferent underlying LLMs. While Accuracy@6 yields the highest accuracy, it relies on ground-truth labels or human supervision, limiting its practicality in real-world deployment. In contrast, LLM-as-a-Judge emerges as the most effective practical strategy by consistently achieving near-top performance. Majority voting performs similarly and typically trails the LLM-based judge by a small margin. Finally, Acc@1 performs worst across all settings, highlighting the importance of generating and evaluating multiple candidate plans. 
+
+Remark: A manual audit of OmniTQA ’s performance on Re-pairTQA reveals that most failures are approach-agnostic and stem from dataset limitations, including incorrect labels, ambiguous ques-tions, and structural issues such as missing or incomplete data.            
+
+> 2Strong performance on Wikipedia-derived benchmarks may partly stem from pre-training data contamination.
+> 9RepairTQA-S1 RepairTQA-S4 RepairTQA-S3 RepairTQA-S5 RepairTQA-M1 RepairTQA-M2 WikiSQL WikiTableQuestions FeTaQA HybridQA TAT-QA Average
+> Dataset
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Accuracy %
+
+Figure 4: Accuracy comparison of OmniTQA vs. baselines evaluated with Gemini-3-Flash .RepairTQA-S4 RepairTQA-S3 
+
+> Dataset
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Accuracy %
+
+Figure 5: Accuracy compar-ison: GPT-5-Mini .RepairTQA-S4 RepairTQA-S3 
+
+> Dataset
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Accuracy %
+
+Figure 6: Accuracy compar-ison: QWEN3:30B .RepairTQA-S4 RepairTQA-S3 
+
+> Dataset
+> 10 4
+> 10 5
+> 10 6
+> 10 7
+> Tokens # (Log)
+
+Figure 7: Cost comparison: 
+
+Gemini-3-Flash .1RepairTQA-S4 RepairTQA-S3 
+
+> Dataset
+> 10 4
+> 10 5
+> 10 6
+> 10 7
+> Tokens # (Log)
+
+Figure 8: Cost comparison: 
+
+GPT-5-Mini .RepairTQA-S4 RepairTQA-S3 
+
+> Dataset
+> 10 4
+> 10 5
+> 10 6
+> 10 7
+> Tokens # (Log)
+
+Figure 9: Cost comparison: 
+
+QWEN3:30B .
+
+Additionally, the semantic evaluation protocol occasionally pro-duces false negatives. While such benchmark noise is well doc-umented [ 35 ], we retain these cases to ensure a consistent and unbiased comparison. Excluding them would uniformly inflate per-formance across all methods. 
+
+## 7.5 RQ2: Efficiency Results 
+
+We evaluate the computational cost of OmniTQA in terms of to-ken consumption. Input and output tokens are reported separately (stacked bars), with darker segments indicating input tokens and lighter segments output tokens. We report total cost for generating and executing one and six plans, with the latter representing an upper bound. Costs for Majority Voting and LLM-as-a-Judge are omitted as they closely match the six-plan setting. All results are aggregated over the full evaluation set. Figures 7, 8 and 9 show that OmniTQA achieves higher accuracy and robustness at a cost comparable to or lower than existing hybrid methods. Moreover, the execution cost of a single plan is on par with the Direct-LLM baseline. Conversely, Text-to-SQL methodologies– particularly NL2SQL –remain the most cost-effective, as their over-head is limited to processing data previews and generating SQL queries. Finally, we observed that across all settings, input tokens dominate the total cost. 
+
+## 7.6 RQ3: Hyperparameters Sensitivity 
+
+We next examine how hyperparameters influence the effectiveness and efficiency of OmniTQA . For these and all following experiments, we employ Gemini-3-Flash-Preview as the base model. 
+
+Number of Plans ( 𝐾 ): We analyze the effect of varying the number of plans ( 𝐾 ) on accuracy (Figure 10). We observed that accuracy improves as 𝐾 increases, with the largest gain observed from 𝐾 = 1
+
+to 𝐾 = 2, after which performance plateaus. This suggests that a small number of plans already captures most of the benefit, and further increases yield diminishing returns relative to cost. In terms of cost, as shown in Figure 12, total cost scales linearly with 𝐾 , since each additional plan incurs a full generation and execution cycle. 
+
+Batch Size ( 𝛽 ): Next, we evaluate the impact of varying the batch size ( 𝛽 ) on the accuracy of OmniTQA . As illustrated in Figure 11, accuracy generally decreases as 𝛽 increases, with more pronounced degradation at larger values, likely due to longer contexts introduc-ing noise or hallucinations. These results highlight the importance of empirically tuning 𝛽 ; such optimization could be performed via expert manual intervention or through a small-scale validation (e.g., binary search over a representative subset). Regarding the impact on cost, Figure 13 shows that cost decreases with larger 𝛽 , due to more efficient batching that reduces the num-ber of LLM calls and eliminates the redundant processing of shared prompt overhead. 
+
+## 7.7 RQ4: Impact of Individual Components 
+
+We conduct an ablation study to systematically quantify the contri-bution of key components in OmniTQA (Table 4). We report accu-racy results using Acc@6 (Table 4.a) and LLM-as-a-judge(Table 4.b). 
+
+> 2
+
+Darker and lighter shades denote input and output tokens, respectively.      
+
+> 10 123456
+> # of Plans (K)
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Accuracy@K
+> RepairTQA-S4
+> RepairTQA-M1
+
+Figure 10: Varying no. of plans 𝐾 vs. accuracy. 10 100 1000 
+
+> Batch Size ( )
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Accuracy@K
+> RepairTQA-S4
+> RepairTQA-S5
+> RepairTQA-M2
+
+Figure 11: Varying batch size 𝛽 vs. accuracy. 1 2 3 4 5 6
+
+> # of Plans (K)
+> 10 5
+> 10 6
+> 10 7
+> 10 8
+> Tokens (Log)
+> RepairTQA-S4
+> RepairTQA-M1
+
+Figure 12: Varying no. of plans 𝐾 vs. cost. 10 100 1000 
+
+> Batch Size ( )
+> 10 6
+> 10 7
+> 10 8
+> Tokens (Log)
+> RepairTQA-S4
+> RepairTQA-S5
+> RepairTQA-M2
+
+Figure 13: Varying batch size 𝛽 vs. cost. S3 S1 S5 S4 
+
+> Dataset
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> 14
+> Errors #
+> Schema Grounding
+> Planning
+> Execution
+
+Figure 14: Error catego-rization in RepairTQA .
+
+Table 4: Ablation Study 
+
+(a) Accuracy (Acc@6)                   
+
+> Dataset
+> OmniTQA
+> w/ Naive  ˆ𝑅 Q
+> w/ QDMR w/o Opt.  G
+> w/o Div.  G
+> w/o Pru.  S
+> RepairTQA-S4 0.78 0.70 0.53 0.78 0.66 0.77
+> RepairTQA-S3 0.86 0.86 0.57 0.86 0.79 0.83
+> RepairTQA-M1 0.86 0.78 0.37 0.86 0.72 0.82
+
+(b) Accuracy (LLM-as-a-Judge)                   
+
+> Dataset
+> OmniTQA
+> w/ Naive  ˆ𝑅 Q
+> w/ QDMR w/o Opt.  G
+> w/o Div.  G
+> w/o Pru.  S
+> RepairTQA-S4 0.65 0.59 0.43 0.65 0.53 0.65
+> RepairTQA-S3 0.74 0.74 0.46 0.74 0.68 0.73
+> RepairTQA-M1 0.70 0.64 0.33 0.70 0.59 0.68
+
+(c) Cost          
+
+> Dataset OmniTQA w/o Opt. G
+> RepairTQA-S4 16.7M 20.4M
+> RepairTQA-S3 1.3M 1.6M
+> RepairTQA-M1 0.6M 0.7M
+
+Query-aware preview: We replace the query-aware preview with a uniformly sampled subset of equivalent size from the underly-ing table. We observed that this leads up to 8% accuracy drop (as reported in the ‘w/ Naive ˆ𝑅 Q ’ column of Tables 4.a and 4.b). The effect is smaller for smaller tables, where relevant information is more likely to appear in random samples. 
+
+Schema pruning: Disabling schema pruning results in up to 4% degradation (reported in the “w/o Pru. S” column). While modest on average, the impact is more pronounced on wide or noisy tables, where pruning reduces irrelevant attributes and improves ground-ing. Among these challenging instances, our heuristic successfully mitigated the noise, thereby preventing performance drops that would otherwise occur in more complex structural environments. 
+
+Operator model: We replace our operator model with a QDMR-based decomposition [ 34 ]. Since QDMR does not explicitly decouple semantic and relational operators, we introduce a routing agent that can direct each step to appropriate execution engine based on instructions and data previews. The resulting degradation in accuracy is significant across all settings, reaching as high as 49%. This highlights that design of operators for SSTQA is a non-trivial task and that it is important to separate semantic and relational operators for accurate decomposition in semi-structured settings. 
+
+Plan Optimization: To assess the impact of plan optimization, we execute plans without optimization. The corresponding accuracy and cost results are presented in the "w/o Opt G" columns of Ta-bles 4.a, 4.b, and 4.c. Notably, accuracy remains invariant, verifying that our reordering strategy preserves the logical integrity of the plans. However, costs increase by up to 20%. This confirms that our optimization strategy improves efficiency without affecting correctness. 
+
+Plan Diversification: We replace our plan diversification strategy with naive generation of 𝐾 plans that delegates diversification en-tirely to the LLM’s inherent lateral thinking capabilities. The results, presented in the "w/o Div. G" column, reveal an accuracy decline of up to 18%, indicating that stochastic LLM variation is insufficient and a structured diversification of plans is instead necessary. 
+
+## 7.8 Error Analysis 
+
+While many errors in RepairTQA benchmark arise from data in-consistencies or evaluation protocol, OmniTQA also exhibits some approach-specific failures. We conduct a qualitative assessment of these failure cases to identify the potential sources of errors. We attribute errors into three sources: (i) schema grounding, (ii) planning, and (iii) execution (Figure 14). 
+
+Planning errors: The majority of failures originate in planning. A common issue is incomplete projections, where not all requested at-tributes are returned (e.g., omitting middle names when ‘full name’ is requested). Another frequent failure arises when the planner lacks exposure to dataset-specific values. In these cases, it may halluci-nate alternatives (e.g., substituting status =‘extinct’ with ‘inactive’ or ‘disappeared’). This also leads to incorrect operator choices. For example, planner can fail to interpret the specific literal ‘northern california’ and semantically map the city to a region value instead that does not exist in the underlying data. This also manifest some-times as incorrect interpretation of the query intent (e.g., treating ‘most verbose complaint’ as word count instead of service duration. 
+
+Schema grounding errors: These occur when query terms are incorrectly mapped to schema attributes. For example, similarity between column names may lead to selecting ProductCategoryID 
+
+> 11
+
+instead of ProductSubcategoryID . In other cases, the system strug-gles with implicit semantics, such as mapping ‘has a text box’ to a negated boolean field ( isTextLess ). Such schema grounding errors are well-known in Text-to-SQL systems, and can be sometimes resolved with sophisticated schema linking. 
+
+Execution errors: Execution errors are less frequent and typi-cally involve semantic operators. These include incorrect attribute extraction despite correct row retrieval (e.g., returning ‘province’ instead of ‘country’, as well as incomplete retrieval where valid rows are missed. 
+
+Robustness to data vs. prior knowledge: We further observe that the execution engine prioritizes database content over para-metric knowledge. To evaluate this robustness, we performed a counterfactual analysis by altering the values associated with spe-cific filters in several samples. For instance, in the query “List all cities in the Northern California Region,” we replaced the relevant records with cities from New York. The the system faithfully returns modified data, indicating strong grounding to the input rather than memorized world knowledge. 
+
+## 8 RELATED WORK 
+
+Text-to-SQL and Table QA: Text-to-SQL systems translate NL queries into executable SQL over structured schemas, achieving strong performance when all query-relevant information is explic-itly represented [ 7, 14 , 20 , 22 ]. However, these methods remain limited to relational operators and largely assume that all required attributes are present in the schema. Table question answering methods [ 36 , 37 , 40 , 42 ] instead operate directly over tables, often treating them as serialized text and leveraging LLMs for reasoning. While flexible, these methods typically struggle with scalability, multi-table reasoning, and execution efficiency. 
+
+Semantic operator systems: A growing body of work extends relational query processing with LLM-based semantic operators, enabling tasks such as semantic filtering, entity matching, and ag-gregation [ 10 , 19 , 29 , 32 ]. These approaches significantly enhance query expressiveness, but typically assume that schema attributes and relationships are explicitly defined. As a result, semantic op-erators are used to interpret or enrich existing data, rather than recover missing structure. 
+
+Hybrid semantic-symbolic pipelines.: Recent hybrid systems interleave symbolic database operations with LLM-based reason-ing in stepwise pipelines [ 1, 17 ]. These approaches route sub-tasks between relational engines and LLMs, enabling flexible query exe-cution across heterogeneous data. However, they typically operate at a coarse granularity and rely on predefined schemas, limiting their ability to handle scenarios where relational structure is im-plicit or must be inferred from textual fields. They also have limited support for complex settings such as long tables, multi-tables and multi-hop queries. Furthermore, these approaches are optimized for a fixed data representation and do not generalize well to settings where schemas are hybrid or evolve over time [43]. 
+
+Unstructured document processing: Research in document com-prehension has transitioned from retriever-reader architectures [ 2, 16 ] to Retrieval-Augmented Generation for synthesizing an-swers from unstructured data [ 9, 18 , 23 ]. Recent long-context mod-els further streamline this by processing extensive texts directly, potentially bypassing traditional retrieval pipelines [38]. 
+
+Semi-structured data processing.: Prior work on semi-structured data has explored querying and extracting structure as well as in-tegrating information extraction pipelines with databases [ 23 , 33 ]. However, these approaches assume that structure can be reliably extracted ahead of time and do not address settings where query-relevant structure is context-dependent or cannot be fully material-ized in advance. In contrast to prior work, OmniTQA targets settings where query-relevant structure is not explicitly materialized and must be reconstructed during query execution [ 4 , 43 ]. This requires treat-ing semantic reasoning not only as an augmentation to relational processing, but as a mechanism to recover latent schema elements and enable downstream symbolic reasoning. 
+
+## 9 CONCLUSION 
+
+In this paper, we introduced OmniTQA , a hybrid query processing framework for semi-structured table question answering. OmniTQA 
+
+integrates relational operators with LLM-based semantic reason-ing by representing queries as DAGs of atomic operators executed across dual engines. It further incorporates data-aware planning and cost-based optimization to reduce expensive semantic compu-tation, while generating multiple candidate plans to handle natural language ambiguity in the table schema. Empirical evaluations across several benchmark datasets demonstrate that OmniTQA 
+
+consistently outperforms state-of-the-art baselines in terms of accu-racy while maintaining competitive cost efficiency. It shows largest gains on complex queries, large tables, and multi-relation settings. Despite these advances, challenges remain in planning quality, cost, and latency. In particular, generating diverse high-quality plans remains a bottleneck. Since optimization is inherently limited by the quality of the initial plan, incorporating human-in-the-loop to audit and prune plans could significantly improve reliability and cost-efficiency. Furthermore, semantic operators continue to incur significant overhead. A tiered execution approach involving a high-recall, efficient hash-based FILTER or JOIN to prune the search space prior to the more expensive LLM-based execution can be helpful. This can be further augmented by model cascading strategies, which utilize a hierarchy of models to route simpler logic to smaller, cost-effective models while reserving larger LLMs for complex reasoning tasks. As semi-structured data continues to proliferate, the architec-tural principles established by OmniTQA provide a scalable blue-print for the next generation of intelligent data interfaces. 
+
+## REFERENCES     
+
+> [1] Nikhil Abhyankar, Vivek Gupta, Dan Roth, and Chandan K Reddy. 2025. H-star: Llm-driven hybrid sql-text adaptive reasoning on tables. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) . 8841–8863. [2] Danqi Chen, Adam Fisch, Jason Weston, and Antoine Bordes. 2017. Reading Wikipedia to Answer Open-Domain Questions. In Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) .
+> 12
+
+[3] Lingjiao Chen, Jared Davis, Boris Hanin, Peter Bailis, Ion Stoica, Matei Zaharia, and James Zou. 2024. Are more llm calls all you need? towards the scaling properties of compound ai systems. Advances in Neural Information Processing Systems 37 (2024), 45767–45790. [4] Wenhu Chen, Hanwen Zha, Zhiyu Chen, Wenhan Xiong, Hong Wang, and William Wang. 2020. HybridQA: A Dataset of Multi-Hop Question Answering over Tabular and Textual Data. In Findings of EMNLP .[5] Yu Chen and Ke Yi. 2017. Two-level sampling for join size estimation. In Proceed-ings of the 2017 ACM International Conference on Management of Data . 759–774. [6] Zhoujun Cheng, Tianbao Xie, Peng Shi, Chengzu Li, Rahul Nadkarni, Yushi Hu, Caiming Xiong, Dragomir Radev, Mari Ostendorf, Luke Zettlemoyer, et al . [n.d.]. Binding Language Models in Symbolic Languages. In The Eleventh International Conference on Learning Representations .[7] Minghang Deng, Ashwin Ramachandran, Canwen Xu, Lanxiang Hu, Zhewei Yao, Anupam Datta, and Hao Zhang. 2025. ReFoRCE: a text-to-SQL agent with self-refinement, consensus enforcement, and column exploration. arXiv preprint arXiv:2502.00675 (2025). [8] Xi Fang, Weijie Xu, Fiona Anting Tan, Ziqing Hu, Jiani Zhang, Yanjun Qi, Srini-vasan H Sengamedu, and Christos Faloutsos. [n.d.]. Large Language Models (LLMs) on Tabular Data: Prediction, Generation, and Understanding-A Survey. 
+
+Transactions on Machine Learning Research ([n. d.]). [9] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yixin Dai, Jiawei Sun, Haofen Wang, Haofen Wang, et al . 2023. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 
+
+(2023). [10] Parker Glenn, Parag Dakle, Liang Wang, and Preethi Raghavan. 2024. Blendsql: A scalable dialect for unifying hybrid question answering in relational algebra. In Findings of the Association for Computational Linguistics: ACL 2024 . 453–466. [11] Google. 2025. Gemini 3 Flash: frontier intelligence built for speed. https: //blog.google/products-and-platforms/products/gemini/gemini-3-flash/ Google Blog. [12] Jiawei Gu, Xuhui Jiang, Zhichao Shi, Hexiang Tan, Xuehao Zhai, Chengjin Xu, Wei Li, Yinghan Shen, Shengjie Ma, Honghao Liu, et al . 2024. A survey on llm-as-a-judge. The Innovation (2024). [13] Joseph M Hellerstein and Michael Stonebraker. 1993. Predicate migration: Op-timizing queries with expensive predicates. In Proceedings of the 1993 ACM SIGMOD international conference on Management of data . 267–276. [14] Zijin Hong, Zheng Yuan, Qinggang Zhang, Hao Chen, Junnan Dong, Feiran Huang, and Xiao Huang. 2025. Next-generation database interfaces: A survey of llm-based text-to-sql. IEEE Transactions on Knowledge and Data Engineering 
+
+(2025). [15] Panos Ipeirotis and Haotian Zheng. 2025. Natural Language Interfaces for Databases: What Do Users Think? arXiv preprint arXiv:2511.14718 (2025). [16] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense Passage Retrieval for Open-Domain Question Answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) .[17] Rohit Khoja, Devanshu Gupta, Yanjie Fu, Dan Roth, and Vivek Gupta. 2025. Weaver: Interweaving sql and llm for table reasoning. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing . 28270–28296. [18] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, et al . 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in neural information processing systems (2020). [19] Chunwei Liu, Matthew Russo, Michael Cafarella, Lei Cao, Peter Baile Chen, Zui Chen, Michael Franklin, Tim Kraska, Samuel Madden, Rana Shahout, et al . 2025. Palimpzest: Optimizing ai-powered analytics with declarative query processing. In Proceedings of the Conference on Innovative Database Research (CIDR) . 2. [20] Xinyu Liu, Shuyu Shen, Boyan Li, Peixian Ma, Runzhi Jiang, Yuyu Luo, Yuxin Zhang, Ju Fan, Guoliang Li, and Nan Tang. 2024. A Survey of NL2SQL with Large Language Models: Where are we, and where are we going. arXiv preprint arXiv:2408.05109 (2024). [21] Xinyu Liu, Shuyu Shen, Boyan Li, Peixian Ma, Runzhi Jiang, Yuxin Zhang, Ju Fan, Guoliang Li, Nan Tang, and Yuyu Luo. 2025. A Survey of Text-to-SQL in the Era of LLMs: Where are we, and where are we going? IEEE Transactions on Knowledge and Data Engineering (2025). [22] Xinyu Liu, Shuyu Shen, Boyan Li, Peixian Ma, Runzhi Jiang, Yuxin Zhang, Ju Fan, Guoliang Li, Nan Tang, and Yuyu Luo. 2025. A Survey of Text-to-SQL in the Era of LLMs: Where are we, and where are we going? IEEE Transactions on Knowledge and Data Engineering (2025). [23] Seiji Maekawa, Hayate Iso, and Nikita Bhutani. 2025. Holistic Reasoning with Long-Context LMs: A Benchmark for Database Operations on Massive Textual Data. In The Thirteenth International Conference on Learning Representations .https://openreview.net/forum?id=5LXcoDtNyq [24] Magnus Müller, Daniel Flachs, and Guido Moerkotte. 2021. Memory-efficient key/foreign-key join size estimation via multiplicity and intersection size. In 2021 IEEE 37th International Conference on Data Engineering (ICDE) . IEEE, 984–995. [25] Linyong Nan, Chiachun Hsieh, Ziming Mao, Xi Victoria Lin, Neha Verma, et al .2022. FeTaQA: Free-form Table Question Answering. Transactions of the Associ-ation for Computational Linguistics (TACL) 10 (2022), 35–51. [26] Anh Nguyen et al . 2025. Interpretable LLM-based Table Question Answering. 
+
+Transactions on Machine Learning Research (TMLR) (2025). [27] OpenAI. 2025. Model release blog: Introducing GPT-5. Technical report (2025). https://openai.com/index/introducing-gpt-5/ [28] Panupong Pasupat and Percy Liang. 2015. Compositional Semantic Parsing on Semi-Structured Tables. In Proceedings of the 53rd Annual Meeting of the Association for Computational Linguistics (ACL) .[29] Liana Patel, Siddharth Jha, Melissa Pan, Harshit Gupta, Parth Asawa, Carlos Guestrin, and Matei Zaharia. 2025. Semantic operators and their optimization: En-abling llm-based data processing with accuracy guarantees in lotus. Proceedings of the VLDB Endowment 18, 11 (2025), 4171–4184. [30] P Griffiths Selinger, Morton M Astrahan, Donald D Chamberlin, Raymond A Lorie, and Thomas G Price. 1979. Access path selection in a relational database management system. In Proceedings of the 1979 ACM SIGMOD international conference on Management of data . 23–34. [31] Nima Shahbazi, Seiji Maekawa, Nikita Bhutani, and Estevam Hruschka. 2026. 
+
+OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data . Technical Report. Megagon Labs. https://github.com/megagonlabs/ OmniTQA/blob/main/techrep.pdf [32] Yunxiang Su, Tianjing Zeng, Zhongjun Ding, Yin Lin, Rong Zhu, Zhewei Wei, Bolin Ding, and Jingren Zhou. 2026. Large Language Model-Enhanced Relational Operators: Taxonomy, Benchmark, and Analysis. arXiv preprint arXiv:2603.02537 
+
+(2026). [33] Kai Sun, Yin Huang, Srishti Mehra, Mohammad Kachuee, Xilun Chen, Renjie Tao, Zhaojiang Lin, Andrea Jessee, Nirav Shah, Alex L Betty, et al . 2026. Knowledge Extraction on Semi-Structured Content: Does It Remain Relevant for Question Answering in the Era of LLMs?. In Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers) . 2055–2074. [34] Tomer Wolfson, Mor Geva, Ankit Gupta, Matt Gardner, Yoav Goldberg, Daniel Deutch, and Jonathan Berant. 2020. Break It Down: A Question Understanding Benchmark. Transactions of the Association for Computational Linguistics (2020). [35] Niklas Wretblad, Fredrik Riseby, Rahul Biswas, Amin Ahmadi, and Oskar Holm-ström. 2024. Understanding the Effects of Noise in Text-to-SQL: An Examination of the BIRD-Bench Benchmark. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers) .[36] Jian Wu, Linyi Yang, Dongyuan Li, Yuliang Ji, Manabu Okumura, and Yue Zhang. 2025. MMQA: Evaluating LLMs with multi-table multi-hop complex questions. In The thirteenth international conference on learning representations .[37] Xianjie Wu, Jian Yang, Linzheng Chai, Ge Zhang, Jiaheng Liu, Xeron Du, Di Liang, Daixin Shu, Xianfu Cheng, Tianzhen Sun, et al . 2025. Tablebench: A com-prehensive and complex benchmark for table question answering. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 39. 25497–25506. [38] Peng Xu, Wei Ping, Xianchao Wu, Lawrence McAfee, Chen Zhu, Zihan Liu, Sandeep Subramanian, Evelina Bakhturina, Mohammad Shoeybi, and Bryan Catanzaro. 2023. Retrieval meets long context large language models. In The Twelfth international conference on learning representations .[39] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al . 2025. Qwen3 technical report. arXiv preprint arXiv:2505.09388 (2025). [40] Peiying Yu, Guoxin Chen, and Jingjing Wang. 2025. Table-Critic: A Multi-Agent Framework for Collaborative Criticism and Refinement in Table Reasoning. In 
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 17432–17451. https://aclanthology.org/2025. acl-long.853/ [41] Weixu Zhang, Yifei Wang, Yuanfeng Song, Victor Junqiu Wei, Yuxing Tian, Yiyan Qi, Jonathan H Chan, Raymond Chi-Wing Wong, and Haiqin Yang. 2024. Natural language interfaces for tabular data querying and visualization: A survey. IEEE transactions on knowledge and data engineering 36, 11 (2024), 6699–6718. [42] Xuanliang Zhang, Dingzirui Wang, Longxu Dou, Qingfu Zhu, and Wanxiang Che. 2025. A survey of table reasoning with large language models. Frontiers of Computer Science 19, 9 (2025), 199348. [43] Yue Zhang, Seiji Maekawa, and Nikita Bhutani. 2025. Same Content, Dif-ferent Representations: A Controlled Study for Table QA. arXiv preprint arXiv:2509.22983 (2025). [44] Victor Zhong, Caiming Xiong, and Richard Socher. 2017. Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning. CoRR 
+
+abs/1709.00103 (2017). [45] Wei Zhou, Bolei Ma, Annemarie Friedrich, and Mohsen Mesgar. 2025. Table Question Answering in the Era of Large Language Models: A Comprehensive Survey of Tasks, Methods, and Evaluation. arXiv preprint arXiv:2510.09671 (2025). [46] Fengbin Zhu, Wenqiang Lei, Youcheng Huang, Chao Wang, Shuo Zhang, Jiancheng Lv, Fuli Feng, and Tat-Seng Chua. 2021. TAT-QA: A Question An-swering Benchmark on a Hybrid of Tabular and Textual Content in Finance. In Proceedings of the 59th Annual Meeting of the Association for Computational 
+
+> 13
+
+Linguistics (ACL) .
+
+> 14
+
+## A BASE MODEL DETAILS 
+
+Model Size Context HuggingFace / API License 
+
+GPT-5-mini [27] — 400k gpt-5-mini-2025-08-07 OpenAI Service Terms Gemini-3-Flash [11] — 1M gemini-3-flash-preview Gemini API Additional Terms of Service Qwen-3 [39] 30B 128k qwen3:30B Apache license 2.0 
+
+Table 5: Base models used in experiments. Model sizes are not publicly disclosed (—). 
+
+## B PROMPTS 
+
+In the following, we provide all the prompts used in our experiments in different steps of OmniTQA :
+
+## B.1 Preprocessing 
+
+Semantic Schema Pruning: Prompt 
+
+You are an expert in Text-to-SQL pipelines. Your specific task is "Schema Pruning": filtering a database schema to a subset of columns relevant to a natural language question. Your Goal is to Maximize Recall. It is critical that you include ALL columns that might possibly be needed to answer the question, including columns for filtering, joining, grouping, or sorting. **The "High-Recall" Protocol:** 1. If a column is a Primary Key or Foreign Key, KEEP IT. 2. If a column name or its sample values semantically match terms in the question, KEEP IT. 3. If the question implies a time frame (e.g., "recent", "trend", "when"), KEEP date/timestamp columns. 4. If you are 50/50 split on whether a column is relevant, KEEP IT. 5. Only exclude a column if you are certain it is noise. ### TABLE ### {table} ### QUESTION ### {question} ### Available Columns ### (Name (Type): [Samples]): {context_str} Task: Return a JSON list of strings containing the columns relevant to the question according to the High-Recall Protocol. Output strictly valid JSON. 
+
+> 15
+
+## B.2 Planning 
+
+Decomposition: System Prompt 
+
+You are a query planner specializing in question decomposition. Your goal is to decompose a natural language question into **up to {k} alternative** precise, step-by-step computation graphs based on a provided database schema and data samples. ### OPERATORS ### You must strictly use ONLY the following atomic decomposition operations: --- I. Relational Operators ---1) SCAN: "Return rows from [Table_Name]" 2) FILTER: "Return rows from [Previous_Step_ID] where [Column_Name_1] [Operator] [Value/Column_Name_2]" 3) PROJECT: "Return [Column_Names] of [Previous_Step_ID], calculating [Expression] if needed" 4) AGGREGATE: "Return [Agg_Func] of [Target_Column] grouped by [Grouping_Column] from [Previous_Step_ID]" 5) SORT: "Return [Previous_Step_ID] sorted by [Column_Name] [ASC/DESC]" 6) LIMIT: "Return the top [N] rows from [Previous_Step_ID]" 7) JOIN: "Return combined rows from [Previous_Step_ID_1] and [Previous_Step_ID_2] where [Join_Condition] matches" 8) SET_OP: "Return the [Union/Intersection/Difference] of [Previous_Step_ID_1] and [Previous_Step_ID_2]" 9) DISTINCT: "Return unique rows from [Previous_Step_ID] based on [Column_Names]" --- II. Semantic Operators ---10) LLM_DERIVE: "Return [Previous_Step_ID] with new column [New_Column_Name] derived from [Input_Columns] by [Instruction]" 11) LLM_FILTER: "Return rows from [Previous_Step_ID] satisfying the semantic condition: [Instruction]" 12) LLM_JOIN: "Return combined rows from [Previous_Step_ID_1] and [Previous_Step_ID_2] using semantic matching logic: [ Instruction]" 13) LLM_AGGREGATE: "Return a summary of [Target_Column] grouped by [Grouping_Column] from [Previous_Step_ID] using instruction: [Instruction]" LEGEND: [Table_Name]: Exact name from Schema [Column_Name]: Exact column from Schema [Previous_Step_ID]: The 'id ' of a step generated earlier [Agg_Func]: max, min, count, sum, avg [Operator]: !=, =, >, <, >=, <=, contains, in, not in, is null, is not null [Instruction]: Brief natural language description of the task, logic or condition. ### DIVERSITY STRATEGY ### Use the following principles to explore the solution space for generating plans: {diversification_strategy} ### GUIDELINES & CONSTRAINTS ### 1) **Atomic Decomposition:** Each step must correspond to exactly one atomic operation from the list. 2) **Schema Fidelity:** You must use the EXACT column and table names provided in the schema. 3) **Value Inspection:** Do not rely solely on column names. Semantically cross-reference user terms with values in <data_preview>. 4) **Dependency Graph:** The `parent ` field must list the IDs of immediate predecessors. 5) **Output Format:** Return ONLY a raw JSON object containing a list of plans. ### OUTPUT JSON SCHEMA ### {{ "plans": [ {{ "steps": [ {{ "id": "step_2", "operator": "The operator name from the templates", "action": "The string description using the operator template", "parent": ["step_1"] }} ]}}, ... (up to {k} plans) ]}} 
+
+> 16
+
+Decomposition: User Prompt 
+
+### INPUT ### ### DATA PREVIEW ### {data_preview} ### QUESTION ### {question} ### EXAMPLES ### | product_id | name | description | category | |------------|-------------|----------------------|----------| | A1 | iPhone 13 | Apple smartphone 5G | Mobile || B2 | Galaxy S22 | Samsung phone | Mobile |User Question: "Show me the Apple phones." Response: {"plans": [ {"steps": [ { "id": "step_1", "operator": "SCAN", "action": "Return rows from products", "parent": [products] }, { "id": "step_2", "operator": "FILTER", "action": "Return rows from step_1 where name contains 'Apple '", "parent": ["step_1"] } ]}]}
+
+## B.3 Execution 
+
+Step-to-SQL: Prompt 
+
+You are an expert in text-to-SQL. Your task is to convert ONE atomic natural-language table step into a single SQLite-compatible SQL statement. ### CONSTRAINTS ### 1) The available tables are: {tables} 2) One step --> one SQL. 3) If you create an output scalar or boolean, still return it as a SELECT ... so it forms a result table. 4) Name any new column via AS. ### INPUT ### ### TABLE SCHEMAS ### {schema} ### TABLE PREVIEWS ### {preview_rows} ### ATOMIC STEP ### {step} 
+
+> 17
+
+Semantic Executor for FILTER & MAP & AGGREGATE: System Prompt 
+
+You are an expert data-transformation and relational reasoning engine specialized in batch processing. Your responsibilities: 1) Execute semantic data transformations on structured tabular data 2) Return results in STRICT JSON format only 3) Preserve data integrity and handle edge cases gracefully ### CRITICAL OUTPUT FORMAT RULES ### Your response must contain ONLY valid JSON with NO additional text, explanation, or Markdown. For MAP and JOIN operations: {"rows": [ { "col1": value1, "col2": value2, ... }, { "col1": value3, "col2": value4, ... } ]}For FILTER operations: [0, 2, 5, ...] // 0-based indices of matching rows For AGGREGATE operations: {"result": value_or_object, }### BEHAVIORAL GUIDELINES ### - Process each row independently when specified - Preserve original column values and data types - Return ALL rows that match (for FILTER) - Use semantic understanding (fuzzy matching, inference, etc.) - Extract/derive values from existing columns only 
+
+Semantic FILTER: User Prompt 
+
+### INSTRUCTION ### {instruction} ### DATA ### {data_str} ### TASK ### Evaluate each row against the instruction. Return ONLY a JSON array of 0-based indices for rows that match. If no rows match, return an empty array. ### EXAMPLE ### Input: Instruction: "Return items with price > 100" Data: [{{"id": 1, "price": 50}}, {{"id": 2, "price": 150}}, {{"id": 3, "price": 120}}] Output: [1, 2] 
+
+> 18
+
+Semantic MAP: User Prompt 
+
+### INSTRUCTION ### {instruction} ### DATA ### {data_str} ### TASK ### Process each row independently. Apply the instruction to derive new columns or transform existing ones. Return the COMPLETE rows with all original columns PLUS any new derived columns. ### EXAMPLE ### Input: Instruction: "Add column 'sentiment ' by classifying tone as positive/negative" Data: [{{"id": 1, "text": "Great product!"}}, {{"id": 2, "text": "Terrible experience"}}] Output: {{ "rows": [ {{"id": 1, "text": "Great product!", "sentiment": "positive"}}, {{"id": 2, "text": "Terrible experience", "sentiment": "negative"}} ]}} ### GUIDELINES ### - Keep all original columns - Add new columns as specified - Maintain data types where possible - Process row-by-row consistently 
+
+Partial Semantic AGGREGATE: User Prompt 
+
+### INSTRUCTION ### {instruction} ### DATA ### {data_str} ### TASK ### Summarize or aggregate this batch of data according to the instruction. This is a PARTIAL aggregation (may be merged with other partial results). Return a summary object that can be recursively combined with other partial results. ### EXAMPLE ### Input: Instruction: "Calculate average salary" Data: [{{"name": "Alice", "salary": 80000}}, {{"name": "Bob", "salary": 90000}}] Output: {{ "sum": 170000, "count": 2, "average": 85000 }} 
+
+> 19
+
+Final Semantic AGGREGATE: User Prompt 
+
+### INSTRUCTION ### {instruction} ### DATA ### {data_str} ### TASK ### Perform final aggregation on the complete data (or merged partial results). Return a single result object matching the instruction. ### EXAMPLE ### Input: Instruction: "Calculate average salary" Data: [{{"sum": 170000, "count": 2}}, {{"sum": 150000, "count": 2}}] Output: {{ "result": 80000, "summary": "Average salary across all employees" }} 
+
+Semantic Executor for JOIN: System Prompt 
+
+You are an expert data-transformation engine specializing in semantic JOIN operations. ### TASK ### - Match rows from two tables based on semantic similarity or explicit join conditions - Return ONLY the merged rows where matches are found - Preserve all columns from both tables in the result ### OUTPUT ### Return a JSON object: {"rows": [ { "col_a1": value, "col_b1": value, ... }, { "col_a1": value, "col_b1": value, ... } ]}### GUIDELINES ### Include ALL columns from both tables in each result row Rename columns if needed to avoid conflicts (prefix with table name) Use semantic matching for fuzzy joins (e.g., "Google" matches "Alphabet Inc.") Return empty array if no matches found 
+
+> 20
+
+Semantic JOIN: User Prompt 
+
+### JOIN INSTRUCTION ### {instruction} ### TABLE A ### {table_a} ### TABLE B ### {table_b} ### TASK ### Find all matching pairs of rows (one from List A, one from List B) based on the instruction. For each match, combine the rows into a single object containing ALL columns from both tables. ### Example ### Instruction: "Match users to orders by ID" List A: [{{"user_id": 1, "name": "Alice"}}, {{"user_id": 2, "name": "Bob"}}] List B: [{{"user_id": 1, "amount": 100}}, {{"user_id": 1, "amount": 50}}] Output: {{ "rows": [ {{"user_id": 1, "name": "Alice", "amount": 100}}, {{"user_id": 1, "name": "Alice", "amount": 50}} ]}} 
+
+## B.4 Evaluation 
+
+Semantic Ground-truth Evaluator: Prompt 
+
+You are an expert evaluator for database query results. Your task is to determine if a "Model Prediction" matches the "Ground Truth". ### RULES ### 1) Order Sensitivity: Treat the results as SETS. Row order does not matter unless the question explicitly asks for a ranking (e.g., " top 10"). 2) Formatting: Ignore differences in formatting (e.g., "1,000" vs "1000", "$50" vs "50", "2023-01-01" vs "Jan 1, 2023"). 3) Data Types: JSON objects, lists of tuples, and CSV strings should be compared based on content, not syntax. 4) Conversational Filler: If the prediction contains extra text (e.g., "The answer is 50"), extract the value "50" and compare it. 5) Column Names: Ignore column name differences (aliases) unless the user specifically asked for a specific column name. ### GROUND-TRUTH ### {ground_truth} ### PREDICTION ### {prediction} ### GUIDELINES ### Think step-by-step: 1) Analyze the content of both the Ground Truth and Prediction. 2) Identify if there are differences in ordering, formatting, or wrapper text. 3) Determine if they convey the exact same data/information. ### OUTPUT ### - "reasoning": A brief string explaining why they match or differ. - "verdict": "CORRECT" or "INCORRECT". 
+
+> 21
+
+## B.5 Consolidation 
+
+Majority Vote: Prompt 
+
+You are an expert aggregator. I will provide you with a list of model-generated answers to a specific problem. Some answers might be phrased differently but mean the exact same thing. ### QUESTION ### {question} ### PREDICTIONS ### {prediction} ### TASK ### 1) Group the predictions that represent the same semantic answer/conclusion. 2) Identify which group has the most members (the plurality). 3) If a group has empty or unclear answers, ignore those. 4) If there is a tie for the largest group, choose any one of them. 5) Return ONLY the final answer from that majority group. No explanation. 
+
+LLM-as-a-Judge Vote: Prompt 
+
+You are an expert judge evaluating different reasoning paths for the following question about a database. Your task is to select the plan that demonstrates the most logical, accurate, and complete reasoning: ### Task ### Which Plan (index number) is the most likely to be correct? Respond ONLY with the integer index. ### QUESTION ### {question} ### TABLES ### {tables} Below are several candidate plans and their resulting predictions. Select the plan that follows the most logical, accurate, and complete reasoning path. ### CANDIDATE PLANS ### {plans} ### FEW-SHOT EXAMPLES ### {few_shot_examples}

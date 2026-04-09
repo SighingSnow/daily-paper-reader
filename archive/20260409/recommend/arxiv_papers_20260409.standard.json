@@ -1,0 +1,808 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-09T20:16:48.784036+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 11,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 20,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2604.05952v1",
+      "title": "Towards Trustworthy Report Generation: A Deep Research Agent with Progressive Confidence Estimation and Calibration",
+      "abstract": "As agent-based systems continue to evolve, deep research agents are capable of automatically generating research-style reports across diverse domains. While these agents promise to streamline information synthesis and knowledge exploration, existing evaluation frameworks-typically based on subjective dimensions-fail to capture a critical aspect of report quality: trustworthiness. In open-ended research scenarios where ground-truth answers are unavailable, current evaluation methods cannot effectively measure the epistemic confidence of generated content, making calibration difficult and leaving users susceptible to misleading or hallucinated information. To address this limitation, we propose a novel deep research agent that incorporates progressive confidence estimation and calibration within the report generation pipeline. Our system leverages a deliberative search model, featuring deep retrieval and multi-hop reasoning to ground outputs in verifiable evidence while assigning confidence scores to individual claims. Combined with a carefully designed workflow, this approach produces trustworthy reports with enhanced transparency. Experimental results and case studies demonstrate that our method substantially improves interpretability and significantly increases user trust.",
+      "authors": [
+        "Yi Yuan",
+        "Xuhong Wang",
+        "Shanzhe Lei"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-07T14:46:26+00:00",
+      "link": "https://arxiv.org/pdf/2604.05952v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Deep Research Agent for automatic report generation",
+      "llm_evidence_cn": "用于自动报告生成的深度研究智能体",
+      "llm_evidence": "用于自动报告生成的深度研究智能体",
+      "canonical_evidence": "用于自动报告生成的深度研究智能体",
+      "llm_tldr_en": "Proposes a deep research agent with confidence estimation for trustworthy report generation.",
+      "llm_tldr_cn": "提出带有置信度估计的深度研究智能体用于可信报告生成。",
+      "llm_tldr": "提出带有置信度估计的深度研究智能体用于可信报告生成。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06126v1",
+      "title": "Gym-Anything: Turn any Software into an Agent Environment",
+      "abstract": "Computer-use agents hold the promise of assisting in a wide range of digital economic activities. However, current research has largely focused on short-horizon tasks over a limited set of software with limited economic value, such as basic e-commerce and OS-configuration tasks. A key reason is that creating environments for complex software requires significant time and human effort, and therefore does not scale. To address this, we introduce Gym-Anything, a framework for converting any software into an interactive computer-use environment. We frame environment creation itself as a multi-agent task: a coding agent writes setup scripts, downloads real-world data, and configures the software, while producing evidence of correct setup. An independent audit agent then verifies evidence for the environment setup against a quality checklist. Using a taxonomy of economically valuable occupations grounded in U.S. GDP data, we apply this pipeline to 200 software applications with broad occupational coverage. The result is CUA-World, a collection of over 10K long-horizon tasks spanning domains from medical science and astronomy to engineering and enterprise systems, each configured with realistic data along with train and test splits. CUA-World also includes CUA-World-Long, a challenging long-horizon benchmark with tasks often requiring over 500 steps, far exceeding existing benchmarks. Distilling successful trajectories from the training split into a 2B vision-language model outperforms models 2$\\times$ its size. We also apply the same auditing principle at test time: a separate VLM reviews completed trajectories and provides feedback on what remains, improving Gemini-3-Flash on CUA-World-Long from 11.5% to 14.0%. We release all code, infrastructure, and benchmark data to facilitate future research in realistic computer-use agents.",
+      "authors": [
+        "Pranjal Aggarwal",
+        "Graham Neubig",
+        "Sean Welleck"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-04-07T17:38:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.06126v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Framework with coding agent and audit agent for environment creation",
+      "llm_evidence_cn": "包含编码代理和审计代理的框架用于环境创建",
+      "llm_evidence": "包含编码代理和审计代理的框架用于环境创建",
+      "canonical_evidence": "包含编码代理和审计代理的框架用于环境创建",
+      "llm_tldr_en": "Introduces a framework converting any software into agent environments using multi-agent setup with coding and audit agents.",
+      "llm_tldr_cn": "引入框架将任意软件转换为智能体环境，使用编码代理和审计代理的多代理设置。",
+      "llm_tldr": "引入框架将任意软件转换为智能体环境，使用编码代理和审计代理的多代理设置。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06376v1",
+      "title": "MTA-Agent: An Open Recipe for Multimodal Deep Search Agents",
+      "abstract": "Multimodal large language models (MLLMs) have demonstrated strong capabilities in visual understanding, yet they remain limited in complex, multi-step reasoning that requires deep searching and integrating visual evidence with external knowledge. In this work, we address this challenge by constructing high-quality, verified multi-hop vision-language training data for multimodal deep-search agents. We propose a Multi-hop Tool-Augmented Agent for Evidence-based QA Synthesis (MTA-Agent), which automatically selects tools and their parameters to retrieve and validate evidence from both visual and textual sources and generates structured multi-hop question-answer trajectories. Starting from diverse VQA seed datasets, our pipeline produces a large-scale training dataset, MTA-Vision-DeepSearch, containing 21K high-quality multi-hop examples. The data is filtered through a multi-stage verification process to ensure factual consistency and answer uniqueness. Using MTA-Vision-DeepSearch, a 32B open-source multimodal search agent achieves state-of-the-art performance, reaching an average of 54.63\\% across six challenging benchmarks, outperforming GPT-5 (51.86\\%), Gemini-2.5-Pro (50.98\\%), and Gemini-3-Pro (54.46\\%) under the same tool settings. We further show that training on our data improves both reasoning depth and tool-use behavior, increasing the average number of steps from 2.27 to 4.28, and leading to more systematic and persistent search strategies. Additionally, we demonstrate that training can be performed without real-time tool calls by replaying cached interactions, significantly reducing training cost. Importantly, we present MTA-Agent as a fully open recipe for multimodal deep search: we release the entire dataset, training trajectories, and implementation details to enable reproducibility and future research on open multimodal search agents.",
+      "authors": [
+        "Xiangyu Peng",
+        "Can Qin",
+        "An Yan",
+        "Xinyi Yang",
+        "Zeyuan Chen",
+        "Ran Xu",
+        "Chien-Sheng Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-07T19:01:45+00:00",
+      "link": "https://arxiv.org/pdf/2604.06376v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multimodal deep search agents with tool augmentation",
+      "llm_evidence_cn": "工具增强的多模态深度搜索智能体",
+      "llm_evidence": "工具增强的多模态深度搜索智能体",
+      "canonical_evidence": "工具增强的多模态深度搜索智能体",
+      "llm_tldr_en": "Proposes tool-augmented multimodal search agents for evidence-based multi-hop QA.",
+      "llm_tldr_cn": "提出工具增强的多模态搜索智能体，用于多跳问答。",
+      "llm_tldr": "提出工具增强的多模态搜索智能体，用于多跳问答。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07146v1",
+      "title": "Learning to Search: A Decision-Based Agent for Knowledge-Based Visual Question Answering",
+      "abstract": "Knowledge-based visual question answering (KB-VQA) requires vision-language models to understand images and use external knowledge, especially for rare entities and long-tail facts. Most existing retrieval-augmented generation (RAG) methods adopt a fixed pipeline that sequentially retrieves information, filters it, and then produces an answer. Such a design makes it difficult to adapt to diverse question types. Moreover, it separates retrieval from reasoning, making it hard for the model to decide when to search, how to refine queries, or when to stop. As a result, the retrieved evidence is often poorly aligned with the question. To address these limitations, we reformulate KB-VQA as a search-agent problem and model the solving process as a multi-step decision-making procedure. At each step, the agent selects one of four actions-Answer, Image Retrieval, Text Retrieval, and Caption-based on its current information state. We further design an automated pipeline to collect multi-step trajectories that record the agent's reasoning process, tool usage, and intermediate decisions. These trajectories are then used as supervision for fine-tuning. Experiments on InfoSeek and E-VQA demonstrate that our method achieves state-of-the-art performance, consistently outperforming prior baselines and confirming the effectiveness of our framework.",
+      "authors": [
+        "Zhuohong Chen",
+        "Zhenxian Wu",
+        "Yunyao Yu",
+        "Hangrui Xu",
+        "Zirui Liao",
+        "Zhifang Liu",
+        "Xiangwen Deng",
+        "Pen Jiao",
+        "Haoqian Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-08T14:37:35+00:00",
+      "link": "https://arxiv.org/pdf/2604.07146v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Decision-based search agent for knowledge-based VQA",
+      "llm_evidence_cn": "用于知识型视觉问答的决策式搜索智能体",
+      "llm_evidence": "用于知识型视觉问答的决策式搜索智能体",
+      "canonical_evidence": "用于知识型视觉问答的决策式搜索智能体",
+      "llm_tldr_en": "Reformulates KB-VQA as a search-agent problem with adaptive retrieval and reasoning.",
+      "llm_tldr_cn": "将知识型视觉问答重构为搜索智能体问题，实现自适应检索与推理。",
+      "llm_tldr": "将知识型视觉问答重构为搜索智能体问题，实现自适应检索与推理。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07341v1",
+      "title": "ReCodeAgent: A Multi-Agent Workflow for Language-agnostic Translation and Validation of Large-scale Repositories",
+      "abstract": "Most repository-level code translation and validation techniques have been evaluated on a single source-target programming language (PL) pair, owing to the complex engineering effort required to adapt new PL pairs. Programming agents can enable PL-agnosticism in repository-level code translation and validation: they can synthesize code across many PLs and autonomously use existing tools specific to each PL's analysis. However, state-of-the-art has yet to offer a fully autonomous agentic approach for repository-level code translation and validation of large-scale programs. This paper proposes ReCodeAgent, an autonomous multi-agent approach for language-agnostic repository-level code translation and validation. Users only need to provide the project in the source PL and specify the target PL for ReCodeAgent to automatically translate and validate the entire repository. ReCodeAgent is the first technique to achieve high translation success rates across many PLs.   We compare the effectiveness of ReCodeAgent with four alternative neuro-symbolic and agentic approaches to translate 118 real-world projects, with 1,975 LoC and 43 translation units for each project, on average. The projects cover 6 PLs (C, Go, Java, JavaScript, Python, and Rust) and 4 PL pairs (C-Rust, Go-Rust, Java-Python, Python-JavaScript). Our results demonstrate that ReCodeAgent consistently outperforms prior techniques on translation correctness, improving test pass rate by 60.8% on ground-truth tests, with an average cost of $15.3. We also perform process-centric analysis of ReCodeAgent trajectories to confirm its procedural efficiency. Finally, we investigate how the design choices (a multi-agent vs. single-agent architecture) influence ReCodeAgent performance: on average, the test pass rate drops by 40.4%, and trajectories become 28% longer and persistently inefficient.",
+      "authors": [
+        "Ali Reza Ibrahimzada",
+        "Brandon Paulsen",
+        "Daniel Kroening",
+        "Reyhaneh Jabbarvand"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-04-08T17:54:08+00:00",
+      "link": "https://arxiv.org/pdf/2604.07341v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent workflow for autonomous repository-level code translation",
+      "llm_evidence_cn": "用于自主仓库级代码翻译的多智能体工作流",
+      "llm_evidence": "用于自主仓库级代码翻译的多智能体工作流",
+      "canonical_evidence": "用于自主仓库级代码翻译的多智能体工作流",
+      "llm_tldr_en": "Proposes ReCodeAgent, an autonomous multi-agent system for language-agnostic code translation and validation.",
+      "llm_tldr_cn": "提出ReCodeAgent，用于语言无关代码翻译验证的自主多智能体系统。",
+      "llm_tldr": "提出ReCodeAgent，用于语言无关代码翻译验证的自主多智能体系统。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.03908v1",
+      "title": "Reimagining RAN Automation in 6G: An Agentic AI Framework with Hierarchical Online Decision Transformer",
+      "abstract": "In this paper, we propose an Agentic Artificial Intelligence (AI) framework for wireless networks. The framework coordinates a pool of AI agents guided by Natural Language (NL) inputs from a human operator. At its core, the super agent is powered by a Hierarchical Online Decision Transformer (H-ODT). It orchestrates three categories of agents: (i) inter-slice, intra-slice resource allocation agents, (ii) network application orchestration agents, and (iii) self-healing agents. The orchestration takes place with the help of an Agentic Retrieval-Augmented Generation (RAG) module that integrates knowledge from heterogeneous sources. In this proposed methodology, the super agent directly interfaces with operators and generates sequential policies to activate relevant agents. The proposed framework is evaluated against three state-of-the-art baselines, showing improved throughput, reduced network delay, and higher energy efficiency at both slice-level and system-wide performance metrics. Also, the proposed Agentic framework introduces a bi-level human operator intent validation methodology, both at the slice-level and Key Performance Indicator (KPI)-level using generative AI-based time series predictors. We could rule out performance-degrading operator intents with an accuracy of 88.5%. Lastly, while being interrupted by any performance-degrading events, the self-healing capability of Agentic AI in our framework automatically recovers 90% of its previous performance, avoiding quality-of-service drifts when there is no human involvement.",
+      "authors": [
+        "Md Arafat Habib",
+        "Medhat Elsayed",
+        "Majid Bavand",
+        "Pedro Enrique Iturria Rivera",
+        "Yigit Ozcan",
+        "Melike Erol-Kantarci"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-04-05T00:32:55+00:00",
+      "link": "https://arxiv.org/pdf/2604.03908v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Agentic AI Framework coordinating pool of AI agents with super agent orchestration",
+      "llm_evidence_cn": "智能体AI框架协调多个AI代理池并由超级代理编排",
+      "llm_evidence": "智能体AI框架协调多个AI代理池并由超级代理编排",
+      "canonical_evidence": "智能体AI框架协调多个AI代理池并由超级代理编排",
+      "llm_tldr_en": "Proposes an Agentic AI framework for 6G networks with hierarchical agents for resource allocation and self-healing.",
+      "llm_tldr_cn": "提出用于6G网络的智能体AI框架，包含分层代理进行资源分配和自愈。",
+      "llm_tldr": "提出用于6G网络的智能体AI框架，包含分层代理进行资源分配和自愈。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06296v1",
+      "title": "AgentOpt v0.1 Technical Report: Client-Side Optimization for LLM-Based Agent",
+      "abstract": "AI agents are increasingly deployed in real-world applications, including systems such as Manus, OpenClaw, and coding agents. Existing research has primarily focused on \\emph{server-side} efficiency, proposing methods such as caching, speculative execution, traffic scheduling, and load balancing to reduce the cost of serving agentic workloads. However, as users increasingly construct agents by composing local tools, remote APIs, and diverse models, an equally important optimization problem arises on the client side. Client-side optimization asks how developers should allocate the resources available to them, including model choice, local tools, and API budget across pipeline stages, subject to application-specific quality, cost, and latency constraints. Because these objectives depend on the task and deployment setting, they cannot be determined by server-side systems alone. We introduce AgentOpt, the first framework-agnostic Python package for client-side agent optimization. We first study model selection, a high-impact optimization lever in multi-step agent pipelines. Given a pipeline and a small evaluation set, the goal is to find the most cost-effective assignment of models to pipeline roles. This problem is consequential in practice: at matched accuracy, the cost gap between the best and worst model combinations can reach 13--32$\\times$ in our experiments. To efficiently explore the exponentially growing combination space, AgentOpt implements eight search algorithms, including Arm Elimination, Epsilon-LUCB, Threshold Successive Elimination, and Bayesian Optimization. Across four benchmarks, Arm Elimination recovers near-optimal accuracy while reducing evaluation budget by 24--67\\% relative to brute-force search on three of four tasks. Code and benchmark results available at https://agentoptimizer.github.io/agentopt/.",
+      "authors": [
+        "Wenyue Hua",
+        "Sripad Karne",
+        "Qian Xie",
+        "Armaan Agrawal",
+        "Nikos Pagonas",
+        "Kostis Kaffes",
+        "Tianyi Peng"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.MA",
+        "cs.SE"
+      ],
+      "published": "2026-04-07T17:13:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.06296v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Optimization framework for LLM-based agents including coding agents",
+      "llm_evidence_cn": "LLM智能体优化框架含代码智能体",
+      "llm_evidence": "LLM智能体优化框架含代码智能体",
+      "canonical_evidence": "LLM智能体优化框架含代码智能体",
+      "llm_tldr_en": "Client-side optimization framework for resource allocation in LLM-based agent pipelines.",
+      "llm_tldr_cn": "LLM智能体流水线资源分配的客户端优化框架。",
+      "llm_tldr": "LLM智能体流水线资源分配的客户端优化框架。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.05498v1",
+      "title": "JailWAM: Jailbreaking World Action Models in Robot Control",
+      "abstract": "The World Action Model (WAM) can jointly predict future world states and actions, exhibiting stronger physical manipulation capabilities compared with traditional models. Such powerful physical interaction ability is a double-edged sword: if safety is ignored, it will directly threaten personal safety, property security and environmental safety. However, existing research pays extremely limited attention to the critical security gap: the vulnerability of WAM to jailbreak attacks. To fill this gap, we define the Three-Level Safety Classification Framework to systematically quantify the safety of robotic arm motions. Furthermore, we propose JailWAM, the first dedicated jailbreak attack and evaluation framework for WAM, which consists of three core components: (1) Visual-Trajectory Mapping, which unifies heterogeneous action spaces into visual trajectory representations and enables cross-architectural unified evaluation; (2) Risk Discriminator, which serves as a high-recall screening tool that optimizes the efficiency-accuracy trade-off when identifying destructive behaviors in visual trajectories; (3) Dual-Path Verification Strategy, which first conducts rapid coarse screening via a single-image-based video-action generation module, and then performs efficient and comprehensive verification through full closed-loop physical simulation. In addition, we construct JailWAM-Bench, a benchmark for comprehensively evaluating the safety alignment performance of WAM under jailbreak attacks. Experiments in RoboTwin simulation environment demonstrate that the proposed framework efficiently exposes physical vulnerabilities, achieving an 84.2% attack success rate on the state-of-the-art LingBot-VA. Meanwhile, robust defense mechanisms can be constructed based on JailWAM, providing an effective technical solution for designing safe and reliable robot control systems.",
+      "authors": [
+        "Hanqing Liu",
+        "Songping Wang",
+        "Jiahuan Long",
+        "Jiacheng Hou",
+        "Jialiang Sun",
+        "Chao Li",
+        "Yang Yang",
+        "Wei Peng",
+        "Xu Liu",
+        "Tingsong Jiang",
+        "Wen Yao",
+        "Yao Mu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-04-07T06:41:41+00:00",
+      "link": "https://arxiv.org/pdf/2604.05498v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "World Action Model for robot control with safety framework",
+      "llm_evidence_cn": "用于机器人控制的世界动作模型及安全框架",
+      "llm_evidence": "用于机器人控制的世界动作模型及安全框架",
+      "canonical_evidence": "用于机器人控制的世界动作模型及安全框架",
+      "llm_tldr_en": "First jailbreak attack framework for World Action Models, revealing security vulnerabilities in robot control systems.",
+      "llm_tldr_cn": "首个针对世界动作模型的越狱攻击框架，揭示机器人控制系统的安全漏洞。",
+      "llm_tldr": "首个针对世界动作模型的越狱攻击框架，揭示机器人控制系统的安全漏洞。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.02444v1",
+      "title": "OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data",
+      "abstract": "While recent advances in large language models have significantly improved Text-to-SQL and table question answering systems, most existing approaches assume that all query-relevant information is explicitly represented in structured schemas. In practice, many enterprise databases contain hybrid schemas where structured attributes coexist with free-form textual fields, requiring systems to reason over both types of information. To address this challenge, we introduce OmniTQA, a cost-aware hybrid query processing framework that operates over both structured and semi-structured data. OmniTQA treats semantic reasoning as a first-class query operator, seamlessly integrating LLM-based semantic operations with classical relational operators into an executable directed acyclic graph. To manage the high latency and cost of LLM inference, it extends classical query optimization with data-aware planning, combining atomic query decomposition and operator reordering to minimize semantic workload. The framework also features a dual-engine execution architecture that dynamically routes tasks between a relational database and an LLM module, using operator-aware batching to scale efficiently. Extensive experiments across a diverse suite of structured and semi-structured table question answering benchmarks demonstrate that OmniTQA consistently outperforms existing symbolic, semantic, and hybrid baselines in both accuracy and cost efficiency. These gains are particularly pronounced for complex queries, large tables and multi-relation schemas.",
+      "authors": [
+        "Nima Shahbazi",
+        "Seiji Maekawa",
+        "Nikita Bhutani",
+        "Estevam Hruschka"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-04-02T18:16:11+00:00",
+      "link": "https://arxiv.org/pdf/2604.02444v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Cost-aware hybrid query processing framework",
+      "llm_evidence_cn": "成本感知的混合查询处理框架",
+      "llm_evidence": "成本感知的混合查询处理框架",
+      "canonical_evidence": "成本感知的混合查询处理框架",
+      "llm_tldr_en": "OmniTQA integrates LLM-based semantic operations with relational operators for hybrid queries.",
+      "llm_tldr_cn": "OmniTQA将LLM语义操作与关系算子集成用于混合查询处理。",
+      "llm_tldr": "OmniTQA将LLM语义操作与关系算子集成用于混合查询处理。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Framework",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.03455v1",
+      "title": "Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench",
+      "abstract": "Retrieval-Augmented Generation pipelines span a wide range of retrieval strategies that differ substantially in token cost and capability. Selecting the right strategy per query is a practical efficiency problem, yet no routing classifiers have been trained on RAGRouter-Bench \\citep{wang2026ragrouterbench}, a recently released benchmark of $7,727$ queries spanning four knowledge domains, each annotated with one of three canonical query types: factual, reasoning, and summarization. We present the first systematic evaluation of lightweight classifier-based routing on this benchmark. Five classical classifiers are evaluated under three feature regimes, namely, TF-IDF, MiniLM sentence embeddings \\citep{reimers2019sbert}, and hand-crafted structural features, yielding 15 classifier feature combinations. Our best configuration, TF-IDF with an SVM, achieves a macro-averaged F1 of $\\mathbf{0.928}$ and an accuracy of $\\mathbf{93.2\\%}$, while simulating $\\mathbf{28.1\\%}$ token savings relative to always using the most expensive paradigm. Lexical TF-IDF features outperform semantic sentence embeddings by $3.1$ macro-F1 points, suggesting that surface keyword patterns are strong predictors of query-type complexity. Domain-level analysis reveals that medical queries are hardest to route and legal queries most tractable. These results establish a reproducible query-side baseline and highlight the gap that corpus-aware routing must close.",
+      "authors": [
+        "Prakhar Bansal",
+        "Shivangi Agarwal"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-04-03T20:58:00+00:00",
+      "link": "https://arxiv.org/pdf/2604.03455v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Query routing for RAG pipelines with classifier-based strategy selection",
+      "llm_evidence_cn": "RAG管道的查询路由与分类器策略选择",
+      "llm_evidence": "RAG管道的查询路由与分类器策略选择",
+      "canonical_evidence": "RAG管道的查询路由与分类器策略选择",
+      "llm_tldr_en": "Proposes lightweight classifiers for routing queries to appropriate RAG retrieval strategies.",
+      "llm_tldr_cn": "提出轻量级分类器用于查询路由到合适的RAG检索策略",
+      "llm_tldr": "提出轻量级分类器用于查询路由到合适的RAG检索策略",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.06168v1",
+      "title": "Action Images: End-to-End Policy Learning via Multiview Video Generation",
+      "abstract": "World action models (WAMs) have emerged as a promising direction for robot policy learning, as they can leverage powerful video backbones to model the future states. However, existing approaches often rely on separate action modules, or use action representations that are not pixel-grounded, making it difficult to fully exploit the pretrained knowledge of video models and limiting transfer across viewpoints and environments. In this work, we present Action Images, a unified world action model that formulates policy learning as multiview video generation. Instead of encoding control as low-dimensional tokens, we translate 7-DoF robot actions into interpretable action images: multi-view action videos that are grounded in 2D pixels and explicitly track robot-arm motion. This pixel-grounded action representation allows the video backbone itself to act as a zero-shot policy, without a separate policy head or action module. Beyond control, the same unified model supports video-action joint generation, action-conditioned video generation, and action labeling under a shared representation. On RLBench and real-world evaluations, our model achieves the strongest zero-shot success rates and improves video-action joint generation quality over prior video-space world models, suggesting that interpretable action images are a promising route to policy learning.",
+      "authors": [
+        "Haoyu Zhen",
+        "Zixian Gao",
+        "Qiao Sun",
+        "Yilin Zhao",
+        "Yuncong Yang",
+        "Yilun Du",
+        "Tsun-Hsuan Wang",
+        "Yi-Ling Qiao",
+        "Chuang Gan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-04-07T17:59:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.06168v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "world action models for robot policy",
+      "llm_evidence_cn": "世界动作模型用于机器人策略",
+      "llm_evidence": "世界动作模型用于机器人策略",
+      "canonical_evidence": "世界动作模型用于机器人策略",
+      "llm_tldr_en": "Proposes Action Images, a unified world action model formulating policy learning as multiview video generation.",
+      "llm_tldr_cn": "提出Action Images，将策略学习建模为多视角视频生成的统一世界动作模型。",
+      "llm_tldr": "提出Action Images，将策略学习建模为多视角视频生成的统一世界动作模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.03676v1",
+      "title": "Are LLM-Based Retrievers Worth Their Cost? An Empirical Study of Efficiency, Robustness, and Reasoning Overhead",
+      "abstract": "Large language model retrievers improve performance on complex queries, but their practical value depends on efficiency, robustness, and reliable confidence signals in addition to accuracy. We reproduce a reasoning-intensive retrieval benchmark (BRIGHT) across 12 tasks and 14 retrievers, and extend evaluation with cold-start indexing cost, query latency distributions and throughput, corpus scaling, robustness to controlled query perturbations, and confidence use (AUROC) for predicting query success. We also quantify \\emph{reasoning overhead} by comparing standard queries to five provided reasoning-augmented variants, measuring accuracy gains relative to added latency. We find that some reasoning-specialized retrievers achieve strong effectiveness while remaining competitive in throughput, whereas several large LLM-based bi-encoders incur substantial latency for modest gains. Reasoning augmentation incurs minimal latency for sub-1B encoders but exhibits diminishing returns for top retrievers and may reduce performance on formal math/code domains. Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration. We release all code and artifacts for reproducibility.",
+      "authors": [
+        "Abdelrahman Abdallah",
+        "Jamie Holdcroft",
+        "Mohammed Ali",
+        "Adam Jatowt"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-04T10:24:19+00:00",
+      "link": "https://arxiv.org/pdf/2604.03676v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Empirical study of LLM-based retrieval systems",
+      "llm_evidence_cn": "LLM检索系统的实证研究",
+      "llm_evidence": "LLM检索系统的实证研究",
+      "canonical_evidence": "LLM检索系统的实证研究",
+      "llm_tldr_en": "Comprehensive evaluation of LLM retrievers on efficiency, robustness and reasoning overhead.",
+      "llm_tldr_cn": "全面评估LLM检索器的效率、鲁棒性和推理开销。",
+      "llm_tldr": "全面评估LLM检索器的效率、鲁棒性和推理开销。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.04634v1",
+      "title": "Preserving Forgery Artifacts: AI-Generated Video Detection at Native Scale",
+      "abstract": "The rapid advancement of video generation models has enabled the creation of highly realistic synthetic media, raising significant societal concerns regarding the spread of misinformation. However, current detection methods suffer from critical limitations. They rely on preprocessing operations like fixed-resolution resizing and cropping. These operations not only discard subtle, high-frequency forgery traces but also cause spatial distortion and significant information loss. Furthermore, existing methods are often trained and evaluated on outdated datasets that fail to capture the sophistication of modern generative models. To address these challenges, we introduce a comprehensive dataset and a novel detection framework. First, we curate a large-scale dataset of over 140K videos from 15 state-of-the-art open-source and commercial generators, along with Magic Videos benchmark designed specifically for evaluating ultra-realistic synthetic content. In addition, we propose a novel detection framework built on the Qwen2.5-VL Vision Transformer, which operates natively at variable spatial resolutions and temporal durations. This native-scale approach effectively preserves the high-frequency artifacts and spatiotemporal inconsistencies typically lost during conventional preprocessing. Extensive experiments demonstrate that our method achieves superior performance across multiple benchmarks, underscoring the critical importance of native-scale processing and establishing a robust new baseline for AI-generated video detection.",
+      "authors": [
+        "Zhengcen Li",
+        "Chenyang Jiang",
+        "Hang Zhao",
+        "Shiyang Zhou",
+        "Yunyang Mo",
+        "Feng Gao",
+        "Fan Yang",
+        "Qiben Shan",
+        "Shaocong Wu",
+        "Jingyong Su"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-04-06T12:36:08+00:00",
+      "link": "https://arxiv.org/pdf/2604.04634v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Comprehensive dataset for AI-generated video detection",
+      "llm_evidence_cn": "用于AI生成视频检测的综合数据集",
+      "llm_evidence": "用于AI生成视频检测的综合数据集",
+      "canonical_evidence": "用于AI生成视频检测的综合数据集",
+      "llm_tldr_en": "Introduces dataset and framework for detecting AI-generated videos at native scale.",
+      "llm_tldr_cn": "引入数据集和框架用于原生尺度的AI生成视频检测。",
+      "llm_tldr": "引入数据集和框架用于原生尺度的AI生成视频检测。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.06811v1",
+      "title": "SkillTrojan: Backdoor Attacks on Skill-Based Agent Systems",
+      "abstract": "Skill-based agent systems tackle complex tasks by composing reusable skills, improving modularity and scalability while introducing a largely unexamined security attack surface. We propose SkillTrojan, a backdoor attack that targets skill implementations rather than model parameters or training data. SkillTrojan embeds malicious logic inside otherwise plausible skills and leverages standard skill composition to reconstruct and execute an attacker-specified payload. The attack partitions an encrypted payload across multiple benign-looking skill invocations and activates only under a predefined trigger. SkillTrojan also supports automated synthesis of backdoored skills from arbitrary skill templates, enabling scalable propagation across skill-based agent ecosystems. To enable systematic evaluation, we release a dataset of 3,000+ curated backdoored skills spanning diverse skill patterns and trigger-payload configurations. We instantiate SkillTrojan in a representative code-based agent setting and evaluate both clean-task utility and attack success rate. Our results show that skill-level backdoors can be highly effective with minimal degradation of benign behavior, exposing a critical blind spot in current skill-based agent architectures and motivating defenses that explicitly reason about skill composition and execution. Concretely, on EHR SQL, SkillTrojan attains up to 97.2% ASR while maintaining 89.3% clean ACC on GPT-5.2-1211-Global.",
+      "authors": [
+        "Yunhao Feng",
+        "Yifan Ding",
+        "Yingshui Tan",
+        "Boren Zheng",
+        "Yanming Guo",
+        "Xiaolong Li",
+        "Kun Zhai",
+        "Yishan Li",
+        "Wenke Huang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-04-08T08:24:48+00:00",
+      "link": "https://arxiv.org/pdf/2604.06811v1",
+      "tags": [
+        "keyword:Agent"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "skill-based agent systems with reusable skill composition",
+      "llm_evidence_cn": "基于技能的智能体系统，支持技能组合",
+      "llm_evidence": "基于技能的智能体系统，支持技能组合",
+      "canonical_evidence": "基于技能的智能体系统，支持技能组合",
+      "llm_tldr_en": "Proposes backdoor attacks on skill-based agent systems by embedding malicious logic in reusable skills.",
+      "llm_tldr_cn": "提出针对技能型智能体系统的后门攻击，通过在技能中嵌入恶意逻辑实现。",
+      "llm_tldr": "提出针对技能型智能体系统的后门攻击，通过在技能中嵌入恶意逻辑实现。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.04359v1",
+      "title": "GROUNDEDKG-RAG: Grounded Knowledge Graph Index for Long-document Question Answering",
+      "abstract": "Retrieval-augmented generation (RAG) systems have been widely adopted in contemporary large language models (LLMs) due to their ability to improve generation quality while reducing the required input context length. In this work, we focus on RAG systems for long-document question answering. Current approaches suffer from a heavy reliance on LLM descriptions resulting in high resource consumption and latency, repetitive content across hierarchical levels, and hallucinations due to no or limited grounding in the source text. To improve both efficiency and factual accuracy through grounding, we propose GroundedKG-RAG, a RAG system in which the knowledge graph is explicitly extracted from and grounded in the source document. Specifically, we define nodes in GroundedKG as entities and actions, and edges as temporal or semantic relations, with each node and edge grounded in the original sentences. We construct GroundedKG from semantic role labeling (SRL) and abstract meaning representation (AMR) parses and then embed it for retrieval. During querying, we apply the same transformation to the query and retrieve the most relevant sentences from the grounded source text for question answering. We evaluate GroundedKG-RAG on examples from the NarrativeQA dataset and find that it performs on par with a state-of-the art proprietary long-context model at smaller cost and outperforms a competitive baseline. Additionally, our GroundedKG is interpretable and readable by humans, facilitating auditing of results and error analysis.",
+      "authors": [
+        "Tianyi Zhang",
+        "Andreas Marfurt"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-04-06T02:12:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.04359v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "RAG system for long-document question answering",
+      "llm_evidence_cn": "用于长文档问答的RAG系统",
+      "llm_evidence": "用于长文档问答的RAG系统",
+      "canonical_evidence": "用于长文档问答的RAG系统",
+      "llm_tldr_en": "GroundedKG-RAG uses grounded knowledge graphs for efficient long-document QA retrieval.",
+      "llm_tldr_cn": "GroundedKG-RAG使用接地知识图谱进行高效的长文档问答检索。",
+      "llm_tldr": "GroundedKG-RAG使用接地知识图谱进行高效的长文档问答检索。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Search Agent",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.06138v1",
+      "title": "Generating Synthetic Doctor-Patient Conversations for Long-form Audio Summarization",
+      "abstract": "Long-context audio reasoning is underserved in both training data and evaluation. Existing benchmarks target short-context tasks, and the open-ended generation tasks most relevant to long-context reasoning pose well-known challenges for automatic evaluation. We propose a synthetic data generation pipeline designed to serve both as a training resource and as a controlled evaluation environment, and instantiate it for first-visit doctor-patient conversations with SOAP note generation as the task. The pipeline has three stages, persona-driven dialogue generation, multi-speaker audio synthesis with overlap/pause modeling, room acoustics, and sound events, and LLM-based reference SOAP note production, built entirely on open-weight models. We release 8,800 synthetic conversations with 1.3k hours of corresponding audio and reference notes. Evaluating current open-weight systems, we find that cascaded approaches still substantially outperform end-to-end models.",
+      "authors": [
+        "Yanis Labrak",
+        "David Grünert",
+        "Séverin Baroudi",
+        "Jiyun Chun",
+        "Pawel Cyrta",
+        "Sergio Burdisso",
+        "Ahmed Hassoon",
+        "David Liu",
+        "Adam Rothschild",
+        "Reed Van Deusen",
+        "Petr Motlicek",
+        "Andrew Perrault",
+        "Ricard Marxer",
+        "Thomas Schaaf"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI"
+      ],
+      "published": "2026-04-07T17:45:07+00:00",
+      "link": "https://arxiv.org/pdf/2604.06138v1",
+      "tags": [
+        "keyword:WMODEL",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Synthetic data generation pipeline for training and evaluation",
+      "llm_evidence_cn": "用于训练和评估的合成数据生成管道",
+      "llm_evidence": "用于训练和评估的合成数据生成管道",
+      "canonical_evidence": "用于训练和评估的合成数据生成管道",
+      "llm_tldr_en": "Proposes synthetic data pipeline for doctor-patient conversations to support long-form audio summarization.",
+      "llm_tldr_cn": "提出用于医患对话的合成数据管道以支持长音频摘要。",
+      "llm_tldr": "提出用于医患对话的合成数据管道以支持长音频摘要。",
+      "llm_tags": [
+        "query:wmodel"
+      ],
+      "matched_query_tag": "query:wmodel",
+      "matched_query_text": "Datasets",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.07209v1",
+      "title": "INSPATIO-WORLD: A Real-Time 4D World Simulator via Spatiotemporal Autoregressive Modeling",
+      "abstract": "Building world models with spatial consistency and real-time interactivity remains a fundamental challenge in computer vision. Current video generation paradigms often struggle with a lack of spatial persistence and insufficient visual realism, making it difficult to support seamless navigation in complex environments. To address these challenges, we propose INSPATIO-WORLD, a novel real-time framework capable of recovering and generating high-fidelity, dynamic interactive scenes from a single reference video. At the core of our approach is a Spatiotemporal Autoregressive (STAR) architecture, which enables consistent and controllable scene evolution through two tightly coupled components: Implicit Spatiotemporal Cache aggregates reference and historical observations into a latent world representation, ensuring global consistency during long-horizon navigation; Explicit Spatial Constraint Module enforces geometric structure and translates user interactions into precise and physically plausible camera trajectories. Furthermore, we introduce Joint Distribution Matching Distillation (JDMD). By using real-world data distributions as a regularizing guide, JDMD effectively overcomes the fidelity degradation typically caused by over-reliance on synthetic data. Extensive experiments demonstrate that INSPATIO-WORLD significantly outperforms existing state-of-the-art (SOTA) models in spatial consistency and interaction precision, ranking first among real-time interactive methods on the WorldScore-Dynamic benchmark, and establishing a practical pipeline for navigating 4D environments reconstructed from monocular videos.",
+      "authors": [
+        "InSpatio Team",
+        "Donghui Shen",
+        "Guofeng Zhang",
+        "Haomin Liu",
+        "Haoyu Ji",
+        "Hujun Bao",
+        "Hongjia Zhai",
+        "Jialin Liu",
+        "Jing Guo",
+        "Nan Wang",
+        "Siji Pan",
+        "Weihong Pan",
+        "Weijian Xie",
+        "Xianbin Liu",
+        "Xiaojun Xiang",
+        "Xiaoyu Zhang",
+        "Xinyu Chen",
+        "Yifu Wang",
+        "Yipeng Chen",
+        "Zhenzhou Fan",
+        "Zhewen Le",
+        "Zhichao Ye",
+        "Ziqiang Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-08T15:31:22+00:00",
+      "link": "https://arxiv.org/pdf/2604.07209v1",
+      "tags": [
+        "keyword:WMODEL"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Real-time 4D world simulator with spatiotemporal modeling",
+      "llm_evidence_cn": "基于时空建模的实时4D世界模拟器",
+      "llm_evidence": "基于时空建模的实时4D世界模拟器",
+      "canonical_evidence": "基于时空建模的实时4D世界模拟器",
+      "llm_tldr_en": "Proposes INSPATIO-WORLD framework for building spatially consistent world models with real-time interactivity.",
+      "llm_tldr_cn": "提出INSPATIO-WORLD框架，构建具有空间一致性和实时交互性的世界模型。",
+      "llm_tldr": "提出INSPATIO-WORLD框架，构建具有空间一致性和实时交互性的世界模型。",
+      "llm_tags": [
+        "query:wmodel:composite"
+      ],
+      "matched_query_tag": "query:wmodel:composite",
+      "matched_query_text": "Papers central to 世界模型, especially work that connects or combines: V; q; Framework; Datasets.",
+      "matched_requirement_id": "req-composite-wmodel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.05818v1",
+      "title": "WikiSeeker: Rethinking the Role of Vision-Language Models in Knowledge-Based Visual Question Answering",
+      "abstract": "Multi-modal Retrieval-Augmented Generation (RAG) has emerged as a highly effective paradigm for Knowledge-Based Visual Question Answering (KB-VQA). Despite recent advancements, prevailing methods still primarily depend on images as the retrieval key, and often overlook or misplace the role of Vision-Language Models (VLMs), thereby failing to leverage their potential fully. In this paper, we introduce WikiSeeker, a novel multi-modal RAG framework that bridges these gaps by proposing a multi-modal retriever and redefining the role of VLMs. Rather than serving merely as answer generators, we assign VLMs two specialized agents: a Refiner and an Inspector. The Refiner utilizes the capability of VLMs to rewrite the textual query according to the input image, significantly improving the performance of the multimodal retriever. The Inspector facilitates a decoupled generation strategy by selectively routing reliable retrieved context to another LLM for answer generation, while relying on the VLM's internal knowledge when retrieval is unreliable. Extensive experiments on EVQA, InfoSeek, and M2KR demonstrate that WikiSeeker achieves state-of-the-art performance, with substantial improvements in both retrieval accuracy and answer quality. Our code will be released on https://github.com/zhuyjan/WikiSeeker.",
+      "authors": [
+        "Yingjian Zhu",
+        "Xinming Wang",
+        "Kun Ding",
+        "Ying Wang",
+        "Bin Fan",
+        "Shiming Xiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-04-07T12:52:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.05818v1",
+      "tags": [
+        "keyword:Agent",
+        "keyword:WMODEL",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "multi-modal RAG framework with VLM agent roles",
+      "llm_evidence_cn": "具有VLM智能体角色的多模态RAG框架",
+      "llm_evidence": "具有VLM智能体角色的多模态RAG框架",
+      "canonical_evidence": "具有VLM智能体角色的多模态RAG框架",
+      "llm_tldr_en": "Introduces WikiSeeker framework assigning VLMs specialized agent roles for knowledge-based visual QA.",
+      "llm_tldr_cn": "引入WikiSeeker框架，为VLM分配专门的智能体角色用于知识视觉问答。",
+      "llm_tldr": "引入WikiSeeker框架，为VLM分配专门的智能体角色用于知识视觉问答。",
+      "llm_tags": [
+        "query:agent:composite"
+      ],
+      "matched_query_tag": "query:agent:composite",
+      "matched_query_text": "Papers central to 智能体, especially work that connects or combines: Search Agent; Code Agent; Framework.",
+      "matched_requirement_id": "req-composite-agent",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.06241v1",
+      "title": "ZitPit: Consumer-Side Admission Control for Agentic Software Intake",
+      "abstract": "AI IDEs and coding agents compress discovery, fetch, workspace open, installation, and execution into one low-observability loop. Existing defenses such as provenance frameworks, package and repository firewalls, runtime protection, and tool-approval prompts each cover part of that path, but they often leave the final consumer-side execution decision implicit. ZitPit is a 100% open-source Rust system that argues for a stricter boundary: first-seen external artifacts should become durable policy events before they gain execution rights on protected developer or CI hosts. The current public evidence is intentionally narrow and explicit. It includes repeated Git smart-HTTP intake measurements showing that approved artifacts can remain faster than unmanaged public fetch, plus implemented protected-session and governed-egress proof families. The broader contribution is architectural rather than universal-coverage-by-assertion: ZitPit unifies artifact admission, repo-open state, capability-scoped execution, and durable policy records at the consumer execution boundary for agentic workflows.",
+      "authors": [
+        "Jepson Taylor",
+        "Chris Brousseau",
+        "Jordan Hildebrandt",
+        "Kelli Quinn"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-04-05T08:15:13+00:00",
+      "link": "https://arxiv.org/pdf/2604.06241v1",
+      "tags": [
+        "keyword:Agent",
+        "query:Agent",
+        "query:WMODEL"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Security system for coding agents and AI IDEs",
+      "llm_evidence_cn": "代码智能体和AI IDE的安全系统",
+      "llm_evidence": "代码智能体和AI IDE的安全系统",
+      "canonical_evidence": "代码智能体和AI IDE的安全系统",
+      "llm_tldr_en": "Admission control system for securing agentic software intake in development environments.",
+      "llm_tldr_cn": "保护开发环境中智能体软件摄入的准入控制系统。",
+      "llm_tldr": "保护开发环境中智能体软件摄入的准入控制系统。",
+      "llm_tags": [
+        "query:agent"
+      ],
+      "matched_query_tag": "query:agent",
+      "matched_query_text": "Code Agent",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
